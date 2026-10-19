@@ -32,15 +32,16 @@
 
   <section class="tab" id="tab-wiring" hidden>
     <header><h1>ต่อสายแผงโซลาร์</h1><p class="sub">ลากสายจากขั้ว + และ − ของแผงไปหากัน ดูว่าเป็นอนุกรมหรือขนาน และอินเวอร์เตอร์รับได้หรือไม่</p></header>
-  <div id="verdict" class="verdict" aria-live="polite"></div>
+  <div id="verdict" class="verdict fsk" aria-live="polite"></div>
 
-  <section class="bar">
+  <section class="bar fsk">
     <div class="grp"><span class="lab">ตัวอย่าง</span>
       <button class="chip" data-preset="one">เริ่มใหม่ 1 แผง</button>
       <button class="chip" data-preset="s9">อนุกรม 9 แผง</button>
       <button class="chip" data-preset="p3">ขนาน 3 แผง</button>
       <button class="chip" data-preset="m22">ผสม 2S2P</button>
       <button class="chip" data-preset="two">2 MPPT แผงละ 5</button>
+      <button class="chip" data-preset="big">18 แผง 2 MPPT (สเกลเล็ก)</button>
       <button class="chip bad" data-preset="bad">ตัวอย่างต่อผิด</button>
       <button class="chip bad" data-preset="sh">ตัวอย่างชอต</button>
     </div>
@@ -50,11 +51,14 @@
       <button class="btn" id="rotp" disabled>↻ หมุนแผง</button>
       <button class="btn" id="delp" disabled>ลบแผงที่เลือก</button>
       <button class="btn" id="clrw">ล้างสาย</button>
+      <label class="scl">สเกลแผง <input id="pscale" type="range" min="35" max="150" step="5" value="100" aria-label="ขนาดแผง"><b id="pscalev">100%</b></label>
+      <button class="btn" id="relayout" title="เรียงแผงใหม่เป็นแถวตามสเกลปัจจุบัน">จัดวางใหม่</button>
+      <button class="btn pri" id="fsbtn">เต็มจอ</button>
     </div>
   </section>
 
-  <section>
-    <div class="canvas"><svg id="svg" viewBox="0 0 760 440" role="img" aria-label="พื้นที่ต่อสายแผงโซลาร์เข้าอินเวอร์เตอร์"></svg></div>
+  <section class="fscan fsk">
+    <div class="canvas"><svg id="svg" viewBox="0 0 1200 680" role="img" aria-label="พื้นที่ต่อสายแผงโซลาร์เข้าอินเวอร์เตอร์"></svg></div>
     <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
     <div class="key">
       <span><i style="background:var(--pos)"></i>สายแดง = ขั้ว +</span>

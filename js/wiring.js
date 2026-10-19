@@ -1,7 +1,7 @@
 /* ---- ui ---- */
 const svg=document.getElementById('svg');
 const $=s=>document.querySelector(s);
-let wiring=null,moving=null,tr=9;
+let wiring=null,moving=null,tr=9,fsOn=false;
 
 const ROT=[[1,0],[0,1],[-1,0],[0,-1]];
 function termPos(k){
@@ -44,17 +44,27 @@ function wirePath(ka,a,kb,b){
 }
 
 function drawSvg(A){
-  const hit=tr*2.2,fs=Math.round(tr*1.35);
-  let s=`<defs><pattern id="cells" width="12" height="13" patternUnits="userSpaceOnUse"><path d="M12 0V13M0 13H12" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/></pattern></defs>`;
-  s+=`<text class="svgt b" x="${IX+80}" y="78" text-anchor="middle">${A.I.name}</text>`;
-  s+=`<rect class="inv" x="${IX}" y="90" width="160" height="270" rx="8"/>`;
+  const k0=.55+.45*Math.min(1,st.scale),hit=tr*2.2,fs=Math.round(tr*1.35),S=st.scale;
+  const pw=12*S,ph=13*S;
+  let s=`<defs><pattern id="cells" width="${pw}" height="${ph}" patternUnits="userSpaceOnUse"><path d="M${pw} 0V${ph}M0 ${ph}H${pw}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/></pattern></defs>`;
+  s+=`<text class="svgt b" x="${IX+80}" y="${INVY-12}" text-anchor="middle">${A.I.name}</text>`;
+  s+=`<rect class="inv" x="${IX}" y="${INVY}" width="160" height="270" rx="8"/>`;
   A.res.forEach(r=>{
-    const base=100+(r.k-1)*130,cls=r.lvl==='idle'?'':r.lvl;
+    const base=mpY(r.k),cls=r.lvl==='idle'?'':r.lvl;
     s+=`<rect class="mp ${cls}" x="${IX+8}" y="${base}" width="144" height="120" rx="6"/>`;
     s+=`<text class="svgt b" x="${IX+28}" y="${base+46}">MPPT ${r.k}</text>`;
     s+=`<text class="svgt m" x="${IX+28}" y="${base+64}">${r.short}</text>`;
     if(r.blk)s+=`<text class="svgt m mut" x="${IX+28}" y="${base+82}">Voc ${f(r.blk.voc)} V</text>`;
     s+=`<text class="svgt m mut" x="${IX+18}" y="${base+26}">DC${r.k}+</text><text class="svgt m mut" x="${IX+18}" y="${base+104}">DC${r.k}−</text>`;
+  });
+  /* panels first, wires on top of them so a wire is never hidden under a panel */
+  const fsz=Math.max(8,12*S);
+  st.panels.forEach(p=>{
+    const cx=p.x+PW/2,cy=p.y+PH/2,vert=(p.rot||0)%2===1;
+    let lab='';
+    if(S>=.45)lab=`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${S>=.7?cy-2:cy+fsz*.35}">#${p.id}</text>`+(S>=.7?`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${cy+13*S+2}">${PV.pmax} W</text>`:'');
+    s+=`<g class="panel${st.sel===p.id?' sel':''}${A.si.cyc.has(p.id)?' shorted':''}" data-panel="${p.id}"><g transform="rotate(${(p.rot||0)*90} ${cx} ${cy})"><rect class="pbody" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3"/><rect class="cells" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3" fill="url(#cells)"/></g>${lab}</g>`;
+    if(st.sel===p.id){const rx=vert?cx+PH/2+20:cx,ry=vert?cy:cy-PH/2-20;s+=`<g class="rot" data-rot="${p.id}"><circle cx="${rx}" cy="${ry}" r="13"/><text x="${rx}" y="${ry+5}">↻</text><title>หมุนแผง 90°</title></g>`}
   });
   const badges=[];
   st.wires.forEach((w,i)=>{
@@ -74,17 +84,12 @@ function drawSvg(A){
     }
     s+=`<path class="halo" d="${d}"/><path class="wire ${cls}"${sty} d="${d}"/><path class="whit" data-wire="${i}" d="${d}"><title>แตะเพื่อลบสาย</title></path>`;
   });
-  st.panels.forEach(p=>{
-    const cx=p.x+PW/2,cy=p.y+PH/2,vert=(p.rot||0)%2===1;
-    s+=`<g class="panel${st.sel===p.id?' sel':''}${A.si.cyc.has(p.id)?' shorted':''}" data-panel="${p.id}"><g transform="rotate(${(p.rot||0)*90} ${cx} ${cy})"><rect class="pbody" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3"/><rect class="cells" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3" fill="url(#cells)"/></g><text class="onp" x="${cx}" y="${cy-2}">#${p.id}</text><text class="onp" x="${cx}" y="${cy+13}">${PV.pmax} W</text></g>`;
-    if(st.sel===p.id){const rx=vert?cx+PH/2+20:cx,ry=vert?cy:cy-PH/2-20;s+=`<g class="rot" data-rot="${p.id}"><circle cx="${rx}" cy="${ry}" r="13"/><text x="${rx}" y="${ry+5}">↻</text><title>หมุนแผง 90°</title></g>`}
-  });
   allKeys().forEach(k=>{
     const t=termPos(k),ty=typeOf(k);
     const on=st.armed===k||(wiring&&wiring.cand===k);
     s+=`<g data-term="${k}"><circle class="hit" cx="${t.x}" cy="${t.y}" r="${hit}"/><circle class="term ${ty}${on?' armed':''}" cx="${t.x}" cy="${t.y}" r="${tr}"/><text class="tt" style="font-size:${fs}px" x="${t.x}" y="${t.y+fs*0.36}">${ty==='p'?'+':'−'}</text></g>`;
   });
-  A.si.inv.forEach(k=>{const base=100+(k-1)*130;badges.push([IX+124,base+56])});
+  A.si.inv.forEach(k=>{badges.push([IX+124,mpY(k)+56])});
   badges.forEach(m=>{s+=`<g class="shortbadge" transform="translate(${m[0].toFixed(1)} ${m[1].toFixed(1)})"><circle r="14"/><path d="M3,-9 L-5,2 L0,2 L-3,10 L6,-3 L1,-3 Z"/><text class="shortlbl" x="19" y="4" style="text-anchor:start">ชอต</text></g>`});
   if(wiring&&wiring.moved){
     const a=termPos(wiring.from),tgt=wiring.cand?termPos(wiring.cand):{x:wiring.x,y:wiring.y};
@@ -93,18 +98,38 @@ function drawSvg(A){
   svg.innerHTML=s;
 }
 
+/* ---- world size, scale, full screen ---- */
+function fitWorld(){
+  let h=680;
+  if(fsOn){const r=svg.parentElement.getBoundingClientRect();if(r.width>0&&r.height>0)h=Math.max(420,Math.round(W*r.height/r.width))}
+  H=h;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  st.panels.forEach(clampPanel);
+}
+function syncScaleUI(){const e=$('#pscale');if(e){e.value=Math.round(st.scale*100);$('#pscalev').textContent=Math.round(st.scale*100)+'%'}}
+function setFs(on){
+  fsOn=!!on;document.body.classList.toggle('fsmode',fsOn);
+  $('#fsbtn').textContent=fsOn?'ออกจากเต็มจอ':'เต็มจอ';
+  try{
+    if(fsOn&&document.documentElement.requestFullscreen&&!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});
+    if(!fsOn&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+  }catch(e){}
+  requestAnimationFrame(()=>{fitWorld();render()});
+}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&fsOn)setFs(false)});
+
 function checksHTML(list){
   return list.map(k=>`<li><span class="b ${k.lvl}" aria-label="${LABEL[k.lvl]}">${GLYPH[k.lvl]}</span><span>${k.t}</span></li>`).join('');
 }
 
 function render(){
-  const sc=svg.clientWidth/W||1;tr=Math.max(9,Math.min(16,8/sc));
+  const sc=svg.clientWidth/W||1;tr=Math.max(9,Math.min(16,8/sc))*(.55+.45*Math.min(1,st.scale));
   if(st.sel!=null&&!st.panels.some(p=>p.id===st.sel))st.sel=null;
   const A=analyze(),I=A.I;
   drawSvg(A);
   const msg={ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${A.cnt.warn} ข้อควรระวัง`,err:`มี ${A.cnt.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'}[A.lvl];
-  const v=$('#verdict');v.className='verdict '+A.lvl;
-  v.innerHTML=`<span class="pill ${A.lvl}">${A.lvl==='idle'?'รอต่อสาย':LABEL[A.lvl]}</span><b>${msg}</b><span class="nums">${A.used}/${st.panels.length} แผง · ${f(A.pv/1000,2)} kWp</span>`;
+  const fi=[...A.res.flatMap(r=>r.ck),...A.sys].filter(c=>c.lvl!=='ok').sort((a,b)=>RANK[a.lvl]-RANK[b.lvl])[0];
+  const v=$('#verdict');v.className='verdict fsk '+A.lvl;
+  v.innerHTML=`<span class="pill ${A.lvl}">${A.lvl==='idle'?'รอต่อสาย':LABEL[A.lvl]}</span><b>${msg}</b><span class="nums">${A.used}/${st.panels.length} แผง · ${f(A.pv/1000,2)} kWp</span>${fi?`<span class="vfirst">${fi.t}</span>`:''}`;
 
   $('#cards').innerHTML=A.res.map(r=>{
     if(r.status==='idle')return`<section class="card"><div class="chead"><h3>MPPT ${r.k}</h3><span class="pill idle">ว่าง</span></div><p class="idlehint">ยังไม่ได้ต่อสาย ลากสายจากขั้ว DC${r.k}+ และ DC${r.k}− ของอินเวอร์เตอร์ไปที่แผง</p></section>`;
@@ -122,6 +147,7 @@ function render(){
   $('#delp').disabled=st.sel==null;
   $('#rotp').disabled=st.sel==null;
   $('#addp').disabled=st.panels.length>=MAXP;
+  syncScaleUI();
   maybeSim(A);
   if(typeof touch==='function')touch();
 }
@@ -164,6 +190,7 @@ svg.addEventListener('click',e=>{
   if(w){st.wires.splice(+w.dataset.wire,1);render()}
 });
 document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&fsOn){setFs(false);return}
   if((e.key==='r'||e.key==='R')&&st.sel!=null&&curTab==='wiring'&&!/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)){rotPanel(st.sel);e.preventDefault();return}
   if((e.key==='Delete'||e.key==='Backspace')&&st.sel!=null&&curTab==='wiring'&&!/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)){delPanel();e.preventDefault()}
 });
@@ -180,5 +207,9 @@ $('#delp').addEventListener('click',delPanel);
 $('#rotp').addEventListener('click',()=>{if(st.sel!=null)rotPanel(st.sel)});
 $('#clrw').addEventListener('click',()=>{st.wires=[];st.armed=null;render()});
 ['tmin','thot'].forEach(id=>$('#'+id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(!isNaN(n)){st[id]=n;render()}}));
-window.addEventListener('resize',render);
+$('#pscale').addEventListener('input',e=>{setScale(+e.target.value/100);render()});
+$('#relayout').addEventListener('click',()=>{layoutAll();fitWorld();render()});
+$('#fsbtn').addEventListener('click',()=>setFs(!fsOn));
+window.addEventListener('resize',()=>{fitWorld();render()});
+fitWorld();
 

@@ -8,7 +8,8 @@ function setNavH(){
 }
 function showTab(t,fromHash){
   if(!TABS.includes(t))t='equip';
-  curTab=t;
+  curTab=t;document.body.dataset.tab=t;
+  if(typeof fsOn!=='undefined'&&fsOn&&t!=='wiring')setFs(false);
   TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t});
   document.querySelectorAll('.navb').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   if(!fromHash){try{history.replaceState(null,'','#'+t)}catch(e){}}
@@ -35,7 +36,7 @@ function quickSel(){
 /* ---- persistence ---- */
 function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
-    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot},
+    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
     loads:LOADS,nextLoad,bk:BK};
 }
@@ -67,6 +68,7 @@ function restoreProject(p){
   if(p.bank){BANK.s=Math.max(1,Math.min(32,fin(p.bank.s,1)|0));BANK.p=Math.max(1,Math.min(32,fin(p.bank.p,1)|0))}
   const w=p.wiring;
   if(w&&Array.isArray(w.panels)&&w.panels.length&&Array.isArray(w.wires)){
+    applyScale(fin(w.scale,1));
     st.panels=w.panels.slice(0,MAXP).map(q=>({id:fin(q.id,0)|0,x:fin(q.x,24),y:fin(q.y,34),sx:fin(q.sx,0)|0,rot:((fin(q.rot,0)|0)%4+4)%4})).filter(q=>q.id>0);
     const ids=new Set(st.panels.map(q=>q.id));
     st.wires=w.wires.filter(x=>x&&typeof x.a==='string'&&typeof x.b==='string').filter(x=>[x.a,x.b].every(k=>k[0]==='i'||ids.has(+k.split(':')[0]))).map(x=>({a:x.a,b:x.b}));

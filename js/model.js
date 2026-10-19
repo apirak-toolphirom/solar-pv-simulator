@@ -1,13 +1,24 @@
 
-const W=760,H=440,PW=96,PH=52,IX=585,MAXP=12;
-const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null};
+const W=1200,PW0=96,PH0=52,IX=1010,MAXP=40,INVY=90;
+let H=680,PW=PW0,PH=PH0;
+const mpY=k=>INVY+10+(k-1)*130;
+const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null,scale:1};
 const f=(x,d=0)=>Number(x).toFixed(d);
 const RANK={err:0,warn:1,ok:2};
 const LABEL={ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน',idle:'ว่าง'};
 const GLYPH={ok:'✓',warn:'!',err:'×'};
 
 /* ---- model ---- */
-const slot=i=>({x:24+(i%4)*136,y:34+Math.floor(i/4)*128});
+function slotGeom(){const gx=Math.max(26,46*st.scale),gy=Math.max(34,64*st.scale),cw=PW+gx,ch=PH+gy;return{cw,ch,cols:Math.max(1,Math.floor((IX-64)/cw))}}
+const slot=i=>{const g=slotGeom();return{x:24+(i%g.cols)*g.cw,y:34+Math.floor(i/g.cols)*g.ch}};
+const clampScale=s=>Math.max(.35,Math.min(1.5,+s||1));
+function applyScale(s){st.scale=clampScale(s);PW=PW0*st.scale;PH=PH0*st.scale}
+function setScale(s){
+  const c=st.panels.map(p=>[p.x+PW/2,p.y+PH/2]);
+  applyScale(s);
+  st.panels.forEach((p,i)=>{p.x=c[i][0]-PW/2;p.y=c[i][1]-PH/2;clampPanel(p)});
+}
+function layoutAll(){st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
 function addPanel(){
   if(st.panels.length>=MAXP)return null;
   let i=0;while(st.panels.some(p=>p.sx===i))i++;
@@ -29,6 +40,7 @@ const PRESETS={
   two(){resetWith(10);wireSeries([1,2,3,4,5],1);wireSeries([6,7,8,9,10],2)},
   one(){resetWith(1)},
   sh(){resetWith(3);wire('i1:n','1:n');wire('1:p','2:n');wire('2:p','i1:p');wire('3:p','3:n')},
+  big(){applyScale(.6);resetWith(18);wireSeries([1,2,3,4,5,6,7,8,9],1);wireSeries([10,11,12,13,14,15,16,17,18],2)},
   bad(){resetWith(3);wire('i1:n','1:n');wire('1:p','2:n');wire('2:p','3:p');wire('3:n','i1:p')}
 };
 
