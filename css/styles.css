@@ -281,3 +281,68 @@ body.fsmode .fscan .canvas{flex:1;min-height:0}
 body.fsmode .fscan svg{height:100%}
 body.fsmode .fscan>.hint,body.fsmode .fscan>.key{display:none}
 body.fsmode .verdict{position:static}
+
+/* ---- AC system tab, events tab, site views ---- */
+body[data-tab="ac"] .wrap,body[data-tab="events"] .wrap{max-width:1400px}
+#acsvg{display:block;width:100%;height:auto;touch-action:none;user-select:none}
+.acbox{fill:var(--invfill);stroke:var(--line);stroke-width:1.5}
+.acbox.inv{fill:var(--surface);stroke:var(--frame);stroke-width:2}
+.actitle{font:600 12.5px var(--body);fill:var(--ink)}
+.acnote{font:11.5px var(--body);fill:var(--muted)}
+.aclab{font:11px var(--mono);fill:var(--ink);pointer-events:none}
+.act{cursor:crosshair}.act.off{opacity:.3;cursor:not-allowed}
+.achit{fill:transparent}
+.acterm{fill:var(--surface);stroke-width:2.5}
+.acterm.on{fill:currentColor;fill:var(--ink)}
+.acterm.arm{stroke:var(--accent)!important;stroke-width:4}
+.act:hover .acterm{stroke-width:4}
+.acw{fill:none;stroke-width:3.2;stroke-linecap:round;pointer-events:none}
+.acw.pe{stroke:#e8d84a;stroke-dasharray:7 7}
+.acw.bad{stroke-dasharray:3 5;stroke:var(--err)!important}
+.acw.tmp{stroke:var(--accent);stroke-dasharray:4 4}
+.acw-hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
+.acset{display:flex;flex-direction:column;gap:12px}
+.acset label,.evb label,.evseason label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.acset label b,.evb label b,.evseason label b{color:var(--ink);font-family:var(--mono);font-weight:500;margin-left:6px}
+.acset input[type=number],.acset select,.evb input[type=number],.evb input[type=time],.evb select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:40px;width:100%;color:var(--ink)}
+label.chk{flex-direction:row!important;align-items:center;gap:8px!important;color:var(--ink)!important;font-size:14px!important}
+label.chk input{width:18px;height:18px}
+.acapp{margin-top:6px}
+.evgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.evb{display:flex;flex-direction:column;gap:10px}
+.evb h3{margin:0;font-size:14px}
+.evb.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.evseason{display:flex;flex-direction:column;gap:10px}
+.evseason h2{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.scene{display:flex;flex-direction:column;gap:8px}
+.scbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.scbar .seg{display:flex;gap:6px;flex-wrap:wrap}
+.sctime{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:13px;flex:1 1 220px}
+.sctime input{flex:1;min-width:100px}
+.scsvg{width:100%;height:auto;max-height:520px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.scsvg .sg{fill:none;stroke:var(--line);stroke-width:1.2}
+.scsvg .spath{fill:none;stroke:var(--s2);stroke-width:2.2;stroke-dasharray:2 5;stroke-linecap:round}
+.scsvg .sun{fill:#f5b800;stroke:#c98c00;stroke-width:2}
+.scsvg .ray{stroke:#f5b800;stroke-width:2;opacity:.8}.scsvg .ray.cut{stroke:var(--err);stroke-dasharray:5 5}
+.scsvg .arr{fill:var(--cell);stroke:var(--frame);stroke-width:1.5}
+.scsvg .dustl{fill:#a8844f}
+.scsvg .frontl{stroke:var(--accent);stroke-width:3}
+.scsvg .face{stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 3}
+.scsvg .tree{fill:#2f8a4b;stroke:#1f6a38;stroke-width:1.5;opacity:.92}
+.scsvg .trunk{fill:#7a5230}
+.scsvg .shd{fill:#000;opacity:.28}
+.scsvg .wedge{fill:#2f8a4b;opacity:.12}
+.scsvg .cld{fill:#b9c4cc;stroke:none}
+.scsvg .gnd{stroke:var(--frame);stroke-width:2}
+.scsvg .slab{stroke:var(--cell);stroke-width:9;stroke-linecap:round}.scsvg .slab.blk{stroke:#6b7c88}
+.scsvg .post{stroke:var(--frame);stroke-width:3}
+.scsvg .dustd{fill:#a8844f}
+.scsvg .angl{fill:none;stroke:var(--muted);stroke-width:1.2}
+.t tr.cur td{background:var(--accentbg)}
+.lnk{background:none;border:0;padding:0;color:var(--s1);text-decoration:underline;font:inherit;cursor:pointer;text-align:left}
+.sl{display:flex;flex-direction:column;gap:4px}
+.acapp{display:block!important}.acapp input{vertical-align:middle;margin-right:8px}
+.main,.main .wrap,.main .wrap>*{min-width:0}.main .wrap{width:100%;box-sizing:border-box}.acset .row3>*,.evb .row3>*{min-width:0}
+#acsvg,.scsvg{overflow:hidden}
+.main{overflow-x:clip}

@@ -17,21 +17,25 @@ function balance(pv,loadAll,loadCrit,cfg){
     const island=cfg.mode==='off'||outage;
     const want=island?(cfg.island==='crit'?loadCrit[i]:loadAll[i]):loadAll[i];
     let p=pv[i],ld=want,unmet=0,direct=0,toB=0,fromB=0,exp=0,imp=0,curt=0;
+    const gridUp=!island,gm=cfg.gmode||'selfuse';
+    const floorE=bat?(gridUp?Math.max(Emin,cap*(gm==='backup'?100:(cfg.reserve||0))/100):Emin):0;
+    const batIdle=gridUp&&gm==='feedin';
     if(cfg.mode==='grid'){
       if(outage){curt=p;p=0;unmet=ld;ld=0}
-      else{direct=Math.min(p,ld);exp=p-direct;imp=ld-direct}
-    }else{
+      else{direct=Math.min(p,ld);exp=p-direct;imp=ld-direct;if(cfg.expLimW!=null&&exp>cfg.expLimW){curt=exp-cfg.expLimW;exp=cfg.expLimW}}
+    }else if(outage&&cfg.noBackup){curt=p;unmet=ld;ld=0;p=0}
+    else{
       if(island&&ld>cfg.islandW){unmet+=ld-cfg.islandW;ld=cfg.islandW}
       direct=Math.min(p,ld);
       let sur=(p-direct)*dt/1000,def=(ld-direct)*dt/1000;
-      if(sur>0&&bat){
+      if(sur>0&&bat&&!batIdle){
         const c=Math.min(sur,chgMax*dt,(cap-E)/eta);
         E+=c*eta;toB=c;sur-=c;
       }
-      if(sur>1e-12){if(island)curt=sur*1000/dt;else exp=sur*1000/dt}
+      if(sur>1e-12){if(island)curt=sur*1000/dt;else{exp=sur*1000/dt;if(cfg.expLimW!=null&&exp>cfg.expLimW){curt=exp-cfg.expLimW;exp=cfg.expLimW}}}
       let fromBkWh=0;
-      if(def>0&&bat){
-        const d=Math.min(def,disMax*dt,Math.max(0,E-Emin)*eta);
+      if(def>0&&bat&&!batIdle){
+        const d=Math.min(def,disMax*dt,Math.max(0,E-floorE)*eta);
         E-=d/eta;fromBkWh=d;def-=d;
       }
       fromB=fromBkWh*1000/dt;toB=toB*1000/dt;
@@ -83,6 +87,8 @@ function backupRun(){
   const disKw=bi?Math.min(I.bdis>0?I.bdis:I.pac/1000,bi.kwh*bi.maxC):0;
   const islandW=Math.min(I.pac,(I.backupKw>0?I.backupKw:I.pac/1000)*1000);
   const cfg={mode:BK.mode,bank:need?bi:null,chgKw,disKw,islandW,soc0:BK.soc0,outStart:BK.outStart,outDur:BK.outDur,island:BK.island,step:5};
+  const ax=(typeof acsCfg==='function')?acsCfg():null;
+  if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
   const R=balance(src.pv,LP.all,LP.crit,cfg);
   const T=R.T;
 
@@ -94,6 +100,7 @@ function backupRun(){
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);
   if(need&&bi&&bi.kwh*bi.maxC<peakIsl/1000*0.999)warns.push(['warn',`แบตจ่ายกำลังสูงสุดได้ราว ${f(bi.kwh*bi.maxC,1)} kW (${bi.maxC}C) น้อยกว่าโหลดสูงสุด`]);
   if(src.kwp>I.pvRec/1000)warns.push(['warn',`กำลังแผง ${f(src.kwp,2)} kWp เกินที่แนะนำสำหรับอินเวอร์เตอร์ ${I.pvRec/1000} kWp`]);
+  if(ax)ax.notes.forEach(n=>warns.push(n));
   $('#bkwarn').innerHTML=warns.map(w=>`<li><span class="b ${w[0]}">${w[0]==='err'?'×':'!'}</span><span>${esc(w[1])}</span></li>`).join('');
 
   /* verdict */

@@ -12,11 +12,13 @@
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
     <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
-    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย</button>
-    <button class="navb" data-tab="pv"><span class="ic">03</span>จำลองแผง</button>
-    <button class="navb" data-tab="load"><span class="ic">04</span>จำลองโหลด</button>
-    <button class="navb" data-tab="backup"><span class="ic">05</span>จำลอง Backup</button>
-    <button class="navb" data-tab="submit"><span class="ic">06</span>ส่งงาน</button>
+    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
+    <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
+    <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
+    <button class="navb" data-tab="load"><span class="ic">05</span>จำลองโหลด</button>
+    <button class="navb" data-tab="backup"><span class="ic">06</span>จำลอง Backup</button>
+    <button class="navb" data-tab="events"><span class="ic">07</span>จำลองเหตุการณ์</button>
+    <button class="navb" data-tab="submit"><span class="ic">08</span>ส่งงาน</button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
@@ -93,6 +95,62 @@
     </section>
   </section>
 
+  <section class="tab" id="tab-ac" hidden>
+    <header><h1>ต่อสาย AC และพอร์ตอินเวอร์เตอร์</h1><p class="sub">ต่อสายตามจุดต่อจริงของอินเวอร์เตอร์ ได้แก่ GRID, BACKUP, GEN, CT, สมาร์ทมิเตอร์ RS485, แบตเตอรี่ และ BMS แล้วตั้งค่าการทำงาน ระบบจะตรวจว่าต่อถูกหรือผิดอย่างไร ลากจากขั้วหนึ่งไปอีกขั้ว หรือแตะขั้วแรกแล้วแตะขั้วที่สอง แตะสายเพื่อลบ</p></header>
+    <div id="acverdict" class="verdict"></div>
+    <section class="bar">
+      <div class="grp" id="acpre"><span class="lab">ตัวอย่าง</span>
+        <button class="chip" data-acp="ct">Hybrid ต่อถูก (ใช้ CT)</button>
+        <button class="chip" data-acp="meter">Hybrid ต่อถูก (ใช้สมาร์ทมิเตอร์)</button>
+        <button class="chip bad" data-acp="bad">ตัวอย่างต่อผิด</button>
+        <button class="chip" data-acp="clear">ล้างสาย</button>
+      </div>
+    </section>
+    <div class="panelbox acinvbox"><label for="acinv">อินเวอร์เตอร์ที่ใช้ (ตัวอย่างต่อถูกจะเลือกรุ่น Hybrid ให้อัตโนมัติ)<select id="acinv"></select></label><p id="acinvnote" class="hint tight" style="margin:6px 0 0"></p></div>
+    <div class="canvas"><svg id="acsvg" viewBox="0 0 1200 690" role="img" aria-label="พื้นที่ต่อสายพอร์ต AC ของอินเวอร์เตอร์"></svg></div>
+    <div class="key">
+      <span><i style="background:#8b5a2b"></i>L</span><span><i style="background:#2a78d6"></i>N</span><span><i style="background:#1baf7a"></i>PE</span>
+      <span><i style="background:#d62828"></i>DC +</span><span><i style="background:#14191e;outline:1px solid var(--line)"></i>DC −</span>
+      <span><i style="background:#d9a400"></i>A / CAN H</span><span><i style="background:#8a63d2"></i>B / CAN L</span><span><i style="background:#e0762c"></i>CT / Start</span>
+    </div>
+    <div class="panelbox acset">
+      <h2>ตั้งค่าอินเวอร์เตอร์และอุปกรณ์</h2>
+      <div class="row3">
+        <label for="acmode">โหมดทำงาน<select id="acmode"><option value="selfuse">Self-use (ใช้เองก่อน)</option><option value="feedin">Feed-in priority (ขายก่อน)</option><option value="backup">Backup reserve (สำรองไว้ก่อน)</option></select></label>
+        <label for="acres">SOC สำรองตอนมีกริด (%) เฉพาะ Self-use<input id="acres" type="number" inputmode="numeric" min="0" max="100" step="5"></label>
+        <label for="acstd">มาตรฐานกริด<select id="acstd"><option value="PEA">PEA (กฟภ.)</option><option value="MEA">MEA (กฟน.)</option><option value="other">อื่นๆ</option></select></label>
+      </div>
+      <div class="row3">
+        <label for="acmt">อุปกรณ์วัดกริด<select id="acmt"><option value="ct">CT</option><option value="meter">สมาร์ทมิเตอร์ RS485</option><option value="none">ไม่ใช้</option></select></label>
+        <label class="chk"><input id="acelon" type="checkbox"> จำกัดการขายไฟ (Export limit)</label>
+        <label id="acelw" for="acel">ขายได้สูงสุด (W) 0 = ห้ามขาย<input id="acel" type="number" inputmode="numeric" min="0" step="100"></label>
+      </div>
+      <div class="row3" id="acctbox">
+        <label for="acctp">ตำแหน่งคล้อง CT<select id="acctp"><option value="gridL">สาย L ที่จุดต่อกริด (ถูกต้อง)</option><option value="loadL">สาย L ของโหลดบ้าน</option><option value="invL">สาย L ของอินเวอร์เตอร์</option><option value="N">สาย N</option></select></label>
+        <label for="acctd">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label>
+      </div>
+      <div class="row3" id="acmeterbox">
+        <label for="acmad">แอดเดรสมิเตอร์<input id="acmad" type="number" min="1" max="247"></label>
+        <label for="acmbd">Baud มิเตอร์<select id="acmbd"><option value="2400">2400</option><option value="4800">4800</option><option value="9600">9600</option><option value="19200">19200</option></select></label>
+        <label for="aciad">แอดเดรสที่ตั้งในอินเวอร์เตอร์<input id="aciad" type="number" min="1" max="247"></label>
+        <label for="acibd">Baud ที่ตั้งในอินเวอร์เตอร์<select id="acibd"><option value="2400">2400</option><option value="4800">4800</option><option value="9600">9600</option><option value="19200">19200</option></select></label>
+      </div>
+      <div class="row3">
+        <label for="acbt">ชนิดแบตเตอรี่<select id="acbt"><option value="li">ลิเธียม (มี BMS)</option><option value="lead">ตะกั่วกรด</option></select></label>
+        <label for="acbc">สื่อสารกับ BMS<select id="acbc"><option value="can">CAN</option><option value="rs485">RS485</option><option value="none">ไม่ใช้</option></select></label>
+        <label for="acgen">เครื่องปั่นไฟ<select id="acgen"><option value="off">ไม่ใช้</option><option value="charge">ชาร์จแบต</option><option value="supply">จ่ายโหลด</option></select></label>
+        <label class="chk"><input id="acbken" type="checkbox"> เปิดใช้ไฟสำรอง (Backup)</label>
+      </div>
+      <div class="row3">
+        <label for="accg">เบรกเกอร์ GRID (A)<select id="accg"><option>16</option><option>20</option><option>25</option><option>32</option><option>40</option><option>50</option><option>63</option></select></label>
+        <label for="accb">เบรกเกอร์ BACKUP (A)<select id="accb"><option>16</option><option>20</option><option>25</option><option>32</option><option>40</option><option>50</option><option>63</option></select></label>
+      </div>
+    </div>
+    <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
+    <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลอง Backup" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
+    <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
+  </section>
+
   <section class="tab" id="tab-pv" hidden>
     <header><h1>จำลองแผง กำลังผลิต</h1><p class="sub">จำลองกำลังผลิตทั้งวันตามพิกัด วันที่ มุมเอียง และทิศของแผง ใช้แผงที่ต่อสายไว้ในแท็บ "ต่อสาย"</p></header>
   <section id="sim">
@@ -131,6 +189,7 @@
           <section class="card"><h3>กำลังไฟฟ้าตลอดวัน</h3><div id="lgA" class="legend"></div><div id="chA" class="chart"></div></section>
           <section class="card"><h3>แรงดันสตริงเทียบช่วง MPPT</h3><div id="lgB" class="legend"></div><div id="chB" class="chart"></div></section>
           <section class="card"><h3>เทียบทิศที่วางแผง</h3><div id="dirbars" class="bars"></div><p id="dirnote" class="hint" style="margin:0"></p></section>
+          <section class="card"><h3>มุมมองไซต์ Top / Side view</h3><div class="scene"></div><p id="evnote" class="hint" style="margin:0"></p></section>
           <details class="card tbl"><summary>ตารางรายชั่วโมง</summary><div class="tblwrap"><table class="t"><thead id="tblh"></thead><tbody id="tblb"></tbody></table></div></details>
         </div>
       </div>
@@ -191,6 +250,55 @@
     <p class="hint">เป็นแบบจำลองอย่างง่ายเพื่อการเรียนรู้และประเมินเบื้องต้น ตั้งโหมดแผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วจึงขายคืนกริด ไม่รวมการชาร์จจากกริด ค่า derating ตามอุณหภูมิของแบต และการสตาร์ทของมอเตอร์ ไม่ใช่ค่ารับประกัน</p>
   </section>
 
+  <section class="tab" id="tab-events" hidden>
+    <header><h1>จำลองเหตุการณ์</h1><p class="sub">ลองให้ไฟดับ เมฆบัง ฝุ่นเกาะแผง หรือต้นไม้บังแสง และเลื่อนวันตามฤดูเพื่อดูเวลาอาทิตย์ขึ้นตก เทียบกับวันปกติทั้งตัวเลขและกราฟ มุมมองด้านบนและด้านข้างดูเงาและมุมแสงได้</p></header>
+    <p id="evsrc" class="hint tight"></p>
+    <div class="panelbox evseason">
+      <h2>ฤดูกาลและอาทิตย์ขึ้นตก</h2>
+      <div class="chips" id="evseaschips"></div>
+      <label for="evday" class="sl">วันที่ในปี <b id="evdayv"></b><input id="evday" type="range" min="1" max="365" step="1"></label>
+    </div>
+    <div class="evgrid">
+      <section class="panelbox evb" id="evobox"><h3>ไฟดับ</h3>
+        <label>ชนิดระบบ<select id="evmode"><option value="grid">On-grid</option><option value="hybrid">Hybrid</option><option value="off">Off-grid</option></select></label>
+        <label>ไฟดับตั้งแต่<input id="evos" type="time"></label>
+        <label>นาน (ชม. 0 = ไม่ดับ)<input id="evod" type="number" min="0" max="24" step="0.5"></label>
+        <p id="evout-note" class="hint tight"></p>
+      </section>
+      <section class="panelbox evb" id="evcbox"><h3><label class="chk"><input id="evcl" type="checkbox"> เมฆบัง</label></h3>
+        <label>เริ่ม<input id="evcs" type="time"></label>
+        <label>นาน (ชม.)<input id="evcd" type="number" min="0" max="12" step="0.5"></label>
+        <label>ความหนาเมฆ <b id="evcpv"></b><input id="evcp" type="range" min="10" max="100" step="5"></label>
+      </section>
+      <section class="panelbox evb" id="evdbox"><h3><label class="chk"><input id="evdu" type="checkbox"> ฝุ่นบังแผง</label></h3>
+        <label>แสงที่หายไป <b id="evdpv"></b><input id="evdp" type="range" min="1" max="60" step="1"></label>
+        <p class="hint tight">ฝุ่นบางๆ ราว 3–8% ฝุ่นหนาหรือขี้นก 15–30%</p>
+      </section>
+      <section class="panelbox evb" id="evtbox"><h3><label class="chk"><input id="evtr" type="checkbox"> ต้นไม้บังแสง</label></h3>
+        <div class="chips" id="evtdir"></div>
+        <label>ทิศของต้นไม้ <b id="evtav"></b><input id="evta" type="range" min="0" max="359" step="5"></label>
+        <label>ความกว้างที่บังทิศ (องศา) <b id="evtwv"></b><input id="evtw" type="range" min="5" max="160" step="5"></label>
+        <div class="row3">
+          <label>สูง (ม.)<input id="evth" type="number" min="1" max="40" step="0.5"></label>
+          <label>ห่างจากแผง (ม.)<input id="evtd" type="number" min="1" max="60" step="0.5"></label>
+          <label>แผงสูงจากพื้น (ม.)<input id="evtph" type="number" min="0" max="20" step="0.5"></label>
+        </div>
+        <label>เงาตกบนแผง <b id="evtpv"></b><input id="evtp" type="range" min="10" max="100" step="5"></label>
+        <label>เงาตกบน<select id="evtm"><option value="0">ทุก MPPT</option><option value="1">MPPT 1</option><option value="2">MPPT 2</option></select></label>
+      </section>
+    </div>
+    <div><button class="btn" id="evreset">ปิดเหตุการณ์ทั้งหมด</button></div>
+    <div id="evmx" class="metrics"></div>
+    <div class="simcards">
+      <section class="card"><h3>มุมมองไซต์ Top / Side view</h3><div class="scene"></div></section>
+      <section class="card"><h3>กำลัง AC เทียบวันปกติ</h3><div id="evleg1" class="legend"></div><div id="evchA" class="chart"></div></section>
+      <section class="card"><h3>มุมเงยดวงอาทิตย์และช่วงที่ต้นไม้บัง</h3><div id="evchB" class="chart"></div></section>
+      <section class="card"><h3>พลังงานที่หายไปแยกตามสาเหตุ</h3><div id="evcause" class="bars"></div></section>
+      <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
+    </div>
+    <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
   <section class="tab" id="tab-submit" hidden>
     <header><h1>ส่งงาน</h1><p class="sub">กรอกชื่อแล้วกด "ส่งงาน" ระบบจะบันทึกเฉพาะผลสรุปของครั้งนั้นให้ผู้สอน (ไม่บันทึกทุกการลากสาย) และสร้างภาพรายงานให้เก็บหรือส่งต่อได้</p></header>
     <div class="panelbox smb">
@@ -222,9 +330,11 @@
 <script src="js/model.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/wiring.js"></script>
+<script src="js/acsys.js"></script>
 <script src="js/solar.js"></script>
 <script src="js/loads.js"></script>
 <script src="js/backup.js"></script>
+<script src="js/events.js"></script>
 <script src="js/submit.js"></script>
 <script src="js/app.js"></script>
 </body>

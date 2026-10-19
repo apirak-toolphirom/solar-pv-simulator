@@ -217,6 +217,7 @@ function eqMsg(sel,txt,cls){const m=document.querySelector(sel);if(m){m.classNam
 function onCatalogChange(){
   applyActive();eqRenderAll();
   lastSig='';render();
+  if(typeof acRender==='function')acRender();
   if(typeof runSim==='function'&&lastA)runSim();
   if(typeof touch==='function')touch(true);
 }

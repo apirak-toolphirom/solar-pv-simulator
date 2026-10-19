@@ -285,16 +285,83 @@ body.fsmode .fscan .canvas{flex:1;min-height:0}
 body.fsmode .fscan svg{height:100%}
 body.fsmode .fscan>.hint,body.fsmode .fscan>.key{display:none}
 body.fsmode .verdict{position:static}
+
+/* ---- AC system tab, events tab, site views ---- */
+body[data-tab="ac"] .wrap,body[data-tab="events"] .wrap{max-width:1400px}
+#acsvg{display:block;width:100%;height:auto;touch-action:none;user-select:none}
+.acbox{fill:var(--invfill);stroke:var(--line);stroke-width:1.5}
+.acbox.inv{fill:var(--surface);stroke:var(--frame);stroke-width:2}
+.actitle{font:600 12.5px var(--body);fill:var(--ink)}
+.acnote{font:11.5px var(--body);fill:var(--muted)}
+.aclab{font:11px var(--mono);fill:var(--ink);pointer-events:none}
+.act{cursor:crosshair}.act.off{opacity:.3;cursor:not-allowed}
+.achit{fill:transparent}
+.acterm{fill:var(--surface);stroke-width:2.5}
+.acterm.on{fill:currentColor;fill:var(--ink)}
+.acterm.arm{stroke:var(--accent)!important;stroke-width:4}
+.act:hover .acterm{stroke-width:4}
+.acw{fill:none;stroke-width:3.2;stroke-linecap:round;pointer-events:none}
+.acw.pe{stroke:#e8d84a;stroke-dasharray:7 7}
+.acw.bad{stroke-dasharray:3 5;stroke:var(--err)!important}
+.acw.tmp{stroke:var(--accent);stroke-dasharray:4 4}
+.acw-hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
+.acset{display:flex;flex-direction:column;gap:12px}
+.acset label,.evb label,.evseason label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.acset label b,.evb label b,.evseason label b{color:var(--ink);font-family:var(--mono);font-weight:500;margin-left:6px}
+.acset input[type=number],.acset select,.evb input[type=number],.evb input[type=time],.evb select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:40px;width:100%;color:var(--ink)}
+label.chk{flex-direction:row!important;align-items:center;gap:8px!important;color:var(--ink)!important;font-size:14px!important}
+label.chk input{width:18px;height:18px}
+.acapp{margin-top:6px}
+.evgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.evb{display:flex;flex-direction:column;gap:10px}
+.evb h3{margin:0;font-size:14px}
+.evb.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.evseason{display:flex;flex-direction:column;gap:10px}
+.evseason h2{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.scene{display:flex;flex-direction:column;gap:8px}
+.scbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.scbar .seg{display:flex;gap:6px;flex-wrap:wrap}
+.sctime{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:13px;flex:1 1 220px}
+.sctime input{flex:1;min-width:100px}
+.scsvg{width:100%;height:auto;max-height:520px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.scsvg .sg{fill:none;stroke:var(--line);stroke-width:1.2}
+.scsvg .spath{fill:none;stroke:var(--s2);stroke-width:2.2;stroke-dasharray:2 5;stroke-linecap:round}
+.scsvg .sun{fill:#f5b800;stroke:#c98c00;stroke-width:2}
+.scsvg .ray{stroke:#f5b800;stroke-width:2;opacity:.8}.scsvg .ray.cut{stroke:var(--err);stroke-dasharray:5 5}
+.scsvg .arr{fill:var(--cell);stroke:var(--frame);stroke-width:1.5}
+.scsvg .dustl{fill:#a8844f}
+.scsvg .frontl{stroke:var(--accent);stroke-width:3}
+.scsvg .face{stroke:var(--accent);stroke-width:1.5;stroke-dasharray:4 3}
+.scsvg .tree{fill:#2f8a4b;stroke:#1f6a38;stroke-width:1.5;opacity:.92}
+.scsvg .trunk{fill:#7a5230}
+.scsvg .shd{fill:#000;opacity:.28}
+.scsvg .wedge{fill:#2f8a4b;opacity:.12}
+.scsvg .cld{fill:#b9c4cc;stroke:none}
+.scsvg .gnd{stroke:var(--frame);stroke-width:2}
+.scsvg .slab{stroke:var(--cell);stroke-width:9;stroke-linecap:round}.scsvg .slab.blk{stroke:#6b7c88}
+.scsvg .post{stroke:var(--frame);stroke-width:3}
+.scsvg .dustd{fill:#a8844f}
+.scsvg .angl{fill:none;stroke:var(--muted);stroke-width:1.2}
+.t tr.cur td{background:var(--accentbg)}
+.lnk{background:none;border:0;padding:0;color:var(--s1);text-decoration:underline;font:inherit;cursor:pointer;text-align:left}
+.sl{display:flex;flex-direction:column;gap:4px}
+.acapp{display:block!important}.acapp input{vertical-align:middle;margin-right:8px}
+.main,.main .wrap,.main .wrap>*{min-width:0}.main .wrap{width:100%;box-sizing:border-box}.acset .row3>*,.evb .row3>*{min-width:0}
+#acsvg,.scsvg{overflow:hidden}
+.main{overflow-x:clip}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
     <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
-    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย</button>
-    <button class="navb" data-tab="pv"><span class="ic">03</span>จำลองแผง</button>
-    <button class="navb" data-tab="load"><span class="ic">04</span>จำลองโหลด</button>
-    <button class="navb" data-tab="backup"><span class="ic">05</span>จำลอง Backup</button>
-    <button class="navb" data-tab="submit"><span class="ic">06</span>ส่งงาน</button>
+    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
+    <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
+    <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
+    <button class="navb" data-tab="load"><span class="ic">05</span>จำลองโหลด</button>
+    <button class="navb" data-tab="backup"><span class="ic">06</span>จำลอง Backup</button>
+    <button class="navb" data-tab="events"><span class="ic">07</span>จำลองเหตุการณ์</button>
+    <button class="navb" data-tab="submit"><span class="ic">08</span>ส่งงาน</button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
@@ -371,6 +438,62 @@ body.fsmode .verdict{position:static}
     </section>
   </section>
 
+  <section class="tab" id="tab-ac" hidden>
+    <header><h1>ต่อสาย AC และพอร์ตอินเวอร์เตอร์</h1><p class="sub">ต่อสายตามจุดต่อจริงของอินเวอร์เตอร์ ได้แก่ GRID, BACKUP, GEN, CT, สมาร์ทมิเตอร์ RS485, แบตเตอรี่ และ BMS แล้วตั้งค่าการทำงาน ระบบจะตรวจว่าต่อถูกหรือผิดอย่างไร ลากจากขั้วหนึ่งไปอีกขั้ว หรือแตะขั้วแรกแล้วแตะขั้วที่สอง แตะสายเพื่อลบ</p></header>
+    <div id="acverdict" class="verdict"></div>
+    <section class="bar">
+      <div class="grp" id="acpre"><span class="lab">ตัวอย่าง</span>
+        <button class="chip" data-acp="ct">Hybrid ต่อถูก (ใช้ CT)</button>
+        <button class="chip" data-acp="meter">Hybrid ต่อถูก (ใช้สมาร์ทมิเตอร์)</button>
+        <button class="chip bad" data-acp="bad">ตัวอย่างต่อผิด</button>
+        <button class="chip" data-acp="clear">ล้างสาย</button>
+      </div>
+    </section>
+    <div class="panelbox acinvbox"><label for="acinv">อินเวอร์เตอร์ที่ใช้ (ตัวอย่างต่อถูกจะเลือกรุ่น Hybrid ให้อัตโนมัติ)<select id="acinv"></select></label><p id="acinvnote" class="hint tight" style="margin:6px 0 0"></p></div>
+    <div class="canvas"><svg id="acsvg" viewBox="0 0 1200 690" role="img" aria-label="พื้นที่ต่อสายพอร์ต AC ของอินเวอร์เตอร์"></svg></div>
+    <div class="key">
+      <span><i style="background:#8b5a2b"></i>L</span><span><i style="background:#2a78d6"></i>N</span><span><i style="background:#1baf7a"></i>PE</span>
+      <span><i style="background:#d62828"></i>DC +</span><span><i style="background:#14191e;outline:1px solid var(--line)"></i>DC −</span>
+      <span><i style="background:#d9a400"></i>A / CAN H</span><span><i style="background:#8a63d2"></i>B / CAN L</span><span><i style="background:#e0762c"></i>CT / Start</span>
+    </div>
+    <div class="panelbox acset">
+      <h2>ตั้งค่าอินเวอร์เตอร์และอุปกรณ์</h2>
+      <div class="row3">
+        <label for="acmode">โหมดทำงาน<select id="acmode"><option value="selfuse">Self-use (ใช้เองก่อน)</option><option value="feedin">Feed-in priority (ขายก่อน)</option><option value="backup">Backup reserve (สำรองไว้ก่อน)</option></select></label>
+        <label for="acres">SOC สำรองตอนมีกริด (%) เฉพาะ Self-use<input id="acres" type="number" inputmode="numeric" min="0" max="100" step="5"></label>
+        <label for="acstd">มาตรฐานกริด<select id="acstd"><option value="PEA">PEA (กฟภ.)</option><option value="MEA">MEA (กฟน.)</option><option value="other">อื่นๆ</option></select></label>
+      </div>
+      <div class="row3">
+        <label for="acmt">อุปกรณ์วัดกริด<select id="acmt"><option value="ct">CT</option><option value="meter">สมาร์ทมิเตอร์ RS485</option><option value="none">ไม่ใช้</option></select></label>
+        <label class="chk"><input id="acelon" type="checkbox"> จำกัดการขายไฟ (Export limit)</label>
+        <label id="acelw" for="acel">ขายได้สูงสุด (W) 0 = ห้ามขาย<input id="acel" type="number" inputmode="numeric" min="0" step="100"></label>
+      </div>
+      <div class="row3" id="acctbox">
+        <label for="acctp">ตำแหน่งคล้อง CT<select id="acctp"><option value="gridL">สาย L ที่จุดต่อกริด (ถูกต้อง)</option><option value="loadL">สาย L ของโหลดบ้าน</option><option value="invL">สาย L ของอินเวอร์เตอร์</option><option value="N">สาย N</option></select></label>
+        <label for="acctd">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label>
+      </div>
+      <div class="row3" id="acmeterbox">
+        <label for="acmad">แอดเดรสมิเตอร์<input id="acmad" type="number" min="1" max="247"></label>
+        <label for="acmbd">Baud มิเตอร์<select id="acmbd"><option value="2400">2400</option><option value="4800">4800</option><option value="9600">9600</option><option value="19200">19200</option></select></label>
+        <label for="aciad">แอดเดรสที่ตั้งในอินเวอร์เตอร์<input id="aciad" type="number" min="1" max="247"></label>
+        <label for="acibd">Baud ที่ตั้งในอินเวอร์เตอร์<select id="acibd"><option value="2400">2400</option><option value="4800">4800</option><option value="9600">9600</option><option value="19200">19200</option></select></label>
+      </div>
+      <div class="row3">
+        <label for="acbt">ชนิดแบตเตอรี่<select id="acbt"><option value="li">ลิเธียม (มี BMS)</option><option value="lead">ตะกั่วกรด</option></select></label>
+        <label for="acbc">สื่อสารกับ BMS<select id="acbc"><option value="can">CAN</option><option value="rs485">RS485</option><option value="none">ไม่ใช้</option></select></label>
+        <label for="acgen">เครื่องปั่นไฟ<select id="acgen"><option value="off">ไม่ใช้</option><option value="charge">ชาร์จแบต</option><option value="supply">จ่ายโหลด</option></select></label>
+        <label class="chk"><input id="acbken" type="checkbox"> เปิดใช้ไฟสำรอง (Backup)</label>
+      </div>
+      <div class="row3">
+        <label for="accg">เบรกเกอร์ GRID (A)<select id="accg"><option>16</option><option>20</option><option>25</option><option>32</option><option>40</option><option>50</option><option>63</option></select></label>
+        <label for="accb">เบรกเกอร์ BACKUP (A)<select id="accb"><option>16</option><option>20</option><option>25</option><option>32</option><option>40</option><option>50</option><option>63</option></select></label>
+      </div>
+    </div>
+    <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
+    <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลอง Backup" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
+    <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
+  </section>
+
   <section class="tab" id="tab-pv" hidden>
     <header><h1>จำลองแผง กำลังผลิต</h1><p class="sub">จำลองกำลังผลิตทั้งวันตามพิกัด วันที่ มุมเอียง และทิศของแผง ใช้แผงที่ต่อสายไว้ในแท็บ "ต่อสาย"</p></header>
   <section id="sim">
@@ -409,6 +532,7 @@ body.fsmode .verdict{position:static}
           <section class="card"><h3>กำลังไฟฟ้าตลอดวัน</h3><div id="lgA" class="legend"></div><div id="chA" class="chart"></div></section>
           <section class="card"><h3>แรงดันสตริงเทียบช่วง MPPT</h3><div id="lgB" class="legend"></div><div id="chB" class="chart"></div></section>
           <section class="card"><h3>เทียบทิศที่วางแผง</h3><div id="dirbars" class="bars"></div><p id="dirnote" class="hint" style="margin:0"></p></section>
+          <section class="card"><h3>มุมมองไซต์ Top / Side view</h3><div class="scene"></div><p id="evnote" class="hint" style="margin:0"></p></section>
           <details class="card tbl"><summary>ตารางรายชั่วโมง</summary><div class="tblwrap"><table class="t"><thead id="tblh"></thead><tbody id="tblb"></tbody></table></div></details>
         </div>
       </div>
@@ -467,6 +591,55 @@ body.fsmode .verdict{position:static}
       </div>
     </div>
     <p class="hint">เป็นแบบจำลองอย่างง่ายเพื่อการเรียนรู้และประเมินเบื้องต้น ตั้งโหมดแผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วจึงขายคืนกริด ไม่รวมการชาร์จจากกริด ค่า derating ตามอุณหภูมิของแบต และการสตาร์ทของมอเตอร์ ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  <section class="tab" id="tab-events" hidden>
+    <header><h1>จำลองเหตุการณ์</h1><p class="sub">ลองให้ไฟดับ เมฆบัง ฝุ่นเกาะแผง หรือต้นไม้บังแสง และเลื่อนวันตามฤดูเพื่อดูเวลาอาทิตย์ขึ้นตก เทียบกับวันปกติทั้งตัวเลขและกราฟ มุมมองด้านบนและด้านข้างดูเงาและมุมแสงได้</p></header>
+    <p id="evsrc" class="hint tight"></p>
+    <div class="panelbox evseason">
+      <h2>ฤดูกาลและอาทิตย์ขึ้นตก</h2>
+      <div class="chips" id="evseaschips"></div>
+      <label for="evday" class="sl">วันที่ในปี <b id="evdayv"></b><input id="evday" type="range" min="1" max="365" step="1"></label>
+    </div>
+    <div class="evgrid">
+      <section class="panelbox evb" id="evobox"><h3>ไฟดับ</h3>
+        <label>ชนิดระบบ<select id="evmode"><option value="grid">On-grid</option><option value="hybrid">Hybrid</option><option value="off">Off-grid</option></select></label>
+        <label>ไฟดับตั้งแต่<input id="evos" type="time"></label>
+        <label>นาน (ชม. 0 = ไม่ดับ)<input id="evod" type="number" min="0" max="24" step="0.5"></label>
+        <p id="evout-note" class="hint tight"></p>
+      </section>
+      <section class="panelbox evb" id="evcbox"><h3><label class="chk"><input id="evcl" type="checkbox"> เมฆบัง</label></h3>
+        <label>เริ่ม<input id="evcs" type="time"></label>
+        <label>นาน (ชม.)<input id="evcd" type="number" min="0" max="12" step="0.5"></label>
+        <label>ความหนาเมฆ <b id="evcpv"></b><input id="evcp" type="range" min="10" max="100" step="5"></label>
+      </section>
+      <section class="panelbox evb" id="evdbox"><h3><label class="chk"><input id="evdu" type="checkbox"> ฝุ่นบังแผง</label></h3>
+        <label>แสงที่หายไป <b id="evdpv"></b><input id="evdp" type="range" min="1" max="60" step="1"></label>
+        <p class="hint tight">ฝุ่นบางๆ ราว 3–8% ฝุ่นหนาหรือขี้นก 15–30%</p>
+      </section>
+      <section class="panelbox evb" id="evtbox"><h3><label class="chk"><input id="evtr" type="checkbox"> ต้นไม้บังแสง</label></h3>
+        <div class="chips" id="evtdir"></div>
+        <label>ทิศของต้นไม้ <b id="evtav"></b><input id="evta" type="range" min="0" max="359" step="5"></label>
+        <label>ความกว้างที่บังทิศ (องศา) <b id="evtwv"></b><input id="evtw" type="range" min="5" max="160" step="5"></label>
+        <div class="row3">
+          <label>สูง (ม.)<input id="evth" type="number" min="1" max="40" step="0.5"></label>
+          <label>ห่างจากแผง (ม.)<input id="evtd" type="number" min="1" max="60" step="0.5"></label>
+          <label>แผงสูงจากพื้น (ม.)<input id="evtph" type="number" min="0" max="20" step="0.5"></label>
+        </div>
+        <label>เงาตกบนแผง <b id="evtpv"></b><input id="evtp" type="range" min="10" max="100" step="5"></label>
+        <label>เงาตกบน<select id="evtm"><option value="0">ทุก MPPT</option><option value="1">MPPT 1</option><option value="2">MPPT 2</option></select></label>
+      </section>
+    </div>
+    <div><button class="btn" id="evreset">ปิดเหตุการณ์ทั้งหมด</button></div>
+    <div id="evmx" class="metrics"></div>
+    <div class="simcards">
+      <section class="card"><h3>มุมมองไซต์ Top / Side view</h3><div class="scene"></div></section>
+      <section class="card"><h3>กำลัง AC เทียบวันปกติ</h3><div id="evleg1" class="legend"></div><div id="evchA" class="chart"></div></section>
+      <section class="card"><h3>มุมเงยดวงอาทิตย์และช่วงที่ต้นไม้บัง</h3><div id="evchB" class="chart"></div></section>
+      <section class="card"><h3>พลังงานที่หายไปแยกตามสาเหตุ</h3><div id="evcause" class="bars"></div></section>
+      <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
+    </div>
+    <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
   </section>
 
   <section class="tab" id="tab-submit" hidden>
@@ -723,6 +896,7 @@ function eqMsg(sel,txt,cls){const m=document.querySelector(sel);if(m){m.classNam
 function onCatalogChange(){
   applyActive();eqRenderAll();
   lastSig='';render();
+  if(typeof acRender==='function')acRender();
   if(typeof runSim==='function'&&lastA)runSim();
   if(typeof touch==='function')touch(true);
 }
@@ -1226,6 +1400,341 @@ window.addEventListener('resize',()=>{fitWorld();render()});
 fitWorld();
 
 
+/* ---- AC / system wiring: real inverter ports (GRID, BACKUP, GEN, CT, smart meter, BAT) ---- */
+const ACS={apply:false,wires:[],armed:null,
+  set:{mode:'selfuse',reserve:20,expLimOn:false,expLimW:0,gridStd:'PEA',backupEn:true,meterType:'ct',ctPos:'gridL',ctDir:'toGrid',
+    mAddr:1,mBaud:9600,iAddr:1,iBaud:9600,batType:'li',batComm:'can',genMode:'off',cbGrid:32,cbBackup:32}};
+const AC_C={
+  G:{x:20,y:40,w:150,h:130,t:'กริด (การไฟฟ้า)'},
+  M:{x:230,y:40,w:150,h:170,t:'สมาร์ทมิเตอร์ RS485'},
+  DB:{x:450,y:40,w:150,h:130,t:'ตู้เมนบ้าน (โหลดทั้งหมด)'},
+  CT:{x:230,y:260,w:150,h:90,t:'CT (ตัวคล้องสาย)'},
+  GEN:{x:20,y:400,w:170,h:180,t:'เครื่องปั่นไฟ'},
+  CDB:{x:450,y:420,w:150,h:130,t:'ตู้โหลดสำรอง (Backup)'},
+  INV:{x:700,y:30,w:260,h:630,t:''},
+  BAT:{x:1030,y:60,w:150,h:170,t:'แบตเตอรี่'}
+};
+/* id,label,kind,x,y,side(l|r|b),component, [availability tags for inverter types] */
+const AC_T=[
+ ['G.L','L','L',170,70,'r','G'],['G.N','N','N',170,100,'r','G'],['G.PE','PE','PE',170,130,'r','G'],
+ ['M.LI','L เข้า','L',230,70,'l','M'],['M.LO','L ออก','L',380,70,'r','M'],['M.N','N','N',230,100,'l','M'],['M.A','A','a',270,210,'b','M'],['M.B','B','b',330,210,'b','M'],
+ ['DB.LL','L','L',450,70,'l','DB'],['DB.NL','N','N',450,100,'l','DB'],['DB.PL','PE','PE',450,130,'l','DB'],
+ ['DB.LR','L','L',600,70,'r','DB'],['DB.NR','N','N',600,100,'r','DB'],['DB.PR','PE','PE',600,130,'r','DB'],
+ ['CT.S1','S1','ct1',380,290,'r','CT'],['CT.S2','S2','ct2',380,320,'r','CT'],
+ ['GEN.L','L','L',190,430,'r','GEN'],['GEN.N','N','N',190,460,'r','GEN'],['GEN.PE','PE','PE',190,490,'r','GEN'],['GEN.S1','START 1','dry1',190,530,'r','GEN'],['GEN.S2','START 2','dry2',190,555,'r','GEN'],
+ ['CDB.L','L','L',600,450,'r','CDB'],['CDB.N','N','N',600,480,'r','CDB'],['CDB.PE','PE','PE',600,510,'r','CDB'],
+ ['INV.GL','GRID L','L',700,70,'l','INV','gh'],['INV.GN','GRID N','N',700,100,'l','INV','gh'],['INV.GP','GRID PE','PE',700,130,'l','INV','gh'],
+ ['INV.PF','ตัวถัง PE','PE',700,165,'l','INV','all'],
+ ['INV.BL','BACKUP L','L',700,215,'l','INV','ho'],['INV.BN','BACKUP N','N',700,245,'l','INV','ho'],['INV.BP','BACKUP PE','PE',700,275,'l','INV','ho'],
+ ['INV.EL','GEN L','L',700,330,'l','INV','ho'],['INV.EN','GEN N','N',700,360,'l','INV','ho'],
+ ['INV.D1','GEN START 1','dry1',700,410,'l','INV','ho'],['INV.D2','GEN START 2','dry2',700,440,'l','INV','ho'],
+ ['INV.RA','RS485 A','a',700,520,'l','INV','gh'],['INV.RB','RS485 B','b',700,550,'l','INV','gh'],
+ ['INV.C1','CT 1','ct1',700,595,'l','INV','gh'],['INV.C2','CT 2','ct2',700,625,'l','INV','gh'],
+ ['INV.B+','BAT +','dc+',960,90,'r','INV','ho'],['INV.B-','BAT −','dc-',960,120,'r','INV','ho'],
+ ['INV.CH','BMS CAN H','canh',960,170,'r','INV','ho'],['INV.CL','BMS CAN L','canl',960,200,'r','INV','ho'],
+ ['BAT.+','+','dc+',1030,90,'l','BAT'],['BAT.-','−','dc-',1030,120,'l','BAT'],['BAT.H','CAN H','canh',1030,170,'l','BAT'],['BAT.L','CAN L','canl',1030,200,'l','BAT']
+];
+const AC_BUS=[['DB.LL','DB.LR'],['DB.NL','DB.NR'],['DB.PL','DB.PR']];
+const AC_TM={};AC_T.forEach(t=>AC_TM[t[0]]={id:t[0],lab:t[1],kind:t[2],x:t[3],y:t[4],side:t[5],comp:t[6],av:t[7]||''});
+const KIND_NAME={L:'L (ไลน์)',N:'N',PE:'PE','dc+':'DC +','dc-':'DC −',ct1:'CT 1',ct2:'CT 2',a:'RS485 A',b:'RS485 B',canh:'CAN H',canl:'CAN L',dry1:'Dry contact 1',dry2:'Dry contact 2'};
+const KIND_COL={L:'#8b5a2b',N:'#2a78d6',PE:'#1baf7a','dc+':'#d62828','dc-':'#14191e',ct1:'#e0762c',ct2:'#9a9aa3',a:'#d9a400',b:'#8a63d2',canh:'#d9a400',canl:'#8a63d2',dry1:'#e0762c',dry2:'#9a9aa3'};
+function acAvail(t){
+  const ty=curInv().type;
+  if(!t.av||t.av==='all')return true;
+  if(t.av==='gh')return ty!=='off-grid';
+  if(t.av==='ho')return ty!=='on-grid';
+  return true;
+}
+const acKey=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+
+/* net analysis */
+function acNets(){
+  const par={};const find=x=>par[x]===x?x:(par[x]=find(par[x]));
+  AC_T.forEach(t=>par[t[0]]=t[0]);
+  AC_BUS.forEach(b=>{par[find(b[0])]=find(b[1])});
+  ACS.wires.forEach(w=>{if(par[w.a]!==undefined&&par[w.b]!==undefined)par[find(w.a)]=find(w.b)});
+  return{same:(a,b)=>find(a)===find(b),root:find,members:r=>AC_T.map(t=>t[0]).filter(i=>find(i)===r)};
+}
+const hasWire=(a,b)=>ACS.wires.some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a));
+const anyOn=id=>ACS.wires.some(w=>w.a===id||w.b===id);
+
+function acAnalyze(){
+  const I=curInv(),ty=I.type,S=ACS.set,N=acNets(),ck=[],d={};
+  const add=(lvl,msg)=>ck.push([lvl,msg]);
+  /* wire level */
+  ACS.wires.forEach(w=>{
+    const A=AC_TM[w.a],B=AC_TM[w.b];if(!A||!B)return;
+    if(!acAvail(A)||!acAvail(B))add('err',`สาย ${A.comp==='INV'?'INV '+A.lab:A.comp+' '+A.lab} ↔ ${B.comp==='INV'?'INV '+B.lab:B.comp+' '+B.lab}: อินเวอร์เตอร์ประเภท ${ty} ไม่มีพอร์ตนี้`);
+    else if(A.kind!==B.kind){
+      const swap=(A.kind==='a'&&B.kind==='b')||(A.kind==='b'&&B.kind==='a')||(A.kind==='ct1'&&B.kind==='ct2')||(A.kind==='ct2'&&B.kind==='ct1')||(A.kind==='canh'&&B.kind==='canl')||(A.kind==='canl'&&B.kind==='canh')||(A.kind==='dc+'&&B.kind==='dc-')||(A.kind==='dc-'&&B.kind==='dc+');
+      if(!swap)add('err',`สาย ${A.comp} ${A.lab} ↔ ${B.comp} ${B.lab}: ต่อคนละชนิดขั้ว (${KIND_NAME[A.kind]} กับ ${KIND_NAME[B.kind]})`);
+    }
+  });
+  /* short circuits inside a net */
+  const seen=new Set();
+  AC_T.forEach(t=>{
+    const r=N.root(t[0]);if(seen.has(r))return;seen.add(r);
+    const mem=N.members(r);if(mem.length<2)return;
+    const kinds=new Set(mem.map(m=>AC_TM[m].kind));
+    if(kinds.has('L')&&kinds.has('N'))add('err','ไฟ L ชอตกับ N: สาย L และ N ถูกต่อถึงกัน ('+mem.filter(m=>['L','N'].includes(AC_TM[m].kind)).join(', ')+')');
+    if(kinds.has('L')&&kinds.has('PE'))add('err','ไฟ L ต่อลงดิน PE: จะทำให้เบรกเกอร์หรือ RCD ตัด');
+    if(kinds.has('dc+')&&kinds.has('dc-'))add('err','ชอต DC + กับ − ที่แบตเตอรี่ อันตรายมาก');
+    const src=['G.L','INV.BL','GEN.L'].filter(s=>mem.includes(s));
+    if(src.length>1)add('err',`แหล่งไฟ ${src.map(s=>({ 'G.L':'กริด','INV.BL':'ขา BACKUP ของอินเวอร์เตอร์','GEN.L':'เครื่องปั่นไฟ'}[s])).join(' กับ ')} ถูกต่อรวมกัน ต้องมีสวิตช์สลับ (ATS/interlock) ห้ามต่อสายตรง`);
+  });
+  const hyb=ty!=='on-grid',gridPort=ty!=='off-grid';
+  /* grid to house */
+  const nG=N.same('G.L','DB.LL'),viaM=!nG&&N.same('G.L','M.LI')&&N.same('DB.LL','M.LO');
+  d.direct=nG;d.viaMeter=viaM;
+  const nN=N.same('G.N','DB.NL')||(viaM&&N.same('G.N','DB.NL')),nPE=N.same('G.PE','DB.PL');
+  if(!(nG||viaM))add('err','ตู้เมนบ้านยังไม่ได้รับไฟ L จากกริด (ต่อ กริด → ตู้เมน โดยตรง หรือผ่านสมาร์ทมิเตอร์)');
+  else if(!nN)add('err','ตู้เมนบ้านยังไม่ได้ต่อ N กับกริด');
+  else if(!nPE)add('warn','ตู้เมนบ้านยังไม่ได้ต่อสายดิน PE');
+  else add('ok','กริด → ตู้เมนบ้าน ต่อ L N PE ครบ'+(viaM?' (ผ่านสมาร์ทมิเตอร์)':''));
+  d.gridHouse=(nG||viaM)&&nN;
+  /* inverter grid port */
+  if(gridPort){
+    const gl=N.same('INV.GL','DB.LR'),gn=N.same('INV.GN','DB.NR'),gp=N.same('INV.GP','DB.PR')||N.same('INV.GP','G.PE');
+    if(!anyOn('INV.GL')&&!anyOn('INV.GN'))add('err','พอร์ต GRID ของอินเวอร์เตอร์ยังไม่ได้ต่อกับตู้เมนบ้าน');
+    else if(!gl||!gn)add('err','พอร์ต GRID ต่อ L หรือ N ไม่ครบหรือไม่ถึงตู้เมนบ้าน');
+    else if(!gp)add('warn','พอร์ต GRID ยังไม่ได้ต่อ PE');
+    else add('ok','พอร์ต GRID ต่อเข้าตู้เมนบ้านครบ');
+    d.gridPort=gl&&gn;
+    if(viaM&&N.same('INV.GL','G.L')&&!N.same('INV.GL','DB.LR'))add('err','พอร์ต GRID ต่อก่อนสมาร์ทมิเตอร์ มิเตอร์จะไม่เห็นกำลังของอินเวอร์เตอร์ ต้องต่อหลังมิเตอร์ (ฝั่งโหลด)');
+  }else d.gridPort=false;
+  if(!anyOn('INV.PF'))add('warn','ตัวถังอินเวอร์เตอร์ (PE) ยังไม่ได้ต่อสายดิน');
+  else if(!N.same('INV.PF','DB.PR')&&!N.same('INV.PF','G.PE'))add('warn','ตัวถังอินเวอร์เตอร์ต่อ PE แต่ไม่ถึงสายดินของบ้าน');
+  /* backup port */
+  d.backupOk=false;
+  if(hyb){
+    const touched=anyOn('INV.BL')||anyOn('INV.BN');
+    if(!touched)add('warn','ยังไม่ได้ต่อพอร์ต BACKUP ตอนไฟดับจะไม่มีไฟจ่ายโหลดสำคัญ');
+    else{
+      const bl=N.same('INV.BL','CDB.L'),bn=N.same('INV.BN','CDB.N');
+      if(N.same('INV.BL','DB.LR')||N.same('INV.BL','DB.LL'))add('err','พอร์ต BACKUP ต่อเข้าตู้เมนบ้านที่มีไฟกริด ตอนไฟดับอินเวอร์เตอร์จะจ่ายไฟย้อนเข้ากริด (back-feed) อันตรายต่อช่างไฟฟ้า');
+      else if(!bl||!bn)add('err','พอร์ต BACKUP ต้องต่อ L และ N ไปที่ตู้โหลดสำรอง');
+      else if(!N.same('INV.BP','CDB.PE'))add('warn','พอร์ต BACKUP ต่อ L N แล้ว แต่ PE ยังไม่ครบ');
+      else add('ok','พอร์ต BACKUP ต่อเข้าตู้โหลดสำรองครบ');
+      d.backupOk=bl&&bn&&!N.same('INV.BL','DB.LR')&&!N.same('INV.BL','G.L');
+    }
+  }
+  /* generator */
+  d.genOk=false;
+  if(hyb&&(anyOn('GEN.L')||anyOn('INV.EL'))){
+    const gl=N.same('GEN.L','INV.EL'),gn=N.same('GEN.N','INV.EN');
+    if(!gl||!gn)add('err','พอร์ต GEN ต้องต่อ L และ N จากเครื่องปั่นไฟ');
+    else{d.genOk=true;add('ok','เครื่องปั่นไฟต่อเข้าพอร์ต GEN');}
+    if(gl&&!(hasWire('GEN.S1','INV.D1')&&hasWire('GEN.S2','INV.D2')||hasWire('GEN.S1','INV.D2')&&hasWire('GEN.S2','INV.D1')))add('warn','ไม่ได้ต่อสาย Start (dry contact) อินเวอร์เตอร์สั่งสตาร์ทเครื่องปั่นไฟเองไม่ได้ ต้องสตาร์ทด้วยมือ');
+  }
+  /* battery */
+  d.batOk=false;d.batRev=false;d.canOk=false;
+  if(hyb){
+    const bp=hasWire('BAT.+','INV.B+')&&hasWire('BAT.-','INV.B-'),br=hasWire('BAT.+','INV.B-')&&hasWire('BAT.-','INV.B+');
+    if(br)add('err','ขั้ว + − ของแบตเตอรี่ต่อกลับกับอินเวอร์เตอร์ (reverse polarity) ห้ามเปิดเบรกเกอร์ DC');
+    else if(bp){d.batOk=true;add('ok','แบตเตอรี่ต่อขั้ว + − ถูกต้อง')}
+    else if(anyOn('INV.B+')||anyOn('INV.B-')||anyOn('BAT.+')||anyOn('BAT.-'))add('err','สายแบตเตอรี่ยังต่อไม่ครบทั้ง + และ −');
+    else add('warn','ยังไม่ได้ต่อแบตเตอรี่ ระบบทำงานเป็นไฟจากแผงและกริดเท่านั้น');
+    d.batRev=br;
+    const bi=bankInfo();
+    if(d.batOk&&bi&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))add('err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วง ${I.bvMin}–${I.bvMax} V ของอินเวอร์เตอร์`);
+    const cn=(hasWire('BAT.H','INV.CH')&&hasWire('BAT.L','INV.CL')),cs=(hasWire('BAT.H','INV.CL')&&hasWire('BAT.L','INV.CH'));
+    d.canOk=cn;
+    if(S.batType==='li'&&S.batComm!=='none'){
+      if(cn)add('ok','สื่อสาร BMS CAN ต่อถูกต้อง');
+      else if(cs)add('err','สาย CAN H/L สลับกัน อินเวอร์เตอร์จะไม่เห็นแบต');
+      else if(d.batOk)add('warn','แบตลิเธียมแต่ยังไม่ได้ต่อสาย BMS CAN อินเวอร์เตอร์อาจไม่ยอมชาร์จ หรือแสดง BMS fault');
+    }
+    if(S.batType==='lead'&&(cn||cs))add('warn','แบตตะกั่วกรดไม่มี BMS สาย CAN ไม่จำเป็น');
+  }
+  /* meter / CT */
+  d.meterOk=false;
+  const mt=S.meterType;
+  if(mt==='ct'){
+    const sw=hasWire('CT.S1','INV.C2')&&hasWire('CT.S2','INV.C1'),ok=hasWire('CT.S1','INV.C1')&&hasWire('CT.S2','INV.C2');
+    let bad=false;
+    if(!ok&&!sw){add('err','เลือกใช้ CT แต่ยังไม่ได้ต่อสาย CT เข้าอินเวอร์เตอร์ครบ (S1→CT1, S2→CT2)');bad=true}
+    if(S.ctPos==='loadL'){add('err','CT คล้องสาย L ของโหลดบ้านเท่านั้น อินเวอร์เตอร์จะไม่เห็นกำลังกริดจริง ต้องคล้องที่จุดต่อกริด');bad=true}
+    else if(S.ctPos==='invL'){add('err','CT คล้องสาย L ของอินเวอร์เตอร์ วัดกำลังอินเวอร์เตอร์ไม่ใช่กำลังกริด ต้องคล้องที่จุดต่อกริด');bad=true}
+    else if(S.ctPos==='N'){add('err','CT คล้องสาย N ต้องคล้องสาย L เส้นเปลวเท่านั้น');bad=true}
+    const rev=(S.ctDir!=='toGrid')!==sw;
+    if(ok||sw){
+      if(rev){add('err','ทิศ CT กลับด้าน (ลูกศรต้องชี้ไปทางกริด และ S1→CT1, S2→CT2) อินเวอร์เตอร์จะเห็นนำเข้าเป็นส่งออก และกลับกัน');bad=true}
+      else if(!bad)add('ok','CT คล้องถูกที่ ทิศถูก ต่อสายถูกขั้ว');
+    }
+    d.meterOk=!bad&&(ok||sw);d.ctRev=rev;
+    if(anyOn('M.A')||anyOn('M.B'))add('warn','ต่อสมาร์ทมิเตอร์ไว้ แต่ตั้งค่าใช้ CT ไม่ได้ใช้มิเตอร์');
+  }else if(mt==='meter'){
+    let bad=false;
+    const ab=hasWire('M.A','INV.RA')&&hasWire('M.B','INV.RB'),sw=hasWire('M.A','INV.RB')&&hasWire('M.B','INV.RA');
+    if(!viaM){add('err','เลือกใช้สมาร์ทมิเตอร์ แต่ยังไม่ได้ต่ออนุกรมระหว่างกริดกับตู้เมน (L เข้า ← กริด, L ออก → ตู้เมน)');bad=true}
+    if(!N.same('M.N','G.N')&&!N.same('M.N','DB.NL')){add('err','มิเตอร์ยังไม่ได้ต่อ N (ไม่มีไฟเลี้ยงมิเตอร์)');bad=true}
+    if(sw){add('err','สาย RS485 A/B สลับกัน มิเตอร์จะสื่อสารไม่ได้');bad=true}
+    else if(!ab){add('err','ยังไม่ได้ต่อ RS485 A→A, B→B ระหว่างมิเตอร์กับอินเวอร์เตอร์');bad=true}
+    if(S.mAddr!==S.iAddr||S.mBaud!==S.iBaud){add('err',`ค่าสื่อสารไม่ตรงกัน: มิเตอร์ ${S.mAddr}/${S.mBaud} อินเวอร์เตอร์ ${S.iAddr}/${S.iBaud} (แอดเดรส/Baud) จะขึ้น Meter fault`);bad=true}
+    if(!bad)add('ok','สมาร์ทมิเตอร์ต่อถูก สื่อสารได้');
+    d.meterOk=!bad;
+    if(anyOn('CT.S1')||anyOn('CT.S2'))add('warn','ต่อ CT ไว้ แต่ตั้งค่าใช้สมาร์ทมิเตอร์');
+  }else{
+    if(anyOn('CT.S1')||anyOn('M.A'))add('warn','ต่อ CT หรือมิเตอร์ไว้ แต่ตั้งค่า "ไม่ใช้" อินเวอร์เตอร์จะไม่ใช้ข้อมูลนี้');
+  }
+  /* settings consistency */
+  if(S.expLimOn&&!d.meterOk)add('err','เปิด Export limit แต่ไม่มี CT หรือมิเตอร์ที่ใช้งานได้ ระบบจำกัดการขายไฟไม่ได้ ไฟอาจไหลออกกริดเกินที่กำหนด');
+  if(S.expLimOn&&d.meterOk&&mt==='ct'&&d.ctRev)add('err','Export limit ทำงานผิดทิศ');
+  if(!hyb&&S.batType&&false){}
+  if(S.mode==='backup'&&!d.batOk&&hyb)add('warn','โหมด Backup reserve ต้องมีแบต');
+  if(S.genMode!=='off'&&!d.genOk&&hyb)add('warn','เปิดใช้เครื่องปั่นไฟในตั้งค่า แต่ยังไม่ได้ต่อพอร์ต GEN');
+  if(S.backupEn&&!d.backupOk&&hyb&&anyOn('INV.BL'))add('warn','เปิดใช้ Backup แต่การต่อพอร์ต BACKUP ยังไม่ถูก');
+  if(!S.backupEn&&d.backupOk)add('warn','ต่อ BACKUP ครบแล้ว แต่ตั้งค่าปิด Backup ตอนไฟดับจะไม่จ่ายไฟ');
+  /* breakers */
+  const iRated=I.pac/230,min=iRated*1.2;
+  const cb=(v,nm)=>{if(v<min)add('warn',`เบรกเกอร์ ${nm} ${v} A เล็กกว่าที่ควรใช้ (กระแสพิกัด ${f(iRated,0)} A × 1.2 ≈ ${f(min,0)} A) อาจตัดเมื่อโหลดเต็ม`);else if(v>min*2.2)add('warn',`เบรกเกอร์ ${nm} ${v} A ใหญ่เกินไป ใหญ่กว่าสายและอุปกรณ์ที่ป้องกันได้ ควรเลือกใกล้ ${f(min,0)} A`)};
+  if(gridPort&&d.gridPort)cb(S.cbGrid,'GRID');
+  if(hyb&&d.backupOk)cb(S.cbBackup,'BACKUP');
+  /* errors summary */
+  {const u=new Set();for(let i=ck.length-1;i>=0;i--){const k=ck[i][0]+ck[i][1];if(u.has(k))ck.splice(i,1);else u.add(k)}}
+  const nE=ck.filter(c=>c[0]==='err').length,nW=ck.filter(c=>c[0]==='warn').length;
+  const lvl=nE?'err':nW?'warn':ck.some(c=>c[0]==='ok')?'ok':'warn';
+  return{ck,d,nE,nW,lvl};
+}
+/* config handed to the backup energy balance */
+function acsCfg(){
+  if(!ACS.apply)return null;
+  const a=acAnalyze(),S=ACS.set,I=curInv(),c={reserve:S.reserve,gmode:S.mode,notes:[]};
+  if(I.type!=='on-grid'){
+    c.noBackup=!(a.d.backupOk&&S.backupEn);
+    if(c.noBackup)c.notes.push(['err','ใช้ผลการต่อสาย AC: พอร์ต BACKUP ยังไม่พร้อม ตอนไฟดับโหลดทั้งหมดจึงไม่มีไฟ'])
+  }
+  if(S.expLimOn){
+    if(a.d.meterOk&&!a.d.ctRev)c.expLimW=S.expLimW;
+    else c.notes.push(['err',`ใช้ผลการต่อสาย AC: ตั้ง Export limit ${S.expLimW} W แต่ CT/มิเตอร์ใช้งานไม่ได้ ระบบจึงจำกัดการขายไฟไม่ได้`]);
+  }
+  if(S.mode==='feedin')c.notes.push(['warn','โหมด Feed-in priority: แบตไม่ชาร์จหรือจ่ายตอนมีกริด ใช้แบตเฉพาะตอนไฟดับ']);
+  return c;
+}
+
+/* drawing */
+function acRender(){
+  const svg=document.getElementById('acsvg');if(!svg)return;
+  const I=curInv(),A=acAnalyze();
+  let s='';
+  Object.keys(AC_C).forEach(k=>{
+    const c=AC_C[k],title=k==='INV'?`${I.name||'อินเวอร์เตอร์'} · ${I.type}`:c.t;
+    s+=`<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="8" class="acbox${k==='INV'?' inv':''}"/><text x="${c.x+c.w/2}" y="${c.y+(k==='INV'?-6:18)}" class="actitle" text-anchor="middle">${esc(title)}</text>`;
+  });
+  /* CT clamp symbol drawn on the position choice */
+  const S=ACS.set;
+  s+=`<text x="305" y="352" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="305" y="370" class="acnote" text-anchor="middle">ลูกศรชี้ ${S.ctDir==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}</text>`;
+  s+=`<text x="${AC_C.INV.x+130}" y="${AC_C.INV.y+300}" class="acnote" text-anchor="middle" opacity=".0"></text>`;
+  /* wires */
+  const side=a=>a==='l'?[-1,0]:a==='r'?[1,0]:[0,1];
+  const path=(t1,t2)=>{
+    const d1=side(t1.side),d2=side(t2.side),dist=Math.hypot(t2.x-t1.x,t2.y-t1.y),k=Math.max(40,dist*.38);
+    return `M${t1.x} ${t1.y}C${t1.x+d1[0]*k} ${t1.y+d1[1]*k} ${t2.x+d2[0]*k} ${t2.y+d2[1]*k} ${t2.x} ${t2.y}`;
+  };
+  const errW=new Set();
+  ACS.wires.forEach((w,i)=>{
+    const a=AC_TM[w.a],b=AC_TM[w.b];if(!a||!b)return;
+    const bad=a.kind!==b.kind&&!((a.kind==='a'&&b.kind==='b')||(a.kind==='b'&&b.kind==='a')||(a.kind==='ct1'&&b.kind==='ct2')||(a.kind==='ct2'&&b.kind==='ct1')||(a.kind==='canh'&&b.kind==='canl')||(a.kind==='canl'&&b.kind==='canh')||(a.kind==='dc+'&&b.kind==='dc-')||(a.kind==='dc-'&&b.kind==='dc+'));
+    const col=KIND_COL[a.kind]||'#888',d=path(a,b);
+    s+=`<path d="${d}" class="acw-hit" data-w="${i}"/><path d="${d}" class="acw${bad?' bad':''}" style="stroke:${col}" data-w="${i}"/>`;
+    if(a.kind==='PE')s+=`<path d="${d}" class="acw pe"/>`;
+  });
+  /* terminals */
+  AC_T.forEach(t=>{
+    const T=AC_TM[t[0]],on=anyOn(T.id),av=acAvail(T),arm=ACS.armed===T.id;
+    const lx=T.side==='l'?T.x+9:T.side==='r'?T.x-9:T.x,ly=T.side==='b'?T.y-9:T.y+4,an=T.side==='l'?'start':T.side==='r'?'end':'middle';
+    s+=`<g class="act${av?'':' off'}" data-t="${T.id}"><circle cx="${T.x}" cy="${T.y}" r="16" class="achit"/><circle cx="${T.x}" cy="${T.y}" r="6.5" class="acterm${on?' on':''}${arm?' arm':''}" style="stroke:${KIND_COL[T.kind]}"/><text x="${lx}" y="${ly}" class="aclab" text-anchor="${an}">${esc(T.lab)}</text></g>`;
+  });
+  svg.innerHTML=s;
+  const v=document.getElementById('acverdict');
+  const txt=A.nE?`พบข้อผิดพลาด ${A.nE} จุด`:A.nW?`ใช้งานได้ แต่มี ${A.nW} ข้อควรระวัง`:A.ck.length?'ต่อสายและตั้งค่าถูกต้องตามที่ตรวจได้':'ยังไม่ได้ต่อสาย';
+  v.className='verdict '+(A.ck.length?A.lvl:'');v.innerHTML=`<span class="pill ${A.ck.length?A.lvl:'idle'}">${A.ck.length?LABEL[A.lvl]:'ยังไม่เริ่ม'}</span><b>${esc(txt)}</b>`;
+  document.getElementById('acchecks').innerHTML=A.ck.map(c=>`<li><span class="b ${c[0]}">${c[0]==='ok'?'✓':c[0]==='err'?'×':'!'}</span><span>${esc(c[1])}</span></li>`).join('');
+  acSyncUI(I);
+  window.lastAC={lvl:ACS.wires.length&&A.ck.length?A.lvl:'idle',nE:A.nE,nW:A.nW,txt};
+}
+function acSyncUI(I){
+  const S=ACS.set,q=id=>document.getElementById(id);
+  q('acapply').checked=ACS.apply;
+  const map={acmode:'mode',acres:'reserve',acstd:'gridStd',acmt:'meterType',acctp:'ctPos',acctd:'ctDir',acmad:'mAddr',acmbd:'mBaud',aciad:'iAddr',acibd:'iBaud',acbt:'batType',acbc:'batComm',acgen:'genMode',accg:'cbGrid',accb:'cbBackup',acel:'expLimW'};
+  Object.keys(map).forEach(id=>{const el=q(id);if(el&&document.activeElement!==el)el.value=S[map[id]]});
+  q('acelon').checked=S.expLimOn;q('acbken').checked=S.backupEn;
+  q('acelw').hidden=!S.expLimOn;
+  q('acmeterbox').hidden=S.meterType!=='meter';q('acctbox').hidden=S.meterType!=='ct';
+  q('acinvnote').textContent=I.type==='on-grid'?'รุ่นนี้เป็น On-grid: มีพอร์ต GRID, RS485 และ CT เท่านั้น ไม่มี BACKUP / GEN / แบตเตอรี่':I.type==='off-grid'?'รุ่นนี้เป็น Off-grid: ไม่มีพอร์ต GRID แบบขนานกริด ใช้ GEN เป็นทางเข้า AC และจ่ายโหลดที่ BACKUP':'รุ่นนี้เป็น Hybrid: มีครบทั้ง GRID, BACKUP, GEN, CT/มิเตอร์ และแบตเตอรี่';
+}
+function acPreset(name){
+  ACS.wires=[];ACS.armed=null;
+  if(name!=='clear'&&curInv().type!=='hybrid'){const h=CAT.inverters.find(x=>x.type==='hybrid');if(h){ACT.inv=h.id;applyActive();if(typeof quickSel==='function')quickSel();lastSig='';if(typeof render==='function')render()}}
+  const W=(a,b)=>ACS.wires.push({a,b});
+  const S=ACS.set;
+  if(name==='clear'){acRender();touch();return}
+  if(name==='ct'||name==='meter'||name==='bad'){
+    if(name==='meter'){W('G.L','M.LI');W('M.LO','DB.LL');W('G.N','M.N');W('G.N','DB.NL');W('M.A','INV.RA');W('M.B','INV.RB');S.meterType='meter';S.mAddr=S.iAddr=1;S.mBaud=S.iBaud=9600}
+    else{W('G.L','DB.LL');W('G.N','DB.NL');S.meterType='ct';S.ctPos='gridL';S.ctDir='toGrid';W('CT.S1','INV.C1');W('CT.S2','INV.C2')}
+    W('G.PE','DB.PL');
+    W('DB.LR','INV.GL');W('DB.NR','INV.GN');W('DB.PR','INV.GP');W('DB.PR','INV.PF');
+    W('INV.BL','CDB.L');W('INV.BN','CDB.N');W('INV.BP','CDB.PE');
+    W('BAT.+','INV.B+');W('BAT.-','INV.B-');W('BAT.H','INV.CH');W('BAT.L','INV.CL');
+    if(name==='bad'){
+      ACS.wires=ACS.wires.filter(w=>!(w.a==='INV.BL'||w.a==='BAT.+'||w.a==='BAT.-'||w.a==='CT.S1'));
+      W('INV.BL','DB.LR');W('BAT.+','INV.B-');W('BAT.-','INV.B+');W('CT.S1','INV.C1');S.ctDir='toLoad';S.expLimOn=true;S.expLimW=0;
+    }
+  }
+  acRender();touch();
+}
+function acPoint(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
+function acAdd(a,b){
+  if(a===b)return;
+  if(!AC_TM[a]||!AC_TM[b]||!acAvail(AC_TM[a])||!acAvail(AC_TM[b]))return;
+  if(hasWire(a,b))return;
+  ACS.wires.push({a,b});ACS.armed=null;acRender();touch();
+}
+function initAC(){
+  const svg=document.getElementById('acsvg');
+  let drag=null,tmp=null;
+  svg.addEventListener('pointerdown',e=>{
+    const t=e.target.closest('[data-t]');
+    if(t&&!t.classList.contains('off')){
+      e.preventDefault();
+      drag={id:t.dataset.t,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','acw tmp');svg.appendChild(tmp);
+      try{svg.setPointerCapture(e.pointerId)}catch(_){}
+    }
+  });
+  svg.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const p=acPoint(svg,e),a=AC_TM[drag.id];
+    if(Math.hypot(p.x-a.x,p.y-a.y)>8)drag.moved=true;
+    if(drag.moved)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+  });
+  const end=e=>{
+    if(!drag)return;
+    const d=drag;drag=null;if(tmp){tmp.remove();tmp=null}
+    if(d.moved){
+      const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-t]');
+      if(t)acAdd(d.id,t.dataset.t);
+    }else{
+      if(ACS.armed&&ACS.armed!==d.id)acAdd(ACS.armed,d.id);
+      else{ACS.armed=ACS.armed===d.id?null:d.id;acRender()}
+    }
+  };
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{drag=null;if(tmp){tmp.remove();tmp=null}});
+  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){ACS.wires.splice(+w.dataset.w,1);acRender();touch()}});
+  document.getElementById('acpre').addEventListener('click',e=>{const b=e.target.closest('[data-acp]');if(b)acPreset(b.dataset.acp)});
+  const S=ACS.set,q=id=>document.getElementById(id);
+  const bindSel=(id,key,num)=>q(id).addEventListener('change',e=>{S[key]=num?+e.target.value:e.target.value;acRender();rerunBk();touch()});
+  const bindNum=(id,key,lo,hi)=>q(id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;S[key]=Math.max(lo,Math.min(hi,n));acRender();rerunBk();touch()});
+  bindSel('acmode','mode');bindSel('acstd','gridStd');bindSel('acmt','meterType');bindSel('acctp','ctPos');bindSel('acctd','ctDir');
+  bindSel('acbt','batType');bindSel('acbc','batComm');bindSel('acgen','genMode');bindSel('accg','cbGrid',true);bindSel('accb','cbBackup',true);
+  bindNum('acres','reserve',0,100);bindNum('acmad','mAddr',1,247);bindNum('aciad','iAddr',1,247);bindNum('acel','expLimW',0,20000);
+  bindSel('acmbd','mBaud',true);bindSel('acibd','iBaud',true);
+  q('acelon').addEventListener('change',e=>{S.expLimOn=e.target.checked;acRender();rerunBk();touch()});
+  q('acbken').addEventListener('change',e=>{S.backupEn=e.target.checked;acRender();rerunBk();touch()});
+  q('acapply').addEventListener('change',e=>{ACS.apply=e.target.checked;acRender();rerunBk();touch()});
+  acRender();
+}
+function rerunBk(){if(typeof backupRun==='function')backupRun();if(typeof evRun==='function')evRun()}
+
 /* ---- Plus Code (Open Location Code) ---- */
 const OLC='23456789CFGHJMPQRVWX';
 function olcEncode(lat,lng){
@@ -1308,38 +1817,45 @@ function solarPos(lat,lon,doy,h,tz){
   return{cosZ,zen,az};
 }
 
-function simDay(blocks,I,tilt,az,step,ideal){
+function simDay(blocks,I,tilt,az,step,ideal,noEv){
   const n=Math.round(1440/step),doy=dayOfYear(SIM.date),la=SIM.lat,lo=SIM.lon;
   const b=tilt*Math.PI/180,gp=az*Math.PI/180,sky=SKY[SIM.sky],keep=1-SIM.loss/100;
   const Ics=1361*(1+0.033*Math.cos(2*Math.PI*doy/365)),dt=step/60/1000;
-  const R={step,n,t:[],g:[],tc:[],sun:[],vmp:[[],[]],pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
+  const ev=(!noEv&&typeof EV!=='undefined')?EV:null;
+  const R={step,n,t:[],g:[],tc:[],sun:[],elev:[],saz:[],cov:[],shade:[],vmp:[[],[]],pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
   for(let i=0;i<n;i++){
     const h=(i+.5)*step/60,sp=solarPos(la,lo,doy,h,SIM.tz);
-    let g=0;
+    let g=0,gb=0,gd=0;
     if(sp.cosZ>0.001){
       const zd=sp.zen*180/Math.PI,am=1/(sp.cosZ+0.50572*Math.pow(96.07995-zd,-1.6364));
       const dni=Ics*Math.pow(0.7,Math.pow(am,0.678)),dhi=0.1*dni*sky.dif,dne=dni*sky.dir;
       const ghi=dne*sp.cosZ+dhi;
       const cosI=Math.max(0,sp.cosZ*Math.cos(b)+Math.sin(sp.zen)*Math.sin(b)*Math.cos(sp.az-gp));
-      g=dne*cosI+dhi*(1+Math.cos(b))/2+ghi*0.2*(1-Math.cos(b))/2;
+      gb=dne*cosI;gd=dhi*(1+Math.cos(b))/2+ghi*0.2*(1-Math.cos(b))/2;
     }
+    const cov=ev?evCloud(h):0;
+    if(cov>0){gb*=1-cov*ev.cloud.depth/100*0.95;gd*=1-cov*ev.cloud.depth/100*0.35}
+    g=gb+gd;
+    const elev=Math.PI/2-sp.zen,soil=ev&&ev.dust.on?1-ev.dust.pct/100:1;
     const ta=(SIM.amax+SIM.amin)/2+(SIM.amax-SIM.amin)/2*Math.cos(2*Math.PI*(h-15)/24);
     const tc=ta+((PV.noct||43)-20)/800*g;
-    let pot=0,pdc=0,lim=0;
+    let pot=0,pdc=0,lim=0,shd=0;
     blocks.forEach((bk,j)=>{
       if(!bk||g<20){R.vmp[j].push(null);return}
-      const ln=2.04*Math.log(Math.max(g,1)/1000);
+      const sf=ev&&sp.cosZ>0.001?evTreeShade(sp.az,elev,j):0;if(sf>shd)shd=sf;
+      const gs=(gb*(1-sf)+gd)*soil;
+      const ln=2.04*Math.log(Math.max(gs,1)/1000);
       const vmp=Math.max(0,PV.vmp*(1+PV.kPmax/100*(tc-25))+ln)*bk.ns;
       const voc=Math.max(0,PV.voc*(1+PV.kVoc/100*(tc-25))+ln)*bk.ns;
-      const imp=PV.imp*(g/1000)*(1+PV.kIsc/100*(tc-25))*bk.mp;
-      const p=bk.n*PV.pmax*(g/1000)*(1+PV.kPmax/100*(tc-25))*keep;
+      const imp=PV.imp*(gs/1000)*(1+PV.kIsc/100*(tc-25))*bk.mp;
+      const p=bk.n*PV.pmax*(gs/1000)*(1+PV.kPmax/100*(tc-25))*keep;
       R.vmp[j].push(vmp);
       pot+=p;
       if(ideal)pdc+=p;
       else if(voc>=I.start&&voc<=I.vmax&&vmp>=I.lo&&vmp<=I.hi){const k=imp>I.imax?I.imax/imp:1;pdc+=p*k;lim+=p*(1-k)}
     });
     const pre=pdc*(I.eff||97)/100,pac=Math.min(pre,I.pac);
-    R.t.push(h);R.g.push(g);R.tc.push(tc);R.sun.push(sp.cosZ>0);R.pot.push(pot);R.pac.push(pac);
+    R.elev.push(elev);R.saz.push(sp.az);R.cov.push(cov);R.shade.push(shd);R.t.push(h);R.g.push(g);R.tc.push(tc);R.sun.push(sp.cosZ>0);R.pot.push(pot);R.pac.push(pac);
     R.E+=pac*dt;R.Eclip+=(pre-pac)*dt;R.Elim+=lim*dt;
     if(pac>0){if(R.first<0)R.first=i;R.last=i;R.ops++;if(pac>R.peak){R.peak=pac;R.peakI=i}}
     else if(g>=20)R.idle++;
@@ -1496,7 +2012,7 @@ function runSimView(){
   $('#tblh').innerHTML=`<tr><th>เวลา</th><th>แสงบนแผง (W/m²)</th><th>อุณหภูมิเซลล์ (°C)</th>`+blocks.map((bk,j)=>bk?`<th>Vmp MPPT ${j+1} (V)</th>`:'').join('')+`<th>DC (kW)</th><th>AC (kW)</th></tr>`;
   $('#tblb').innerHTML=rows;
 }
-function runSim(){runSimView();if(typeof backupRun==='function')backupRun()}
+function runSim(){runSimView();if(typeof backupRun==='function')backupRun();if(typeof evRun==='function')evRun()}
 function drawCharts(){if(!chartCfg)return;drawLine($('#chA'),chartCfg.A);drawLine($('#chB'),chartCfg.B)}
 let rz=0;
 window.addEventListener('resize',()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(drawCharts)});
@@ -1655,21 +2171,25 @@ function balance(pv,loadAll,loadCrit,cfg){
     const island=cfg.mode==='off'||outage;
     const want=island?(cfg.island==='crit'?loadCrit[i]:loadAll[i]):loadAll[i];
     let p=pv[i],ld=want,unmet=0,direct=0,toB=0,fromB=0,exp=0,imp=0,curt=0;
+    const gridUp=!island,gm=cfg.gmode||'selfuse';
+    const floorE=bat?(gridUp?Math.max(Emin,cap*(gm==='backup'?100:(cfg.reserve||0))/100):Emin):0;
+    const batIdle=gridUp&&gm==='feedin';
     if(cfg.mode==='grid'){
       if(outage){curt=p;p=0;unmet=ld;ld=0}
-      else{direct=Math.min(p,ld);exp=p-direct;imp=ld-direct}
-    }else{
+      else{direct=Math.min(p,ld);exp=p-direct;imp=ld-direct;if(cfg.expLimW!=null&&exp>cfg.expLimW){curt=exp-cfg.expLimW;exp=cfg.expLimW}}
+    }else if(outage&&cfg.noBackup){curt=p;unmet=ld;ld=0;p=0}
+    else{
       if(island&&ld>cfg.islandW){unmet+=ld-cfg.islandW;ld=cfg.islandW}
       direct=Math.min(p,ld);
       let sur=(p-direct)*dt/1000,def=(ld-direct)*dt/1000;
-      if(sur>0&&bat){
+      if(sur>0&&bat&&!batIdle){
         const c=Math.min(sur,chgMax*dt,(cap-E)/eta);
         E+=c*eta;toB=c;sur-=c;
       }
-      if(sur>1e-12){if(island)curt=sur*1000/dt;else exp=sur*1000/dt}
+      if(sur>1e-12){if(island)curt=sur*1000/dt;else{exp=sur*1000/dt;if(cfg.expLimW!=null&&exp>cfg.expLimW){curt=exp-cfg.expLimW;exp=cfg.expLimW}}}
       let fromBkWh=0;
-      if(def>0&&bat){
-        const d=Math.min(def,disMax*dt,Math.max(0,E-Emin)*eta);
+      if(def>0&&bat&&!batIdle){
+        const d=Math.min(def,disMax*dt,Math.max(0,E-floorE)*eta);
         E-=d/eta;fromBkWh=d;def-=d;
       }
       fromB=fromBkWh*1000/dt;toB=toB*1000/dt;
@@ -1721,6 +2241,8 @@ function backupRun(){
   const disKw=bi?Math.min(I.bdis>0?I.bdis:I.pac/1000,bi.kwh*bi.maxC):0;
   const islandW=Math.min(I.pac,(I.backupKw>0?I.backupKw:I.pac/1000)*1000);
   const cfg={mode:BK.mode,bank:need?bi:null,chgKw,disKw,islandW,soc0:BK.soc0,outStart:BK.outStart,outDur:BK.outDur,island:BK.island,step:5};
+  const ax=(typeof acsCfg==='function')?acsCfg():null;
+  if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
   const R=balance(src.pv,LP.all,LP.crit,cfg);
   const T=R.T;
 
@@ -1732,6 +2254,7 @@ function backupRun(){
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);
   if(need&&bi&&bi.kwh*bi.maxC<peakIsl/1000*0.999)warns.push(['warn',`แบตจ่ายกำลังสูงสุดได้ราว ${f(bi.kwh*bi.maxC,1)} kW (${bi.maxC}C) น้อยกว่าโหลดสูงสุด`]);
   if(src.kwp>I.pvRec/1000)warns.push(['warn',`กำลังแผง ${f(src.kwp,2)} kWp เกินที่แนะนำสำหรับอินเวอร์เตอร์ ${I.pvRec/1000} kWp`]);
+  if(ax)ax.notes.forEach(n=>warns.push(n));
   $('#bkwarn').innerHTML=warns.map(w=>`<li><span class="b ${w[0]}">${w[0]==='err'?'×':'!'}</span><span>${esc(w[1])}</span></li>`).join('');
 
   /* verdict */
@@ -1809,6 +2332,259 @@ function initBackup(){
   bkSync();
 }
 
+/* ---- events: cloud, dust, tree shade, seasons, grid outage, plus top/side site views ---- */
+const EV={cloud:{on:false,start:11,dur:2,depth:70},dust:{on:false,pct:15},
+  tree:{on:false,h:12,d:7,az:180,w:90,pct:60,mppt:0,ph:3}};
+const SEASONS=[['ฤดูร้อน (กลาง เม.ย.)',4,15],['ฤดูฝน (กลาง ก.ค.)',7,15],['ฤดูหนาว (กลาง ธ.ค.)',12,15],
+  ['วิษุวัต (ฤดูใบไม้ผลิ)',3,21],['ครีษมายัน (กลางวันยาวสุดทางเหนือ)',6,21],['เหมายัน (กลางวันสั้นสุดทางเหนือ)',12,21]];
+const SC={view:'top',h:12,timer:0};
+
+/* cloud coverage 0..1 at hour h, with 10 minute soft edges */
+function evCloud(h){
+  const c=EV.cloud;if(!c.on||c.dur<=0)return 0;
+  const s=c.start%24,e=s+c.dur,ramp=1/6;
+  let best=0;
+  [h,h+24].forEach(x=>{if(x>=s-ramp&&x<=e+ramp)best=Math.max(best,Math.min(1,(x-s+ramp)/(2*ramp),(e-x+ramp)/(2*ramp)))});
+  return Math.max(0,Math.min(1,best));
+}
+const angDiff=(a,b)=>{let d=((a-b)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI;return Math.abs(d)};
+/* tree blocks the beam if the sun is inside its angular width and below the top of the tree seen from the array */
+function treeLimit(){const t=EV.tree;return Math.atan2(Math.max(0,t.h-t.ph),Math.max(0.5,t.d))}
+function evTreeShade(azR,elR,j){
+  const t=EV.tree;if(!t.on)return 0;
+  if(t.mppt&&t.mppt!==j+1)return 0;
+  if(angDiff(azR,t.az*Math.PI/180)>t.w/2*Math.PI/180)return 0;
+  return elR<treeLimit()?t.pct/100:0;
+}
+const evActive=()=>EV.cloud.on||EV.dust.on||EV.tree.on;
+
+function evSource(){
+  const I=curInv();
+  if(lastA){
+    const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
+    if(blocks.some(Boolean))return{blocks,I:lastA.I||I,ideal:false,label:'ตามที่ต่อสายไว้ในแท็บ "ต่อสาย"',n:blocks.reduce((a,b)=>a+(b?b.n:0),0)};
+  }
+  const N=Math.max(1,BK.nIdeal|0);
+  return{blocks:[{n:N,ns:N,mp:1}],I,ideal:true,label:`แผงสมมติ ${N} แผง (ยังไม่ได้ต่อสายที่ถูกต้อง)`,n:N};
+}
+function simWith(S,only,date){
+  const keep=JSON.stringify([EV.cloud.on,EV.dust.on,EV.tree.on]),od=SIM.date;
+  if(only==='none'){EV.cloud.on=EV.dust.on=EV.tree.on=false}
+  else if(only){const o={cloud:EV.cloud.on,dust:EV.dust.on,tree:EV.tree.on};EV.cloud.on=only==='cloud'&&o.cloud;EV.dust.on=only==='dust'&&o.dust;EV.tree.on=only==='tree'&&o.tree}
+  if(date)SIM.date=date;
+  let R;try{R=simDay(S.blocks,S.I,SIM.tilt,SIM.az,5,S.ideal)}finally{
+    const k=JSON.parse(keep);EV.cloud.on=k[0];EV.dust.on=k[1];EV.tree.on=k[2];SIM.date=od}
+  return R;
+}
+function sunTimes(R){
+  const idx=R.sun.map((v,i)=>v?i:-1).filter(i=>i>=0);
+  if(!idx.length)return null;
+  const sr=idx[0]*R.step/60,ss=(idx[idx.length-1]+1)*R.step/60;
+  let mx=0;R.elev.forEach(e=>{if(e>mx)mx=e});
+  return{sr,ss,len:ss-sr,noon:mx*180/Math.PI};
+}
+function seasonDate(m,d){const y=(SIM.date||'').slice(0,4)||String(new Date().getFullYear());return `${y}-${pad2(m)}-${pad2(d)}`}
+function setDate(ds){SIM.date=ds;const el=document.getElementById('date');if(el)el.value=ds}
+
+/* ---- site view (top / side) ---- */
+function sunAt(h){const doy=dayOfYear(SIM.date),p=solarPos(SIM.lat,SIM.lon,doy,h,SIM.tz);return{az:p.az,el:Math.PI/2-p.zen,up:p.cosZ>0.001}}
+function cloudSvg(x,y,s,op){return `<g opacity="${op}"><ellipse cx="${x}" cy="${y}" rx="${34*s}" ry="${13*s}" class="cld"/><ellipse cx="${x-20*s}" cy="${y+4*s}" rx="${22*s}" ry="${10*s}" class="cld"/><ellipse cx="${x+22*s}" cy="${y+5*s}" rx="${24*s}" ry="${10*s}" class="cld"/></g>`}
+function siteTop(S){
+  const cx=260,cy=190,R=165,m=7.2;/* px per metre in plan */
+  const sn=sunAt(SC.h),az=SIM.az*Math.PI/180,t=EV.tree,cov=evCloud(SC.h);
+  const P=(a,r)=>[cx+r*Math.sin(a),cy-r*Math.cos(a)];
+  let s=`<circle cx="${cx}" cy="${cy}" r="${R}" class="sg"/><circle cx="${cx}" cy="${cy}" r="${R*0.5}" class="sg" stroke-dasharray="3 4"/>`;
+  [['N',0],['E',90],['S',180],['W',270]].forEach(d=>{const q=P(d[1]*Math.PI/180,R+14);s+=`<text x="${q[0]}" y="${q[1]+4}" class="ax" text-anchor="middle">${d[0]==='N'?'เหนือ':d[0]==='E'?'ตะวันออก':d[0]==='S'?'ใต้':'ตะวันตก'}</text>`});
+  /* sun path on the rim (azimuth only) */
+  let path='';const pts=[];
+  for(let h=0;h<24;h+=0.1){const q=sunAt(h);if(q.up)pts.push(P(q.az,R*(1-q.el/(Math.PI/2))))}
+  if(pts.length>1)path='M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L');
+  s+=`<path d="${path}" class="spath"/><text x="${cx}" y="${cy+R+30}" class="ax" text-anchor="middle">เส้นทางดวงอาทิตย์ (ยิ่งใกล้ขอบวงยิ่งเงยต่ำ)</text>`;
+  /* tree and its shadow */
+  if(t.on){
+    const tp=P(t.az*Math.PI/180,Math.min(R-12,t.d*m));
+    if(sn.up&&sn.el>0.02){
+      const L=Math.min(R*1.4,(t.h)/Math.tan(sn.el)*m),a=sn.az+Math.PI,wd=3.5*m/2;
+      const e=[tp[0]+L*Math.sin(a),tp[1]-L*Math.cos(a)],nx=Math.cos(a)*wd,ny=Math.sin(a)*wd;
+      s+=`<polygon points="${tp[0]-nx},${tp[1]-ny} ${tp[0]+nx},${tp[1]+ny} ${e[0]+nx},${e[1]+ny} ${e[0]-nx},${e[1]-ny}" class="shd"/>`;
+    }
+    const aw=t.w/2*Math.PI/180,a1=P(t.az*Math.PI/180-aw,R),a2=P(t.az*Math.PI/180+aw,R);
+    s+=`<path d="M${cx} ${cy}L${a1[0]} ${a1[1]}A${R} ${R} 0 0 1 ${a2[0]} ${a2[1]}Z" class="wedge"/>`;
+    s+=`<circle cx="${tp[0]}" cy="${tp[1]}" r="${Math.max(7,2*m)}" class="tree"/><text x="${tp[0]}" y="${tp[1]+4}" class="ax" text-anchor="middle">ต้นไม้</text>`;
+  }
+  /* array */
+  const n=Math.max(1,S.n),cols=Math.min(n,Math.max(1,Math.round(Math.sqrt(n*1.4)))),rows=Math.ceil(n/cols);
+  const aw2=cols*1.13*m,ah=rows*2.38*m*Math.cos(SIM.tilt*Math.PI/180*0.9);
+  const dust=EV.dust.on?EV.dust.pct/100:0;
+  s+=`<g transform="translate(${cx} ${cy}) rotate(${SIM.az+180})"><rect x="${-aw2/2}" y="${-ah/2}" width="${aw2}" height="${ah}" class="arr"/>`
+    +(dust?`<rect x="${-aw2/2}" y="${-ah/2}" width="${aw2}" height="${ah}" class="dustl" style="opacity:${Math.min(.85,dust*2.2)}"/>`:'')
+    +`<line x1="${-aw2/2}" x2="${aw2/2}" y1="${ah/2}" y2="${ah/2}" class="frontl"/></g>`;
+  const fa=P(az,Math.max(aw2,ah)/2+30);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${fa[0]}" y2="${fa[1]}" class="face"/><text x="${fa[0]}" y="${fa[1]-6}" class="ax" text-anchor="middle">หน้าแผง ${SIM.az}°</text>`;
+  /* sun */
+  if(sn.up){const q=P(sn.az,R*(1-sn.el/(Math.PI/2)));s+=`<line x1="${cx}" y1="${cy}" x2="${q[0]}" y2="${q[1]}" class="ray"/><circle cx="${q[0]}" cy="${q[1]}" r="9" class="sun"/>`}
+  if(cov>0.02)s+=cloudSvg(cx-60,cy-110,1.3,Math.min(.9,cov))+cloudSvg(cx+70,cy+60,1.1,Math.min(.9,cov));
+  s+=`<text x="12" y="408" class="ax">แผนผังมองจากด้านบน · 1 ช่อง ≈ ${(R*0.5/m).toFixed(0)} ม. จากกลางแผง</text>`;
+  return{svg:s,vb:'0 0 520 420'};
+}
+function siteSide(S){
+  const W=520,gy=250,px=250,sc=9;/* px per metre */
+  const sn=sunAt(SC.h),tilt=SIM.tilt*Math.PI/180,t=EV.tree,cov=evCloud(SC.h),b=SIM.tilt;
+  const L=2.4*sc*Math.min(2,Math.max(1,S.n/6)),py=gy-28;
+  let s=`<line x1="10" x2="${W-10}" y1="${gy}" y2="${gy}" class="gnd"/>`;
+  /* sun in the vertical plane through the panel normal */
+  const dA=sn.az-SIM.az*Math.PI/180;
+  const u=Math.cos(sn.el)*Math.cos(dA),v=Math.sin(sn.el),apparent=Math.atan2(v,u);
+  /* tree */
+  let blocked=false;
+  if(t.on){
+    const dT=t.az*Math.PI/180-SIM.az*Math.PI/180,dist=t.d*Math.cos(dT);
+    const tx=px+Math.max(-230,Math.min(230,dist*sc));
+    const hh=t.h*sc;
+    s+=`<rect x="${tx-3}" y="${gy-hh*0.45}" width="6" height="${hh*0.45}" class="trunk"/><ellipse cx="${tx}" cy="${gy-hh*0.72}" rx="${Math.max(14,hh*0.3)}" ry="${hh*0.34}" class="tree"/>`;
+    s+=`<text x="${tx}" y="${gy+16}" class="ax" text-anchor="middle">ต้นไม้ สูง ${t.h} ม. ห่าง ${t.d} ม.</text>`;
+    blocked=sn.up&&evTreeShade(sn.az,sn.el,t.mppt?t.mppt-1:0)>0&&Math.cos(dT)>-0.2;
+  }
+  /* panel */
+  const ex=px+L*Math.cos(tilt),ey=py-L*Math.sin(tilt);
+  s+=`<line x1="${px}" y1="${py}" x2="${px}" y2="${gy}" class="post"/><line x1="${ex}" y1="${ey}" x2="${ex}" y2="${gy}" class="post"/>`;
+  s+=`<line x1="${px-L*0.0}" y1="${py}" x2="${ex}" y2="${ey}" class="slab${blocked?' blk':''}"/>`;
+  if(EV.dust.on){const k=Math.round(8+EV.dust.pct);for(let i=0;i<k;i++){const r=(i+.5)/k;s+=`<circle cx="${px+(ex-px)*r}" cy="${py+(ey-py)*r-4.5}" r="1.8" class="dustd"/>`}}
+  s+=`<path d="M${px+30} ${py}A30 30 0 0 0 ${px+30*Math.cos(tilt)} ${py-30*Math.sin(tilt)}" class="angl"/><text x="${px+38}" y="${py-6}" class="ax">${b}°</text>`;
+  /* sun and ray */
+  const mx=(px+ex)/2,my=(py+ey)/2;
+  if(sn.up){
+    const Rr=215,sx=mx+Rr*Math.cos(apparent),sy=my-Rr*Math.sin(apparent);
+    s+=`<line x1="${sx}" y1="${sy}" x2="${mx}" y2="${my}" class="ray${blocked?' cut':''}"/><circle cx="${sx}" cy="${sy}" r="10" class="sun"/>`;
+    const nA=tilt+Math.PI/2,cosI=Math.max(-1,Math.min(1,Math.cos(apparent-tilt-Math.PI/2+Math.PI/2)));
+    const inc=Math.acos(Math.max(-1,Math.min(1,Math.sin(apparent+tilt)*1)))*180/Math.PI;
+    s+=`<text x="${W-12}" y="22" class="ax" text-anchor="end">มุมเงยดวงอาทิตย์ ${(sn.el*180/Math.PI).toFixed(0)}° · ทิศ ${(sn.az*180/Math.PI).toFixed(0)}°</text>`;
+    s+=`<text x="${W-12}" y="40" class="ax" text-anchor="end">มุมตกกระทบบนแผงประมาณ ${inc.toFixed(0)}°${sn.az!==undefined&&u<0?' (ดวงอาทิตย์อยู่หลังแผง)':''}</text>`;
+    if(blocked)s+=`<text x="${W-12}" y="58" class="ax" text-anchor="end" style="fill:var(--err)">เงาต้นไม้บังแผง</text>`;
+  }else s+=`<text x="${W-12}" y="22" class="ax" text-anchor="end">กลางคืน ยังไม่มีแสงอาทิตย์</text>`;
+  if(cov>0.02)s+=cloudSvg(140,70,1.5,Math.min(.9,cov))+cloudSvg(380,100,1.2,Math.min(.9,cov));
+  s+=`<text x="12" y="20" class="ax">มองจากด้านข้าง ตามแนวหน้าแผง (หันหน้าไปทางขวา)</text>`;
+  return{svg:s,vb:'0 0 520 290'};
+}
+function sceneHTML(id){
+  return `<div class="scbar"><div class="seg" role="group" aria-label="มุมมอง"><button class="chip" data-sv="top">Top view (มองจากด้านบน)</button><button class="chip" data-sv="side">Side view (มองจากด้านข้าง)</button></div>
+  <label class="sctime">เวลา <b data-sct></b><input type="range" min="0" max="24" step="0.1" value="12" data-sch aria-label="เวลาในวัน"></label>
+  <button class="btn" data-scplay>▶ เล่น</button></div>
+  <svg class="scsvg" role="img" aria-label="มุมมองไซต์ติดตั้งแผงโซลาร์" data-scsvg></svg>`;
+}
+function drawScenes(){
+  const S=evSource();
+  const o=SC.view==='top'?siteTop(S):siteSide(S);
+  document.querySelectorAll('[data-scsvg]').forEach(el=>{el.setAttribute('viewBox',o.vb);el.innerHTML=o.svg});
+  document.querySelectorAll('[data-sv]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sv===SC.view)));
+  document.querySelectorAll('[data-sch]').forEach(el=>{el.value=SC.h});
+  document.querySelectorAll('[data-sct]').forEach(el=>{el.textContent=fmtT(SC.h)});
+}
+function initScenes(){
+  document.querySelectorAll('.scene').forEach(el=>{
+    el.innerHTML=sceneHTML();
+    el.addEventListener('click',e=>{
+      const b=e.target.closest('[data-sv]');if(b){SC.view=b.dataset.sv;drawScenes();return}
+      if(e.target.closest('[data-scplay]')){
+        if(SC.timer){clearInterval(SC.timer);SC.timer=0}
+        else SC.timer=setInterval(()=>{SC.h=(SC.h+0.1)%24;drawScenes()},80);
+        document.querySelectorAll('[data-scplay]').forEach(x=>x.textContent=SC.timer?'❚❚ หยุด':'▶ เล่น');
+      }
+    });
+    el.addEventListener('input',e=>{if(e.target.matches('[data-sch]')){SC.h=+e.target.value;drawScenes()}});
+  });
+}
+
+/* ---- events tab ---- */
+let evCfg=null;
+function evSync(){
+  const q=id=>document.getElementById(id);
+  q('evcl').checked=EV.cloud.on;q('evcs').value=hhmm(EV.cloud.start);q('evcd').value=EV.cloud.dur;q('evcp').value=EV.cloud.depth;q('evcpv').textContent=EV.cloud.depth+'%';
+  q('evdu').checked=EV.dust.on;q('evdp').value=EV.dust.pct;q('evdpv').textContent=EV.dust.pct+'%';
+  const t=EV.tree;q('evtr').checked=t.on;q('evth').value=t.h;q('evtd').value=t.d;q('evta').value=t.az;q('evtav').textContent=`${t.az}° (${dirName(t.az)})`;
+  q('evtw').value=t.w;q('evtwv').textContent=t.w+'°';q('evtp').value=t.pct;q('evtpv').textContent=t.pct+'%';q('evtm').value=t.mppt;q('evtph').value=t.ph;
+  q('evos').value=hhmm(BK.outStart);q('evod').value=BK.outDur;q('evmode').value=BK.mode;
+  q('evout-note').textContent=BK.mode==='off'?'โหมด Off-grid ไม่ต่อกริด จึงไม่มีเหตุการณ์ไฟดับ เลือก On-grid หรือ Hybrid เพื่อทดลองไฟดับ':'';
+  const ds=SIM.date;q('evday').value=dayOfYear(ds);q('evdayv').textContent=ds;
+  ['evcbox','evdbox','evtbox'].forEach((id,i)=>q(id).classList.toggle('on',[EV.cloud.on,EV.dust.on,EV.tree.on][i]));
+  const act=[];if(EV.cloud.on)act.push('เมฆบัง');if(EV.dust.on)act.push('ฝุ่นบังแผง');if(EV.tree.on)act.push('ต้นไม้บัง');
+  const n=document.getElementById('evnote');if(n)n.textContent=act.length?'เหตุการณ์ที่เปิดอยู่ในกราฟด้านล่าง: '+act.join(', ')+' (ตั้งค่าที่แท็บ "จำลองเหตุการณ์")':'';
+}
+function evRun(){
+  if(!document.getElementById('evmx'))return;
+  evSync();drawScenes();
+  const S=evSource(),R=simWith(S,null),R0=simWith(S,'none');
+  const st=sunTimes(R0);
+  const msg=document.getElementById('evsrc');
+  msg.textContent=`แหล่งผลิต: ${S.label} · ${f(S.n*PV.pmax/1000,2)} kWp · ${SIM.date} · มุมเอียง ${SIM.tilt}° หันไป ${SIM.az}° (${dirName(SIM.az)})`;
+  if(!st){document.getElementById('evmx').innerHTML='<div class="metric"><div class="k">วันนี้ไม่มีแสงอาทิตย์</div></div>';return}
+  const loss=R0.E-R.E,pc=R0.E>0?loss/R0.E*100:0;
+  const cause=['cloud','dust','tree'].map(k=>{
+    const on=EV[k].on;if(!on)return null;
+    const Rk=simWith(S,k);return{k,name:{cloud:'เมฆบัง',dust:'ฝุ่นบังแผง',tree:'ต้นไม้บัง'}[k],d:R0.E-Rk.E};
+  }).filter(Boolean);
+  const bk=window.lastBK;
+  const mx=[
+    ['พลังงานวันนี้ (ไม่มีเหตุการณ์)',f(R0.E,1)+' kWh',`${f(R0.E/Math.max(.01,S.n*PV.pmax/1000),2)} kWh ต่อ kWp`],
+    ['พลังงานวันนี้ (มีเหตุการณ์)',f(R.E,1)+' kWh',evActive()?`หายไป ${f(loss,1)} kWh (${f(pc,0)}%)`:'ยังไม่ได้เปิดเหตุการณ์'],
+    ['ดวงอาทิตย์ขึ้น–ตก',`${fmtT(st.sr)}–${fmtT(st.ss)}`,`กลางวัน ${f(st.len,1)} ชม. · เงยสูงสุด ${f(st.noon,0)}°`],
+    ['กำลังสูงสุด (มีเหตุการณ์)',f(R.peak/1000,2)+' kW',`ไม่มีเหตุการณ์ ${f(R0.peak/1000,2)} kW`]
+  ];
+  if(BK.mode!=='off'&&BK.outDur>0&&bk)mx.push(['ไฟดับ '+hhmm(BK.outStart)+' ('+BK.outDur+' ชม.)',bk.unmet>0.005?`ขาด ${f(bk.unmet,2)} kWh`:'ไฟพอใช้',bk.mode==='grid'?'On-grid ตัดไฟทันทีเมื่อกริดดับ':'ดูรายละเอียดที่แท็บ "จำลอง Backup"']);
+  document.getElementById('evmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
+  document.getElementById('evcause').innerHTML=cause.length?cause.map(c=>`<div class="brow"><span class="bn">${c.name}</span><span class="btrack"><span class="bfill" style="width:${Math.max(2,c.d/Math.max(loss,.001)*70)}%;background:var(--s2)"></span><span class="bv">−${f(c.d,2)} kWh</span></span></div>`).join('')
+    :'<p class="hint" style="margin:0">เปิดเหตุการณ์เมฆ ฝุ่น หรือต้นไม้เพื่อดูว่าแต่ละอย่างทำให้ไฟหายไปเท่าไร</p>';
+  /* charts */
+  const xmin=Math.max(0,Math.floor(st.sr-.5)),xmax=Math.min(24,Math.ceil(st.ss+.5)),i0=Math.round(xmin*12),i1=Math.round(xmax*12);
+  const sl=a=>a.slice(i0,i1),kw=v=>v/1000,xs=sl(R.t);
+  const vb=[];if(BK.mode!=='off'&&BK.outDur>0){const s0=BK.outStart%24,e0=s0+BK.outDur;if(e0<=24)vb.push([s0,e0]);else vb.push([s0,24],[0,e0-24])}
+  const shadeBands=[];let a=null;R.shade.forEach((v,i)=>{const h=i*5/60;if(v>0&&a==null)a=h;if((v<=0||i===R.shade.length-1)&&a!=null){shadeBands.push([a,h]);a=null}});
+  evCfg={A:{x:xs,ymax:Math.max(Math.max(...R0.pac),1)/1000*1.1,unit:'kW',aria:'กราฟกำลัง AC เทียบวันปกติกับวันที่มีเหตุการณ์',vb,vbl:vb.length?'ไฟดับ':'',
+      series:[{short:'ไม่มีเหตุการณ์',color:'var(--muted)',vals:sl(R0.pac).map(kw),fmt:v=>f(v,2)},{short:'มีเหตุการณ์',color:'var(--s1)',vals:sl(R.pac).map(kw),area:true,fmt:v=>f(v,2)}]},
+    B:{x:xs,ymax:90,unit:'°',aria:'กราฟมุมเงยของดวงอาทิตย์ตลอดวัน',vb:shadeBands,vbl:shadeBands.length?'ต้นไม้บังแสง':'',
+      refs:EV.tree.on?[{y:treeLimit()*180/Math.PI,label:`ยอดต้นไม้ ${f(treeLimit()*180/Math.PI,0)}°`}]:[],
+      series:[{short:'มุมเงยดวงอาทิตย์',color:'var(--s2)',vals:sl(R.elev).map(e=>Math.max(0,e*180/Math.PI)),area:true,fmt:v=>f(v,0)}]}};
+  document.getElementById('evleg1').innerHTML=evCfg.A.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
+  drawEvCharts();
+  /* seasons table */
+  const rows=SEASONS.map(se=>{
+    const ds=seasonDate(se[1],se[2]),r=simWith(S,'none',ds),re=simWith(S,null,ds),t2=sunTimes(r);
+    const cur=SIM.date===ds;
+    return `<tr${cur?' class="cur"':''}><td><button class="lnk" data-sd="${ds}">${se[0]}</button></td><td>${ds}</td><td>${t2?fmtT(t2.sr)+'–'+fmtT(t2.ss):'-'}</td><td>${t2?f(t2.len,1):'-'}</td><td>${t2?f(t2.noon,0)+'°':'-'}</td><td>${f(r.E,1)}</td><td>${evActive()?f(re.E,1):'-'}</td></tr>`;
+  }).join('');
+  document.getElementById('evseas').innerHTML=rows;
+}
+function drawEvCharts(){
+  if(!evCfg)return;
+  const a=document.getElementById('evchA'),b=document.getElementById('evchB');
+  if(a&&a.clientWidth)drawLine(a,evCfg.A);if(b&&b.clientWidth)drawLine(b,evCfg.B);
+}
+function evChanged(){runSim();evSync();if(typeof touch==='function')touch()}
+function initEvents(){
+  initScenes();
+  const q=id=>document.getElementById(id),num=(id,obj,key,lo,hi,after)=>q(id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;obj[key]=Math.max(lo,Math.min(hi,n));evChanged()});
+  q('evcl').addEventListener('change',e=>{EV.cloud.on=e.target.checked;evChanged()});
+  q('evcs').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;EV.cloud.start=h;evChanged()});
+  num('evcd',EV.cloud,'dur',0,12);num('evcp',EV.cloud,'depth',10,100);
+  q('evdu').addEventListener('change',e=>{EV.dust.on=e.target.checked;evChanged()});num('evdp',EV.dust,'pct',1,60);
+  q('evtr').addEventListener('change',e=>{EV.tree.on=e.target.checked;evChanged()});
+  num('evth',EV.tree,'h',1,40);num('evtd',EV.tree,'d',1,60);num('evta',EV.tree,'az',0,359);num('evtw',EV.tree,'w',5,160);num('evtp',EV.tree,'pct',10,100);num('evtph',EV.tree,'ph',0,20);
+  q('evtm').addEventListener('change',e=>{EV.tree.mppt=+e.target.value;evChanged()});
+  q('evtdir').addEventListener('click',e=>{const b=e.target.closest('[data-az]');if(!b)return;EV.tree.az=+b.dataset.az;evChanged()});
+  q('evtdir').innerHTML=DIRS.map(d=>`<button class="chip" data-az="${d[1]}">${d[0]}</button>`).join('');
+  q('evos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;bkSync();runSim();evSync();touch()});
+  q('evod').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.outDur=Math.max(0,Math.min(24,n));bkSync();runSim();evSync();touch()});
+  q('evmode').addEventListener('change',e=>{BK.mode=e.target.value;bkSync();runSim();evSync();touch()});
+  q('evday').addEventListener('input',e=>{const d=+e.target.value,y=+(SIM.date||'2026').slice(0,4);const dt=new Date(Date.UTC(y,0,d));setDate(`${y}-${pad2(dt.getUTCMonth()+1)}-${pad2(dt.getUTCDate())}`);runSim();evSync();touch()});
+  q('evseaschips').innerHTML=SEASONS.map((se,i)=>`<button class="chip" data-si="${i}">${se[0].replace(/ \(.*/,'')}</button>`).join('');
+  const pick=ds=>{setDate(ds);runSim();evSync();touch()};
+  q('evseaschips').addEventListener('click',e=>{const b=e.target.closest('[data-si]');if(!b)return;const se=SEASONS[+b.dataset.si];pick(seasonDate(se[1],se[2]))});
+  q('evseas').addEventListener('click',e=>{const b=e.target.closest('[data-sd]');if(b)pick(b.dataset.sd)});
+  q('evreset').addEventListener('click',()=>{EV.cloud.on=EV.dust.on=EV.tree.on=false;evChanged()});
+  let rz2=0;window.addEventListener('resize',()=>{cancelAnimationFrame(rz2);rz2=requestAnimationFrame(drawEvCharts)});
+  evSync();
+}
+
 /* ---- member, report image, submit ---- */
 const CFG=Object.assign({COURSE:'จำลองระบบโซลาร์',SUBMIT_URL:'',GOOGLE_CLIENT_ID:''},window.APP_CONFIG||{});
 const MEM_KEY='pvsim:member',SUBS_KEY='pvsim:subs';
@@ -1836,6 +2612,8 @@ function buildReport(){
   r.load={E:LP.all.reduce((a,b)=>a+b,0)*k,Ec:LP.crit.reduce((a,b)=>a+b,0)*k,peak:Math.max(0,...LP.all)/1000,n:LOADS.length};
   if(typeof backupRun==='function')backupRun();
   if(window.lastBK)r.bk=window.lastBK;
+  if(typeof acAnalyze==='function'){if(typeof acRender==='function')acRender();r.ac=window.lastAC||null}
+  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:''].filter(Boolean).join(', ')+' · '+SIM.date:'';
   return r;
 }
 const wLabel=w=>!w?'ยังไม่มีผลการต่อสาย':({ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${w.warn} ข้อควรระวัง`,err:`มี ${w.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'})[w.lvl];
@@ -1848,7 +2626,9 @@ function reportLines(r){
     ['แผงที่ใช้',r.panel],['อินเวอร์เตอร์',r.inverter],['แบตเตอรี่',r.battery],
     ['ผลิตต่อวัน',r.pv?`${f(r.pv.E,1)} kWh (สูงสุด ${f(r.pv.peak,2)} kW · เอียง ${r.pv.tilt}° · ทิศ ${r.pv.az}°)`:'-'],
     ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลดสำคัญ ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
-    ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-']
+    ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-'],
+    ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC'],
+    ['เหตุการณ์ที่จำลอง',r.ev||'ไม่มี']
   ];
 }
 
@@ -1952,7 +2732,8 @@ function submitRefresh(){
     ['แผง',w?`${w.used}/${w.panels}`:'-',w?`${f(w.kwp,2)} kWp · DC/AC ${f(w.ratio,2)}`:''],
     ['ผลิตต่อวัน',r.pv?f(r.pv.E,1)+' kWh':'-',r.pv?`สูงสุด ${f(r.pv.peak,2)} kW`:'ต่อสายให้ถูกต้องก่อน'],
     ['โหลดต่อวัน',f(r.load.E,1)+' kWh',`${r.load.n} รายการ · โหลดสำคัญ ${f(r.load.Ec,1)} kWh`],
-    ['Backup',r.bk?({ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'})[r.bk.lvl]:'-',r.bk?r.bk.vt:'ยังไม่มีผล']
+    ['Backup',r.bk?({ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'})[r.bk.lvl]:'-',r.bk?r.bk.vt:'ยังไม่มีผล'],
+    ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?LABEL[r.ac.lvl]:'-',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC']
   ].map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${esc(m[1])}</div><div class="s">${esc(m[2])}</div></div>`).join('');
   $('#smiss').innerHTML=r.issues.length?r.issues.map(c=>`<li><span class="b ${c.lvl}">${c.lvl==='err'?'×':'!'}</span><span>${esc(c.t)}</span></li>`).join(''):'';
   const subs=lsGet(SUBS_KEY)||[];
@@ -1978,6 +2759,7 @@ function payload(r,receipt){
     panel:r.panel,inverter:r.inverter,battery:r.battery,
     pvKwh:r.pv?+r.pv.E.toFixed(2):'',loadKwh:+r.load.E.toFixed(2),
     bkMode:r.bk?r.bk.mode:'',bkLvl:r.bk?r.bk.lvl:'',bkText:r.bk?r.bk.vt:'',bkUnmet:r.bk?+(r.bk.unmet||0).toFixed(2):'',
+    acLvl:r.ac?r.ac.lvl:'',acErr:r.ac?r.ac.nE:0,evText:r.ev||'',
     issues:r.issues.slice(0,15).map(i=>`[${i.lvl}] ${clip(i.t,200)}`)};
 }
 async function doSubmit(){
@@ -2038,7 +2820,7 @@ function initSubmit(){
 }
 
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['equip','wiring','pv','load','backup','submit'];
+const TABS=['equip','wiring','ac','pv','load','backup','events','submit'];
 let curTab='equip',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -2055,6 +2837,8 @@ function showTab(t,fromHash){
   setNavH();
   requestAnimationFrame(()=>{
     if(t==='wiring')render();
+    else if(t==='ac')acRender();
+    else if(t==='events')evRun();
     else if(t==='pv')drawCharts();
     else if(t==='load')drawLoadChart();
     else if(t==='backup')drawBackup();
@@ -2069,7 +2853,7 @@ function quickSel(){
     const cur=(pick(kind)||{}).id;
     el.innerHTML=CAT[kind].map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
-  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('batteries','kbat');
+  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
 }
 
 /* ---- persistence ---- */
@@ -2077,7 +2861,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wires:ACS.wires,set:ACS.set,apply:ACS.apply},sc:{view:SC.view,h:SC.h}};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -2103,6 +2887,7 @@ function restoreCatalog(c){
 }
 function restoreProject(p){
   if(!p||typeof p!=='object')return;
+  restoreExtra(p);
   if(p.act&&typeof p.act==='object')['panel','inv','bat'].forEach(k=>{if(typeof p.act[k]==='string')ACT[k]=p.act[k]});
   if(p.bank){BANK.s=Math.max(1,Math.min(32,fin(p.bank.s,1)|0));BANK.p=Math.max(1,Math.min(32,fin(p.bank.p,1)|0))}
   const w=p.wiring;
@@ -2139,9 +2924,28 @@ function restoreProject(p){
     BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
   }
 }
+function restoreExtra(p){
+  const num=(v,d,lo,hi)=>clamp(fin(v,d),lo,hi);
+  if(p.ev&&typeof p.ev==='object'){
+    const c=p.ev.cloud||{},u=p.ev.dust||{},t=p.ev.tree||{};
+    Object.assign(EV.cloud,{on:!!c.on,start:num(c.start,11,0,24),dur:num(c.dur,2,0,12),depth:num(c.depth,70,10,100)});
+    Object.assign(EV.dust,{on:!!u.on,pct:num(u.pct,15,1,60)});
+    Object.assign(EV.tree,{on:!!t.on,h:num(t.h,12,1,40),d:num(t.d,7,1,60),az:num(t.az,180,0,359),w:num(t.w,90,5,160),pct:num(t.pct,60,10,100),mppt:[0,1,2].includes(t.mppt)?t.mppt:0,ph:num(t.ph,3,0,20)});
+  }
+  if(p.ac&&typeof p.ac==='object'){
+    if(Array.isArray(p.ac.wires))ACS.wires=p.ac.wires.filter(w=>w&&AC_TM[w.a]&&AC_TM[w.b]).map(w=>({a:w.a,b:w.b}));
+    const s=p.ac.set||{},S=ACS.set,pick=(k,opts)=>{if(opts.includes(s[k]))S[k]=s[k]};
+    pick('mode',['selfuse','feedin','backup']);pick('gridStd',['PEA','MEA','other']);pick('meterType',['ct','meter','none']);pick('ctPos',['gridL','loadL','invL','N']);pick('ctDir',['toGrid','toLoad']);
+    pick('batType',['li','lead']);pick('batComm',['can','rs485','none']);pick('genMode',['off','charge','supply']);pick('mBaud',[2400,4800,9600,19200]);pick('iBaud',[2400,4800,9600,19200]);
+    pick('cbGrid',[16,20,25,32,40,50,63]);pick('cbBackup',[16,20,25,32,40,50,63]);
+    S.reserve=num(s.reserve,20,0,100);S.expLimW=num(s.expLimW,0,0,20000);S.mAddr=num(s.mAddr,1,1,247);S.iAddr=num(s.iAddr,1,1,247);S.expLimOn=!!s.expLimOn;S.backupEn=s.backupEn!==false;
+    ACS.apply=!!p.ac.apply;
+  }
+  if(p.sc&&['top','side'].includes(p.sc.view)){SC.view=p.sc.view;SC.h=num(p.sc.h,12,0,24)}
+}
 function refreshAll(){
   applyActive();eqRenderAll();bkSync();loadRender();
-  lastSig='';render();runSim();
+  lastSig='';render();acRender();runSim();
 }
 
 /* ---- reset ---- */
@@ -2160,10 +2964,11 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();
-  initLoads();initBackup();initSubmit();initReset();
+  initLoads();initBackup();initAC();initEvents();initSubmit();initReset();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
+  $('#acinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
   $('#kinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
   $('#kbat').addEventListener('change',e=>{ACT.bat=e.target.value;onCatalogChange()});
   window.addEventListener('hashchange',()=>showTab(location.hash.slice(1),true));

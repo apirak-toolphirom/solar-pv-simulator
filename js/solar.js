@@ -80,38 +80,45 @@ function solarPos(lat,lon,doy,h,tz){
   return{cosZ,zen,az};
 }
 
-function simDay(blocks,I,tilt,az,step,ideal){
+function simDay(blocks,I,tilt,az,step,ideal,noEv){
   const n=Math.round(1440/step),doy=dayOfYear(SIM.date),la=SIM.lat,lo=SIM.lon;
   const b=tilt*Math.PI/180,gp=az*Math.PI/180,sky=SKY[SIM.sky],keep=1-SIM.loss/100;
   const Ics=1361*(1+0.033*Math.cos(2*Math.PI*doy/365)),dt=step/60/1000;
-  const R={step,n,t:[],g:[],tc:[],sun:[],vmp:[[],[]],pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
+  const ev=(!noEv&&typeof EV!=='undefined')?EV:null;
+  const R={step,n,t:[],g:[],tc:[],sun:[],elev:[],saz:[],cov:[],shade:[],vmp:[[],[]],pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
   for(let i=0;i<n;i++){
     const h=(i+.5)*step/60,sp=solarPos(la,lo,doy,h,SIM.tz);
-    let g=0;
+    let g=0,gb=0,gd=0;
     if(sp.cosZ>0.001){
       const zd=sp.zen*180/Math.PI,am=1/(sp.cosZ+0.50572*Math.pow(96.07995-zd,-1.6364));
       const dni=Ics*Math.pow(0.7,Math.pow(am,0.678)),dhi=0.1*dni*sky.dif,dne=dni*sky.dir;
       const ghi=dne*sp.cosZ+dhi;
       const cosI=Math.max(0,sp.cosZ*Math.cos(b)+Math.sin(sp.zen)*Math.sin(b)*Math.cos(sp.az-gp));
-      g=dne*cosI+dhi*(1+Math.cos(b))/2+ghi*0.2*(1-Math.cos(b))/2;
+      gb=dne*cosI;gd=dhi*(1+Math.cos(b))/2+ghi*0.2*(1-Math.cos(b))/2;
     }
+    const cov=ev?evCloud(h):0;
+    if(cov>0){gb*=1-cov*ev.cloud.depth/100*0.95;gd*=1-cov*ev.cloud.depth/100*0.35}
+    g=gb+gd;
+    const elev=Math.PI/2-sp.zen,soil=ev&&ev.dust.on?1-ev.dust.pct/100:1;
     const ta=(SIM.amax+SIM.amin)/2+(SIM.amax-SIM.amin)/2*Math.cos(2*Math.PI*(h-15)/24);
     const tc=ta+((PV.noct||43)-20)/800*g;
-    let pot=0,pdc=0,lim=0;
+    let pot=0,pdc=0,lim=0,shd=0;
     blocks.forEach((bk,j)=>{
       if(!bk||g<20){R.vmp[j].push(null);return}
-      const ln=2.04*Math.log(Math.max(g,1)/1000);
+      const sf=ev&&sp.cosZ>0.001?evTreeShade(sp.az,elev,j):0;if(sf>shd)shd=sf;
+      const gs=(gb*(1-sf)+gd)*soil;
+      const ln=2.04*Math.log(Math.max(gs,1)/1000);
       const vmp=Math.max(0,PV.vmp*(1+PV.kPmax/100*(tc-25))+ln)*bk.ns;
       const voc=Math.max(0,PV.voc*(1+PV.kVoc/100*(tc-25))+ln)*bk.ns;
-      const imp=PV.imp*(g/1000)*(1+PV.kIsc/100*(tc-25))*bk.mp;
-      const p=bk.n*PV.pmax*(g/1000)*(1+PV.kPmax/100*(tc-25))*keep;
+      const imp=PV.imp*(gs/1000)*(1+PV.kIsc/100*(tc-25))*bk.mp;
+      const p=bk.n*PV.pmax*(gs/1000)*(1+PV.kPmax/100*(tc-25))*keep;
       R.vmp[j].push(vmp);
       pot+=p;
       if(ideal)pdc+=p;
       else if(voc>=I.start&&voc<=I.vmax&&vmp>=I.lo&&vmp<=I.hi){const k=imp>I.imax?I.imax/imp:1;pdc+=p*k;lim+=p*(1-k)}
     });
     const pre=pdc*(I.eff||97)/100,pac=Math.min(pre,I.pac);
-    R.t.push(h);R.g.push(g);R.tc.push(tc);R.sun.push(sp.cosZ>0);R.pot.push(pot);R.pac.push(pac);
+    R.elev.push(elev);R.saz.push(sp.az);R.cov.push(cov);R.shade.push(shd);R.t.push(h);R.g.push(g);R.tc.push(tc);R.sun.push(sp.cosZ>0);R.pot.push(pot);R.pac.push(pac);
     R.E+=pac*dt;R.Eclip+=(pre-pac)*dt;R.Elim+=lim*dt;
     if(pac>0){if(R.first<0)R.first=i;R.last=i;R.ops++;if(pac>R.peak){R.peak=pac;R.peakI=i}}
     else if(g>=20)R.idle++;
@@ -268,7 +275,7 @@ function runSimView(){
   $('#tblh').innerHTML=`<tr><th>เวลา</th><th>แสงบนแผง (W/m²)</th><th>อุณหภูมิเซลล์ (°C)</th>`+blocks.map((bk,j)=>bk?`<th>Vmp MPPT ${j+1} (V)</th>`:'').join('')+`<th>DC (kW)</th><th>AC (kW)</th></tr>`;
   $('#tblb').innerHTML=rows;
 }
-function runSim(){runSimView();if(typeof backupRun==='function')backupRun()}
+function runSim(){runSimView();if(typeof backupRun==='function')backupRun();if(typeof evRun==='function')evRun()}
 function drawCharts(){if(!chartCfg)return;drawLine($('#chA'),chartCfg.A);drawLine($('#chB'),chartCfg.B)}
 let rz=0;
 window.addEventListener('resize',()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(drawCharts)});

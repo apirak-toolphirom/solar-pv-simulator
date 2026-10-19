@@ -25,6 +25,8 @@ function buildReport(){
   r.load={E:LP.all.reduce((a,b)=>a+b,0)*k,Ec:LP.crit.reduce((a,b)=>a+b,0)*k,peak:Math.max(0,...LP.all)/1000,n:LOADS.length};
   if(typeof backupRun==='function')backupRun();
   if(window.lastBK)r.bk=window.lastBK;
+  if(typeof acAnalyze==='function'){if(typeof acRender==='function')acRender();r.ac=window.lastAC||null}
+  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:''].filter(Boolean).join(', ')+' · '+SIM.date:'';
   return r;
 }
 const wLabel=w=>!w?'ยังไม่มีผลการต่อสาย':({ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${w.warn} ข้อควรระวัง`,err:`มี ${w.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'})[w.lvl];
@@ -37,7 +39,9 @@ function reportLines(r){
     ['แผงที่ใช้',r.panel],['อินเวอร์เตอร์',r.inverter],['แบตเตอรี่',r.battery],
     ['ผลิตต่อวัน',r.pv?`${f(r.pv.E,1)} kWh (สูงสุด ${f(r.pv.peak,2)} kW · เอียง ${r.pv.tilt}° · ทิศ ${r.pv.az}°)`:'-'],
     ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลดสำคัญ ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
-    ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-']
+    ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-'],
+    ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC'],
+    ['เหตุการณ์ที่จำลอง',r.ev||'ไม่มี']
   ];
 }
 
@@ -141,7 +145,8 @@ function submitRefresh(){
     ['แผง',w?`${w.used}/${w.panels}`:'-',w?`${f(w.kwp,2)} kWp · DC/AC ${f(w.ratio,2)}`:''],
     ['ผลิตต่อวัน',r.pv?f(r.pv.E,1)+' kWh':'-',r.pv?`สูงสุด ${f(r.pv.peak,2)} kW`:'ต่อสายให้ถูกต้องก่อน'],
     ['โหลดต่อวัน',f(r.load.E,1)+' kWh',`${r.load.n} รายการ · โหลดสำคัญ ${f(r.load.Ec,1)} kWh`],
-    ['Backup',r.bk?({ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'})[r.bk.lvl]:'-',r.bk?r.bk.vt:'ยังไม่มีผล']
+    ['Backup',r.bk?({ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'})[r.bk.lvl]:'-',r.bk?r.bk.vt:'ยังไม่มีผล'],
+    ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?LABEL[r.ac.lvl]:'-',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC']
   ].map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${esc(m[1])}</div><div class="s">${esc(m[2])}</div></div>`).join('');
   $('#smiss').innerHTML=r.issues.length?r.issues.map(c=>`<li><span class="b ${c.lvl}">${c.lvl==='err'?'×':'!'}</span><span>${esc(c.t)}</span></li>`).join(''):'';
   const subs=lsGet(SUBS_KEY)||[];
@@ -167,6 +172,7 @@ function payload(r,receipt){
     panel:r.panel,inverter:r.inverter,battery:r.battery,
     pvKwh:r.pv?+r.pv.E.toFixed(2):'',loadKwh:+r.load.E.toFixed(2),
     bkMode:r.bk?r.bk.mode:'',bkLvl:r.bk?r.bk.lvl:'',bkText:r.bk?r.bk.vt:'',bkUnmet:r.bk?+(r.bk.unmet||0).toFixed(2):'',
+    acLvl:r.ac?r.ac.lvl:'',acErr:r.ac?r.ac.nE:0,evText:r.ev||'',
     issues:r.issues.slice(0,15).map(i=>`[${i.lvl}] ${clip(i.t,200)}`)};
 }
 async function doSubmit(){

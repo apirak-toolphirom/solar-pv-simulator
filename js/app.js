@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['equip','wiring','pv','load','backup','submit'];
+const TABS=['equip','wiring','ac','pv','load','backup','events','submit'];
 let curTab='equip',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -16,6 +16,8 @@ function showTab(t,fromHash){
   setNavH();
   requestAnimationFrame(()=>{
     if(t==='wiring')render();
+    else if(t==='ac')acRender();
+    else if(t==='events')evRun();
     else if(t==='pv')drawCharts();
     else if(t==='load')drawLoadChart();
     else if(t==='backup')drawBackup();
@@ -30,7 +32,7 @@ function quickSel(){
     const cur=(pick(kind)||{}).id;
     el.innerHTML=CAT[kind].map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
-  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('batteries','kbat');
+  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
 }
 
 /* ---- persistence ---- */
@@ -38,7 +40,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wires:ACS.wires,set:ACS.set,apply:ACS.apply},sc:{view:SC.view,h:SC.h}};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -64,6 +66,7 @@ function restoreCatalog(c){
 }
 function restoreProject(p){
   if(!p||typeof p!=='object')return;
+  restoreExtra(p);
   if(p.act&&typeof p.act==='object')['panel','inv','bat'].forEach(k=>{if(typeof p.act[k]==='string')ACT[k]=p.act[k]});
   if(p.bank){BANK.s=Math.max(1,Math.min(32,fin(p.bank.s,1)|0));BANK.p=Math.max(1,Math.min(32,fin(p.bank.p,1)|0))}
   const w=p.wiring;
@@ -100,9 +103,28 @@ function restoreProject(p){
     BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
   }
 }
+function restoreExtra(p){
+  const num=(v,d,lo,hi)=>clamp(fin(v,d),lo,hi);
+  if(p.ev&&typeof p.ev==='object'){
+    const c=p.ev.cloud||{},u=p.ev.dust||{},t=p.ev.tree||{};
+    Object.assign(EV.cloud,{on:!!c.on,start:num(c.start,11,0,24),dur:num(c.dur,2,0,12),depth:num(c.depth,70,10,100)});
+    Object.assign(EV.dust,{on:!!u.on,pct:num(u.pct,15,1,60)});
+    Object.assign(EV.tree,{on:!!t.on,h:num(t.h,12,1,40),d:num(t.d,7,1,60),az:num(t.az,180,0,359),w:num(t.w,90,5,160),pct:num(t.pct,60,10,100),mppt:[0,1,2].includes(t.mppt)?t.mppt:0,ph:num(t.ph,3,0,20)});
+  }
+  if(p.ac&&typeof p.ac==='object'){
+    if(Array.isArray(p.ac.wires))ACS.wires=p.ac.wires.filter(w=>w&&AC_TM[w.a]&&AC_TM[w.b]).map(w=>({a:w.a,b:w.b}));
+    const s=p.ac.set||{},S=ACS.set,pick=(k,opts)=>{if(opts.includes(s[k]))S[k]=s[k]};
+    pick('mode',['selfuse','feedin','backup']);pick('gridStd',['PEA','MEA','other']);pick('meterType',['ct','meter','none']);pick('ctPos',['gridL','loadL','invL','N']);pick('ctDir',['toGrid','toLoad']);
+    pick('batType',['li','lead']);pick('batComm',['can','rs485','none']);pick('genMode',['off','charge','supply']);pick('mBaud',[2400,4800,9600,19200]);pick('iBaud',[2400,4800,9600,19200]);
+    pick('cbGrid',[16,20,25,32,40,50,63]);pick('cbBackup',[16,20,25,32,40,50,63]);
+    S.reserve=num(s.reserve,20,0,100);S.expLimW=num(s.expLimW,0,0,20000);S.mAddr=num(s.mAddr,1,1,247);S.iAddr=num(s.iAddr,1,1,247);S.expLimOn=!!s.expLimOn;S.backupEn=s.backupEn!==false;
+    ACS.apply=!!p.ac.apply;
+  }
+  if(p.sc&&['top','side'].includes(p.sc.view)){SC.view=p.sc.view;SC.h=num(p.sc.h,12,0,24)}
+}
 function refreshAll(){
   applyActive();eqRenderAll();bkSync();loadRender();
-  lastSig='';render();runSim();
+  lastSig='';render();acRender();runSim();
 }
 
 /* ---- reset ---- */
@@ -121,10 +143,11 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();
-  initLoads();initBackup();initSubmit();initReset();
+  initLoads();initBackup();initAC();initEvents();initSubmit();initReset();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
+  $('#acinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
   $('#kinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
   $('#kbat').addEventListener('change',e=>{ACT.bat=e.target.value;onCatalogChange()});
   window.addEventListener('hashchange',()=>showTab(location.hash.slice(1),true));
