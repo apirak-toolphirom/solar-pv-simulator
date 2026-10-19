@@ -1,0 +1,180 @@
+<div class="app">
+  <nav class="side" id="nav" aria-label="เมนูหลัก">
+    <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
+    <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
+    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย</button>
+    <button class="navb" data-tab="pv"><span class="ic">03</span>จำลองแผง</button>
+    <button class="navb" data-tab="load"><span class="ic">04</span>จำลองโหลด</button>
+    <button class="navb" data-tab="backup"><span class="ic">05</span>จำลอง Backup</button>
+    <div class="sidefoot"><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
+  </nav>
+  <main class="main"><div class="wrap">
+
+  <section class="tab" id="tab-equip" hidden>
+    <header><h1>อุปกรณ์</h1><p class="sub">เลือกรุ่นแผง อินเวอร์เตอร์ และแบตที่ใช้จำลอง เพิ่มรุ่นใหม่ด้วยมือหรือนำเข้าจากไฟล์ JSON และ CSV รุ่นที่เลือกจะถูกใช้ในทุกแท็บ</p></header>
+    <div class="curequip" id="cur-equip"></div>
+    <div><h2>แผงโซลาร์</h2><div id="eq-panels"></div></div>
+    <div><h2>อินเวอร์เตอร์ (ยี่ห้อ / รุ่น)</h2><div id="eq-inverters"></div></div>
+    <div><h2>แบตเตอรี่</h2><div id="eq-batteries"></div></div>
+    <p class="hint">ค่ารุ่นตัวอย่างที่ระบุว่า "ค่าสมมติ" ไม่ใช่ข้อมูลจริงของผู้ผลิต ตรวจกับดาต้าชีตและป้ายเครื่องจริงก่อนใช้ออกแบบหรือติดตั้งทุกครั้ง</p>
+  </section>
+
+  <section class="tab" id="tab-wiring" hidden>
+    <header><h1>ต่อสายแผงโซลาร์</h1><p class="sub">ลากสายจากขั้ว + และ − ของแผงไปหากัน ดูว่าเป็นอนุกรมหรือขนาน และอินเวอร์เตอร์รับได้หรือไม่</p></header>
+  <div id="verdict" class="verdict" aria-live="polite"></div>
+
+  <section class="bar">
+    <div class="grp"><span class="lab">ตัวอย่าง</span>
+      <button class="chip" data-preset="one">เริ่มใหม่ 1 แผง</button>
+      <button class="chip" data-preset="s9">อนุกรม 9 แผง</button>
+      <button class="chip" data-preset="p3">ขนาน 3 แผง</button>
+      <button class="chip" data-preset="m22">ผสม 2S2P</button>
+      <button class="chip" data-preset="two">2 MPPT แผงละ 5</button>
+      <button class="chip bad" data-preset="bad">ตัวอย่างต่อผิด</button>
+      <button class="chip bad" data-preset="sh">ตัวอย่างชอต</button>
+    </div>
+    <span class="sp"></span>
+    <div class="grp">
+      <button class="btn" id="addp">+ แผง</button>
+      <button class="btn" id="rotp" disabled>↻ หมุนแผง</button>
+      <button class="btn" id="delp" disabled>ลบแผงที่เลือก</button>
+      <button class="btn" id="clrw">ล้างสาย</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="canvas"><svg id="svg" viewBox="0 0 760 440" role="img" aria-label="พื้นที่ต่อสายแผงโซลาร์เข้าอินเวอร์เตอร์"></svg></div>
+    <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
+    <div class="key">
+      <span><i style="background:var(--pos)"></i>สายแดง = ขั้ว +</span>
+      <span><i style="background:var(--neg);outline:1px solid var(--line)"></i>สายดำ = ขั้ว −</span>
+      <span><i style="background:linear-gradient(90deg,var(--pos) 48%,var(--neg) 52%)"></i>แดง-ดำ = + ต่อ − ระหว่างแผง (อนุกรม)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>ผลการต่อ</h2>
+    <div id="cards" class="cards"></div>
+  </section>
+
+  <section>
+    <h2>ภาพรวมระบบ</h2>
+    <ul id="sys" class="checks" style="border-bottom:1px solid var(--line)"></ul>
+  </section>
+
+
+    <section class="panelbox">
+      <h2>อุปกรณ์และสภาพไซต์</h2>
+      <div class="quick">
+        <label for="qpanel">แผง<select id="qpanel"></select></label>
+        <label for="qinv">อินเวอร์เตอร์<select id="qinv"></select></label>
+      </div>
+    <dl id="specs" class="specs" style="margin-top:14px"></dl>
+    <div class="site">
+      <label for="tmin">อุณหภูมิต่ำสุดของเซลล์ (°C)<input id="tmin" type="number" inputmode="decimal" value="10" min="-20" max="40"></label>
+      <label for="thot">อุณหภูมิสูงสุดของเซลล์ (°C)<input id="thot" type="number" inputmode="decimal" value="70" min="40" max="100"></label>
+    </div>
+
+    </section>
+  </section>
+
+  <section class="tab" id="tab-pv" hidden>
+    <header><h1>จำลองแผง กำลังผลิต</h1><p class="sub">จำลองกำลังผลิตทั้งวันตามพิกัด วันที่ มุมเอียง และทิศของแผง ใช้แผงที่ต่อสายไว้ในแท็บ "ต่อสาย"</p></header>
+  <section id="sim">
+    <h2>จำลองการทำงานทั้งวัน</h2>
+    <div class="panelbox simctl">
+      <label for="loc">พิกัดไซต์ (Plus Code หรือ ละติจูด, ลองจิจูด)
+        <input id="loc" type="text" autocomplete="off" spellcheck="false" placeholder="เช่น 7P52QG42+GP หรือ 13.7563, 100.5018">
+        <span id="locmsg" class="locmsg"></span>
+      </label>
+      <div class="row3">
+        <label for="date">วันที่<input id="date" type="date"></label>
+        <label for="tz">เขตเวลา (UTC+)<input id="tz" type="number" inputmode="decimal" step="0.5" value="7"></label>
+        <label for="sky">สภาพท้องฟ้า
+          <select id="sky"><option value="clear">ฟ้าใส</option><option value="partly">เมฆบางส่วน</option><option value="overcast">ฟ้าปิด หรือฝน</option></select>
+        </label>
+      </div>
+      <div class="row3">
+        <label for="amin">อุณหภูมิอากาศต่ำสุดของวัน (°C)<input id="amin" type="number" inputmode="decimal" value="24"></label>
+        <label for="amax">อุณหภูมิอากาศสูงสุดของวัน (°C)<input id="amax" type="number" inputmode="decimal" value="34"></label>
+      </div>
+      <div class="orient">
+        <div class="sliders">
+          <label for="tilt">มุมเอียงแผง<b id="tiltv"></b><input id="tilt" type="range" min="0" max="90" step="1" value="15"></label>
+          <label for="az">ทิศที่แผงหันหน้าไป (0° = เหนือ, 90° = ตะวันออก, 180° = ใต้)<b id="azv"></b><input id="az" type="range" min="0" max="359" step="1" value="180"></label>
+          <div class="dirs" id="dirs"></div>
+          <div><button class="btn" id="optb">ตั้งมุมและทิศตามละติจูด</button></div>
+        </div>
+        <svg id="orsvg" class="orsvg" viewBox="0 0 330 150" role="img" aria-label="ทิศที่แผงหันหน้าไปและมุมเอียง"></svg>
+      </div>
+    </div>
+    <div class="simcards">
+      <p id="simmsg" class="simmsg" hidden>ต่อสายแผงเข้า MPPT ให้ครบวงจรและผ่านการตรวจขั้วก่อน แล้วระบบจะจำลองการทำงานทั้งวันให้</p>
+      <div id="simbody">
+        <div id="mx" class="metrics"></div>
+        <div class="simcards">
+          <section class="card"><h3>กำลังไฟฟ้าตลอดวัน</h3><div id="lgA" class="legend"></div><div id="chA" class="chart"></div></section>
+          <section class="card"><h3>แรงดันสตริงเทียบช่วง MPPT</h3><div id="lgB" class="legend"></div><div id="chB" class="chart"></div></section>
+          <section class="card"><h3>เทียบทิศที่วางแผง</h3><div id="dirbars" class="bars"></div><p id="dirnote" class="hint" style="margin:0"></p></section>
+          <details class="card tbl"><summary>ตารางรายชั่วโมง</summary><div class="tblwrap"><table class="t"><thead id="tblh"></thead><tbody id="tblb"></tbody></table></div></details>
+        </div>
+      </div>
+    </div>
+    <p class="hint">เป็นการประมาณแบบท้องฟ้าใส ใช้แบบจำลองแสงอาทิตย์อย่างง่าย อุณหภูมิเซลล์คิดจาก NOCT ของแผงที่เลือก (ถ้าไม่ระบุใช้ 43°C) สูญเสียอื่นๆ 5% ประสิทธิภาพอินเวอร์เตอร์ตามรุ่นที่เลือก ไม่รวมเงาบัง ใช้วางแผนเบื้องต้น ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+
+  </section>
+
+  <section class="tab" id="tab-load" hidden>
+    <header><h1>จำลองโหลด</h1><p class="sub">ใส่รายการเครื่องใช้ไฟฟ้า กำลัง ช่วงเวลา และเปอร์เซ็นต์ที่ทำงานจริง ติ๊ก "โหลดสำคัญ" ให้รายการที่ต้องมีไฟตอนไฟดับ</p></header>
+    <div class="panelbox ldwrap">
+      <div class="ldchips"><span class="lab" style="font-size:12.5px;color:var(--muted)">ตัวอย่าง</span><span id="ldpre" class="ldchips"></span></div>
+      <div class="ldscroll"><table class="ldt"><thead><tr><th>ชื่อ</th><th>กำลัง (W)</th><th>จำนวน</th><th>เริ่ม</th><th>หยุด</th><th>ใช้จริง (%)</th><th>สำคัญ</th><th></th></tr></thead><tbody id="ldrows"></tbody></table></div>
+      <p id="ldempty" class="simmsg" hidden>ยังไม่มีรายการ กด "เพิ่มโหลด" หรือเลือกตัวอย่าง</p>
+      <div><button class="btn pri" id="ldadd">+ เพิ่มโหลด</button></div>
+      <p class="hint tight">เวลาหยุดที่น้อยกว่าเวลาเริ่ม แปลว่าข้ามเที่ยงคืน เช่น 22:00 ถึง 06:00 ส่วนเวลาเริ่มเท่ากับหยุดคือทำงานทั้งวัน ตัวอย่างที่ให้มาเป็นค่าโดยประมาณ ปรับเป็นของจริงได้</p>
+    </div>
+    <div id="ldmx" class="metrics"></div>
+    <ul id="ldwarn" class="checks"></ul>
+    <section class="card"><h3>กำลังโหลดตลอดวัน</h3><div id="ldleg" class="legend"></div><div id="chL" class="chart"></div></section>
+  </section>
+
+  <section class="tab" id="tab-backup" hidden>
+    <header><h1>จำลอง Backup</h1><p class="sub">จำลองสมดุลพลังงานทุก 5 นาที ระหว่างแผง แบต โหลด และกริด ตอนไฟดับหรือระบบ Off-grid ใช้ค่าพิกัด มุมเอียง ทิศ และวันที่เดียวกับแท็บจำลองแผง</p></header>
+    <div id="bkverdict" class="verdict still"></div>
+    <div class="panelbox bkc">
+      <div id="bkmode" class="chips" role="group" aria-label="ชนิดระบบ">
+        <button class="chip" data-bm="grid" aria-pressed="false">On-grid</button>
+        <button class="chip" data-bm="hybrid" aria-pressed="true">Hybrid</button>
+        <button class="chip" data-bm="off" aria-pressed="false">Off-grid</button>
+      </div>
+      <p id="bkmodenote" class="modenote"></p>
+      <div class="row3">
+        <label for="kinv">อินเวอร์เตอร์<select id="kinv"></select></label>
+        <label for="kbat">แบตเตอรี่ (ปรับจำนวนที่แท็บ "อุปกรณ์")<select id="kbat"></select></label>
+        <label for="bksrc">แหล่งไฟจากแผง<select id="bksrc"><option value="ideal">แผงสมมติ (ไม่ตรวจการต่อสาย)</option><option value="wiring">ตามที่ต่อสายไว้</option></select></label>
+        <label id="bknwrap" for="bkn" hidden>จำนวนแผงสมมติ<input id="bkn" type="number" inputmode="numeric" min="1" max="200" step="1" value="9"></label>
+        <label for="bkis">โหลดที่ต้องจ่ายตอนจ่ายไฟเอง<select id="bkis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
+      </div>
+      <div class="row3">
+        <label id="bkoutbox" for="bkos">ไฟดับตั้งแต่<input id="bkos" type="time" value="18:00"></label>
+        <label for="bkod" id="bkoutbox2">ไฟดับนาน (ชม. 0 = ไม่ดับ)<input id="bkod" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="6"></label>
+        <label id="bksocbox" for="bksoc">แบตเริ่มต้นที่เวลา 00:00 (% SOC)<input id="bksoc" type="number" inputmode="decimal" min="0" max="100" step="5" value="50"></label>
+      </div>
+      <ul id="bkwarn" class="checks"></ul>
+    </div>
+    <p id="bkmsg" class="simmsg" hidden></p>
+    <div id="bkbody">
+      <div id="bkmx" class="metrics"></div>
+      <p id="bklim" class="hint" style="margin:8px 0 14px"></p>
+      <div class="simcards">
+        <section class="card"><h3>กำลังจากแผง โหลด และไฟจากกริด</h3><div id="bkleg1" class="legend"></div><div id="chK1" class="chart"></div></section>
+        <section class="card" id="bkcard2"><h3>สถานะประจุแบต (SOC)</h3><div id="chK2" class="chart"></div></section>
+      </div>
+    </div>
+    <p class="hint">เป็นแบบจำลองอย่างง่ายเพื่อการเรียนรู้และประเมินเบื้องต้น ตั้งโหมดแผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วจึงขายคืนกริด ไม่รวมการชาร์จจากกริด ค่า derating ตามอุณหภูมิของแบต และการสตาร์ทของมอเตอร์ ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  </div></main>
+</div>

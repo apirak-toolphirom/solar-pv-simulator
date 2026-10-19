@@ -1,0 +1,331 @@
+<title>จำลองการต่อสตริงโซลาร์</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky verdict bar, then equipment tray, one card per MPPT input with draggable series chains, then numbers and rule checks. */
+:root{
+  --bg:#eaeef1; --surface:#f8fafb; --ink:#12202b; --muted:#566774; --line:#c9d3da;
+  --track:#dde4e9; --cell:#1d4b78; --cell2:#3a7bb8; --frame:#a9b6c0; --wire:#c0392b; --wire2:#2c3e50;
+  --accent:#d98200; --accentbg:#fdf0d9;
+  --ok:#1a7f46; --okbg:#dcf2e5; --warn:#99600a; --warnbg:#fbedc9; --err:#b8302a; --errbg:#fadcd9;
+  --body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e161d; --surface:#162029; --ink:#e4ecf1; --muted:#90a1ae; --line:#2a3945;
+  --track:#22303b; --cell:#2f6aa3; --cell2:#5ea0de; --frame:#6c7d8a; --wire:#ef6b5e; --wire2:#9fb3c2;
+  --accent:#f0a22a; --accentbg:#33270f;
+  --ok:#47c97d; --okbg:#143324; --warn:#e8ae45; --warnbg:#35290f; --err:#f2766b; --errbg:#3a1a18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e161d; --surface:#162029; --ink:#e4ecf1; --muted:#90a1ae; --line:#2a3945;
+  --track:#22303b; --cell:#2f6aa3; --cell2:#5ea0de; --frame:#6c7d8a; --wire:#ef6b5e; --wire2:#9fb3c2;
+  --accent:#f0a22a; --accentbg:#33270f;
+  --ok:#47c97d; --okbg:#143324; --warn:#e8ae45; --warnbg:#35290f; --err:#f2766b; --errbg:#3a1a18; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--bg);color:var(--ink);font:15px/1.6 var(--body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+body.dragging{user-select:none;-webkit-user-select:none}
+.wrap{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1{margin:0;font-size:22px;line-height:1.3;font-weight:600;text-wrap:balance}
+h2{margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h3{margin:0;font-size:16px;font-weight:600}
+.sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.verdict{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;border-left-width:6px}
+.verdict.ok{border-left-color:var(--ok)}.verdict.warn{border-left-color:var(--warn)}.verdict.err{border-left-color:var(--err)}
+.verdict b{font-weight:600}
+.verdict .nums{margin-left:auto;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:1px 10px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.err{background:var(--errbg);color:var(--err)}.pill.idle{background:var(--track);color:var(--muted)}
+
+.tray{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:stretch}
+.tile{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:8px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;flex:1 1 260px;min-width:0}
+.tile:active{cursor:grabbing}
+.tile .t1{font-weight:600;font-size:14px}.tile .t2{font-size:12.5px;color:var(--muted)}
+.invsel{display:flex;flex-direction:column;gap:4px;flex:1 1 240px;min-width:0;justify-content:center}
+.invsel label{font-size:12.5px;color:var(--muted)}
+select,input[type=number]{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:40px;width:100%}
+
+.mod{display:block;flex:none;width:24px;height:50px;border:2px solid var(--frame);border-radius:2px;background-color:var(--cell);
+  background-image:linear-gradient(to right,transparent calc(50% - .5px),rgba(255,255,255,.28) calc(50% - .5px) calc(50% + .5px),transparent calc(50% + .5px)),repeating-linear-gradient(to bottom,transparent 0 6px,rgba(255,255,255,.24) 6px 7px);touch-action:none;cursor:grab}
+.tile .mod{width:26px;height:54px}
+.ghost{position:fixed;z-index:100;pointer-events:none;transform:translate(-50%,-50%) scale(1.25);box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:.92}
+
+.mppts{display:flex;flex-direction:column;gap:14px}
+.mppt{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.mhead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.mhead .tag{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.mhead .pill{margin-left:auto}
+.srow{display:flex;flex-direction:column;gap:6px;min-width:0}
+.shead{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px}
+.shead .cnt{color:var(--muted);font-family:var(--mono);font-size:12.5px}
+.ctl{margin-left:auto;display:flex;gap:6px}
+.btn{min-width:36px;min-height:36px;padding:0 10px;border:1px solid var(--line);background:var(--bg);border-radius:6px;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.string{display:block;border:1.5px dashed var(--line);border-radius:8px;padding:12px;overflow-x:auto;min-height:78px}
+.string.sel{border-color:var(--cell2);border-style:solid}
+.string.over{border-color:var(--accent);border-style:solid;background:var(--accentbg)}
+.chain{position:relative;display:flex;align-items:center;gap:6px;width:max-content;min-width:100%}
+.chain::before{content:"";position:absolute;left:10px;right:10px;top:50%;height:2px;background:var(--wire);transform:translateY(-1px)}
+.chain>*{position:relative;z-index:1}
+.term{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 13px/1 var(--mono);color:var(--surface)}
+.term.p{background:var(--wire)}.term.n{background:var(--wire2)}
+.empty{font-size:13px;color:var(--muted);background:var(--surface);padding:2px 8px;white-space:nowrap}
+.sread{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.addstr{align-self:flex-start;min-height:36px;padding:0 12px;border:1px dashed var(--line);background:transparent;border-radius:6px;color:var(--muted);font-size:13.5px}
+.addstr:hover{border-color:var(--accent);color:var(--ink)}
+.win{position:relative;height:26px;background:var(--track);border-radius:4px;overflow:hidden}
+.win i{position:absolute;display:block}
+.win .band{top:0;bottom:0;background:var(--okbg);border-left:1px solid var(--ok);border-right:1px solid var(--ok)}
+.win .bar{top:9px;height:8px;border-radius:4px;background:var(--cell2)}
+.win .voc{top:4px;bottom:4px;width:3px;background:var(--accent);margin-left:-1px}
+.win .lim{top:0;bottom:0;width:2px;background:var(--err);margin-left:-1px}
+.axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:3px}
+.legend{font-size:12.5px;color:var(--muted);margin:0}
+
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 18px}
+.metric{padding:10px 0;border-top:1px solid var(--line);min-width:0}
+.metric .k{font-size:12.5px;color:var(--muted)}
+.metric .v{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1.3;font-variant-numeric:tabular-nums}
+.metric .s{font-size:12.5px;color:var(--muted)}
+
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.checks li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+.checks .b{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 12px/1 var(--mono);margin-top:2px}
+.checks .b.ok{background:var(--okbg);color:var(--ok)}.checks .b.warn{background:var(--warnbg);color:var(--warn)}.checks .b.err{background:var(--errbg);color:var(--err)}
+.checks .w{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:6px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px 18px;margin:0}
+.specs div{min-width:0}.specs dt{font-size:12.5px;color:var(--muted)}.specs dd{margin:0;font-family:var(--mono);font-size:14px}
+.site{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:14px}
+.site label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.notes{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.notes p{margin:0;max-width:68ch}
+@media (prefers-reduced-motion:no-preference){.string,.btn{transition:border-color .15s,background-color .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>จำลองการต่อสตริงโซลาร์</h1>
+    <p class="sub">ลากแผงลงสตริง ดูแรงดันและกระแสเทียบกับอินเวอร์เตอร์ได้ทันที</p>
+  </header>
+
+  <div id="verdict" class="verdict" aria-live="polite"></div>
+
+  <section>
+    <h2>อุปกรณ์</h2>
+    <div class="tray">
+      <div class="tile" data-drag="palette" role="button" tabindex="0" aria-label="เพิ่มแผงโซลาร์ในสตริงที่เลือก">
+        <i class="mod"></i>
+        <div><div class="t1">LONGi Hi-MO X10 650 W</div><div class="t2">ลากไปวางในสตริง หรือแตะเพื่อเพิ่ม</div></div>
+      </div>
+      <div class="invsel">
+        <label for="inv">อินเวอร์เตอร์ออนกริด</label>
+        <select id="inv">
+          <option value="s">Solis S6-GR1P6K-S (550 V, 16 A)</option>
+          <option value="o">Solis S6-GR1P6K (600 V, 14 A)</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>การต่อ DC</h2>
+    <div id="mppts" class="mppts"></div>
+    <p class="legend" style="margin-top:10px">แถบเขียว คือช่วงแรงดัน MPPT · แท่งน้ำเงิน คือ Vmp ตอนร้อนถึงตอนเย็น · เส้นส้ม คือ Voc ตอนเย็นสุด · เส้นแดง คือ Vdc สูงสุดของอินเวอร์เตอร์ · ลากแผงออกนอกสตริงเพื่อเอาออก</p>
+  </section>
+
+  <section>
+    <h2>สรุประบบ</h2>
+    <div id="metrics" class="metrics"></div>
+  </section>
+
+  <section>
+    <h2>ผลตรวจสอบ</h2>
+    <ul id="checks" class="checks"></ul>
+  </section>
+
+  <section class="panel">
+    <h2>สเปคและสภาพไซต์</h2>
+    <dl id="specs" class="specs"></dl>
+    <div class="site">
+      <label for="tmin">อุณหภูมิต่ำสุดของเซลล์ (°C)<input id="tmin" type="number" inputmode="decimal" value="10" min="-20" max="40"></label>
+      <label for="thot">อุณหภูมิสูงสุดของเซลล์ (°C)<input id="thot" type="number" inputmode="decimal" value="70" min="40" max="100"></label>
+    </div>
+  </section>
+
+  <section class="notes">
+    <p>ค่าแผงใช้รุ่น LR7-72HVH-650M (หน้าเดียว) จากข้อมูลผู้จำหน่าย รุ่นสองหน้า LR7-72HVD-650M มี Voc 54.22 V และ Isc 15.14 A ต่างเล็กน้อย</p>
+    <p>Voc ตอนเย็นใช้สัมประสิทธิ์ Voc −0.20 %/°C Vmp ตอนร้อนใช้สัมประสิทธิ์ Pmax −0.26 %/°C เพื่อให้ได้ค่าที่ระมัดระวัง Isc ปรับขึ้นด้วย +0.05 %/°C</p>
+    <p>ดาต้าชีต Solis 6K มีสองฉบับ รุ่นเดิมรับ 600 V / 14 A ต่ออินพุต ส่วนรุ่น -S รับ 550 V / 16 A ควรตรวจกับป้ายและดาต้าชีตของเครื่องจริงก่อนติดตั้ง</p>
+  </section>
+</div>
+
+<script>
+const PV={name:'LONGi Hi-MO X10 LR7-72HVH-650M',pmax:650,voc:53.9,vmp:44.56,isc:15.29,imp:14.59,kVoc:-0.20,kPmax:-0.26,kIsc:0.05};
+const INV={
+  s:{name:'Solis S6-GR1P6K-S',vmax:550,lo:90,hi:550,start:100,imax:16,isc:22,pvRec:9000,pac:6000},
+  o:{name:'Solis S6-GR1P6K',vmax:600,lo:90,hi:520,start:120,imax:14,isc:22,pvRec:9000,pac:6000}
+};
+const MAXN=24, MAXSTR=3;
+const st={m:[[9],[0]],sel:[0,0],inv:'s',tmin:10,thot:70};
+const f=(x,d=0)=>Number(x).toFixed(d);
+const $=s=>document.querySelector(s);
+const RANK={err:0,warn:1,ok:2};
+const GLYPH={ok:'✓',warn:'!',err:'×'};
+const LABEL={ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'};
+
+function calc(){
+  const I=INV[st.inv],dc=st.tmin-25,dh=st.thot-25;
+  const vocC=PV.voc*(1+PV.kVoc/100*dc), vmpC=PV.vmp*(1+PV.kVoc/100*dc);
+  const vmpH=PV.vmp*(1+PV.kPmax/100*dh), iscH=PV.isc*(1+PV.kIsc/100*dh);
+  const ck=[],per=[];let total=0;
+  const add=(lvl,mi,t)=>ck.push({lvl,mi,t});
+  st.m.forEach((strs,mi)=>{
+    const act=strs.filter(n=>n>0),p={mi,act,n:act.reduce((a,b)=>a+b,0)};
+    per.push(p);total+=p.n;
+    if(!act.length)return;
+    const nx=Math.max(...act),nn=Math.min(...act);
+    Object.assign(p,{nx,nn,voc:nx*vocC,hi:nx*vmpC,lo:nn*vmpH,imp:act.length*PV.imp,isc:act.length*iscH});
+    const maxN=Math.min(Math.floor(I.vmax/vocC),Math.floor(I.hi/vmpC)),minN=Math.ceil(I.lo/vmpH);
+    const r=p.voc/I.vmax;
+    if(r>1)add('err',mi,`Voc ที่ ${st.tmin}°C = ${f(p.voc)} V เกิน ${I.vmax} V ของอินเวอร์เตอร์ ต่อได้ไม่เกิน ${maxN} แผงต่อสตริง`);
+    else if(r>0.95)add('warn',mi,`Voc ที่ ${st.tmin}°C = ${f(p.voc)} V ใกล้ขีดจำกัด ${I.vmax} V (เหลือ ${f((1-r)*100,1)}%)`);
+    else add('ok',mi,`Voc ที่ ${st.tmin}°C = ${f(p.voc)} V ต่ำกว่า ${I.vmax} V`);
+    if(p.hi>I.hi)add('err',mi,`Vmp ตอนเย็นสุด ${f(p.hi)} V เกินช่วง MPPT สูงสุด ${I.hi} V`);
+    else if(p.lo<I.lo)add('err',mi,`Vmp ที่เซลล์ ${st.thot}°C = ${f(p.lo)} V ต่ำกว่า MPPT ต่ำสุด ${I.lo} V ต้องมีอย่างน้อย ${minN} แผงต่อสตริง`);
+    else if(p.lo<I.lo+25)add('warn',mi,`Vmp ตอนร้อน ${f(p.lo)} V ใกล้ขอบล่างของ MPPT (${I.lo} V)`);
+    else add('ok',mi,`Vmp ${f(p.lo)}–${f(p.hi)} V อยู่ในช่วง MPPT ${I.lo}–${I.hi} V`);
+    if(nx!==nn)add('err',mi,`สตริงที่ขนานกันมีจำนวนแผงไม่เท่ากัน (${act.join(' / ')}) แรงดันไม่ตรงกัน`);
+    if(p.isc>I.isc)add('err',mi,`Isc รวม ${f(p.isc,1)} A เกิน ${I.isc} A ของอินพุต`);
+    if(act.length>1)add('warn',mi,`ต่อขนาน ${act.length} สตริงเข้า MPPT เดียว ต้องใช้ตัวต่อ Y หรือคอมบายเนอร์ อินพุตนี้รับ 1 สตริง`);
+    if(p.imp>I.imax)add('warn',mi,`Imp รวม ${f(p.imp,1)} A เกิน ${I.imax} A ต่ออินพุต กระแสจะถูกจำกัด สูญเสียราว ${f((1-I.imax/p.imp)*100)}% ตอนแดดเต็ม`);
+    else add('ok',mi,`Imp รวม ${f(p.imp,1)} A ไม่เกิน ${I.imax} A`);
+  });
+  const pv=total*PV.pmax,ratio=pv/I.pac;
+  if(!total)add('warn',-1,'ยังไม่มีแผงในระบบ ลากแผงมาวางในสตริง');
+  else{
+    if(pv>I.pvRec)add('warn',-1,`กำลัง DC ${f(pv/1000,2)} kWp เกินกำลังที่ผู้ผลิตแนะนำ ${I.pvRec/1000} kW`);
+    else add('ok',-1,`กำลัง DC ${f(pv/1000,2)} kWp ไม่เกินที่แนะนำ ${I.pvRec/1000} kW`);
+    if(ratio<1)add('warn',-1,`DC/AC ${f(ratio,2)} ต่ำกว่า 1.0 อินเวอร์เตอร์ใช้ไม่เต็มกำลัง`);
+    else add('ok',-1,`DC/AC ${f(ratio,2)} เทียบ AC ${I.pac/1000} kW`);
+  }
+  ck.sort((a,b)=>RANK[a.lvl]-RANK[b.lvl]);
+  const cnt={err:0,warn:0,ok:0};ck.forEach(c=>cnt[c.lvl]++);
+  const lvl=!total?'idle':cnt.err?'err':cnt.warn?'warn':'ok';
+  const worst=mi=>{const l=ck.filter(c=>c.mi===mi).map(c=>c.lvl);return l.includes('err')?'err':l.includes('warn')?'warn':l.length?'ok':'idle'};
+  return{I,vocC,vmpC,vmpH,iscH,ck,per,total,pv,ratio,cnt,lvl,worst};
+}
+
+function win(p,I){
+  const scale=Math.ceil(I.vmax*1.08/50)*50,pc=v=>Math.max(0,Math.min(100,v/scale*100));
+  return `<div><div class="win" role="img" aria-label="ช่วงแรงดันของสตริงเทียบกับช่วง MPPT"><i class="band" style="left:${pc(I.lo)}%;width:${pc(I.hi)-pc(I.lo)}%"></i><i class="lim" style="left:${pc(I.vmax)}%"></i><i class="bar" style="left:${pc(p.lo)}%;width:${Math.max(1,pc(p.hi)-pc(p.lo))}%"></i><i class="voc" style="left:${pc(p.voc)}%"></i></div><div class="axis"><span>0 V</span><span>${scale} V</span></div></div>`;
+}
+
+function render(){
+  if(!st.m[st.sel[0]]||st.m[st.sel[0]][st.sel[1]]==null)st.sel=[0,0];
+  const c=calc(),I=c.I;
+  const label={ok:'ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${c.cnt.warn} ข้อควรระวัง`,err:`มี ${c.cnt.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่มีแผง'}[c.lvl];
+  const v=$('#verdict');v.className='verdict '+c.lvl;
+  v.innerHTML=`<span class="pill ${c.lvl}">${c.lvl==='idle'?'รอข้อมูล':LABEL[c.lvl]}</span><b>${label}</b><span class="nums">${c.total} แผง · ${f(c.pv/1000,2)} kWp · DC/AC ${f(c.ratio,2)}</span>`;
+
+  $('#mppts').innerHTML=st.m.map((strs,mi)=>{
+    const p=c.per[mi],w=c.worst(mi);
+    const rows=strs.map((n,si)=>{
+      const sel=st.sel[0]===mi&&st.sel[1]===si;
+      const chips=n?'<i class="mod" data-drag="mod" data-m="'+mi+'" data-s="'+si+'" title="ลากเพื่อย้ายหรือเอาออก"></i>'.repeat(n):'<span class="empty">ลากแผงมาวางที่นี่</span>';
+      const read=n?`Voc ${f(n*c.vocC)} V · Vmp ${f(n*c.vmpH)}–${f(n*c.vmpC)} V · Imp ${f(PV.imp,1)} A`:'';
+      return `<div class="srow"><div class="shead"><b>สตริง ${si+1}</b><span class="cnt">${n} แผง · ${f(n*PV.pmax/1000,2)} kWp</span><span class="ctl"><button class="btn" data-act="dec" data-m="${mi}" data-s="${si}" aria-label="ลดหนึ่งแผง">−</button><button class="btn" data-act="inc" data-m="${mi}" data-s="${si}" aria-label="เพิ่มหนึ่งแผง">+</button>${strs.length>1?`<button class="btn" data-act="del" data-m="${mi}" data-s="${si}" aria-label="ลบสตริง">ลบ</button>`:''}</span></div><div class="string${sel?' sel':''}" data-m="${mi}" data-s="${si}"><div class="chain"><span class="term p">+</span>${chips}<span class="term n">−</span></div></div>${read?`<div class="sread">${read}</div>`:''}</div>`;
+    }).join('');
+    const pill=w==='idle'?'<span class="pill idle">ว่าง</span>':`<span class="pill ${w}">${LABEL[w]}</span>`;
+    return `<section class="mppt"><div class="mhead"><h3>MPPT ${mi+1}</h3><span class="tag">อินพุต DC${mi+1}</span>${pill}</div>${rows}${strs.length<MAXSTR?`<button class="addstr" data-act="addstr" data-m="${mi}">+ สตริงขนาน</button>`:''}${p.n?win(p,I):''}</section>`;
+  }).join('');
+
+  const act=c.per.filter(p=>p.n);
+  const mx=(k,fn)=>act.length?fn(...act.map(p=>p[k])):0;
+  const M=[
+    ['กำลังรวม',f(c.pv/1000,2)+' kWp',`${c.total} แผง × ${PV.pmax} W`],
+    ['DC/AC',f(c.ratio,2),`AC ${I.pac/1000} kW`],
+    ['Voc ตอนเย็นสุด',f(mx('voc',Math.max))+' V',`ไม่เกิน ${I.vmax} V`],
+    ['Vmp ร้อน–เย็น',act.length?`${f(mx('lo',Math.min))}–${f(mx('hi',Math.max))} V`:'0 V',`MPPT ${I.lo}–${I.hi} V`],
+    ['Imp ต่ออินพุต',f(mx('imp',Math.max),1)+' A',`รับได้ ${I.imax} A`]
+  ];
+  $('#metrics').innerHTML=M.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
+
+  $('#checks').innerHTML=c.ck.map(k=>`<li><span class="b ${k.lvl}" aria-label="${LABEL[k.lvl]}">${GLYPH[k.lvl]}</span><span>${k.mi>=0?`<span class="w">MPPT ${k.mi+1}</span>`:'<span class="w">ระบบ</span>'}${k.t}</span></li>`).join('');
+
+  $('#specs').innerHTML=[
+    ['แผง',`${PV.pmax} W`],['Voc / Isc',`${PV.voc} V / ${PV.isc} A`],['Vmp / Imp',`${PV.vmp} V / ${PV.imp} A`],['สัมประสิทธิ์ Voc / Pmax',`${PV.kVoc} / ${PV.kPmax} %/°C`],
+    ['อินเวอร์เตอร์',I.name],['Vdc สูงสุด',`${I.vmax} V`],['ช่วง MPPT',`${I.lo}–${I.hi} V`],['แรงดันเริ่มทำงาน',`${I.start} V`],
+    ['กระแสอินพุต / Isc สูงสุด',`${I.imax} A / ${I.isc} A`],['กำลัง AC',`${I.pac/1000} kW`],['กำลัง PV ที่แนะนำสูงสุด',`${I.pvRec/1000} kW`],['จำนวน MPPT',`2 (1 สตริงต่ออินพุต)`]
+  ].map(r=>`<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join('');
+}
+
+/* ---- edit helpers ---- */
+const add1=(m,s)=>{if(st.m[m][s]<MAXN)st.m[m][s]++};
+const del1=(m,s)=>{if(st.m[m][s]>0)st.m[m][s]--};
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');
+  if(b){
+    const m=+b.dataset.m,s=+b.dataset.s,a=b.dataset.act;
+    if(a==='inc'){add1(m,s);st.sel=[m,s]}
+    else if(a==='dec'){del1(m,s);st.sel=[m,s]}
+    else if(a==='del'){st.m[m].splice(s,1);st.sel=[m,0]}
+    else if(a==='addstr'){st.m[m].push(0);st.sel=[m,st.m[m].length-1]}
+    render();return;
+  }
+  const r=e.target.closest('.string');
+  if(r){st.sel=[+r.dataset.m,+r.dataset.s];render()}
+});
+$('#inv').addEventListener('change',e=>{st.inv=e.target.value;render()});
+['tmin','thot'].forEach(id=>$('#'+id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(!isNaN(n)){st[id]=n;render()}}));
+document.querySelector('.tile').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();add1(...st.sel);render()}});
+
+/* ---- pointer drag: palette -> string, string -> string, string -> outside (remove) ---- */
+let drag=null,ghost=null,over=null;
+const stringAt=(x,y)=>{const el=document.elementFromPoint(x,y);return el&&el.closest?el.closest('.string'):null};
+document.addEventListener('pointerdown',e=>{
+  const t=e.target.closest('[data-drag]');if(!t||e.button>0)return;
+  drag={kind:t.dataset.drag,m:+t.dataset.m,s:+t.dataset.s,x:e.clientX,y:e.clientY,on:false};
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(!drag.on&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>6){
+    drag.on=true;ghost=document.createElement('i');ghost.className='mod ghost';document.body.appendChild(ghost);document.body.classList.add('dragging');
+  }
+  if(drag.on){
+    ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';
+    const t=stringAt(e.clientX,e.clientY);
+    if(over&&over!==t)over.classList.remove('over');
+    if(t)t.classList.add('over');
+    over=t;
+  }
+});
+function endDrag(e,cancel){
+  if(!drag)return;
+  const d=drag;drag=null;
+  if(ghost){ghost.remove();ghost=null}
+  document.body.classList.remove('dragging');
+  if(over){over.classList.remove('over');over=null}
+  if(cancel)return;
+  if(!d.on){if(d.kind==='palette'){add1(...st.sel);render()}return}
+  const t=stringAt(e.clientX,e.clientY);
+  if(t){
+    const m=+t.dataset.m,s=+t.dataset.s;
+    if(d.kind==='palette'){add1(m,s)}
+    else if(!(m===d.m&&s===d.s)&&st.m[m][s]<MAXN){del1(d.m,d.s);add1(m,s)}
+    st.sel=[m,s];
+  }else if(d.kind==='mod'){del1(d.m,d.s)}
+  render();
+}
+document.addEventListener('pointerup',e=>endDrag(e,false));
+document.addEventListener('pointercancel',e=>endDrag(e,true));
+
+render();
+</script>
