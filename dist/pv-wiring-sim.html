@@ -255,6 +255,18 @@ table.ldt td:nth-child(2) input,table.ldt td:nth-child(3) input,table.ldt td:nth
 [hidden]{display:none!important}
 table.ldt td:first-child input{min-width:150px}
 .bkc .row3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+/* ---- submit tab ---- */
+.smb{display:flex;flex-direction:column;gap:14px}
+.smb label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.smb input[type=text]{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:40px;width:100%}
+.gsi{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.smbar{display:flex;flex-wrap:wrap;gap:8px}
+.simmsg.ok{color:var(--ok)}.simmsg.err{color:var(--err)}
+.smfig{margin:0;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.smfig img{display:block;width:100%;max-width:760px;height:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.checks .mono{font-family:var(--mono)}
+a.btn{display:inline-flex;align-items:center;text-decoration:none;color:var(--ink)}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -264,7 +276,8 @@ table.ldt td:first-child input{min-width:150px}
     <button class="navb" data-tab="pv"><span class="ic">03</span>จำลองแผง</button>
     <button class="navb" data-tab="load"><span class="ic">04</span>จำลองโหลด</button>
     <button class="navb" data-tab="backup"><span class="ic">05</span>จำลอง Backup</button>
-    <div class="sidefoot"><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
+    <button class="navb" data-tab="submit"><span class="ic">06</span>ส่งงาน</button>
+    <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
 
@@ -434,10 +447,41 @@ table.ldt td:first-child input{min-width:150px}
     <p class="hint">เป็นแบบจำลองอย่างง่ายเพื่อการเรียนรู้และประเมินเบื้องต้น ตั้งโหมดแผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วจึงขายคืนกริด ไม่รวมการชาร์จจากกริด ค่า derating ตามอุณหภูมิของแบต และการสตาร์ทของมอเตอร์ ไม่ใช่ค่ารับประกัน</p>
   </section>
 
+  <section class="tab" id="tab-submit" hidden>
+    <header><h1>ส่งงาน</h1><p class="sub">กรอกชื่อแล้วกด "ส่งงาน" ระบบจะบันทึกเฉพาะผลสรุปของครั้งนั้นให้ผู้สอน (ไม่บันทึกทุกการลากสาย) และสร้างภาพรายงานให้เก็บหรือส่งต่อได้</p></header>
+    <div class="panelbox smb">
+      <div class="row3">
+        <label for="mname">ชื่อ-นามสกุล<input id="mname" type="text" autocomplete="name" maxlength="80"></label>
+        <label for="msid">รหัสผู้เรียน หรือเลขที่<input id="msid" type="text" maxlength="30" autocomplete="off"></label>
+        <label for="mcls">รหัสห้องอบรม (ผู้สอนแจกให้)<input id="mcls" type="text" maxlength="30" autocomplete="off"></label>
+      </div>
+      <div id="gsi" class="gsi" hidden><span class="lab">หรือ</span><div id="gbtn"></div><span id="gwho" class="locmsg"></span><button class="btn sm" id="gout" hidden>ออกจาก Google</button></div>
+    </div>
+    <div><h2>สรุปที่จะส่ง</h2><div id="smmx" class="metrics"></div><ul id="smiss" class="checks"></ul></div>
+    <div class="grp smbar">
+      <button class="btn pri" id="smsend">ส่งงาน</button>
+      <button class="btn" id="smshot">สร้างภาพรายงาน</button>
+      <button class="btn" id="smcopy">คัดลอกสรุป</button>
+    </div>
+    <p id="smcfg" class="simmsg" hidden>ปุ่มส่งงานยังปิดอยู่ เพราะผู้สอนยังไม่ได้ตั้งปลายทางรับงาน (SUBMIT_URL ในไฟล์ js/config.js) สร้างภาพรายงานและคัดลอกสรุปได้ตามปกติ</p>
+    <p id="smmsg" class="simmsg" role="status" hidden></p>
+    <figure id="smimgw" class="smfig" hidden><img id="smimg" alt="ภาพรายงานผลการต่อสายและสรุปผลจำลอง"><figcaption><a class="btn" id="smdl" download="solar-report.png">ดาวน์โหลดภาพ PNG</a></figcaption></figure>
+    <section class="card"><h3>ประวัติการส่งงานในเครื่องนี้</h3><ul id="smhist" class="checks"></ul></section>
+    <p class="hint">ข้อมูลที่ส่งคือ ชื่อ รหัส รหัสห้อง เวลา ผลตรวจการต่อสาย รุ่นอุปกรณ์ และตัวเลขสรุปของแท็บจำลอง ไม่ส่งรูปวงจรเอง ภาพรายงานสร้างในเครื่องของคุณ</p>
+  </section>
+
   </div></main>
 </div>
 
 <script>
+/* Site settings. Edit this file after deploying apps-script/Code.gs (see apps-script/README.md).
+   Nothing secret belongs here: this file is public on GitHub Pages. */
+window.APP_CONFIG={
+  COURSE:'อบรมโซลาร์เซลล์สำหรับครัวเรือน', // heading on the report image and the sheet
+  SUBMIT_URL:'',                            // Apps Script web app URL (…/exec). Empty = submit disabled
+  GOOGLE_CLIENT_ID:''                       // optional, enables the Google sign-in button
+};
+
 /* ---- catalog: panels, inverters, batteries (+ import / export, storage) ---- */
 const SCHEMA={
   panels:{
@@ -1599,7 +1643,7 @@ let bkCfg=null;
 function backupRun(){
   if(!$('#bkmx'))return;
   const msg=$('#bkmsg'),body=$('#bkbody'),I=curInv(),bi=bankInfo();
-  $('#bkverdict').hidden=true;
+  $('#bkverdict').hidden=true;window.lastBK=null;
   const src=bkSource();
   const need=BK.mode!=='grid';
   const warns=[];
@@ -1641,6 +1685,7 @@ function backupRun(){
 
   /* metrics */
   const selfS=T.load>0?(T.direct+T.fromBat)/T.load*100:0;
+  window.lastBK={mode:BK.mode,lvl,vt,pv:T.pv,load:T.load,self:selfS,unmet:BK.mode==='off'?T.unmet:T.unmetOut};
   const avgIsl=((BK.island==='crit'?LP.crit:LP.all).reduce((a,b)=>a+b,0)/LP.n)/1000;
   const autonomy=bi&&avgIsl>0?bi.usable*bi.rt**0.5/avgIsl:null;
   const mx=[
@@ -1699,8 +1744,236 @@ function initBackup(){
   bkSync();
 }
 
+/* ---- member, report image, submit ---- */
+const CFG=Object.assign({COURSE:'จำลองระบบโซลาร์',SUBMIT_URL:'',GOOGLE_CLIENT_ID:''},window.APP_CONFIG||{});
+const MEM_KEY='pvsim:member',SUBS_KEY='pvsim:subs';
+const SANS='"Noto Sans Thai","Leelawadee UI","Sarabun",Tahoma,"Segoe UI",sans-serif',MONO='"IBM Plex Mono",Consolas,Menlo,monospace';
+let MEMBER={name:'',sid:'',cls:'',gemail:'',gname:''},gToken='',lastImg=null,sending=false;
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const clip=(s,n)=>String(s==null?'':s).slice(0,n);
+
+/* ---- what gets reported ---- */
+function buildReport(){
+  const A=lastA,I=curInv(),P=curPanel(),bi=bankInfo(),bat=curBat();
+  const r={t:new Date(),course:CFG.COURSE,panel:PV.name,inverter:I.name,
+    battery:bi?`${bat.brand} ${bat.model} × ${bi.s}S${bi.p}P (${f(bi.V,1)} V ${f(bi.kwh,1)} kWh)`:'-',
+    wiring:null,issues:[],pv:null,load:null,bk:null};
+  if(A){
+    r.wiring={lvl:A.lvl,err:A.cnt.err,warn:A.cnt.warn,ok:A.cnt.ok,panels:st.panels.length,used:A.used,kwp:A.pv/1000,ratio:A.ratio,
+      topo:A.res.map(x=>`MPPT ${x.k}: ${x.status==='idle'?'ว่าง':x.short}`).join(' | ')};
+    [...A.res.flatMap(x=>x.ck.map(c=>({lvl:c.lvl,t:`MPPT ${x.k}: ${c.t}`}))),...A.sys].forEach(c=>{if(c.lvl!=='ok')r.issues.push({lvl:c.lvl,t:c.t})});
+    r.issues.sort((a,b)=>RANK[a.lvl]-RANK[b.lvl]);
+    const blocks=A.res.map(x=>x.status==='ok'?x.blk:null);
+    if(blocks.some(Boolean)){const R=simDay(blocks,A.I,SIM.tilt,SIM.az,5);r.pv={E:R.E,peak:R.peak/1000,tilt:SIM.tilt,az:SIM.az,date:SIM.date}}
+  }
+  const LP=loadProfile(5),k=5/60/1000;
+  r.load={E:LP.all.reduce((a,b)=>a+b,0)*k,Ec:LP.crit.reduce((a,b)=>a+b,0)*k,peak:Math.max(0,...LP.all)/1000,n:LOADS.length};
+  if(typeof backupRun==='function')backupRun();
+  if(window.lastBK)r.bk=window.lastBK;
+  return r;
+}
+const wLabel=w=>!w?'ยังไม่มีผลการต่อสาย':({ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${w.warn} ข้อควรระวัง`,err:`มี ${w.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'})[w.lvl];
+function reportLines(r){
+  const w=r.wiring;
+  return[
+    ['ผลการต่อสาย',wLabel(w)],
+    ['แผง / กำลังรวม',w?`${w.used}/${w.panels} แผง · ${f(w.kwp,2)} kWp · DC/AC ${f(w.ratio,2)}`:'-'],
+    ['รูปแบบการต่อ',w?w.topo:'-'],
+    ['แผงที่ใช้',r.panel],['อินเวอร์เตอร์',r.inverter],['แบตเตอรี่',r.battery],
+    ['ผลิตต่อวัน',r.pv?`${f(r.pv.E,1)} kWh (สูงสุด ${f(r.pv.peak,2)} kW · เอียง ${r.pv.tilt}° · ทิศ ${r.pv.az}°)`:'-'],
+    ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลดสำคัญ ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
+    ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-']
+  ];
+}
+
+/* ---- report image (canvas, no external libs) ---- */
+function svgToImage(){
+  return new Promise((res,rej)=>{
+    const src=document.getElementById('svg'),clone=src.cloneNode(true),a=src.querySelectorAll('*'),b=clone.querySelectorAll('*'),rm=[];
+    const props=['fill','stroke','stroke-width','stroke-dasharray','stroke-linecap','stroke-linejoin','opacity','fill-opacity','stroke-opacity','font-size','font-weight','text-anchor','paint-order','stop-color'];
+    a.forEach((el,i)=>{
+      const t=b[i],tag=el.tagName.toLowerCase();
+      if(el.classList.contains('hit')||el.classList.contains('whit')||tag==='title'){rm.push(t);return}
+      const cs=getComputedStyle(el);let s='';
+      props.forEach(p=>{const v=cs.getPropertyValue(p);if(v)s+=p+':'+v+';'});
+      if(tag==='text')s+='font-family:'+(el.classList.contains('m')||el.classList.contains('onp')||el.classList.contains('tt')?MONO:SANS)+';';
+      t.setAttribute('style',s);t.removeAttribute('class');
+    });
+    rm.forEach(n=>n.remove());
+    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');clone.setAttribute('width',1520);clone.setAttribute('height',880);clone.removeAttribute('style');clone.removeAttribute('class');
+    const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'}));
+    const im=new Image();im.onload=()=>{URL.revokeObjectURL(url);res(im)};im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('svg'))};im.src=url;
+  });
+}
+function wrapLines(ctx,text,maxW){
+  const seg=typeof Intl!=='undefined'&&Intl.Segmenter?[...new Intl.Segmenter('th',{granularity:'word'}).segment(String(text))].map(s=>s.segment):[...String(text)];
+  const out=[];let cur='';
+  seg.forEach(w=>{
+    if(ctx.measureText(cur+w).width<=maxW||!cur){cur+=w}else{out.push(cur.trimEnd());cur=w.trimStart()}
+  });
+  if(cur)out.push(cur);
+  return out.length?out:[''];
+}
+async function renderReportImage(r,mem,receipt){
+  const cs=getComputedStyle(document.documentElement),v=n=>cs.getPropertyValue(n).trim()||'#000';
+  const W=1200,pad=40,iw=W-pad*2;
+  let img=null;try{img=await svgToImage()}catch(e){}
+  const cv=document.createElement('canvas');cv.width=W;cv.height=3200;
+  const c=cv.getContext('2d');
+  c.fillStyle=v('--bg');c.fillRect(0,0,W,3200);
+  let y=pad;
+  const text=(s,x,yy,font,col,align)=>{c.font=font;c.fillStyle=col;c.textAlign=align||'left';c.textBaseline='alphabetic';c.fillText(s,x,yy)};
+  const para=(s,x,font,col,maxW,lh)=>{c.font=font;wrapLines(c,s,maxW).forEach(l=>{text(l,x,y,font,col);y+=lh})};
+  /* header */
+  c.fillStyle=v('--surface');c.fillRect(pad-10,y-10,iw+20,128);c.strokeStyle=v('--line');c.lineWidth=2;c.strokeRect(pad-10,y-10,iw+20,128);
+  y+=28;text(r.course,pad+8,y,`600 30px ${SANS}`,v('--ink'));
+  y+=40;text(`${mem.name||'(ไม่ระบุชื่อ)'}${mem.sid?'  ·  '+mem.sid:''}${mem.gemail?'  ·  '+mem.gemail:''}`,pad+8,y,`500 24px ${SANS}`,v('--ink'));
+  y+=36;const d=r.t,ds=`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  text(`${ds}   รหัสใบส่งงาน ${receipt||'ยังไม่ส่ง'}`,pad+8,y,`400 20px ${MONO}`,v('--muted'));
+  y+=56;
+  /* verdict */
+  const w=r.wiring,lvl=w?w.lvl:'idle',col={ok:v('--ok'),warn:v('--warn'),err:v('--err'),idle:v('--muted')}[lvl],bg={ok:v('--okbg'),warn:v('--warnbg'),err:v('--errbg'),idle:v('--surface')}[lvl];
+  c.fillStyle=bg;c.fillRect(pad,y,iw,64);c.fillStyle=col;c.fillRect(pad,y,8,64);
+  text(`${lvl==='idle'?'รอต่อสาย':LABEL[lvl]}  ·  ${wLabel(w)}`,pad+28,y+42,`600 26px ${SANS}`,col);
+  y+=92;
+  /* diagram */
+  if(img){const h=Math.round(iw*img.height/img.width);c.fillStyle=v('--surface');c.fillRect(pad,y,iw,h);c.strokeStyle=v('--line');c.strokeRect(pad,y,iw,h);c.drawImage(img,pad,y,iw,h);y+=h+32}
+  /* summary rows */
+  text('สรุปผล',pad,y+4,`600 22px ${SANS}`,v('--muted'));y+=30;
+  reportLines(r).forEach(([k,val])=>{
+    c.strokeStyle=v('--line');c.beginPath();c.moveTo(pad,y-4);c.lineTo(pad+iw,y-4);c.stroke();
+    y+=22;text(k,pad+4,y,`500 20px ${SANS}`,v('--muted'));
+    const y0=y;c.font=`500 21px ${SANS}`;const ls=wrapLines(c,val,iw-260);
+    ls.forEach((l,i)=>{text(l,pad+250,y0+i*30,`500 21px ${SANS}`,v('--ink'))});
+    y=y0+(ls.length-1)*30+18;
+  });
+  y+=22;
+  /* issues */
+  if(r.issues.length){
+    text('ข้อที่ต้องตรวจ',pad,y+4,`600 22px ${SANS}`,v('--muted'));y+=34;
+    r.issues.slice(0,12).forEach(it=>{
+      const cc=it.lvl==='err'?v('--err'):v('--warn');
+      c.fillStyle=cc;c.beginPath();c.arc(pad+14,y-7,9,0,7);c.fill();
+      text(it.lvl==='err'?'×':'!',pad+14,y-1,`700 14px ${MONO}`,'#fff','center');
+      c.font=`400 20px ${SANS}`;const ls=wrapLines(c,it.t,iw-50);
+      ls.forEach((l,i)=>text(l,pad+40,y+i*28,`400 20px ${SANS}`,v('--ink')));
+      y+=(ls.length-1)*28+36;
+    });
+    if(r.issues.length>12){text(`และอีก ${r.issues.length-12} ข้อ`,pad+40,y,`400 20px ${SANS}`,v('--muted'));y+=34}
+  }else if(w){text('ไม่พบข้อที่ต้องแก้ไข',pad,y+4,`500 22px ${SANS}`,v('--ok'));y+=40}
+  y+=10;
+  text('ผลจากแบบจำลองอย่างง่ายเพื่อการเรียนรู้ ไม่ใช่ค่ารับประกัน ตรวจกับดาต้าชีตของอุปกรณ์จริงก่อนติดตั้ง',pad,y+16,`400 17px ${SANS}`,v('--muted'));
+  y+=pad+10;
+  const out=document.createElement('canvas');out.width=W;out.height=y;out.getContext('2d').drawImage(cv,0,0);
+  return out;
+}
+
+/* ---- UI ---- */
+function readMember(){
+  MEMBER.name=clip($('#mname').value.trim(),80);MEMBER.sid=clip($('#msid').value.trim(),30);MEMBER.cls=clip($('#mcls').value.trim(),30);
+  lsSet(MEM_KEY,MEMBER);whoUpdate();
+}
+function whoUpdate(){
+  const e=$('#whoami');if(e)e.textContent=MEMBER.name?`ผู้เรียน: ${MEMBER.name}`:'';
+  const g=$('#gwho');if(g)g.textContent=MEMBER.gemail?`ล็อกอิน Google: ${MEMBER.gemail}${gToken?' (ยืนยันแล้ว)':''}`:'';
+  const o=$('#gout');if(o)o.hidden=!MEMBER.gemail;
+}
+function setMsg(t,cls){const m=$('#smmsg');m.textContent=t;m.className='simmsg'+(cls?' '+cls:'');m.hidden=!t}
+function submitRefresh(){
+  const r=buildReport(),w=r.wiring;
+  $('#smmx').innerHTML=[
+    ['ผลการต่อสาย',w?(w.lvl==='idle'?'รอต่อสาย':LABEL[w.lvl]):'-',wLabel(w)],
+    ['แผง',w?`${w.used}/${w.panels}`:'-',w?`${f(w.kwp,2)} kWp · DC/AC ${f(w.ratio,2)}`:''],
+    ['ผลิตต่อวัน',r.pv?f(r.pv.E,1)+' kWh':'-',r.pv?`สูงสุด ${f(r.pv.peak,2)} kW`:'ต่อสายให้ถูกต้องก่อน'],
+    ['โหลดต่อวัน',f(r.load.E,1)+' kWh',`${r.load.n} รายการ · โหลดสำคัญ ${f(r.load.Ec,1)} kWh`],
+    ['Backup',r.bk?({ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'})[r.bk.lvl]:'-',r.bk?r.bk.vt:'ยังไม่มีผล']
+  ].map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${esc(m[1])}</div><div class="s">${esc(m[2])}</div></div>`).join('');
+  $('#smiss').innerHTML=r.issues.length?r.issues.map(c=>`<li><span class="b ${c.lvl}">${c.lvl==='err'?'×':'!'}</span><span>${esc(c.t)}</span></li>`).join(''):'';
+  const subs=lsGet(SUBS_KEY)||[];
+  $('#smhist').innerHTML=subs.length?subs.map(s=>`<li><span class="b ${s.sent?'ok':'warn'}">${s.sent?'✓':'!'}</span><span><b class="mono">${esc(s.receipt)}</b> · ${esc(s.when)} · ${esc(s.text)}${s.sent?'':' · ยังไม่ยืนยันว่าส่งถึง'}</span></li>`).join(''):'<li><span class="b" style="visibility:hidden">·</span><span>ยังไม่เคยส่งงานจากเครื่องนี้</span></li>';
+  $('#smsend').disabled=!CFG.SUBMIT_URL||sending;
+  $('#smcfg').hidden=!!CFG.SUBMIT_URL;
+  whoUpdate();
+}
+async function makeImage(receipt,r){
+  r=r||buildReport();
+  const cv=await renderReportImage(r,MEMBER,receipt);
+  const url=cv.toDataURL('image/png');
+  lastImg=url;
+  $('#smimg').src=url;$('#smimgw').hidden=false;
+  const a=$('#smdl');a.href=url;a.download=`solar-${(MEMBER.sid||MEMBER.name||'report').replace(/[^\wก-๙-]+/g,'_')}-${receipt||'draft'}.png`;
+  return url;
+}
+const newReceipt=()=>('S'+Date.now().toString(36).slice(-5)+Math.random().toString(36).slice(2,4)).toUpperCase();
+function payload(r,receipt){
+  const w=r.wiring||{};
+  return{v:1,receipt,t:r.t.toISOString(),course:r.course,name:MEMBER.name,sid:MEMBER.sid,cls:MEMBER.cls,gemail:MEMBER.gemail,idToken:gToken,
+    lvl:w.lvl||'idle',err:w.err||0,warn:w.warn||0,ok:w.ok||0,panels:w.panels||0,used:w.used||0,kwp:+(w.kwp||0).toFixed(2),ratio:+(w.ratio||0).toFixed(2),topo:w.topo||'',
+    panel:r.panel,inverter:r.inverter,battery:r.battery,
+    pvKwh:r.pv?+r.pv.E.toFixed(2):'',loadKwh:+r.load.E.toFixed(2),
+    bkMode:r.bk?r.bk.mode:'',bkLvl:r.bk?r.bk.lvl:'',bkText:r.bk?r.bk.vt:'',bkUnmet:r.bk?+(r.bk.unmet||0).toFixed(2):'',
+    issues:r.issues.slice(0,15).map(i=>`[${i.lvl}] ${clip(i.t,200)}`)};
+}
+async function doSubmit(){
+  if(sending)return;
+  readMember();
+  if(!MEMBER.name){setMsg('กรอกชื่อ-นามสกุลก่อนส่งงาน','err');$('#mname').focus();return}
+  if(!lastA){setMsg('ยังไม่มีผลการต่อสาย ไปแท็บ "ต่อสาย" ก่อน','err');return}
+  sending=true;$('#smsend').disabled=true;setMsg('กำลังส่งงาน…');
+  const r=buildReport(),receipt=newReceipt(),body=JSON.stringify(payload(r,receipt));
+  let status='unknown',errText='';
+  try{
+    const res=await fetch(CFG.SUBMIT_URL,{method:'POST',body,redirect:'follow'});
+    const j=await res.json();
+    if(j&&j.ok)status='ok';else{status='rejected';errText=(j&&j.error)||'ถูกปฏิเสธ'}
+  }catch(e){
+    try{await fetch(CFG.SUBMIT_URL,{method:'POST',body,mode:'no-cors'});status='unknown'}catch(e2){status='fail'}
+  }
+  sending=false;
+  const when=`${pad2(r.t.getDate())}/${pad2(r.t.getMonth()+1)} ${pad2(r.t.getHours())}:${pad2(r.t.getMinutes())}`;
+  if(status==='rejected'||status==='fail'){
+    setMsg(status==='rejected'?`ส่งไม่สำเร็จ: ${errText} (ตรวจรหัสห้องอบรมกับผู้สอน)`:'ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่','err');
+  }else{
+    const subs=lsGet(SUBS_KEY)||[];subs.unshift({receipt,when,text:wLabel(r.wiring),sent:status==='ok'});lsSet(SUBS_KEY,subs.slice(0,20));
+    setMsg(status==='ok'?`ส่งงานแล้ว รหัสใบส่งงาน ${receipt}`:`ส่งแล้วแต่ยังไม่ได้รับการยืนยันจากเซิร์ฟเวอร์ รหัส ${receipt} บันทึกภาพไว้เป็นหลักฐานได้`,status==='ok'?'ok':'');
+    try{await makeImage(receipt,r)}catch(e){}
+  }
+  submitRefresh();
+}
+function loadGsi(){
+  if(!CFG.GOOGLE_CLIENT_ID)return;
+  $('#gsi').hidden=false;
+  const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
+  s.onload=()=>{try{
+    google.accounts.id.initialize({client_id:CFG.GOOGLE_CLIENT_ID,callback:resp=>{
+      gToken=resp.credential;
+      try{const p=JSON.parse(decodeURIComponent(escape(atob(resp.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));
+        MEMBER.gemail=p.email||'';MEMBER.gname=p.name||'';if(!$('#mname').value&&p.name)$('#mname').value=p.name;}catch(e){}
+      readMember();submitRefresh();
+    }});
+    google.accounts.id.renderButton($('#gbtn'),{theme:'outline',size:'large',text:'signin_with',locale:'th'});
+  }catch(e){}};
+  document.head.appendChild(s);
+}
+function initSubmit(){
+  const m=lsGet(MEM_KEY);
+  if(m&&typeof m==='object')MEMBER=Object.assign(MEMBER,{name:clip(m.name,80),sid:clip(m.sid,30),cls:clip(m.cls,30),gemail:clip(m.gemail,120),gname:clip(m.gname,80)});
+  $('#mname').value=MEMBER.name;$('#msid').value=MEMBER.sid;$('#mcls').value=MEMBER.cls;
+  ['mname','msid','mcls'].forEach(id=>$('#'+id).addEventListener('input',readMember));
+  $('#smsend').addEventListener('click',doSubmit);
+  $('#smshot').addEventListener('click',async()=>{readMember();setMsg('กำลังสร้างภาพ…');try{await makeImage('',null);setMsg('')}catch(e){setMsg('สร้างภาพไม่สำเร็จ','err')}});
+  $('#smcopy').addEventListener('click',async()=>{
+    readMember();const r=buildReport();
+    const t=[CFG.COURSE,`${MEMBER.name} ${MEMBER.sid}`.trim(),...reportLines(r).map(([k,v])=>`${k}: ${v}`),...r.issues.map(i=>`- ${i.t}`)].join('\n');
+    try{await navigator.clipboard.writeText(t);setMsg('คัดลอกสรุปแล้ว')}catch(e){setMsg('คัดลอกไม่ได้ เลือกข้อความเองหรือใช้ภาพแทน','err')}
+  });
+  $('#gout').addEventListener('click',()=>{gToken='';MEMBER.gemail='';MEMBER.gname='';lsSet(MEM_KEY,MEMBER);try{google.accounts.id.disableAutoSelect()}catch(e){}submitRefresh()});
+  loadGsi();whoUpdate();
+}
+
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['equip','wiring','pv','load','backup'];
+const TABS=['equip','wiring','pv','load','backup','submit'];
 let curTab='equip',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -1719,6 +1992,7 @@ function showTab(t,fromHash){
     else if(t==='pv')drawCharts();
     else if(t==='load')drawLoadChart();
     else if(t==='backup')drawBackup();
+    else if(t==='submit')submitRefresh();
     window.scrollTo(0,0);
   });
   touch();
@@ -1819,7 +2093,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();
-  initLoads();initBackup();initReset();
+  initLoads();initBackup();initSubmit();initReset();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

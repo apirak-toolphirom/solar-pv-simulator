@@ -6,7 +6,8 @@
     <button class="navb" data-tab="pv"><span class="ic">03</span>จำลองแผง</button>
     <button class="navb" data-tab="load"><span class="ic">04</span>จำลองโหลด</button>
     <button class="navb" data-tab="backup"><span class="ic">05</span>จำลอง Backup</button>
-    <div class="sidefoot"><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
+    <button class="navb" data-tab="submit"><span class="ic">06</span>ส่งงาน</button>
+    <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
 
@@ -174,6 +175,29 @@
       </div>
     </div>
     <p class="hint">เป็นแบบจำลองอย่างง่ายเพื่อการเรียนรู้และประเมินเบื้องต้น ตั้งโหมดแผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วจึงขายคืนกริด ไม่รวมการชาร์จจากกริด ค่า derating ตามอุณหภูมิของแบต และการสตาร์ทของมอเตอร์ ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  <section class="tab" id="tab-submit" hidden>
+    <header><h1>ส่งงาน</h1><p class="sub">กรอกชื่อแล้วกด "ส่งงาน" ระบบจะบันทึกเฉพาะผลสรุปของครั้งนั้นให้ผู้สอน (ไม่บันทึกทุกการลากสาย) และสร้างภาพรายงานให้เก็บหรือส่งต่อได้</p></header>
+    <div class="panelbox smb">
+      <div class="row3">
+        <label for="mname">ชื่อ-นามสกุล<input id="mname" type="text" autocomplete="name" maxlength="80"></label>
+        <label for="msid">รหัสผู้เรียน หรือเลขที่<input id="msid" type="text" maxlength="30" autocomplete="off"></label>
+        <label for="mcls">รหัสห้องอบรม (ผู้สอนแจกให้)<input id="mcls" type="text" maxlength="30" autocomplete="off"></label>
+      </div>
+      <div id="gsi" class="gsi" hidden><span class="lab">หรือ</span><div id="gbtn"></div><span id="gwho" class="locmsg"></span><button class="btn sm" id="gout" hidden>ออกจาก Google</button></div>
+    </div>
+    <div><h2>สรุปที่จะส่ง</h2><div id="smmx" class="metrics"></div><ul id="smiss" class="checks"></ul></div>
+    <div class="grp smbar">
+      <button class="btn pri" id="smsend">ส่งงาน</button>
+      <button class="btn" id="smshot">สร้างภาพรายงาน</button>
+      <button class="btn" id="smcopy">คัดลอกสรุป</button>
+    </div>
+    <p id="smcfg" class="simmsg" hidden>ปุ่มส่งงานยังปิดอยู่ เพราะผู้สอนยังไม่ได้ตั้งปลายทางรับงาน (SUBMIT_URL ในไฟล์ js/config.js) สร้างภาพรายงานและคัดลอกสรุปได้ตามปกติ</p>
+    <p id="smmsg" class="simmsg" role="status" hidden></p>
+    <figure id="smimgw" class="smfig" hidden><img id="smimg" alt="ภาพรายงานผลการต่อสายและสรุปผลจำลอง"><figcaption><a class="btn" id="smdl" download="solar-report.png">ดาวน์โหลดภาพ PNG</a></figcaption></figure>
+    <section class="card"><h3>ประวัติการส่งงานในเครื่องนี้</h3><ul id="smhist" class="checks"></ul></section>
+    <p class="hint">ข้อมูลที่ส่งคือ ชื่อ รหัส รหัสห้อง เวลา ผลตรวจการต่อสาย รุ่นอุปกรณ์ และตัวเลขสรุปของแท็บจำลอง ไม่ส่งรูปวงจรเอง ภาพรายงานสร้างในเครื่องของคุณ</p>
   </section>
 
   </div></main>

@@ -1,0 +1,43 @@
+# ตั้งค่าระบบรับงาน (Google Sheets + Apps Script)
+
+ผู้สอนทำครั้งเดียวต่อหนึ่งรุ่นอบรม ใช้เวลาประมาณ 10 นาที
+
+## 1. สร้างชีตและสคริปต์
+1. สร้าง Google Sheets ใหม่ ตั้งชื่อเช่น `ผลส่งงานโซลาร์ รุ่น 1`
+2. เมนู **ส่วนขยาย (Extensions) → Apps Script**
+3. ลบโค้ดเดิม วางเนื้อหาจาก `Code.gs` แล้วบันทึก
+
+## 2. ตั้งรหัสห้องอบรม (แนะนำ)
+Apps Script → **Project Settings → Script properties → Add**
+- `CLASS_CODE` = รหัสที่จะบอกผู้เรียน เช่น `SOLAR69`
+
+ผู้เรียนต้องกรอกรหัสนี้ในแท็บ "ส่งงาน" ไม่ตรงจะไม่บันทึก รหัสนี้ไม่อยู่ใน GitHub เพราะ repo เป็น public
+
+## 3. Deploy เป็น Web app
+1. **Deploy → New deployment → Select type: Web app**
+2. Execute as: **Me** / Who has access: **Anyone**
+3. กด Deploy อนุญาตสิทธิ์ แล้วคัดลอก URL ที่ลงท้ายด้วย `/exec`
+
+## 4. ใส่ URL ในเว็บ
+แก้ `js/config.js` ใน repo
+
+```js
+SUBMIT_URL:'https://script.google.com/macros/s/xxxxxxxx/exec',
+```
+
+แล้ว commit และ push GitHub Pages จะอัปเดตเอง (ถ้ารันในเครื่อง ให้ `python3 build.py` ด้วย)
+
+## 5. (ไม่บังคับ) ปุ่ม Google Sign-in
+1. Google Cloud Console → APIs & Services → Credentials → Create OAuth client ID → **Web application**
+2. Authorized JavaScript origins: `https://apirak-toolphirom.github.io` (และ `http://localhost:8080` ถ้าทดสอบในเครื่อง)
+3. คัดลอก Client ID ใส่ `GOOGLE_CLIENT_ID` ใน `js/config.js` และใน Script properties ของ Apps Script
+
+ถ้าไม่ตั้ง ผู้เรียนกรอกชื่ออย่างเดียวได้ตามปกติ ถ้าตั้ง สคริปต์จะตรวจ token กับ Google และบันทึกอีเมลลงคอลัมน์ "Google (ยืนยันแล้ว)"
+
+## ข้อมูลที่เก็บ
+หนึ่งแถวต่อหนึ่งครั้งที่กด "ส่งงาน": ชื่อ รหัส ผลตรวจการต่อสาย จำนวนแผง รุ่นอุปกรณ์ ตัวเลขสรุปจำลองแผง/โหลด/Backup และข้อที่ต้องตรวจ ไม่เก็บทุกการลากสาย ผู้เรียนส่งซ้ำได้ ใช้แถวล่าสุดของแต่ละรหัส
+ควรแจ้งผู้เรียนว่าเก็บข้อมูลอะไร และลบชีตเมื่อจบรุ่น
+
+## หมายเหตุ
+- ถ้าแก้ `Code.gs` ภายหลัง ต้อง **Deploy → Manage deployments → Edit → New version** URL เดิมจึงใช้โค้ดใหม่
+- ไม่ต้องใส่คีย์ลับในเว็บ ตัว URL ของ Web app ใครรู้ก็ส่งได้ จึงควรตั้ง `CLASS_CODE`

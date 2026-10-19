@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['equip','wiring','pv','load','backup'];
+const TABS=['equip','wiring','pv','load','backup','submit'];
 let curTab='equip',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -18,6 +18,7 @@ function showTab(t,fromHash){
     else if(t==='pv')drawCharts();
     else if(t==='load')drawLoadChart();
     else if(t==='backup')drawBackup();
+    else if(t==='submit')submitRefresh();
     window.scrollTo(0,0);
   });
   touch();
@@ -118,7 +119,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();
-  initLoads();initBackup();initReset();
+  initLoads();initBackup();initSubmit();initReset();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

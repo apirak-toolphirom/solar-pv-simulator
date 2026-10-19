@@ -70,7 +70,7 @@ let bkCfg=null;
 function backupRun(){
   if(!$('#bkmx'))return;
   const msg=$('#bkmsg'),body=$('#bkbody'),I=curInv(),bi=bankInfo();
-  $('#bkverdict').hidden=true;
+  $('#bkverdict').hidden=true;window.lastBK=null;
   const src=bkSource();
   const need=BK.mode!=='grid';
   const warns=[];
@@ -112,6 +112,7 @@ function backupRun(){
 
   /* metrics */
   const selfS=T.load>0?(T.direct+T.fromBat)/T.load*100:0;
+  window.lastBK={mode:BK.mode,lvl,vt,pv:T.pv,load:T.load,self:selfS,unmet:BK.mode==='off'?T.unmet:T.unmetOut};
   const avgIsl=((BK.island==='crit'?LP.crit:LP.all).reduce((a,b)=>a+b,0)/LP.n)/1000;
   const autonomy=bi&&avgIsl>0?bi.usable*bi.rt**0.5/avgIsl:null;
   const mx=[

@@ -251,3 +251,15 @@ table.ldt td:nth-child(2) input,table.ldt td:nth-child(3) input,table.ldt td:nth
 [hidden]{display:none!important}
 table.ldt td:first-child input{min-width:150px}
 .bkc .row3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+
+/* ---- submit tab ---- */
+.smb{display:flex;flex-direction:column;gap:14px}
+.smb label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.smb input[type=text]{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:40px;width:100%}
+.gsi{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.smbar{display:flex;flex-wrap:wrap;gap:8px}
+.simmsg.ok{color:var(--ok)}.simmsg.err{color:var(--err)}
+.smfig{margin:0;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.smfig img{display:block;width:100%;max-width:760px;height:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.checks .mono{font-family:var(--mono)}
+a.btn{display:inline-flex;align-items:center;text-decoration:none;color:var(--ink)}
