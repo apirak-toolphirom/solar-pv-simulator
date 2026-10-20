@@ -62,7 +62,10 @@ function restoreCatalog(c){
     if(!Array.isArray(c[k]))return;
     const out=[];
     c[k].forEach(r=>{if(r&&typeof r==='object'){const {item,why}=normalizeItem(k,r);if(!why.length)out.push(item)}});
-    if(out.length)CAT[k]=out;
+    if(!out.length)return;
+    // built-in datasheet models always present: added if missing, refreshed if the user never edited them
+    DEFAULT_CAT()[k].filter(d=>d.builtin).forEach(d=>{const i=out.findIndex(x=>x.id===d.id);if(i<0)out.push(d);else if(out[i].builtin)out[i]=d});
+    CAT[k]=out;
   });
 }
 function restoreProject(p){

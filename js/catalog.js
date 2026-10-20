@@ -42,24 +42,59 @@ const SCHEMA={
 };
 const KIND_ORDER=['panels','inverters','batteries'];
 
+const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9ก-๙]+/g,'-').replace(/^-|-$/g,'');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{const n=typeof v==='number'?v:parseFloat(String(v).replace(/,/g,''));return isFinite(n)?n:NaN};
+
+/* ---- built-in models from manufacturer datasheets (ship with the site, same on every computer) ----
+   Add new datasheet models here, commit and push: GitHub Pages serves them to every device.
+   eff = European weighted efficiency. Three-phase models are simulated as one AC output (phase is in the note). */
+const BUILTIN=(()=>{
+  const inv=[],bat=[];
+  const hw=(model,o)=>inv.push(Object.assign({id:slug('huawei '+model),brand:'Huawei',model,builtin:1},o));
+  // SUN2000-5/8/10KTL-M0: three-phase on-grid, no battery port
+  [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
+    note:`3 เฟส 380/400 V · 2 MPPT (1 สตริง/MPPT) · eff สูงสุด ${mx}% · PV แนะนำใช้ค่าเดียวกับรุ่น M1 (ดาต้าชีต M0 ไม่ระบุ)`}));
+  // SUN2000-5/8/10KTL-M1: three-phase hybrid, HV battery (Huawei LUNA2000 / Smart String ESS)
+  [[5,98.4,97.5,7500,5.5],[8,98.6,98.0,12000,8.8],[10,98.6,98.1,15000,10]].forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}KTL-M1`,{type:'hybrid',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
+    bvMin:600,bvMax:980,bchg:10,bdis:dis,backupKw:3.3,
+    note:`3 เฟส 380/400 V · แบตแรงดันสูง 600–980 V เท่านั้น (Huawei LUNA2000 / Smart String ESS) แบต 51.2 V ใช้ไม่ได้ · Backup 1 เฟส 3.3 kVA ผ่าน Backup Box-B1 · eff สูงสุด ${mx}%`}));
+  // SUN2000-2..6KTL-L1: single-phase hybrid
+  [[2,98.2,96.7,3000,2.2,2],[3,98.3,97.3,4500,3.3,3],[3.68,98.4,97.3,5520,3.68,3.68],[4,98.4,97.5,6000,4.4,4.4],[4.6,98.4,97.7,6900,4.6,5],[5,98.4,97.8,7500,5,5.5],[6,98.4,97.8,9000,5,6]]
+    .forEach(([k,mx,eu,rec,dis,va])=>hw(`SUN2000-${k}KTL-L1`,{type:'hybrid',pac:k*1000,vmax:600,lo:90,hi:560,start:100,imax:12.5,isc:18,pvRec:rec,eff:eu,
+    bvMin:350,bvMax:560,bchg:5,bdis:dis,backupKw:Math.min(k,5),
+    note:`1 เฟส 220/230 V · S max ${va} kVA · แบตแรงดันสูง 350–560 V (Huawei LUNA2000 / LG RESU 7H_R·10H_R) แบต 51.2 V ใช้ไม่ได้ · Backup ผ่าน Backup Box-B0 (ดาต้าชีตไม่ระบุกำลัง ใช้ค่าประมาณ) · eff สูงสุด ${mx}%`}));
+  // SUN2000-5..12K-MAP0: three-phase hybrid, whole-home backup with SmartGuard
+  [[5,98.4,97.5,9000,5.5],[6,98.6,97.7,11000,6.6],[8,98.6,98.0,14600,8.8],[10,98.6,98.1,18000,11],[12,98.6,98.2,22000,12]]
+    .forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}K-MAP0`,{type:'hybrid',pac:k*1000,vmax:1100,lo:160,hi:1000,start:160,imax:16,isc:22,pvRec:rec,eff:eu,
+    bvMin:600,bvMax:980,bchg:12,bdis:dis,backupKw:k,
+    note:`3 เฟส 380/400 V รองรับโหลดไม่สมดุล 100% · แบต LUNA2000-S0/S1 แรงดัน 600–980 V แบต 51.2 V ใช้ไม่ได้ · Backup ทั้งบ้านผ่าน SmartGuard-63A-T0 สลับ ≤20 ms · eff สูงสุด ${mx}%`}));
+  const b=(brand,model,o)=>bat.push(Object.assign({id:slug(brand+' '+model),brand,model,chem:'LiFePO4',rt:95,builtin:1},o));
+  b('Dyness','PowerBrick 14.3 kWh',{v:51.2,ah:280,dod:95,maxChg:200,maxDis:200,isc:0,note:'แนะนำชาร์จ/จ่าย 140 A (0.5C) · จ่ายพีค 300 A 2 นาที · ขนานได้ 50 ลูก · CAN/RS485 · IP20'});
+  b('Solis','IntelliHome 5 kWh (OD)',{v:51.2,ah:100,dod:100,maxChg:50,maxDis:100,note:'แรงดันทำงาน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · ดาต้าชีตฉบับ Preliminary'});
+  b('Solis','IntelliHome 10 kWh (OD)',{v:51.2,ah:200,dod:100,maxChg:100,maxDis:200,note:'ความจุคิดจาก 10 kWh ÷ 51.2 V (ดาต้าชีตระบุเซลล์ 100 Ah) · แรงดัน 44.8–57.6 V · ขนานได้ 8 ลูก · Preliminary'});
+  b('Solis','IntelliHome 16 kWh (OD)',{v:51.2,ah:314,dod:100,maxChg:157,maxDis:157,note:'แรงดัน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · Preliminary'});
+  b('LVTOPSUN','LVTS-512314-G4 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,note:'16.07 kWh · ชาร์จ 7.68 kW / จ่าย 10.24 kW · ขนานได้ 63 ลูก · ตั้งพื้นมีล้อ · IP65 · ประกัน 10 ปี'});
+  b('LVTOPSUN','LVTS-512314-G3 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,note:'16.08 kWh · แรงดันชาร์จ 55.68–56.16 V จ่าย 45.6–56.16 V · ขนานได้ 63 ลูก · จอสัมผัส · IP20 · ประกัน 5 ปี'});
+  return{inverters:inv,batteries:bat};
+})();
+
 const DEFAULT_CAT=()=>({
   panels:[{id:'longi-hi-mo-x10-650',brand:'LONGi',model:'Hi-MO X10 650 W',pmax:650,voc:53.9,vmp:44.56,isc:15.29,imp:14.59,kVoc:-0.20,kPmax:-0.26,kIsc:0.05,noct:43,note:'NOCT 43°C เป็นค่าสมมติ ตรวจกับแผ่นข้อมูลจริง'}],
   inverters:[
     {id:'solis-s6-gr1p6k-s',brand:'Solis',model:'S6-GR1P6K-S',type:'on-grid',pac:6000,vmax:550,lo:90,hi:550,start:100,imax:16,isc:22,pvRec:9000,eff:97,note:''},
     {id:'solis-s6-gr1p6k',brand:'Solis',model:'S6-GR1P6K',type:'on-grid',pac:6000,vmax:600,lo:90,hi:520,start:120,imax:14,isc:22,pvRec:9000,eff:97,note:''},
     {id:'example-hybrid-6k',brand:'ตัวอย่าง',model:'Hybrid 6 kW (ค่าสมมติ)',type:'hybrid',pac:6000,vmax:600,lo:90,hi:520,start:120,imax:16,isc:22,pvRec:9000,eff:97,bvMin:40,bvMax:60,bchg:6,bdis:6,backupKw:6,note:'ค่าตัวอย่างเพื่อฝึกใช้ ไม่ใช่รุ่นจริง นำเข้ารุ่นจริงของคุณแทนได้'}
-  ],
+ 
+  ].concat(BUILTIN.inverters),
   batteries:[
     {id:'example-lfp-51v-100ah',brand:'ตัวอย่าง',model:'LiFePO4 51.2 V 100 Ah (ค่าสมมติ)',chem:'LiFePO4',v:51.2,ah:100,dod:90,rt:95,maxC:0.5,note:'ค่าตัวอย่างเพื่อฝึกใช้ ไม่ใช่รุ่นจริง'}
-  ]
+  ].concat(BUILTIN.batteries)
 });
 let CAT=DEFAULT_CAT();
 const ACT={panel:'longi-hi-mo-x10-650',inv:'solis-s6-gr1p6k-s',bat:'example-lfp-51v-100ah'};
 const BANK={s:1,p:1};
 
-const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9ก-๙]+/g,'-').replace(/^-|-$/g,'');
-const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const num=v=>{const n=typeof v==='number'?v:parseFloat(String(v).replace(/,/g,''));return isFinite(n)?n:NaN};
 
 /* active selections */
 const ACTKEY={panels:'panel',inverters:'inv',batteries:'bat'};
@@ -110,6 +145,7 @@ function normalizeItem(kind,raw){
   if(kind==='panels'&&!why.length&&o.vmp>=o.voc)why.push('Vmp ต้องน้อยกว่า Voc');
   if(kind==='inverters'&&!why.length&&o.lo>=o.hi)why.push('ช่วง MPPT ไม่ถูกต้อง');
   o.id=String(raw.id||'').trim()||slug(o.brand+' '+o.model)||('x'+Date.now());
+  if(raw.builtin)o.builtin=1;
   return{item:o,why};
 }
 function parseCSV(text){
