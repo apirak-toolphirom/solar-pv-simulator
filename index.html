@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ต่อสายแผงโซลาร์</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=a93cc7a1">
+<link rel="stylesheet" href="css/styles.css?v=6dd4eac1">
 </head>
 <body>
 <div class="app">
@@ -121,7 +121,8 @@
     <div class="panelbox aclay"><span class="lab">มุมมอง</span>
       <button class="chip" id="aczout" aria-label="ย่อ">−</button><input id="aczoom" type="range" min="50" max="250" step="5" value="100" aria-label="ขนาด (สเกล)"><button class="chip" id="aczin" aria-label="ขยาย">+</button><b id="aczoomv">100%</b>
       <button class="chip" id="aclayreset">รีเซ็ตตำแหน่งและสเกล</button>
-      <span class="hint">ลากกล่องอุปกรณ์เพื่อย้ายตำแหน่ง (สายจะตามไปเอง) · ลากจากจุดต่อสายเพื่อเดินสาย</span>
+      <span class="acmods" id="acmods" hidden><span class="lab">ขนาด <b id="acmodn"></b></span><button class="chip" id="acmsm" aria-label="ย่ออุปกรณ์ที่เลือก">−</button><input id="acmsr" type="range" min="50" max="150" step="5" value="100" aria-label="ขนาดอุปกรณ์ที่เลือก"><button class="chip" id="acmsp" aria-label="ขยายอุปกรณ์ที่เลือก">+</button><b id="acmodv">100%</b><button class="chip" id="acms1">100%</button><button class="chip" id="acmsx" aria-label="เลิกเลือก">✕</button></span>
+      <span class="hint">ลากกล่องอุปกรณ์เพื่อย้ายตำแหน่ง (สายจะตามไปเอง) · แตะกล่องอุปกรณ์เพื่อเลือก แล้วปรับขนาดเฉพาะตัวนั้น · ลากจากจุดต่อสายเพื่อเดินสาย</span>
     </div>
     <div class="canvas acscroll"><svg id="acsvg" viewBox="0 0 1200 690" role="img" aria-label="พื้นที่ต่อสายพอร์ต AC ของอินเวอร์เตอร์"></svg></div>
     <div class="key">
@@ -381,8 +382,8 @@
 <script src="js/model.js?v=f2b8279f"></script>
 <script src="js/engine.js?v=042ffa26"></script>
 <script src="js/wiring.js?v=31fd2260"></script>
-<script src="js/acart.js?v=6a4c5567"></script>
-<script src="js/acsys.js?v=b18b570b"></script>
+<script src="js/acart.js?v=f733ded9"></script>
+<script src="js/acsys.js?v=bf49999d"></script>
 <script src="js/solar.js?v=236646d7"></script>
 <script src="js/loads.js?v=e2ab8f57"></script>
 <script src="js/backup.js?v=82df226c"></script>
@@ -390,6 +391,6 @@
 <script src="js/bench.js?v=ebe5032f"></script>
 <script src="js/benchui.js?v=4cd609eb"></script>
 <script src="js/submit.js?v=c7ea3093"></script>
-<script src="js/app.js?v=722d5921"></script>
+<script src="js/app.js?v=3477c5b9"></script>
 </body>
 </html>

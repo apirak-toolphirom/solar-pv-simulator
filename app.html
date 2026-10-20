@@ -111,7 +111,8 @@
     <div class="panelbox aclay"><span class="lab">มุมมอง</span>
       <button class="chip" id="aczout" aria-label="ย่อ">−</button><input id="aczoom" type="range" min="50" max="250" step="5" value="100" aria-label="ขนาด (สเกล)"><button class="chip" id="aczin" aria-label="ขยาย">+</button><b id="aczoomv">100%</b>
       <button class="chip" id="aclayreset">รีเซ็ตตำแหน่งและสเกล</button>
-      <span class="hint">ลากกล่องอุปกรณ์เพื่อย้ายตำแหน่ง (สายจะตามไปเอง) · ลากจากจุดต่อสายเพื่อเดินสาย</span>
+      <span class="acmods" id="acmods" hidden><span class="lab">ขนาด <b id="acmodn"></b></span><button class="chip" id="acmsm" aria-label="ย่ออุปกรณ์ที่เลือก">−</button><input id="acmsr" type="range" min="50" max="150" step="5" value="100" aria-label="ขนาดอุปกรณ์ที่เลือก"><button class="chip" id="acmsp" aria-label="ขยายอุปกรณ์ที่เลือก">+</button><b id="acmodv">100%</b><button class="chip" id="acms1">100%</button><button class="chip" id="acmsx" aria-label="เลิกเลือก">✕</button></span>
+      <span class="hint">ลากกล่องอุปกรณ์เพื่อย้ายตำแหน่ง (สายจะตามไปเอง) · แตะกล่องอุปกรณ์เพื่อเลือก แล้วปรับขนาดเฉพาะตัวนั้น · ลากจากจุดต่อสายเพื่อเดินสาย</span>
     </div>
     <div class="canvas acscroll"><svg id="acsvg" viewBox="0 0 1200 690" role="img" aria-label="พื้นที่ต่อสายพอร์ต AC ของอินเวอร์เตอร์"></svg></div>
     <div class="key">

@@ -11,7 +11,7 @@ const AI={
 };
 function acArt(k,c,I,S){
   const T=(x,y,t,cls,anc)=>`<text x="${x}" y="${y}" class="${cls||'a-t'}" text-anchor="${anc||'middle'}">${t}</text>`;
-  let g=`<g transform="translate(${c.x} ${c.y})">`;
+  let g=`<g transform="translate(${c.x} ${c.y})${c.s&&c.s!==1?` scale(${c.s})`:''}">`;
   const plate=(cls)=>`<rect x="0" y="0" width="${c.w}" height="${c.h}" rx="10" class="acbox${cls||''}"/>`;
   const p3=typeof AC_MODE!=='undefined'&&AC_MODE!=='1',hw=!!c.hw;
   if(p3&&k==='G'){

@@ -1,5 +1,5 @@
 /* ---- AC / system wiring: real inverter ports (GRID, BACKUP, GEN, CT, smart meter, BAT) ---- */
-const ACS={apply:false,wires:[],armed:null,pos:{},zoom:1,wm:{},pm:{},rh:12,invPh:0,
+const ACS={apply:false,wires:[],armed:null,pos:{},zoom:1,wm:{},pm:{},msc:{},scm:{},selMod:null,rh:12,invPh:0,
   set:{supply:'1',mode:'selfuse',reserve:20,expLimOn:false,expLimW:0,gridStd:'PEA',backupEn:true,meterType:'ct',ctPos:'gridL',ctDir:'toGrid',
     mAddr:1,mBaud:9600,iAddr:1,iBaud:9600,batType:'li',batComm:'can',genMode:'off',cbGrid:32,cbBackup:32}};
 const AC_C1={
@@ -90,18 +90,22 @@ const acHwOf=I=>String(I.brand||'').toLowerCase()==='huawei';
 let AC_HW=false,AC_KEY=null;
 function acEnsureMode(){
   const I=curInv(),m=acModeOf(I),hw=acHwOf(I),key=(hw?'h':'')+m;if(key===AC_KEY)return;
-  if(AC_KEY){ACS.wm[AC_KEY]=ACS.wires;ACS.pm[AC_KEY]=ACS.pos}
+  if(AC_KEY){ACS.wm[AC_KEY]=ACS.wires;ACS.pm[AC_KEY]=ACS.pos;ACS.scm[AC_KEY]=ACS.msc}
   AC_MODE=m;AC_HW=hw;AC_KEY=key;const M=AC_MODES[key];AC_C=M.C;AC_T=M.T;AC_BUS=M.BUS;AC_TM=M.TM;
-  ACS.wires=ACS.wm[key]||[];ACS.pos=ACS.pm[key]||{};ACS.armed=null;
+  ACS.wires=ACS.wm[key]||[];ACS.pos=ACS.pm[key]||{};ACS.msc=ACS.scm[key]||{};ACS.armed=null;ACS.selMod=null;
 }
 const acPh3=()=>AC_MODE!=='1';
 /* live layout: each module can be moved (ACS.pos[comp]=[dx,dy]); terminals follow their module */
 const AC_CL={},AC_VB={w:1200,h:690},AC_GRID=10;
+const AC_SMIN=.5,AC_SMAX=1.5,acSc=k=>ACS.msc[k]||1;
+const AC_MNAME={G:'กริด',M:'สมาร์ทมิเตอร์',DB:'ตู้เมนบ้าน',CT:'CT',GEN:'เครื่องปั่นไฟ',CDB:'ตู้โหลดสำรอง',INV:'อินเวอร์เตอร์',BAT:'แบตเตอรี่'};
+function acSetModScale(k,v){if(!AC_C[k])return;v=Math.max(AC_SMIN,Math.min(AC_SMAX,Math.round(v*20)/20));if(v===1)delete ACS.msc[k];else ACS.msc[k]=v}
 function acLayout(){
   let mx=1200,my=690;
   Object.keys(AC_CL).forEach(k=>delete AC_CL[k]);
-  Object.keys(AC_C).forEach(k=>{const c=AC_C[k],o=ACS.pos[k]||[0,0];AC_CL[k]={...c,x:c.x+o[0],y:c.y+o[1]};mx=Math.max(mx,c.x+o[0]+c.w+190);my=Math.max(my,c.y+o[1]+c.h+30)});
-  Object.keys(AC_TM).forEach(id=>{const T=AC_TM[id],o=ACS.pos[T.comp]||[0,0];T.x=T.bx+o[0];T.y=T.by+o[1]});
+  /* each module has its own scale (ACS.msc[comp]); its origin stays put and its terminals scale with it */
+  Object.keys(AC_C).forEach(k=>{const c=AC_C[k],o=ACS.pos[k]||[0,0],s=acSc(k);AC_CL[k]={...c,x:c.x+o[0],y:c.y+o[1],s};mx=Math.max(mx,c.x+o[0]+c.w*s+190);my=Math.max(my,c.y+o[1]+c.h*s+30)});
+  Object.keys(AC_TM).forEach(id=>{const T=AC_TM[id],c=AC_C[T.comp],o=ACS.pos[T.comp]||[0,0],s=acSc(T.comp);T.x=c.x+o[0]+(T.bx-c.x)*s;T.y=c.y+o[1]+(T.by-c.y)*s});
   AC_VB.w=mx;AC_VB.h=my;
 }
 function acMove(k,dx,dy){
@@ -479,7 +483,7 @@ function acRender(){
   Object.keys(AC_CL).forEach(k=>{s+=`<g class="acmod" data-c="${k}">${acArt(k,AC_CL[k],I,ACS.set)}</g>`});
   /* CT clamp symbol drawn on the position choice */
   const S=ACS.set;
-  if(AC_CL.CT)s+=`<text x="${AC_CL.CT.x+75}" y="${AC_CL.CT.y+108}" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="${AC_CL.CT.x+75}" y="${AC_CL.CT.y+125}" class="acnote" text-anchor="middle">ลูกศรชี้ ${S.ctDir==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}</text>`;
+  if(AC_CL.CT)s+=`<text x="${AC_CL.CT.x+75*AC_CL.CT.s}" y="${AC_CL.CT.y+108*AC_CL.CT.s}" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="${AC_CL.CT.x+75}" y="${AC_CL.CT.y+125*AC_CL.CT.s}" class="acnote" text-anchor="middle">ลูกศรชี้ ${S.ctDir==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}</text>`;
   /* wires */
   const side=a=>a==='l'?[-1,0]:a==='r'?[1,0]:[0,1];
   const path=(t1,t2)=>{
@@ -500,7 +504,9 @@ function acRender(){
     const lx=T.side==='l'?T.x+9:T.side==='r'?T.x-9:T.x,ly=T.side==='b'?T.y-9:T.y+4,an=T.side==='l'?'start':T.side==='r'?'end':'middle';
     s+=`<g class="act${av?'':' off'}" data-t="${T.id}"><circle cx="${T.x}" cy="${T.y}" r="16" class="achit"/><circle cx="${T.x}" cy="${T.y}" r="6.5" class="acterm${on?' on':''}${arm?' arm':''}" style="stroke:${KIND_COL[T.kind]}"/><text x="${lx}" y="${ly}" class="aclab" text-anchor="${an}">${esc(T.lab)}</text></g>`;
   });
+  if(ACS.selMod&&AC_CL[ACS.selMod]){const c=AC_CL[ACS.selMod];s=s.replace(`<g class="acmod" data-c="${ACS.selMod}">`,`<g class="acmod sel" data-c="${ACS.selMod}"><rect class="acselbox" x="${c.x-5}" y="${c.y-5}" width="${c.w*c.s+10}" height="${c.h*c.s+10}" rx="12"/>`)}
   svg.innerHTML=s;
+  {const k=ACS.selMod,b=document.getElementById('acmods');if(b){b.hidden=!k||!AC_C[k];if(k&&AC_C[k]){document.getElementById('acmodn').textContent=AC_MNAME[k]||k;const r=document.getElementById('acmsr');if(document.activeElement!==r)r.value=Math.round(acSc(k)*100);document.getElementById('acmodv').textContent=Math.round(acSc(k)*100)+'%'}}}
   const v=document.getElementById('acverdict');
   const txt=A.nE?`พบข้อผิดพลาด ${A.nE} จุด`:A.nW?`ใช้งานได้ แต่มี ${A.nW} ข้อควรระวัง`:A.ck.length?'ต่อสายและตั้งค่าถูกต้องตามที่ตรวจได้':'ยังไม่ได้ต่อสาย';
   v.className='verdict '+(A.ck.length?A.lvl:'');v.innerHTML=`<span class="pill ${A.ck.length?A.lvl:'idle'}">${A.ck.length?LABEL[A.lvl]:'ยังไม่เริ่ม'}</span><b>${esc(txt)}</b>`;
@@ -628,7 +634,7 @@ function initAC(){
     if(drag.moved)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
   });
   const end=e=>{
-    if(mv){const m=mv;mv=null;if(m.moved){acRender();touch()}return}
+    if(mv){const m=mv;mv=null;if(m.moved){acRender();touch()}else{ACS.selMod=ACS.selMod===m.k?null:m.k;acRender()}return}
     if(!drag)return;
     const d=drag;drag=null;if(tmp){tmp.remove();tmp=null}
     if(d.moved){
@@ -657,7 +663,12 @@ function initAC(){
   zr.addEventListener('input',e=>acSetZoom(+e.target.value/100));
   q('aczin').addEventListener('click',()=>{acSetZoom(ACS.zoom+.1);touch()});q('aczout').addEventListener('click',()=>{acSetZoom(ACS.zoom-.1);touch()});
   zr.addEventListener('change',()=>touch());
-  q('aclayreset').addEventListener('click',()=>{ACS.pos={};ACS.zoom=1;acRender();touch()});
+  q('aclayreset').addEventListener('click',()=>{ACS.pos={};ACS.msc={};ACS.zoom=1;acRender();touch()});
+  {const r=q('acmsr'),st=d=>{const k=ACS.selMod;if(!k)return;acSetModScale(k,acSc(k)+d);acRender();touch()};
+   if(r){r.addEventListener('input',e=>{const k=ACS.selMod;if(!k)return;acSetModScale(k,+e.target.value/100);acRender()});r.addEventListener('change',()=>touch())}
+   q('acmsm').addEventListener('click',()=>st(-.1));q('acmsp').addEventListener('click',()=>st(.1));
+   q('acms1').addEventListener('click',()=>{const k=ACS.selMod;if(k){delete ACS.msc[k];acRender();touch()}});
+   q('acmsx').addEventListener('click',()=>{ACS.selMod=null;acRender()})}
   const rh=q('acrh');if(rh){rh.addEventListener('input',e=>{ACS.rh=+e.target.value;acRender()});rh.addEventListener('change',()=>touch())}
   acRender();
 }

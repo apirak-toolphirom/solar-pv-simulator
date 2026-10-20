@@ -427,3 +427,7 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 
 /* draggable MPPT input box */
 .invbox{cursor:grab;touch-action:none}.invbox.moving{cursor:grabbing}.invbox.moving .inv{stroke:var(--accent);stroke-width:2.5}.invbox .grip circle{fill:var(--muted)}
+
+/* per-module scale in the AC tab */
+.acselbox{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:6 4;pointer-events:none}
+.acmods{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;padding:2px 8px;border-left:2px solid var(--accent)}.acmods[hidden]{display:none}.acmods input{width:120px}

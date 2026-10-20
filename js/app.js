@@ -41,7 +41,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_MODE?{[AC_MODE]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_MODE?{[AC_MODE]:ACS.pos}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot()};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot()};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -122,13 +122,14 @@ function restoreExtra(p){
   if(p.ac&&typeof p.ac==='object'){
     /* wires and module positions per wiring mode (1 phase, 3 phase, 3 phase + 1 phase backup); old saves had one 1-phase set */
     const wm=p.ac.wm&&typeof p.ac.wm==='object'?p.ac.wm:{'1':p.ac.wires},pm=p.ac.pm&&typeof p.ac.pm==='object'?p.ac.pm:{'1':p.ac.pos};
-    ACS.wm={};ACS.pm={};
+    const scm=p.ac.scm&&typeof p.ac.scm==='object'?p.ac.scm:{};
+    ACS.wm={};ACS.pm={};ACS.scm={};
     Object.keys(AC_MODES).forEach(m=>{
       const M=AC_MODES[m];
       if(Array.isArray(wm[m]))ACS.wm[m]=wm[m].filter(w=>w&&M.TM[w.a]&&M.TM[w.b]).map(w=>({a:w.a,b:w.b}));
       const P=pm[m];if(P&&typeof P==='object'){const o={};Object.keys(M.C).forEach(k=>{const a=P[k];if(Array.isArray(a)){const x=Math.round(num(a[0],0,-2000,2000)/10)*10,y=Math.round(num(a[1],0,-2000,2000)/10)*10;if(x||y)o[k]=[Math.max(-M.C[k].x,x),Math.max(-M.C[k].y,y)]}});ACS.pm[m]=o}
+      const Q=scm[m];if(Q&&typeof Q==='object'){const o={};Object.keys(M.C).forEach(k=>{const v=+Q[k];if(isFinite(v)&&v!==1)o[k]=Math.max(AC_SMIN,Math.min(AC_SMAX,Math.round(v*20)/20))});ACS.scm[m]=o}
     });
-    AC_MODE=null;acEnsureMode();
     ACS.rh=num(p.ac.rh,12,0,23.75);
     const s=p.ac.set||{},S=ACS.set,pick=(k,opts)=>{if(opts.includes(s[k]))S[k]=s[k]};
     pick('supply',['1','3']);pick('mode',['selfuse','feedin','backup']);pick('gridStd',['PEA','MEA','other']);pick('meterType',['ct','meter','none']);pick('ctPos',['gridL','loadL','invL','N']);pick('ctDir',['toGrid','toLoad']);
@@ -136,6 +137,7 @@ function restoreExtra(p){
     pick('cbGrid',[16,20,25,32,40,50,63]);pick('cbBackup',[16,20,25,32,40,50,63]);
     S.reserve=num(s.reserve,20,0,100);S.expLimW=num(s.expLimW,0,0,20000);S.mAddr=num(s.mAddr,1,1,247);S.iAddr=num(s.iAddr,1,1,247);S.expLimOn=!!s.expLimOn;S.backupEn=s.backupEn!==false;
     ACS.apply=!!p.ac.apply;
+    AC_MODE=null;AC_KEY=null;acEnsureMode();
     ACS.zoom=num(p.ac.zoom,1,.5,2.5);
   }
   if(p.bn)bRestore(p.bn);
