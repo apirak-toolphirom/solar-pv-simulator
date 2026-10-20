@@ -24,6 +24,7 @@ PDF ที่เป็นภาพสแกน (เช่น datasheet ที่
 
 ## รุ่นจาก datasheet ที่ติดมากับเว็บ (เหมือนกันทุกเครื่อง)
 อยู่ใน `BUILTIN` ใน `js/catalog.js` แก้/เพิ่มแล้ว `python3 build.py` จากนั้น commit + push GitHub Pages จะส่งให้ทุกเครื่องเอง
+- แผง: AIKO Stellar 3N+72 AIKO-A650 ถึง A675-MDE72Dw (6 รุ่น)
 - อินเวอร์เตอร์ Huawei: SUN2000-5/8/10KTL-M0 (On-grid 3 เฟส), SUN2000-5/8/10KTL-M1 (Hybrid 3 เฟส), SUN2000-2–6KTL-L1 (Hybrid 1 เฟส), SUN2000-5–12K-MAP0 (Hybrid 3 เฟส)
 - แบต: Huawei LUNA2000-5/10/15-S0 (LUNA2000-5KW-C0 + LUNA2000-5-E0 ×1–3), Dyness PowerBrick 14.3 kWh, Solis IntelliHome 5/10/16 kWh, LVTOPSUN LVTS-512314-G4 / G3
 - อินเวอร์เตอร์ Huawei ใช้แบตแรงดันสูง (350–980 V) แบต 51.2 V ในรายการจึงขึ้นเตือนว่าแรงดันไม่ตรง (ตั้งใจไว้ใช้สอน)

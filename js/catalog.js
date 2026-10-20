@@ -84,11 +84,16 @@ const BUILTIN=(()=>{
   b('Solis','IntelliHome 16 kWh (OD)',{v:51.2,ah:314,dod:100,maxChg:157,maxDis:157,note:'แรงดัน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · Preliminary'});
   b('LVTOPSUN','LVTS-512314-G4 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,note:'16.07 kWh · ชาร์จ 7.68 kW / จ่าย 10.24 kW · ขนานได้ 63 ลูก · ตั้งพื้นมีล้อ · IP65 · ประกัน 10 ปี'});
   b('LVTOPSUN','LVTS-512314-G3 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,note:'16.08 kWh · แรงดันชาร์จ 55.68–56.16 V จ่าย 45.6–56.16 V · ขนานได้ 63 ลูก · จอสัมผัส · IP20 · ประกัน 5 ปี'});
-  return{inverters:inv,batteries:bat};
+  // AIKO Stellar 3N+72 (AIKO-A-MDE72Dw), N-type ABC, dual glass. NOCT temperature derived from the datasheet's NOCT Pmax (493 W of 650 W at 800 W/m², 20 °C ambient)
+  const pan=[];
+  [[650,54.00,45.30,15.06,14.35,24.1],[655,54.10,45.40,15.12,14.43,24.2],[660,54.20,45.50,15.18,14.51,24.4],[665,54.40,45.60,15.24,14.59,24.6],[670,54.60,45.70,15.30,14.67,24.8],[675,54.80,45.80,15.36,14.74,25.0]]
+    .forEach(([w,voc,vmp,isc,imp,eff])=>pan.push({id:slug('aiko a'+w+' mde72dw'),brand:'AIKO',model:`A${w}-MDE72Dw (${w} W)`,pmax:w,voc,vmp,isc,imp,kVoc:-0.22,kPmax:-0.26,kIsc:0.05,noct:45,builtin:1,
+      note:`Stellar 3N+72 · N-type ABC 144 เซลล์ · ประสิทธิภาพ ${eff}% · กระจกสองหน้า 2382×1134×30 mm 33 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 30 A · NOCT 45 °C คำนวณจากค่า NOCT ในดาต้าชีต`}));
+  return{inverters:inv,batteries:bat,panels:pan};
 })();
 
 const DEFAULT_CAT=()=>({
-  panels:[{id:'longi-hi-mo-x10-650',brand:'LONGi',model:'Hi-MO X10 650 W',pmax:650,voc:53.9,vmp:44.56,isc:15.29,imp:14.59,kVoc:-0.20,kPmax:-0.26,kIsc:0.05,noct:43,note:'NOCT 43°C เป็นค่าสมมติ ตรวจกับแผ่นข้อมูลจริง'}],
+  panels:[{id:'longi-hi-mo-x10-650',brand:'LONGi',model:'Hi-MO X10 650 W',pmax:650,voc:53.9,vmp:44.56,isc:15.29,imp:14.59,kVoc:-0.20,kPmax:-0.26,kIsc:0.05,noct:43,note:'NOCT 43°C เป็นค่าสมมติ ตรวจกับแผ่นข้อมูลจริง'}].concat(BUILTIN.panels),
   inverters:[
     {id:'solis-s6-gr1p6k-s',brand:'Solis',model:'S6-GR1P6K-S',type:'on-grid',pac:6000,vmax:550,lo:90,hi:550,start:100,imax:16,isc:22,pvRec:9000,eff:97,note:''},
     {id:'solis-s6-gr1p6k',brand:'Solis',model:'S6-GR1P6K',type:'on-grid',pac:6000,vmax:600,lo:90,hi:520,start:120,imax:14,isc:22,pvRec:9000,eff:97,note:''},
