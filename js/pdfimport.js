@@ -14,24 +14,65 @@ function loadPdfJs(){
   return pdfLibP;
 }
 /* text items -> lines; far-apart items are separated by two spaces so table cells can be split */
-function dsGroupLines(items){
+function dsGroupLines(items,tol,gapMin){
+  tol=tol||3;gapMin=gapMin||12;
   items.sort((a,b)=>b.y-a.y||a.x-b.x);
   const rows=[];
-  items.forEach(it=>{const r=rows.find(r=>Math.abs(r.y-it.y)<=3);if(r)r.it.push(it);else rows.push({y:it.y,it:[it]})});
+  items.forEach(it=>{const r=rows.find(r=>Math.abs(r.y-it.y)<=tol);if(r)r.it.push(it);else rows.push({y:it.y,it:[it]})});
   rows.sort((a,b)=>b.y-a.y);
   return rows.map(r=>{
     r.it.sort((a,b)=>a.x-b.x);let s='',end=null;
-    r.it.forEach(i=>{if(end!==null){const gap=i.x-end;s+=gap>12?'  ':(gap>1&&!/\s$/.test(s)&&!/^\s/.test(i.s)?' ':'')}s+=i.s;end=i.x+(i.w||0)});
+    r.it.forEach(i=>{if(end!==null){const gap=i.x-end;s+=gap>gapMin?'  ':(gap>1&&!/\s$/.test(s)&&!/^\s/.test(i.s)?' ':'')}s+=i.s;end=i.x+(i.w||0)});
     return s.replace(/\s+$/,'');
   }).filter(l=>l.trim());
 }
 async function pdfToLines(buf){
-  const lib=await loadPdfJs(),doc=await lib.getDocument({data:buf}).promise,out=[];
+  const lib=await loadPdfJs(),doc=await lib.getDocument({data:new Uint8Array(buf.slice(0))}).promise,out=[];
   for(let p=1;p<=Math.min(doc.numPages,15);p++){
     const pg=await doc.getPage(p),tc=await pg.getTextContent();
     out.push(...dsGroupLines(tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str,x:i.transform[4],y:i.transform[5],w:i.width}))));
   }
-  return out;
+  return out.map(dsNorm);
+}
+
+const dsNorm=t=>String(t).replace(/[₀-₉]/g,c=>String(c.charCodeAt(0)-8320)).replace(/\t/g,'  ').replace(/[–−]/g,'-');
+/* ---- OCR for scanned (image-only) PDFs ---- */
+let tessP=null;
+function loadTesseract(){
+  if(tessP)return tessP;
+  const cdn='https://cdn.jsdelivr.net/npm/';
+  const abs=u=>new URL(u,document.baseURI).href;
+  const sets=[
+    {js:'vendor/ocr/tesseract.min.js',cfg:{workerPath:abs('vendor/ocr/worker.min.js'),corePath:abs('vendor/ocr/'),langPath:abs('vendor/ocr/')}},
+    {js:cdn+'tesseract.js@5.1.1/dist/tesseract.min.js',cfg:{workerPath:cdn+'tesseract.js@5.1.1/dist/worker.min.js',corePath:cdn+'tesseract.js-core@5.1.1',langPath:cdn+'@tesseract.js-data/eng/4.0.0_best_int'}}
+  ];
+  tessP=(async()=>{
+    for(const st of sets){
+      try{
+        if(!window.Tesseract)await new Promise((res,rej)=>{const e=document.createElement('script');e.src=st.js;e.onload=res;e.onerror=()=>rej();document.head.appendChild(e)});
+        if(window.Tesseract)return{T:window.Tesseract,cfg:st.cfg};
+      }catch(e){}
+    }
+    tessP=null;throw new Error('ocrlib');
+  })();
+  return tessP;
+}
+async function ocrLines(buf,onProg){
+  const lib=await loadPdfJs(),doc=await lib.getDocument({data:new Uint8Array(buf.slice(0))}).promise,{T,cfg}=await loadTesseract();
+  const worker=await T.createWorker('eng',1,Object.assign({logger:m=>{if(onProg&&m.status==='recognizing text')onProg(m.progress)}},cfg));
+  const out=[];
+  try{
+    for(let p=1;p<=Math.min(doc.numPages,3);p++){
+      const pg=await doc.getPage(p),vp=pg.getViewport({scale:2.2}),cv=document.createElement('canvas');
+      cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);
+      const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);
+      await pg.render({canvasContext:ctx,viewport:vp}).promise;
+      const {data}=await worker.recognize(cv);
+      const items=(data.words||[]).filter(w=>w.text&&w.text.trim()&&w.confidence>25).map(w=>({s:w.text,x:w.bbox.x0,y:-(w.bbox.y0+w.bbox.y1)/2,w:w.bbox.x1-w.bbox.x0}));
+      out.push(...dsGroupLines(items,12,45));
+    }
+  }finally{await worker.terminate()}
+  return out.map(dsNorm);
 }
 
 /* ---- parsing ---- */
@@ -90,12 +131,13 @@ const DS_SPECS={
     {k:'noct',re:/\bnoct\b|nominal operating cell/}
   ],
   batteries:[
-    {k:'v',re:/nominal.*volt|rated.*volt|^voltage/,not:/charge|cut|\bmax|\bmin\b|float|range/},
+    {k:'vah',re:/volt.*capacity|capacity.*volt/},
+    {k:'v',re:/nominal.*volt|rated.*volt|^voltage/,not:/charge|cut|\bmax|\bmin\b|float|range|capacity/},
     {k:'ah',re:/(rated|nominal|battery)?.*capacity.*\(?\bah\b|capacity.*\(ah\)/,not:/kwh/},
     {k:'kwh',re:/energy|capacity.*kwh|usable.*kwh/},
     {k:'dod',re:/depth of discharge|\bdod\b/},
     {k:'rt',re:/round.?trip|charge.*effic|efficiency/},
-    {k:'maxA',re:/(max|continuous).*(discharge).*current|discharge current/,not:/peak|pulse|\bsec\b/}
+    {k:'maxA',re:/(max|continuous)[^/]*discharge[^/]*current/,not:/peak|pulse|\bsec\b|recommend/}
   ]
 };
 const DS_BRANDS=[['deye','Deye'],['solis','Solis'],['ginlong','Solis'],['growatt','Growatt'],['huawei','Huawei'],['sungrow','Sungrow'],['longi','LONGi'],['jinko','JinkoSolar'],['trina','Trina Solar'],['canadian solar','Canadian Solar'],['ja solar','JA Solar'],['risen','Risen'],['aiko','AIKO'],['victron','Victron'],['sma ','SMA'],['fronius','Fronius'],['goodwe','GoodWe'],['sofar','SOFAR'],['invt','INVT'],['pylontech','Pylontech'],['byd','BYD'],['dyness','Dyness'],['felicity','Felicity'],['sigenergy','Sigenergy'],['srne','SRNE'],['must ','Must'],['hoymiles','Hoymiles'],['enphase','Enphase'],['tsun','TSUN'],['sunsynk','Sunsynk'],['lg energy','LG'],['tesla','Tesla'],['seplos','Seplos']];
@@ -103,7 +145,7 @@ function dsKind(txt){
   const t=txt.toLowerCase(),c=re=>(t.match(re)||[]).length;
   const inv=c(/mppt|inverter|ac output|grid connection|anti-islanding|island protection/g)*2+c(/\bmppt\b/g);
   const pan=c(/\bstc\b|solar cell|module|bifacial|\bvoc\b|pmax|noct|mono(crystalline)?|perc|topcon|hjt/g)*2;
-  const bat=c(/lifepo4|lfp|cycle life|\bbms\b|kwh|depth of discharge|\bdod\b|nominal capacity/g)*2;
+  const bat=c(/lifepo4|lfp|cycle life|\bbms\b|kwh|depth of discharge|\bdod\b|nominal capacity|battery type|nominal battery|state of charge/g)*2;
   const m=Math.max(inv,pan,bat);
   if(!m)return'inverters';
   return m===inv?'inverters':m===pan?'panels':'batteries';
@@ -125,11 +167,11 @@ function dsModels(lines,kind){
       if(j===ix)continue;
       const c=get(lines[j]);if(tok(c))rows.push(c);
     }
-    const base=rows.find(r=>r.some(x=>/\d/.test(x)&&/[A-Za-z]/.test(x)&&!/^[-_/]/.test(x)));
+    const base=rows.find(r=>r.some(x=>/\d/.test(x)&&/[A-Za-z]/.test(x)&&!/^[-_/]/.test(x)))||(inl.length&&inl.every(x=>x.length>=3&&x.length<=40&&/[A-Za-z]/.test(x))?inl:null);
     if(base){
       const out=base.slice();
       rows.forEach(r=>{if(r!==base)r.forEach((x,i)=>{if(i<out.length&&/^[-_/]/.test(x))out[i]+=x})});
-      cands=out.filter(x=>/\d/.test(x)&&/[A-Za-z]/.test(x));
+      cands=out.filter(x=>/[A-Za-z]/.test(x)&&(/\d/.test(x)||base===inl));
     }
   }
   if(!cands.length){
@@ -149,7 +191,7 @@ function dsParse(lines,forceKind){
   const rows=dsRows(lines),specs=DS_SPECS[kind];
   let models=dsModels(lines,kind);
   const low=text.toLowerCase();
-  let brand='';for(const [k,v] of DS_BRANDS){if(low.includes(k)){brand=v;break}}
+  let brand='',bn=0;{const bt=lines.filter(l=>!/compatib|supported|works with/i.test(l)).join('\n').toLowerCase();for(const [k,v] of DS_BRANDS){const n=bt.split(k).length-1;if(n>bn){bn=n;brand=v}}}
   /* first matching row for each key */
   const hit={};
   specs.forEach(sp=>{
@@ -197,10 +239,11 @@ function dsParse(lines,forceKind){
       if(raw.pmax==null){const mm=/(\d{3})\s?w/i.exec(models[i]||'');if(mm)raw.pmax=+mm[1]}
       raw.note='นำเข้าจาก PDF ตรวจกับ datasheet ก่อนใช้ (ค่าที่ STC)';
     }else{
+      const va=val('vah');if(va&&va.n.length>=2){put('v',va.n[0],va.r);put('ah',va.n[1],va.r)}
       g('v',a=>a[0]);g('ah',a=>a[0]);
       const kw=val('kwh');if(kw)put('kwh',kw.n[0]*(/\bwh\b/i.test(kw.lab)&&!/kwh/i.test(kw.lab)?.001:1),kw.r);
       g('dod',a=>a.find(x=>x>0&&x<=100)||a[0]);g('rt',a=>a.find(x=>x>50&&x<=100)||a[0]);
-      raw.chem=/lifepo4|lfp|lithium iron/i.test(text)?'LiFePO4':/nmc|li-ion|lithium-ion|ncm/i.test(text)?'Li-ion':/lead|agm|\bgel\b/i.test(text)?'Lead':'Other';
+      raw.chem=/lifepo|lfp|lithium iron/i.test(text)?'LiFePO4':/nmc|li-ion|lithium-ion|ncm/i.test(text)?'Li-ion':/lead|agm|\bgel\b/i.test(text)?'Lead':'Other';
       const ma=val('maxA');if(ma&&raw.ah){const c=ma.n[0]/raw.ah;if(c>0&&c<=5){raw.maxC=Math.round(c*100)/100;src.maxC=ma.r.raw.trim().slice(0,120)}}
       raw.note='นำเข้าจาก PDF ตรวจกับ datasheet ก่อนใช้';
     }
@@ -235,14 +278,20 @@ async function pdfPick(file){
   if(file.size>15*1024*1024){msg.className='eqmsg err';msg.textContent='ไฟล์ใหญ่เกิน 15 MB';return}
   msg.textContent='กำลังอ่าน '+file.name+' …';
   try{
-    const buf=await file.arrayBuffer(),lines=await pdfToLines(buf);
-    if(lines.join('').replace(/\s/g,'').length<80){msg.className='eqmsg err';msg.textContent='อ่านข้อความจาก PDF ไม่ได้ อาจเป็นภาพสแกน ต้องกรอกเองหรือทำ OCR ก่อน';return}
+    const buf=await file.arrayBuffer();let lines=await pdfToLines(buf),ocr=false;
+    if(lines.join('').replace(/\s/g,'').length<80){
+      /* image-only PDF: read it with OCR (runs in the browser) */
+      msg.textContent='PDF นี้เป็นภาพ กำลังทำ OCR อ่านตัวอักษร (ครั้งแรกอาจใช้เวลาครึ่งนาที) …';
+      lines=await ocrLines(buf,p=>{msg.textContent='PDF นี้เป็นภาพ กำลังทำ OCR … '+Math.round(p*100)+'%'});ocr=true;
+      if(lines.join('').replace(/\s/g,'').length<40){msg.className='eqmsg err';msg.textContent='OCR อ่านตัวอักษรจากภาพไม่ได้ ลองใช้ภาพที่ชัดขึ้น หรือวางข้อความด้านล่างแทน';return}
+    }
     PDFSTATE={lines,name:file.name};
     pdfShow();
-    msg.className='eqmsg ok';msg.textContent='อ่านไฟล์แล้ว ตรวจค่าด้านล่างแล้วกด "เพิ่มเข้าแคตตาล็อก"';
+    msg.className='eqmsg ok';msg.textContent=(ocr?'อ่านจากภาพด้วย OCR แล้ว ตัวเลขอาจเพี้ยน ตรวจให้ดี · ':'อ่านไฟล์แล้ว · ')+'ตรวจค่าด้านล่างแล้วกด "เพิ่มเข้าแคตตาล็อก"';
   }catch(e){
+    try{console.warn('pdf import',e)}catch(_){}
     msg.className='eqmsg err';
-    msg.textContent=e&&e.message==='lib'?'โหลดตัวอ่าน PDF ไม่ได้ ต้องมีโฟลเดอร์ vendor หรืออินเทอร์เน็ต':'อ่าน PDF ไม่ได้ ไฟล์อาจเสียหรือมีรหัสผ่าน';
+    msg.textContent=e&&e.message==='lib'?'โหลดตัวอ่าน PDF ไม่ได้ ต้องมีโฟลเดอร์ vendor หรืออินเทอร์เน็ต':e&&e.message==='ocrlib'?'โหลดตัว OCR ไม่ได้ (ต้องเปิดผ่านเว็บ ไม่ใช่เปิดไฟล์ตรงๆ หรือมีอินเทอร์เน็ต) ลองวางข้อความด้านล่างแทน':'อ่าน PDF ไม่ได้ ไฟล์อาจเสียหรือมีรหัสผ่าน';
   }
 }
 function pdfShow(forceKind){
@@ -268,9 +317,16 @@ function pdfAdd(){
   const m=document.getElementById('pdfmsg');m.className='eqmsg ok';
   m.textContent=`เพิ่มใหม่ ${added} · แทนที่ ${updated}${bad.length?' · ข้าม '+bad.length+' รุ่นที่ขาดค่า':''} · เลือกรุ่นล่าสุดเป็นรุ่นที่ใช้จำลองแล้ว`;
 }
+function pdfFromText(){
+  const t=document.getElementById('pdftxt').value,msg=document.getElementById('pdfmsg');
+  const lines=dsNorm(t).replace(/\r/g,'').split('\n').map(l=>l.replace(/\s+$/,'')).filter(l=>l.trim());
+  if(lines.length<3){msg.className='eqmsg err';msg.textContent='วางข้อความ datasheet อย่างน้อยไม่กี่บรรทัดก่อน';return}
+  PDFSTATE={lines,name:'ข้อความที่วาง'};pdfShow();msg.className='eqmsg ok';msg.textContent='อ่านข้อความแล้ว ตรวจค่าด้านล่าง';
+}
 function initPdfImport(){
   const f=document.getElementById('pdffile');if(!f)return;
   f.addEventListener('change',()=>pdfPick(f.files[0]));
+  document.getElementById('pdftxtgo').addEventListener('click',pdfFromText);
   document.getElementById('pdfkind').addEventListener('change',()=>{if(PDFSTATE)pdfShow()});
   document.getElementById('pdfrev').addEventListener('click',e=>{
     if(e.target.id==='pdfadd')pdfAdd();

@@ -18,10 +18,11 @@
     <div class="curequip" id="cur-equip"></div>
     <div class="panelbox pdfimp">
       <h2>นำเข้าจาก PDF (datasheet)</h2>
-      <p class="hint tight">เลือกไฟล์ datasheet ของแผง อินเวอร์เตอร์ หรือแบต ระบบจะอ่านข้อความในไฟล์ในเครื่องของคุณ (ไม่อัปโหลดไปไหน) ดึงค่าที่หาเจอมาใส่ฟอร์มให้ตรวจและแก้ก่อนเพิ่มเข้าแคตตาล็อก ใช้ได้กับ PDF ที่มีข้อความ ไม่ใช่ภาพสแกน</p>
+      <p class="hint tight">เลือกไฟล์ datasheet ของแผง อินเวอร์เตอร์ หรือแบต ระบบจะอ่านข้อความในไฟล์ในเครื่องของคุณ (ไม่อัปโหลดไปไหน) ดึงค่าที่หาเจอมาใส่ฟอร์มให้ตรวจและแก้ก่อนเพิ่มเข้าแคตตาล็อก PDF ที่เป็นภาพสแกนจะอ่านด้วย OCR (ภาษาอังกฤษ) ให้อัตโนมัติ</p>
       <div class="eqact"><input type="file" id="pdffile" accept="application/pdf,.pdf" aria-label="เลือกไฟล์ PDF datasheet">
         <label class="pfk">ชนิดอุปกรณ์<select id="pdfkind"><option value="auto">ตรวจอัตโนมัติ</option><option value="panels">แผงโซลาร์</option><option value="inverters">อินเวอร์เตอร์</option><option value="batteries">แบตเตอรี่</option></select></label>
         <span class="eqmsg" id="pdfmsg" role="status"></span></div>
+      <details class="eqd"><summary>หรือวางข้อความจาก datasheet (ถ้า PDF อ่านไม่ได้)</summary><textarea id="pdftxt" rows="6" spellcheck="false" placeholder="คัดลอกตารางสเปกมาวาง แต่ละแถวเป็น ชื่อรายการ [แท็บหรือเว้นวรรคหลายตัว] ค่า เช่น&#10;Nominal Voltage/Capacity    51.2V/280Ah"></textarea><div class="eqact"><button class="btn" id="pdftxtgo">อ่านข้อความ</button></div></details>
       <div id="pdfrev" hidden></div>
     </div>
     <div><h2>แผงโซลาร์</h2><div id="eq-panels"></div></div>
