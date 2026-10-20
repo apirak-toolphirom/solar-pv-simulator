@@ -2,13 +2,15 @@
 """Build the PV simulator.
   python3 build.py            -> writes index.html (dev, links css/js) and dist/pv-wiring-sim.html (single-file bundle)
 Open index.html in a browser to run the project from this folder."""
-import os,re
+import os,re,hashlib
 here=os.path.dirname(os.path.abspath(__file__))
 R=lambda p:open(os.path.join(here,p),encoding='utf-8').read()
 JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','solar','loads','backup','events','bench','benchui','submit','app']
 TITLE='ต่อสายแผงโซลาร์'
 FONTS='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap'
 body=R('app.html')
+# cache-busting: each css/js link carries a hash of its content, so a browser never mixes a new page with old cached scripts
+V=lambda p:hashlib.sha1(R(p).encode('utf-8')).hexdigest()[:8]
 for n in JS:
     assert '</script' not in R(f'js/{n}.js'),n
 dev=f'''<!doctype html>
@@ -18,11 +20,11 @@ dev=f'''<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{TITLE}</title>
 <link rel="stylesheet" href="{FONTS}">
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v={V('css/styles.css')}">
 </head>
 <body>
 {body}
-'''+''.join(f'<script src="js/{n}.js"></script>\n' for n in JS)+'''</body>
+'''+''.join(f'<script src="js/{n}.js?v={V(f"js/{n}.js")}"></script>\n' for n in JS)+'''</body>
 </html>
 '''
 open(os.path.join(here,'index.html'),'w',encoding='utf-8').write(dev)
