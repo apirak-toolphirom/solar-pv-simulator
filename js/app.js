@@ -40,7 +40,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wires:ACS.wires,set:ACS.set,apply:ACS.apply},sc:{view:SC.view,h:SC.h}};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wires:ACS.wires,set:ACS.set,apply:ACS.apply,pos:ACS.pos,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h}};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -119,6 +119,8 @@ function restoreExtra(p){
     pick('cbGrid',[16,20,25,32,40,50,63]);pick('cbBackup',[16,20,25,32,40,50,63]);
     S.reserve=num(s.reserve,20,0,100);S.expLimW=num(s.expLimW,0,0,20000);S.mAddr=num(s.mAddr,1,1,247);S.iAddr=num(s.iAddr,1,1,247);S.expLimOn=!!s.expLimOn;S.backupEn=s.backupEn!==false;
     ACS.apply=!!p.ac.apply;
+    ACS.pos={};if(p.ac.pos&&typeof p.ac.pos==='object')Object.keys(AC_C).forEach(k=>{const a=p.ac.pos[k];if(Array.isArray(a)){const x=num(a[0],0,-2000,2000),y=num(a[1],0,-2000,2000);acMove(k,x,y)}});
+    ACS.zoom=num(p.ac.zoom,1,.5,2.5);
   }
   if(p.sc&&['top','side'].includes(p.sc.view)){SC.view=p.sc.view;SC.h=num(p.sc.h,12,0,24)}
 }

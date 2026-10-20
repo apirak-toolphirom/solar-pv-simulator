@@ -106,7 +106,12 @@
       </div>
     </section>
     <div class="panelbox acinvbox"><label for="acinv">อินเวอร์เตอร์ที่ใช้ (ตัวอย่างต่อถูกจะเลือกรุ่น Hybrid ให้อัตโนมัติ)<select id="acinv"></select></label><p id="acinvnote" class="hint tight" style="margin:6px 0 0"></p></div>
-    <div class="canvas"><svg id="acsvg" viewBox="0 0 1200 690" role="img" aria-label="พื้นที่ต่อสายพอร์ต AC ของอินเวอร์เตอร์"></svg></div>
+    <div class="panelbox aclay"><span class="lab">มุมมอง</span>
+      <button class="chip" id="aczout" aria-label="ย่อ">−</button><input id="aczoom" type="range" min="50" max="250" step="5" value="100" aria-label="ขนาด (สเกล)"><button class="chip" id="aczin" aria-label="ขยาย">+</button><b id="aczoomv">100%</b>
+      <button class="chip" id="aclayreset">รีเซ็ตตำแหน่งและสเกล</button>
+      <span class="hint">ลากกล่องอุปกรณ์เพื่อย้ายตำแหน่ง (สายจะตามไปเอง) · ลากจากจุดต่อสายเพื่อเดินสาย</span>
+    </div>
+    <div class="canvas acscroll"><svg id="acsvg" viewBox="0 0 1200 690" role="img" aria-label="พื้นที่ต่อสายพอร์ต AC ของอินเวอร์เตอร์"></svg></div>
     <div class="key">
       <span><i style="background:#8b5a2b"></i>L</span><span><i style="background:#2a78d6"></i>N</span><span><i style="background:#1baf7a"></i>PE</span>
       <span><i style="background:#d62828"></i>DC +</span><span><i style="background:#14191e;outline:1px solid var(--line)"></i>DC −</span>

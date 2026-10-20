@@ -1,5 +1,5 @@
 /* ---- AC / system wiring: real inverter ports (GRID, BACKUP, GEN, CT, smart meter, BAT) ---- */
-const ACS={apply:false,wires:[],armed:null,
+const ACS={apply:false,wires:[],armed:null,pos:{},zoom:1,
   set:{mode:'selfuse',reserve:20,expLimOn:false,expLimW:0,gridStd:'PEA',backupEn:true,meterType:'ct',ctPos:'gridL',ctDir:'toGrid',
     mAddr:1,mBaud:9600,iAddr:1,iBaud:9600,batType:'li',batComm:'can',genMode:'off',cbGrid:32,cbBackup:32}};
 const AC_C={
@@ -33,7 +33,28 @@ const AC_T=[
  ['BAT.+','+','dc+',1030,90,'l','BAT'],['BAT.-','−','dc-',1030,120,'l','BAT'],['BAT.H','CAN H','canh',1030,170,'l','BAT'],['BAT.L','CAN L','canl',1030,200,'l','BAT']
 ];
 const AC_BUS=[['DB.LL','DB.LR'],['DB.NL','DB.NR'],['DB.PL','DB.PR']];
-const AC_TM={};AC_T.forEach(t=>AC_TM[t[0]]={id:t[0],lab:t[1],kind:t[2],x:t[3],y:t[4],side:t[5],comp:t[6],av:t[7]||''});
+const AC_TM={};AC_T.forEach(t=>AC_TM[t[0]]={id:t[0],lab:t[1],kind:t[2],bx:t[3],by:t[4],x:t[3],y:t[4],side:t[5],comp:t[6],av:t[7]||''});
+/* live layout: each module can be moved (ACS.pos[comp]=[dx,dy]); terminals follow their module */
+const AC_CL={},AC_VB={w:1200,h:690},AC_GRID=10;
+function acLayout(){
+  let mx=1200,my=690;
+  Object.keys(AC_C).forEach(k=>{const c=AC_C[k],o=ACS.pos[k]||[0,0];AC_CL[k]={...c,x:c.x+o[0],y:c.y+o[1]};mx=Math.max(mx,c.x+o[0]+c.w+190);my=Math.max(my,c.y+o[1]+c.h+30)});
+  Object.keys(AC_TM).forEach(id=>{const T=AC_TM[id],o=ACS.pos[T.comp]||[0,0];T.x=T.bx+o[0];T.y=T.by+o[1]});
+  AC_VB.w=mx;AC_VB.h=my;
+}
+function acMove(k,dx,dy){
+  const c=AC_C[k];if(!c)return;
+  dx=Math.round(dx/AC_GRID)*AC_GRID;dy=Math.round(dy/AC_GRID)*AC_GRID;
+  dx=Math.max(-c.x,Math.min(1600,dx));dy=Math.max(-c.y,Math.min(1000,dy));
+  if(dx===0&&dy===0)delete ACS.pos[k];else ACS.pos[k]=[dx,dy];
+}
+function acSetZoom(z){ACS.zoom=Math.max(.5,Math.min(2.5,Math.round(z*100)/100));acApplyZoom()}
+function acApplyZoom(){
+  const svg=document.getElementById('acsvg');if(!svg)return;
+  svg.style.width=(ACS.zoom*100)+'%';
+  const z=document.getElementById('aczoomv');if(z)z.textContent=Math.round(ACS.zoom*100)+'%';
+  const r=document.getElementById('aczoom');if(r&&document.activeElement!==r)r.value=Math.round(ACS.zoom*100);
+}
 const KIND_NAME={L:'L (ไลน์)',N:'N',PE:'PE','dc+':'DC +','dc-':'DC −',ct1:'CT 1',ct2:'CT 2',a:'RS485 A',b:'RS485 B',canh:'CAN H',canl:'CAN L',dry1:'Dry contact 1',dry2:'Dry contact 2'};
 const KIND_COL={L:'#8b5a2b',N:'#2a78d6',PE:'#1baf7a','dc+':'#d62828','dc-':'#14191e',ct1:'#e0762c',ct2:'#9a9aa3',a:'#d9a400',b:'#8a63d2',canh:'#d9a400',canl:'#8a63d2',dry1:'#e0762c',dry2:'#9a9aa3'};
 function acAvail(t){
@@ -216,12 +237,12 @@ function acsCfg(){
 function acRender(){
   const svg=document.getElementById('acsvg');if(!svg)return;
   const I=curInv(),A=acAnalyze();
+  acLayout();svg.setAttribute('viewBox',`0 0 ${AC_VB.w} ${AC_VB.h}`);acApplyZoom();
   let s='';
-  Object.keys(AC_C).forEach(k=>{s+=acArt(k,AC_C[k],I,ACS.set)});
+  Object.keys(AC_CL).forEach(k=>{s+=`<g class="acmod" data-c="${k}">${acArt(k,AC_CL[k],I,ACS.set)}</g>`});
   /* CT clamp symbol drawn on the position choice */
   const S=ACS.set;
-  s+=`<text x="305" y="368" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="305" y="385" class="acnote" text-anchor="middle">ลูกศรชี้ ${S.ctDir==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}</text>`;
-  s+=`<text x="${AC_C.INV.x+130}" y="${AC_C.INV.y+300}" class="acnote" text-anchor="middle" opacity=".0"></text>`;
+  s+=`<text x="${AC_CL.CT.x+75}" y="${AC_CL.CT.y+108}" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="${AC_CL.CT.x+75}" y="${AC_CL.CT.y+125}" class="acnote" text-anchor="middle">ลูกศรชี้ ${S.ctDir==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}</text>`;
   /* wires */
   const side=a=>a==='l'?[-1,0]:a==='r'?[1,0]:[0,1];
   const path=(t1,t2)=>{
@@ -290,21 +311,40 @@ function acAdd(a,b){
 function initAC(){
   const svg=document.getElementById('acsvg');
   let drag=null,tmp=null;
+  let mv=null;
   svg.addEventListener('pointerdown',e=>{
     const t=e.target.closest('[data-t]');
+    if(!t){
+      const m=e.target.closest('[data-c]');
+      if(m&&!e.target.closest('[data-w]')){
+        e.preventDefault();const p=acPoint(svg,e),o=ACS.pos[m.dataset.c]||[0,0];
+        mv={k:m.dataset.c,sx:p.x,sy:p.y,ox:o[0],oy:o[1],moved:false};
+        try{svg.setPointerCapture(e.pointerId)}catch(_){}
+        return;
+      }
+    }
     if(t&&!t.classList.contains('off')){
       e.preventDefault();
       drag={id:t.dataset.t,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','acw tmp');svg.appendChild(tmp);
       try{svg.setPointerCapture(e.pointerId)}catch(_){}
     }
   });
+  let raf=0;
   svg.addEventListener('pointermove',e=>{
+    if(mv){
+      const p=acPoint(svg,e);
+      if(!mv.moved&&Math.hypot(p.x-mv.sx,p.y-mv.sy)<6)return;
+      mv.moved=true;acMove(mv.k,mv.ox+p.x-mv.sx,mv.oy+p.y-mv.sy);
+      if(!raf)raf=requestAnimationFrame(()=>{raf=0;acRender()});
+      return;
+    }
     if(!drag)return;
     const p=acPoint(svg,e),a=AC_TM[drag.id];
     if(Math.hypot(p.x-a.x,p.y-a.y)>8)drag.moved=true;
     if(drag.moved)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
   });
   const end=e=>{
+    if(mv){const m=mv;mv=null;if(m.moved){acRender();touch()}return}
     if(!drag)return;
     const d=drag;drag=null;if(tmp){tmp.remove();tmp=null}
     if(d.moved){
@@ -315,7 +355,7 @@ function initAC(){
       else{ACS.armed=ACS.armed===d.id?null:d.id;acRender()}
     }
   };
-  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{drag=null;if(tmp){tmp.remove();tmp=null}});
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{mv=null;drag=null;if(tmp){tmp.remove();tmp=null}});
   svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){ACS.wires.splice(+w.dataset.w,1);acRender();touch()}});
   document.getElementById('acpre').addEventListener('click',e=>{const b=e.target.closest('[data-acp]');if(b)acPreset(b.dataset.acp)});
   const S=ACS.set,q=id=>document.getElementById(id);
@@ -328,6 +368,11 @@ function initAC(){
   q('acelon').addEventListener('change',e=>{S.expLimOn=e.target.checked;acRender();rerunBk();touch()});
   q('acbken').addEventListener('change',e=>{S.backupEn=e.target.checked;acRender();rerunBk();touch()});
   q('acapply').addEventListener('change',e=>{ACS.apply=e.target.checked;acRender();rerunBk();touch()});
+  const zr=q('aczoom');
+  zr.addEventListener('input',e=>acSetZoom(+e.target.value/100));
+  q('aczin').addEventListener('click',()=>{acSetZoom(ACS.zoom+.1);touch()});q('aczout').addEventListener('click',()=>{acSetZoom(ACS.zoom-.1);touch()});
+  zr.addEventListener('change',()=>touch());
+  q('aclayreset').addEventListener('click',()=>{ACS.pos={};ACS.zoom=1;acRender();touch()});
   acRender();
 }
 function rerunBk(){if(typeof backupRun==='function')backupRun();if(typeof evRun==='function')evRun()}
