@@ -217,13 +217,10 @@ function acRender(){
   const svg=document.getElementById('acsvg');if(!svg)return;
   const I=curInv(),A=acAnalyze();
   let s='';
-  Object.keys(AC_C).forEach(k=>{
-    const c=AC_C[k],title=k==='INV'?`${I.name||'อินเวอร์เตอร์'} · ${I.type}`:c.t;
-    s+=`<rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="8" class="acbox${k==='INV'?' inv':''}"/><text x="${c.x+c.w/2}" y="${c.y+(k==='INV'?-6:18)}" class="actitle" text-anchor="middle">${esc(title)}</text>`;
-  });
+  Object.keys(AC_C).forEach(k=>{s+=acArt(k,AC_C[k],I,ACS.set)});
   /* CT clamp symbol drawn on the position choice */
   const S=ACS.set;
-  s+=`<text x="305" y="352" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="305" y="370" class="acnote" text-anchor="middle">ลูกศรชี้ ${S.ctDir==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}</text>`;
+  s+=`<text x="305" y="368" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="305" y="385" class="acnote" text-anchor="middle">ลูกศรชี้ ${S.ctDir==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}</text>`;
   s+=`<text x="${AC_C.INV.x+130}" y="${AC_C.INV.y+300}" class="acnote" text-anchor="middle" opacity=".0"></text>`;
   /* wires */
   const side=a=>a==='l'?[-1,0]:a==='r'?[1,0]:[0,1];

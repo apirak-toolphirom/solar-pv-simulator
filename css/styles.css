@@ -356,3 +356,21 @@ label.chk input{width:18px;height:18px}
 .pff i{font-style:normal;font-size:11px}.pff.found i{color:var(--ok)}.pff.miss i{color:var(--warn)}
 .pff input,.pff select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-height:38px;color:var(--ink);width:100%;min-width:0}
 .pff.found input{border-color:var(--ok)}.pff.miss input{background:var(--warnbg);border-color:var(--warn)}
+/* AC artwork */
+.a-line{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.a-th{stroke-width:3}
+.a-fill{fill:var(--surface);stroke:var(--muted);stroke-width:1.5;stroke-linejoin:round}
+.a-dark{fill:#4a5863;stroke:#2d3841;stroke-width:1.2}
+.a-lcd{fill:#cfe9dc;stroke:#6a9b84;stroke-width:1.2}
+.a-lcdt{font:600 11px var(--mono);fill:#124a30;text-anchor:middle}.a-lcdt.big{font-size:19px}
+.a-brand{font:700 15px var(--body);fill:#e8eef2;text-anchor:middle;letter-spacing:.08em}.a-brand.s{font:500 10px var(--mono);letter-spacing:0}
+.a-grp{font:600 10.5px var(--body)}
+.a-t{font:11px var(--body);fill:var(--ink)}
+.a-acc{fill:var(--accent)}.a-red{fill:#e04a3d}.a-grn{fill:#2fb37a}
+.a-fin{fill:var(--line)}
+.a-ground{stroke:#8a9a5b;stroke-width:3;stroke-linecap:round}
+.a-wire{fill:none;stroke-width:4;stroke-linecap:round}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .a-lcd{fill:#16352a;stroke:#2f7a58}:root:not([data-theme="light"]) .a-lcdt{fill:#7be0ae}}
+:root[data-theme="dark"] .a-lcd{fill:#16352a;stroke:#2f7a58}:root[data-theme="dark"] .a-lcdt{fill:#7be0ae}
+.aclab{paint-order:stroke;stroke:var(--surface);stroke-width:3.5px;stroke-linejoin:round}
+.acbox{fill:var(--invfill)}
