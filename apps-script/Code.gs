@@ -85,9 +85,16 @@ function cloud_(d, verified, props) {
   if (!fid) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้ตั้ง DRIVE_FOLDER_ID' });
   var key = verified || s_(d.sid, 30);
   if (!key) return json_({ ok: false, error: 'ต้องกรอกรหัสผู้เรียน หรือล็อกอิน Google' });
-  var fname = key.replace(/[^A-Za-z0-9ก-๙@._-]+/g, '_').slice(0, 80) + '.json';
+  var safeKey = key.replace(/[^A-Za-z0-9ก-๙@._-]+/g, '_').slice(0, 60);
+  var safeName = s_(d.name, 60).replace(/[^A-Za-z0-9ก-๙@._ -]+/g, '').trim().replace(/\s+/g, ' ');
+  var fname = safeKey + (safeName ? ' - ' + safeName : '') + '.json';
   var folder = DriveApp.getFolderById(fid);
-  var it = folder.getFilesByName(fname), file = it.hasNext() ? it.next() : null;
+  // หาไฟล์เดิมจากรหัส (ขึ้นต้นด้วย "รหัส.json" หรือ "รหัส - ") เพื่อไม่ให้เกิดไฟล์ซ้ำเมื่อชื่อเปลี่ยน
+  var file = null, it = folder.searchFiles("title contains '" + safeKey + "' and trashed = false");
+  while (it.hasNext()) {
+    var f = it.next(), n = f.getName();
+    if (n === safeKey + '.json' || n.indexOf(safeKey + ' - ') === 0) { file = f; break; }
+  }
   if (d.action === 'load') {
     if (!file) return json_({ ok: true, cloud: true, found: false });
     return json_({ ok: true, cloud: true, found: true, saved: file.getLastUpdated().toISOString(), data: file.getBlob().getDataAsString('UTF-8') });
@@ -95,6 +102,6 @@ function cloud_(d, verified, props) {
   var data = typeof d.data === 'string' ? d.data : JSON.stringify(d.data || {});
   if (data.length > 1500000) return json_({ ok: false, error: 'ไฟล์โปรเจ็คใหญ่เกินไป' });
   var wrapped = JSON.stringify({ name: s_(d.name, 100), sid: s_(d.sid, 30), email: verified, saved: new Date().toISOString(), project: JSON.parse(data) });
-  if (file) file.setContent(wrapped); else folder.createFile(fname, wrapped, 'application/json');
+  if (file) { file.setContent(wrapped); if (file.getName() !== fname) file.setName(fname); } else folder.createFile(fname, wrapped, 'application/json');
   return json_({ ok: true, cloud: true, file: fname });
 }
