@@ -231,3 +231,32 @@ function initSubmit(){
   $('#gout').addEventListener('click',()=>{gToken='';MEMBER.gemail='';MEMBER.gname='';lsSet(MEM_KEY,MEMBER);try{google.accounts.id.disableAutoSelect()}catch(e){}submitRefresh()});
   loadGsi();whoUpdate();
 }
+
+/* ---- project in the teacher's Google Drive (via the same Apps Script web app) ---- */
+async function cloudCall(action,extra){
+  readMember();
+  if(!MEMBER.name||!(MEMBER.sid||(MEMBER.gemail&&gToken))){setSt('กรอกชื่อ รหัสผู้เรียน และรหัสห้องในแท็บ "ส่งงาน" ก่อน');showTab('submit');return null}
+  try{
+    const res=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({action,name:MEMBER.name,sid:MEMBER.sid,cls:MEMBER.cls,idToken:gToken},extra||{})),redirect:'follow'});
+    const j=await res.json();
+    if(!j||!j.ok){setSt('Drive: '+((j&&j.error)||'ไม่สำเร็จ'));return null}
+    return j;
+  }catch(e){setSt('เชื่อมต่อ Drive ไม่ได้ ตรวจอินเทอร์เน็ต');return null}
+}
+function initCloud(){
+  const sv=$('#cloudsave'),ld=$('#cloudload');
+  if(!sv||!CFG.SUBMIT_URL)return;
+  sv.hidden=ld.hidden=false;
+  sv.addEventListener('click',async()=>{
+    sv.disabled=true;setSt('กำลังบันทึกขึ้น Drive…');
+    const j=await cloudCall('save',{data:JSON.stringify(projectFile())});
+    sv.disabled=false;if(j)setSt('บันทึกขึ้น Drive แล้ว '+new Date().toLocaleTimeString('th-TH'));
+  });
+  ld.addEventListener('click',async()=>{
+    ld.disabled=true;setSt('กำลังโหลดจาก Drive…');
+    const j=await cloudCall('load');
+    ld.disabled=false;if(!j)return;
+    if(!j.found){setSt('ยังไม่มีงานที่บันทึกไว้บน Drive สำหรับรหัสนี้');return}
+    try{const o=JSON.parse(j.data);applyProjectFile({catalog:o.project&&o.project.catalog,project:o.project&&o.project.project});setSt('โหลดจาก Drive แล้ว (บันทึกเมื่อ '+new Date(j.saved).toLocaleString('th-TH')+')')}catch(e){setSt('ไฟล์บน Drive อ่านไม่ได้')}
+  });
+}

@@ -5,6 +5,7 @@
  * Script properties ที่ตั้งได้ (Project Settings > Script properties):
  *   CLASS_CODE        รหัสห้องอบรม ถ้าตั้งไว้ ผู้เรียนต้องกรอกให้ตรงจึงจะบันทึก
  *   GOOGLE_CLIENT_ID  ถ้าใช้ปุ่ม Google Sign-in ให้ใส่ Client ID เดียวกับ js/config.js
+ *   DRIVE_FOLDER_ID   ID ของโฟลเดอร์ Drive ที่เก็บไฟล์โปรเจ็คของผู้เรียน (ใช้กับปุ่ม บันทึก/โหลดจาก Drive)
  */
 var SHEET_NAME = 'Submissions';
 var HEADERS = ['เวลาที่รับ', 'รหัสใบส่งงาน', 'ชื่อ', 'รหัสผู้เรียน', 'Google (ยืนยันแล้ว)', 'Google (แจ้งเอง)',
@@ -43,6 +44,8 @@ function doPost(e) {
       }
     }
 
+    if (d.action === 'save' || d.action === 'load') return cloud_(d, verified, props);
+
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
     if (sh.getLastRow() === 0) {
@@ -72,4 +75,26 @@ function doPost(e) {
   } finally {
     try { lock.releaseLock(); } catch (x) {}
   }
+}
+
+// ---- เก็บโปรเจ็คของผู้เรียนใน Google Drive ของผู้สอน (1 ไฟล์ต่อผู้เรียน) ----
+// คีย์ไฟล์ = อีเมล Google ที่ยืนยันแล้ว ถ้าไม่มีใช้รหัสผู้เรียน (ถ้าไม่ล็อกอิน Google คนที่รู้รหัสห้องและรหัสผู้เรียนของคนอื่นเขียนทับได้
+// ประวัติเวอร์ชันของ Drive ยังย้อนกลับได้)
+function cloud_(d, verified, props) {
+  var fid = props.getProperty('DRIVE_FOLDER_ID');
+  if (!fid) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้ตั้ง DRIVE_FOLDER_ID' });
+  var key = verified || s_(d.sid, 30);
+  if (!key) return json_({ ok: false, error: 'ต้องกรอกรหัสผู้เรียน หรือล็อกอิน Google' });
+  var fname = key.replace(/[^A-Za-z0-9ก-๙@._-]+/g, '_').slice(0, 80) + '.json';
+  var folder = DriveApp.getFolderById(fid);
+  var it = folder.getFilesByName(fname), file = it.hasNext() ? it.next() : null;
+  if (d.action === 'load') {
+    if (!file) return json_({ ok: true, found: false });
+    return json_({ ok: true, found: true, saved: file.getLastUpdated().toISOString(), data: file.getBlob().getDataAsString('UTF-8') });
+  }
+  var data = typeof d.data === 'string' ? d.data : JSON.stringify(d.data || {});
+  if (data.length > 1500000) return json_({ ok: false, error: 'ไฟล์โปรเจ็คใหญ่เกินไป' });
+  var wrapped = JSON.stringify({ name: s_(d.name, 100), sid: s_(d.sid, 30), email: verified, saved: new Date().toISOString(), project: JSON.parse(data) });
+  if (file) file.setContent(wrapped); else folder.createFile(fname, wrapped, 'application/json');
+  return json_({ ok: true });
 }

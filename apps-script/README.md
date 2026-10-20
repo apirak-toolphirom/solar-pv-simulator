@@ -41,3 +41,11 @@ SUBMIT_URL:'https://script.google.com/macros/s/xxxxxxxx/exec',
 ## หมายเหตุ
 - ถ้าแก้ `Code.gs` ภายหลัง ต้อง **Deploy → Manage deployments → Edit → New version** URL เดิมจึงใช้โค้ดใหม่
 - ไม่ต้องใส่คีย์ลับในเว็บ ตัว URL ของ Web app ใครรู้ก็ส่งได้ จึงควรตั้ง `CLASS_CODE`
+
+## 6. (ไม่บังคับ) เก็บโปรเจ็คของผู้เรียนใน Google Drive ของผู้สอน
+ผู้เรียนเปลี่ยนเครื่องแล้วงานยังอยู่ โดยกดปุ่ม "บันทึกขึ้น Drive" / "โหลดจาก Drive" ใต้เมนูด้านซ้าย (ปุ่มจะโผล่เมื่อตั้ง `SUBMIT_URL` แล้ว)
+1. สร้างโฟลเดอร์ใน Drive ของผู้สอน แล้วคัดลอก ID จาก URL (`…/folders/<ID>`)
+2. Apps Script → Project Settings → Script properties → เพิ่ม `DRIVE_FOLDER_ID` = ID นั้น
+3. วาง `Code.gs` เวอร์ชันล่าสุด แล้ว **Deploy → Manage deployments → Edit → New version** (ต้องอนุญาตสิทธิ์ Drive เพิ่ม)
+- หนึ่งไฟล์ต่อผู้เรียน ชื่อตามอีเมล Google ที่ยืนยันแล้ว ถ้าไม่ได้ล็อกอิน Google ใช้รหัสผู้เรียน
+- ถ้าไม่ล็อกอิน Google คนที่รู้รหัสห้องและรหัสผู้เรียนของคนอื่นเขียนทับได้ แนะนำให้ตั้งปุ่ม Google Sign-in (ข้อ 5) ประวัติเวอร์ชันของ Drive ย้อนกลับได้
