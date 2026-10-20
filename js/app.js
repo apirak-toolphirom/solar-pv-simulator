@@ -8,7 +8,7 @@ function setNavH(){
 }
 function showTab(t,fromHash){
   if(!TABS.includes(t))t='equip';
-  curTab=t;document.body.dataset.tab=t;
+  curTab=t;document.body.dataset.tab=t;if(typeof ctxSchedule==='function')ctxSchedule();
   if(typeof fsOn!=='undefined'&&fsOn&&t!=='wiring')setFs(false);
   TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t});
   document.querySelectorAll('.navb').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
@@ -45,6 +45,7 @@ function snapshot(){
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
+  if(typeof ctxSchedule==='function')ctxSchedule();
   if(!window.APP_READY||!loadedState)return;
   if(cat)dirtyCat=true;
   setSt('กำลังบันทึก…');
@@ -146,6 +147,7 @@ function restoreExtra(p){
 function refreshAll(){
   autoBat();applyActive();if(typeof quickSel==='function')quickSel();eqRenderAll();bkSync();loadRender();
   lastSig='';render();acRender();runSim();
+  if(typeof ctxSchedule==='function')ctxSchedule();
 }
 
 /* ---- reset ---- */
@@ -182,7 +184,7 @@ function initReset(){
 /* ---- boot ---- */
 (function boot(){
   initSim();resetWith(1);
-  initCatalogUI();eqRenderAll();initPdfImport();
+  ctxInit();initCatalogUI();eqRenderAll();initPdfImport();
   initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});

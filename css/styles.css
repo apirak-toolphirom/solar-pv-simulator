@@ -431,3 +431,17 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 /* per-module scale in the AC tab */
 .acselbox{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-dasharray:6 4;pointer-events:none}
 .acmods{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;padding:2px 8px;border-left:2px solid var(--accent)}.acmods[hidden]{display:none}.acmods input{width:120px}
+
+/* context strip under each tab heading */
+.ctxbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:-4px 0 12px;font-size:12.5px}
+.ctxbar:empty{display:none}
+.ctxlab{color:var(--muted);font-size:12px;margin-right:2px}
+.ctxc{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:3px 10px 3px 6px;border-radius:999px;border:1px solid var(--line);background:var(--surface,var(--bg));color:var(--ink);font:inherit;line-height:1.35;text-align:left}
+.ctxc b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ctxk{color:var(--muted)}
+.ctxc::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.ctxc.ok::before{background:var(--ok)}.ctxc.warn::before{background:var(--warn)}.ctxc.idle::before{background:transparent;border:1.5px solid var(--muted)}
+.ctxc.warn{border-color:var(--warn);background:var(--warnbg)}
+button.ctxc{cursor:pointer}button.ctxc:hover{border-color:var(--accent)}
+.ctxfrom{flex:none;font-family:var(--mono);font-size:11px;padding:0 5px;border-radius:5px;background:var(--line);color:var(--ink)}
+@media (max-width:600px){.ctxc b{white-space:normal}}
