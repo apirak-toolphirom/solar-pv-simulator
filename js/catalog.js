@@ -89,6 +89,10 @@ const BUILTIN=(()=>{
   [[650,54.00,45.30,15.06,14.35,24.1],[655,54.10,45.40,15.12,14.43,24.2],[660,54.20,45.50,15.18,14.51,24.4],[665,54.40,45.60,15.24,14.59,24.6],[670,54.60,45.70,15.30,14.67,24.8],[675,54.80,45.80,15.36,14.74,25.0]]
     .forEach(([w,voc,vmp,isc,imp,eff])=>pan.push({id:slug('aiko a'+w+' mde72dw'),brand:'AIKO',model:`A${w}-MDE72Dw (${w} W)`,pmax:w,voc,vmp,isc,imp,kVoc:-0.22,kPmax:-0.26,kIsc:0.05,noct:45,builtin:1,
       note:`Stellar 3N+72 · N-type ABC 144 เซลล์ · ประสิทธิภาพ ${eff}% · กระจกสองหน้า 2382×1134×30 mm 33 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 30 A · NOCT 45 °C คำนวณจากค่า NOCT ในดาต้าชีต`}));
+  // Trina Vertex N TSM-NEG21C.20 (695-720 W), N-type TOPCon bifacial dual glass, front-side STC values; NOCT 43 °C from the datasheet
+  [[695,48.3,40.3,18.28,17.25,22.4],[700,48.6,40.5,18.32,17.29,22.5],[705,48.8,40.7,18.36,17.33,22.7],[710,49.0,40.9,18.40,17.36,22.9],[715,49.2,41.1,18.44,17.40,23.0],[720,49.4,41.3,18.49,17.44,23.2]]
+    .forEach(([w,voc,vmp,isc,imp,eff])=>pan.push({id:slug('trina tsm-'+w+'neg21c.20'),brand:'Trina Solar',model:`TSM-${w}NEG21C.20 Vertex N (${w} W)`,pmax:w,voc,vmp,isc,imp,kVoc:-0.24,kPmax:-0.29,kIsc:0.04,noct:43,builtin:1,
+      note:`N-type TOPCon สองหน้า 132 เซลล์ · ประสิทธิภาพ ${eff}% · bifaciality 80±5% (ค่าที่ใช้เป็นด้านหน้าอย่างเดียว ด้านหลังเพิ่มได้ 5–10%) · 2384×1303×33 mm 38.3 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 35 A`}));
   return{inverters:inv,batteries:bat,panels:pan};
 })();
 
