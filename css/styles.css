@@ -424,3 +424,6 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 .ph3t tr.tot th,.ph3t tr.tot td{border-top:1px solid var(--line);font-weight:600}
 .ph3t .imp{color:var(--err)}.ph3t .exp{color:var(--ok)}.ph3t .z{color:var(--muted)}
 .eqpick small.nt.bad{color:var(--err);font-style:normal}
+
+/* draggable MPPT input box */
+.invbox{cursor:grab;touch-action:none}.invbox.moving{cursor:grabbing}.invbox.moving .inv{stroke:var(--accent);stroke-width:2.5}.invbox .grip circle{fill:var(--muted)}

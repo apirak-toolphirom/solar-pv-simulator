@@ -1,5 +1,9 @@
 
-const W=1200,PW0=96,PH0=52,IX=1010,MAXP=40,INVY=90;
+const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,INVY0=90,IW=160,IHT=270;
+/* inverter MPPT input box position (draggable); terminals sit on the side facing the middle of the canvas */
+let IX=IX0,INVY=INVY0;
+const invRight=()=>IX+IW/2<W/2;
+function clampInv(){IX=Math.round(Math.max(4,Math.min(W-IW-4,IX)));INVY=Math.round(Math.max(28,Math.min(H-IHT-8,INVY)))}
 let H=680,PW=PW0,PH=PH0;
 const mpY=k=>INVY+10+(k-1)*130;
 const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null,scale:1};
@@ -9,7 +13,7 @@ const LABEL={ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ
 const GLYPH={ok:'✓',warn:'!',err:'×'};
 
 /* ---- model ---- */
-function slotGeom(){const gx=Math.max(26,46*st.scale),gy=Math.max(34,64*st.scale),cw=PW+gx,ch=PH+gy;return{cw,ch,cols:Math.max(1,Math.floor((IX-64)/cw))}}
+function slotGeom(){const gx=Math.max(26,46*st.scale),gy=Math.max(34,64*st.scale),cw=PW+gx,ch=PH+gy;return{cw,ch,cols:Math.max(1,Math.floor((IX0-64)/cw))}}
 const slot=i=>{const g=slotGeom();return{x:24+(i%g.cols)*g.cw,y:34+Math.floor(i/g.cols)*g.ch}};
 const clampScale=s=>Math.max(.35,Math.min(1.5,+s||1));
 function applyScale(s){st.scale=clampScale(s);PW=PW0*st.scale;PH=PH0*st.scale}
@@ -18,7 +22,7 @@ function setScale(s){
   applyScale(s);
   st.panels.forEach((p,i)=>{p.x=c[i][0]-PW/2;p.y=c[i][1]-PH/2;clampPanel(p)});
 }
-function layoutAll(){st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
+function layoutAll(){IX=IX0;INVY=INVY0;st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
 function addPanel(){
   if(st.panels.length>=MAXP)return null;
   let i=0;while(st.panels.some(p=>p.sx===i))i++;

@@ -1,24 +1,24 @@
 /* ---- ui ---- */
 const svg=document.getElementById('svg');
 const $=s=>document.querySelector(s);
-let wiring=null,moving=null,tr=9,fsOn=false;
+let wiring=null,moving=null,invMove=null,tr=9,fsOn=false;
 
 const ROT=[[1,0],[0,1],[-1,0],[0,-1]];
 function termPos(k){
-  if(k[0]==='i'){const n=+k[1],base=100+(n-1)*130;return{x:IX,y:k.endsWith(':p')?base+22:base+100}}
+  if(k[0]==='i'){const n=+k[1],base=mpY(n);return{x:invRight()?IX+IW:IX,y:k.endsWith(":p")?base+22:base+100}}
   const id=+k.split(':')[0],p=st.panels.find(q=>q.id===id);
   if(!p)return null;
   const [c,s]=ROT[p.rot||0],sg=k.endsWith(':p')?1:-1;
   return{x:p.x+PW/2+sg*c*PW/2,y:p.y+PH/2+sg*s*PW/2};
 }
 function dirVec(k){
-  if(k[0]==='i')return{x:-1,y:0};
+  if(k[0]==='i')return{x:invRight()?1:-1,y:0};
   const p=st.panels.find(q=>q.id===+k.split(':')[0]),[c,s]=ROT[(p&&p.rot)||0],sg=k.endsWith(':p')?1:-1;
   return{x:sg*c,y:sg*s};
 }
 function clampPanel(p){
   const vert=(p.rot||0)%2===1,hx=vert?PH/2:PW/2,hy=vert?PW/2:PH/2,m=18;
-  const cx=Math.max(hx+m,Math.min(IX-24-hx,p.x+PW/2)),cy=Math.max(hy+m,Math.min(H-hy-m,p.y+PH/2));
+  const cx=Math.max(hx+m,Math.min(W-hx-m,p.x+PW/2)),cy=Math.max(hy+m,Math.min(H-hy-m,p.y+PH/2));
   p.x=cx-PW/2;p.y=cy-PH/2;
 }
 function rotPanel(id){
@@ -47,16 +47,20 @@ function drawSvg(A){
   const k0=.55+.45*Math.min(1,st.scale),hit=tr*2.2,fs=Math.round(tr*1.35),S=st.scale;
   const pw=12*S,ph=13*S;
   let s=`<defs><pattern id="cells" width="${pw}" height="${ph}" patternUnits="userSpaceOnUse"><path d="M${pw} 0V${ph}M0 ${ph}H${pw}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/></pattern></defs>`;
+  const R=invRight(),tx=R?IX+IW-18:IX+18,ta=R?'end':'start';
+  s+=`<g class="invbox${invMove?' moving':''}" data-inv="1"><title>ลากเพื่อย้ายตำแหน่งอินพุต MPPT</title>`;
   s+=`<text class="svgt b" x="${IX+80}" y="${INVY-12}" text-anchor="middle">${A.I.name}</text>`;
   s+=`<rect class="inv" x="${IX}" y="${INVY}" width="160" height="270" rx="8"/>`;
+  s+=`<g class="grip"><circle cx="${IX+74}" cy="${INVY+5}" r="1.6"/><circle cx="${IX+80}" cy="${INVY+5}" r="1.6"/><circle cx="${IX+86}" cy="${INVY+5}" r="1.6"/></g>`;
   A.res.forEach(r=>{
     const base=mpY(r.k),cls=r.lvl==='idle'?'':r.lvl;
     s+=`<rect class="mp ${cls}" x="${IX+8}" y="${base}" width="144" height="120" rx="6"/>`;
     s+=`<text class="svgt b" x="${IX+28}" y="${base+46}">MPPT ${r.k}</text>`;
     s+=`<text class="svgt m" x="${IX+28}" y="${base+64}">${r.short}</text>`;
     if(r.blk)s+=`<text class="svgt m mut" x="${IX+28}" y="${base+82}">Voc ${f(r.blk.voc)} V</text>`;
-    s+=`<text class="svgt m mut" x="${IX+18}" y="${base+26}">DC${r.k}+</text><text class="svgt m mut" x="${IX+18}" y="${base+104}">DC${r.k}−</text>`;
+    s+=`<text class="svgt m mut" x="${tx}" y="${base+26}" text-anchor="${ta}">DC${r.k}+</text><text class="svgt m mut" x="${tx}" y="${base+104}" text-anchor="${ta}">DC${r.k}−</text>`;
   });
+  s+=`</g>`;
   /* panels first, wires on top of them so a wire is never hidden under a panel */
   const fsz=Math.max(8,12*S);
   st.panels.forEach(p=>{
@@ -89,7 +93,7 @@ function drawSvg(A){
     const on=st.armed===k||(wiring&&wiring.cand===k);
     s+=`<g data-term="${k}"><circle class="hit" cx="${t.x}" cy="${t.y}" r="${hit}"/><circle class="term ${ty}${on?' armed':''}" cx="${t.x}" cy="${t.y}" r="${tr}"/><text class="tt" style="font-size:${fs}px" x="${t.x}" y="${t.y+fs*0.36}">${ty==='p'?'+':'−'}</text></g>`;
   });
-  A.si.inv.forEach(k=>{badges.push([IX+124,mpY(k)+56])});
+  A.si.inv.forEach(k=>{badges.push([invRight()?IX+36:IX+124,mpY(k)+56])});
   badges.forEach(m=>{s+=`<g class="shortbadge" transform="translate(${m[0].toFixed(1)} ${m[1].toFixed(1)})"><circle r="14"/><path d="M3,-9 L-5,2 L0,2 L-3,10 L6,-3 L1,-3 Z"/><text class="shortlbl" x="19" y="4" style="text-anchor:start">ชอต</text></g>`});
   if(wiring&&wiring.moved){
     const a=termPos(wiring.from),tgt=wiring.cand?termPos(wiring.cand):{x:wiring.x,y:wiring.y};
@@ -103,7 +107,7 @@ function fitWorld(){
   let h=680;
   if(fsOn){const r=svg.parentElement.getBoundingClientRect();if(r.width>0&&r.height>0)h=Math.max(420,Math.round(W*r.height/r.width))}
   H=h;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  st.panels.forEach(clampPanel);
+  st.panels.forEach(clampPanel);clampInv();
 }
 function syncScaleUI(){const e=$('#pscale');if(e){e.value=Math.round(st.scale*100);$('#pscalev').textContent=Math.round(st.scale*100)+'%'}}
 function setFs(on){
@@ -158,6 +162,8 @@ svg.addEventListener('pointerdown',e=>{
   if(rh){rotPanel(+rh.dataset.rot);e.preventDefault();return}
   const t=e.target.closest('[data-term]');
   if(t){const p=pt(e);wiring={from:t.dataset.term,x:p.x,y:p.y,sx:e.clientX,sy:e.clientY,moved:false,cand:null};e.preventDefault();render();return}
+  const ib=e.target.closest('[data-inv]');
+  if(ib){const p=pt(e);invMove={dx:p.x-IX,dy:p.y-INVY};st.sel=null;e.preventDefault();render();return}
   const g=e.target.closest('[data-panel]');
   if(g){
     const id=+g.dataset.panel,p=pt(e),pan=st.panels.find(q=>q.id===id);
@@ -170,6 +176,8 @@ document.addEventListener('pointermove',e=>{
     const p=pt(e);wiring.x=p.x;wiring.y=p.y;
     if(Math.hypot(e.clientX-wiring.sx,e.clientY-wiring.sy)>5)wiring.moved=true;
     wiring.cand=wiring.moved?nearest(p,wiring.from):null;render();
+  }else if(invMove){
+    const p=pt(e);IX=p.x-invMove.dx;INVY=p.y-invMove.dy;clampInv();render();
   }else if(moving){
     const p=pt(e),pan=st.panels.find(q=>q.id===moving.id);if(!pan)return;
     pan.x=p.x-moving.dx;pan.y=p.y-moving.dy;clampPanel(pan);render();
@@ -182,9 +190,10 @@ document.addEventListener('pointerup',e=>{
     else if(st.armed&&st.armed!==w.from){connect(st.armed,w.from);st.armed=null}
     else st.armed=st.armed===w.from?null:w.from;
     render();
-  }else if(moving){moving=null;render()}
+  }else if(invMove){invMove=null;render()}
+  else if(moving){moving=null;render()}
 });
-document.addEventListener('pointercancel',()=>{wiring=null;moving=null;render()});
+document.addEventListener('pointercancel',()=>{wiring=null;moving=null;invMove=null;render()});
 svg.addEventListener('click',e=>{
   const w=e.target.closest('[data-wire]');
   if(w){st.wires.splice(+w.dataset.wire,1);render()}

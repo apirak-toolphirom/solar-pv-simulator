@@ -64,14 +64,14 @@
       <button class="btn" id="delp" disabled>ลบแผงที่เลือก</button>
       <button class="btn" id="clrw">ล้างสาย</button>
       <label class="scl">สเกลแผง <input id="pscale" type="range" min="35" max="150" step="5" value="100" aria-label="ขนาดแผง"><b id="pscalev">100%</b></label>
-      <button class="btn" id="relayout" title="เรียงแผงใหม่เป็นแถวตามสเกลปัจจุบัน">จัดวางใหม่</button>
+      <button class="btn" id="relayout" title="เรียงแผงใหม่เป็นแถวตามสเกลปัจจุบัน และคืนตำแหน่งอินเวอร์เตอร์">จัดวางใหม่</button>
       <button class="btn pri" id="fsbtn">เต็มจอ</button>
     </div>
   </section>
 
   <section class="fscan fsk">
     <div class="canvas"><svg id="svg" viewBox="0 0 1200 680" role="img" aria-label="พื้นที่ต่อสายแผงโซลาร์เข้าอินเวอร์เตอร์"></svg></div>
-    <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
+    <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย ลากกล่องอินเวอร์เตอร์ (อินพุต MPPT) เพื่อย้ายไปตำแหน่งไหนก็ได้ ขั้ว DC จะหันเข้าหากลางพื้นที่เอง กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
     <div class="key">
       <span><i style="background:var(--pos)"></i>สายแดง = ขั้ว +</span>
       <span><i style="background:var(--neg);outline:1px solid var(--line)"></i>สายดำ = ขั้ว −</span>
