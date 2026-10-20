@@ -27,7 +27,7 @@ const BWIRE=[
 const BCOL={p:'#d62828',n:'#2b3138',l:'#8b5a2b',nn:'#2a78d6',g:'#1baf7a'};
 const BSWK={PVF:'PVF',PVB:'PVB',BF:'BF',BBK:'BBK',ACB:'ACB',INV:'INV'};
 const BC={},BPT={},BWG={};
-let BVB={w:1400,h:640};
+let BVB={w:1400,h:640},BARM=null;
 function bLayout(){
   let mx=1400,my=640;
   Object.keys(BM).forEach(k=>{const m=BM[k],o=BN.pos[k]||[0,0];BC[k]={x:m[0]+o[0],y:m[1]+o[1],w:m[2],h:m[3],t:m[4]};mx=Math.max(mx,m[0]+o[0]+m[2]+30);my=Math.max(my,m[1]+o[1]+m[3]+110)});
@@ -48,21 +48,21 @@ const bMini={
 };
 function bBadge(r,k){
   /* status text for protective devices */
-  const rate={PVF:BN.pf.a,PVB:BN.pb.a,BF:BN.bf.a,BBK:BN.bb.a,ACB:BN.acb}[k];
+  const rate={PVF:BN.pf.a,PVB:BN.pb.a,BF:BN.bf.a,BBK:BN.bb.a,ACB:BN.acb}[k],unc=rate>0&&!r.T.inc[k];
   const cur={PVF:r.nP>0?r.Ia/r.nP:0,PVB:r.Ia,BF:Math.abs(r.st.Inet),BBK:r.st.Iinv,ACB:r.Iac}[k];
-  return{rate,cur,open:!!r.op[k],hot:rate>0&&cur>rate,none:!(rate>0)};
+  return{rate,cur,open:!!r.op[k],hot:rate>0&&cur>rate,none:!(rate>0),unc};
 }
 function bModArt(k,c,r){
   const w=c.w,h=c.h,ink='currentColor';
   let st='',inner='',foot='';
   if(BSWK[k]&&k!=='INV'){
     const b=bBadge(r,k),pr=k==='PVF'||k==='BF';
-    st=b.open?'bad':b.hot?'warn':'';
+    st=b.open?'bad':(b.hot||b.unc)?'warn':'';
     const lab=b.none?'ไม่ติดตั้ง':(b.rate+' A');
     if(b.none)inner=`<path d="M0 45H90" stroke="${ink}" stroke-width="3"/><text x="45" y="30" text-anchor="middle" class="acnote">ไม่มี</text>`;
     else if(pr)inner=`<path d="M0 45H90" stroke="${ink}" stroke-width="3"/><rect x="22" y="36" width="46" height="18" rx="3" fill="var(--surface)" stroke="${ink}" stroke-width="2"/>${b.open?`<path d="M30 45l8-3 8 6 6-4 8 2" stroke="#d62828" stroke-width="2" fill="none"/>`:`<path d="M26 45H64" stroke="${ink}" stroke-width="2"/>`}`;
     else inner=`<path d="M0 45H24M66 45H90" stroke="${ink}" stroke-width="3"/><circle cx="24" cy="45" r="3.5" fill="${ink}"/><circle cx="66" cy="45" r="3.5" fill="${ink}"/><path d="${b.open?'M24 45L58 28':'M24 45L66 45'}" stroke="${b.open?'#d62828':ink}" stroke-width="4" stroke-linecap="round"/>`;
-    foot=`<text x="45" y="${h-22}" text-anchor="middle" class="acnote">${lab}${b.none?'':(' · '+f(b.cur,1)+' A')}</text><text x="45" y="${h-8}" text-anchor="middle" class="acnote" style="fill:${b.open?'#d62828':'var(--muted)'}">${b.none?'':(BLATCH[k]?'ทริป · แตะเพื่อรีเซ็ต':b.open?'เปิดอยู่ · แตะเพื่อปิด':'ปิด (ทำงาน) · แตะเพื่อเปิด')}</text>`;
+    foot=`<text x="45" y="${h-22}" text-anchor="middle" class="acnote">${lab}${b.none?'':(' · '+f(b.cur,1)+' A')}</text><text x="45" y="${h-8}" text-anchor="middle" class="acnote" style="fill:${b.open?'#d62828':'var(--muted)'}">${b.none?'':b.unc?'ยังไม่ได้ต่อในวงจร':(BLATCH[k]?'ทริป · แตะเพื่อรีเซ็ต':b.open?'เปิดอยู่ · แตะเพื่อปิด':'ปิด (ทำงาน) · แตะเพื่อเปิด')}</text>`;
   }
   if(k==='ARR'){
     const cols=Math.min(r.nS,8),rows=Math.min(r.nP,5),cw=Math.min(40,(176)/cols),ch=Math.min(26,(110)/rows),pw=cw-6,ph=ch-6;
@@ -113,11 +113,13 @@ function bModArt(k,c,r){
   return `<g class="bmod${BSWK[k]?' bsw':''}" data-c="${k}" transform="translate(${c.x} ${c.y})"><rect width="${w}" height="${h}" rx="10" class="acbox" style="stroke:${stroke};stroke-width:${st?2.5:1.5}"/><text x="${w/2}" y="15" text-anchor="middle" class="actitle">${esc(c.t)}</text><g style="color:var(--ink)">${inner}</g>${foot}</g>`;
 }
 function bClampRead(m,r){
-  if(!m.wire||!BWG[m.wire])return{v:null,txt:'—',note:'ยังไม่ได้คล้องสาย: ลากแคลมป์ไปที่เส้นสาย'};
-  const w=BWG[m.wire],raw=r.fl[w.flow]||0,ac=w.kind==='l'||w.kind==='nn',abs=Math.abs(raw);
+  const w=m.wire&&BWG[m.wire];
+  if(!w)return{v:null,txt:'—',note:'ยังไม่ได้คล้องสาย: ลากแคลมป์ไปที่เส้นสาย'};
+  const raw=w.I||0,ac=w.ac,abs=Math.abs(raw);
   if(m.both)return{v:0,txt:'0.00 A',note:'คล้องทั้งสาย + และ − พร้อมกัน กระแสหักล้างกันจึงอ่านได้ 0 ต้องคล้องทีละเส้น'};
   if(m.type==='ac'&&!ac)return{v:0,txt:'0.00 A',note:'แคลมป์ AC อย่างเดียวอ่านกระแส DC ไม่ได้ ต้องใช้แคลมป์ DC (Hall effect)'};
-  return{v:abs,txt:f(abs,abs<10?2:1)+' A',note:(w.flow==='Ibat'?(raw>=0?'กระแสชาร์จเข้าแบต':'กระแสจ่ายออกจากแบต'):'')};
+  const bat=w.a==='BAT+'||w.b==='BAT+'||w.a==='BAT-'||w.b==='BAT-';
+  return{v:abs,txt:f(abs,abs<10?2:1)+' A',note:bat&&abs>.05?(r.st.Inet>=0?'กระแสชาร์จเข้าแบต':'กระแสจ่ายออกจากแบต'):''};
 }
 function bPortV(id,r){
   const p=BPT[id];if(!p)return null;
@@ -139,15 +141,18 @@ function bRender(){
   svg.setAttribute('viewBox',`0 0 ${BVB.w} ${BVB.h}`);bApplyZoom();
   let s='';
   Object.keys(BC).forEach(k=>{s+=bModArt(k,BC[k],r)});
-  BWIRE.forEach(w=>{
-    const a=BPT[w[1]],b=BPT[w[2]],g=bGeom(a,b),flow=w[4],I=Math.abs(r.fl[flow]||0);
-    BWG[w[0]]={g,kind:w[3],flow,name:w[5],I};
+  Object.keys(BWG).forEach(k=>delete BWG[k]);
+  (BN.wires||[]).forEach((w,i)=>{
+    const a=BPT[w.a],b=BPT[w.b];if(!a||!b)return;
+    const g=bGeom(a,b),key=bWkey(w.a,w.b),I=Math.abs(r.wireI[key]||0),ac=a.kind==='l'||a.kind==='nn'||b.kind==='l'||b.kind==='nn';
+    const bad=a.kind!==b.kind;
+    BWG[key]={g,a:w.a,b:w.b,ac,I,name:bPName(w.a)+' ↔ '+bPName(w.b)};
     const d=`M${g[0]} ${g[1]}C${g[2]} ${g[3]} ${g[4]} ${g[5]} ${g[6]} ${g[7]}`;
-    s+=`<path d="${d}" class="bw${I<.005?' dead':''}" style="stroke:${BCOL[w[3]]}"/>`;
+    s+=`<path d="${d}" class="bw-hit" data-w="${i}"/><path d="${d}" class="bw${I<.005?' dead':''}${bad?' mis':''}" style="stroke:${bad?'#e0762c':BCOL[a.kind]}"/>`;
   });
   Object.keys(BPT).forEach(id=>{
     const p=BPT[id],lx=p.side==='l'?p.x-8:p.side==='r'?p.x+8:p.x,ly=p.side==='t'?p.y-8:p.side==='b'?p.y+14:p.y+4,an=p.side==='l'?'end':p.side==='r'?'start':'middle';
-    s+=`<g data-p="${id}"><circle cx="${p.x}" cy="${p.y}" r="5.5" class="acterm" style="stroke:${BCOL[p.kind]}"/>${p.lab?`<text x="${lx}" y="${ly}" class="aclab" text-anchor="${an}">${esc(p.lab)}</text>`:''}</g>`;
+    s+=`<g class="bpt" data-p="${id}"><circle cx="${p.x}" cy="${p.y}" r="15" class="achit"/><circle cx="${p.x}" cy="${p.y}" r="6" class="acterm${BARM===id?' arm':''}${(BN.wires||[]).some(w=>w.a===id||w.b===id)?' on':''}" style="stroke:${BCOL[p.kind]}"/>${p.lab?`<text x="${lx}" y="${ly}" class="aclab" text-anchor="${an}">${esc(p.lab)}</text>`:''}</g>`;
   });
   /* meters */
   ['A1','A2'].forEach(id=>{
@@ -167,8 +172,8 @@ function bRender(){
 function bPanels(r,rv){
   const q=id=>document.getElementById(id),S=BN,B=r.B;
   const nE=r.checks.filter(c=>c[0]==='err').length+(r.fault?r.fault.items.filter(c=>c[0]==='err').length:0),nW=r.checks.filter(c=>c[0]==='warn').length+(r.fault?r.fault.items.filter(c=>c[0]==='warn').length:0);
-  const lvl=nE?'err':nW?'warn':'ok';
-  q('bnverdict').className='verdict '+lvl;q('bnverdict').innerHTML=`<span class="pill ${lvl}">${LABEL[lvl]}</span><b>${nE?`พบปัญหาร้ายแรง ${nE} จุด`:nW?`ใช้งานได้ แต่มี ${nW} ข้อควรระวัง`:'วงจรและอุปกรณ์ป้องกันเหมาะสม'}</b>`;
+  const lvl=nE?'err':nW?'warn':'ok',noW=!(S.wires||[]).length;
+  q('bnverdict').className='verdict '+(noW?'':lvl);q('bnverdict').innerHTML=noW?`<span class="pill idle">ยังไม่เริ่ม</span><b>ยังไม่ได้ต่อสาย</b>`:`<span class="pill ${lvl}">${LABEL[lvl]}</span><b>${nE?`พบปัญหาร้ายแรง ${nE} จุด`:nW?`ใช้งานได้ แต่มี ${nW} ข้อควรระวัง`:'วงจรและอุปกรณ์ป้องกันเหมาะสม'}</b>`;
   const P=r.st.ic*r.st.vb,net=r.st.Inet,use=B.Ah*(Math.max(0,S.soc-(100-B.dod))/100);
   const rt=net<-.05?`ใช้ได้อีก ≈ ${f(use/(-net),1)} ชม.`:net>.05?`เต็มใน ≈ ${f(B.Ah*(100-S.soc)/100/net,1)} ชม.`:'สมดุล';
   const mx=[
@@ -266,13 +271,13 @@ function bOnChange(){
   bSyncCtl();bRender();touch();
 }
 const BPRESETS={
-  p12(){Object.assign(BN,{sys:12,panel:'b-100',nS:1,nP:2,bat:'bb-lfp12-100',bP:1,ctrl:'mppt30',inv:'i12-1000',invOn:true,G:800,Ta:30,soc:60,sc:'none',spd:600,
+  p12(){bAutoWire();Object.assign(BN,{sys:12,panel:'b-100',nS:1,nP:2,bat:'bb-lfp12-100',bP:1,ctrl:'mppt30',inv:'i12-1000',invOn:true,G:800,Ta:30,soc:60,sc:'none',spd:600,
     pf:{a:10,t:'pv'},pb:{a:25,t:'dc500'},bf:{a:125,t:'t160'},bb:{a:125,t:'dc500'},acb:10,cPV:{mm:4,len:10},cB:{mm:25,len:1},loads:{'led-dc':{q:3,on:true},'led-ac':{q:2,on:true},'fan':{q:1,on:true}}})},
-  p24(){Object.assign(BN,{sys:24,panel:'b-330',nS:2,nP:2,bat:'bb-lfp24-100',bP:2,ctrl:'mppt40',inv:'i24-2000',invOn:true,G:900,Ta:32,soc:70,sc:'none',spd:1000,
+  p24(){bAutoWire();Object.assign(BN,{sys:24,panel:'b-330',nS:2,nP:2,bat:'bb-lfp24-100',bP:2,ctrl:'mppt40',inv:'i24-2000',invOn:true,G:900,Ta:32,soc:70,sc:'none',spd:1000,
     pf:{a:15,t:'pv'},pb:{a:32,t:'dc1000'},bf:{a:100,t:'t160'},bb:{a:100,t:'dc500'},acb:16,cPV:{mm:6,len:15},cB:{mm:25,len:1},loads:{'pump-ac':{q:1,on:true},'led-ac':{q:4,on:true},'pump-dc':{q:0,on:false}}})},
-  p48(){Object.assign(BN,{sys:48,panel:'b-450',nS:4,nP:2,bat:'bb-lfp48-100',bP:2,ctrl:'mppt100',inv:'i48-5000',invOn:true,G:900,Ta:32,soc:80,sc:'none',spd:1000,
+  p48(){bAutoWire();Object.assign(BN,{sys:48,panel:'b-450',nS:4,nP:2,bat:'bb-lfp48-100',bP:2,ctrl:'mppt100',inv:'i48-5000',invOn:true,G:900,Ta:32,soc:80,sc:'none',spd:1000,
     pf:{a:20,t:'pv'},pb:{a:40,t:'dc1000'},bf:{a:150,t:'t160'},bb:{a:160,t:'dc500'},acb:32,cPV:{mm:6,len:20},cB:{mm:35,len:1.5},loads:{'air9':{q:1,on:true},'pump-ac':{q:1,on:true},'led-ac':{q:6,on:true},'fan':{q:2,on:true}}})},
-  bad(){Object.assign(BN,{sys:24,panel:'b-450',nS:3,nP:3,bat:'bb-lfp24-100',bP:1,ctrl:'pwm20',inv:'i24-2000',invOn:true,G:1000,Ta:35,soc:50,sc:'bshort',spd:0,
+  bad(){bAutoWire();BN.wires=BN.wires.filter(w=>!(w.a==='PVF.o'||w.b==='PVF.o'||w.a==='ARR+'||w.a==='SPD.PE'));BN.wires.push({a:'ARR+',b:'PVB.i'});BN.wires.push({a:'BBK.o',b:'INV.d-'});Object.assign(BN,{sys:24,panel:'b-450',nS:3,nP:3,bat:'bb-lfp24-100',bP:1,ctrl:'pwm20',inv:'i24-2000',invOn:true,G:1000,Ta:35,soc:50,sc:'bshort',spd:0,
     pf:{a:0,t:'ac'},pb:{a:63,t:'ac'},bf:{a:0,t:'anl32'},bb:{a:200,t:'ac'},acb:6,cPV:{mm:2.5,len:40},cB:{mm:6,len:3},loads:{'air12':{q:1,on:true},'pump-ac':{q:1,on:true},'led-ac':{q:2,on:true}}})}
 };
 function bSnapshot(){return JSON.parse(JSON.stringify(BN))}
@@ -293,8 +298,9 @@ function bRestore(o){
   if(B_SCEN.some(x=>x[0]===o.sc))BN.sc=o.sc;
   BN.pos={};if(o.pos&&typeof o.pos==='object')Object.keys(BM).forEach(k=>{const a=o.pos[k];if(Array.isArray(a))bMove(k,n(a[0],0,-2000,2000),n(a[1],0,-2000,2000))});
   BN.zoom=n(o.zoom,1,.5,2.5);
+  if(Array.isArray(o.wires))BN.wires=o.wires.filter(w=>w&&BPORT[w.a]&&BPORT[w.b]&&w.a!==w.b).map(w=>({a:w.a,b:w.b}));else bAutoWire();
   if(o.m&&typeof o.m==='object'){
-    ['A1','A2'].forEach(k=>{const m=o.m[k];if(m)Object.assign(BN.m[k],{x:n(m.x,0,-100,4000),y:n(m.y,0,-100,4000),wire:BWIRE.some(w=>w[0]===m.wire)?m.wire:null,t:n(m.t,.5,.02,.98),type:m.type==='ac'?'ac':'dcac',both:!!m.both})});
+    ['A1','A2'].forEach(k=>{const m=o.m[k];if(m)Object.assign(BN.m[k],{x:n(m.x,0,-100,4000),y:n(m.y,0,-100,4000),wire:typeof m.wire==='string'?m.wire.slice(0,60):null,t:n(m.t,.5,.02,.98),type:m.type==='ac'?'ac':'dcac',both:!!m.both})});
     ['VB','PR','PB'].forEach(k=>{const m=o.m[k];if(m)Object.assign(BN.m[k],{x:n(m.x,0,-100,4000),y:n(m.y,0,-100,4000)});if(m&&k!=='VB')BN.m[k].port=BPORT[m.port]?m.port:null});
   }
 }
@@ -318,16 +324,29 @@ function initBench(){
   const mt=document.getElementById('bnmeters');
   mt.addEventListener('change',e=>{const el=e.target,k=el.dataset.mk;if(!k)return;const [id,f2]=k.split('.');BN.m[id][f2]=el.type==='checkbox'?el.checked:el.value;bRender();touch()});
   /* svg interaction */
-  let mv=null,md=null,raf=0;
+  let mv=null,md=null,raf=0,wd=null,tmp=null;
   const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
   const later=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;bRender()})};
+  const wireAdd=(a,b)=>{
+    if(a===b)return;
+    if(!(BN.wires||[]).some(w=>bWkey(w.a,w.b)===bWkey(a,b)))BN.wires.push({a,b});
+    BARM=null;BLATCH={};bRender();touch();
+  };
   svg.addEventListener('pointerdown',e=>{
+    const pe=e.target.closest('[data-p]');
+    if(pe){e.preventDefault();wd={id:pe.dataset.p,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','bw tmp');tmp.setAttribute('style','stroke:#888;stroke-dasharray:5 5');svg.appendChild(tmp);try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
     const m=e.target.closest('[data-m]');
     if(m){e.preventDefault();md={id:m.dataset.m};try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
     const c=e.target.closest('[data-c]');
     if(c){e.preventDefault();const p=pt(e),o=BN.pos[c.dataset.c]||[0,0];mv={k:c.dataset.c,sx:p.x,sy:p.y,ox:o[0],oy:o[1],moved:false};try{svg.setPointerCapture(e.pointerId)}catch(_){}}
   });
   svg.addEventListener('pointermove',e=>{
+    if(wd){
+      const p=pt(e),a=BPT[wd.id];
+      if(Math.hypot(p.x-a.x,p.y-a.y)>8)wd.moved=true;
+      if(wd.moved&&tmp)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+      return;
+    }
     if(md){
       const p=pt(e),m=BN.m[md.id];m.x=p.x;m.y=p.y;
       if(md.id==='A1'||md.id==='A2'){
@@ -346,7 +365,18 @@ function initBench(){
       mv.moved=true;bMove(mv.k,mv.ox+p.x-mv.sx,mv.oy+p.y-mv.sy);later();
     }
   });
-  const end=()=>{
+  const end=e=>{
+    if(wd){
+      const d=wd;wd=null;if(tmp){tmp.remove();tmp=null}
+      if(d.moved){
+        const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-p]');
+        if(t)wireAdd(d.id,t.dataset.p);else{BARM=null;bRender()}
+      }else{
+        if(BARM&&BARM!==d.id)wireAdd(BARM,d.id);
+        else{BARM=BARM===d.id?null:d.id;bRender()}
+      }
+      return;
+    }
     if(md){md=null;bRender();touch();return}
     if(mv){
       const m=mv;mv=null;
@@ -357,11 +387,15 @@ function initBench(){
       }
     }
   };
-  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{md=null;mv=null});
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{md=null;mv=null;wd=null;if(tmp){tmp.remove();tmp=null}});
+  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){BN.wires.splice(+w.dataset.w,1);BLATCH={};bRender();touch()}});
   const q=id=>document.getElementById(id);
   q('bnzoom').addEventListener('input',e=>bSetZoom(+e.target.value/100));q('bnzoom').addEventListener('change',()=>touch());
   q('bnzin').addEventListener('click',()=>{bSetZoom(BN.zoom+.1);touch()});q('bnzout').addEventListener('click',()=>{bSetZoom(BN.zoom-.1);touch()});
   q('bnreset').addEventListener('click',()=>{BN.pos={};BN.zoom=1;bRender();touch()});
+  q('bnauto').addEventListener('click',()=>{bAutoWire();BLATCH={};bRender();touch()});
+  q('bnclear').addEventListener('click',()=>{BN.wires=[];BARM=null;BLATCH={};bRender();touch()});
   q('bnreset2').addEventListener('click',()=>{BLATCH={};BN.sw={PVF:1,PVB:1,BF:1,BBK:1,ACB:1,INV:1};bRender();touch()});
+  if(!Array.isArray(BN.wires))bAutoWire();
   bSyncCtl();bRender();
 }

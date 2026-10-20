@@ -409,3 +409,7 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 .cfmbtn{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 
 .savecard .actions{display:flex;flex-wrap:wrap;gap:8px}
+
+.bw-hit{fill:none;stroke:transparent;stroke-width:12;cursor:pointer}
+.bw.mis{stroke-dasharray:6 4}
+.bpt{cursor:crosshair}
