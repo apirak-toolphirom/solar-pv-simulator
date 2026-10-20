@@ -401,3 +401,9 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 .bfault:empty{display:none}.bfault{margin-top:10px}
 .sech{margin:14px 0 6px}
 @media(max-width:760px){.bnload{grid-template-columns:1fr 1fr}.bnload span:first-child{grid-column:1/-1}}
+
+/* ---- confirm pop-up ---- */
+.cfm{position:fixed;inset:0;z-index:1000;background:rgba(10,15,20,.55);display:grid;place-items:center;padding:16px}
+.cfmbox{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:420px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.cfmbox h2{text-transform:none;letter-spacing:0;margin:0 0 8px;font-size:18px}.cfmbox p{margin:0 0 16px;line-height:1.55;font-size:14.5px}
+.cfmbtn{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}

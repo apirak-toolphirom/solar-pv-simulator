@@ -166,7 +166,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();initPdfImport();
-  initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();initFile();initCloud();
+  initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

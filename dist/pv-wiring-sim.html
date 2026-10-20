@@ -405,6 +405,12 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 .bfault:empty{display:none}.bfault{margin-top:10px}
 .sech{margin:14px 0 6px}
 @media(max-width:760px){.bnload{grid-template-columns:1fr 1fr}.bnload span:first-child{grid-column:1/-1}}
+
+/* ---- confirm pop-up ---- */
+.cfm{position:fixed;inset:0;z-index:1000;background:rgba(10,15,20,.55);display:grid;place-items:center;padding:16px}
+.cfmbox{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;max-width:420px;width:100%;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.cfmbox h2{text-transform:none;letter-spacing:0;margin:0 0 8px;font-size:18px}.cfmbox p{margin:0 0 16px;line-height:1.55;font-size:14.5px}
+.cfmbtn{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -4052,6 +4058,40 @@ function initCloud(){
   });
 }
 
+/* ---- confirmation pop-up for the submit buttons ---- */
+function askConfirm(title,body,okLabel){
+  return new Promise(res=>{
+    const prev=document.activeElement,ov=document.createElement('div');
+    ov.className='cfm';ov.innerHTML=`<div class="cfmbox" role="dialog" aria-modal="true" aria-labelledby="cfmt"><h2 id="cfmt">${esc(title)}</h2><p>${body}</p><div class="cfmbtn"><button class="btn" data-x="0">ยกเลิก</button><button class="btn pri" data-x="1">${esc(okLabel||'ยืนยัน')}</button></div></div>`;
+    const done=v=>{document.removeEventListener('keydown',key,true);ov.remove();try{prev&&prev.focus()}catch(e){}res(v)};
+    const key=e=>{if(e.key==='Escape'){e.preventDefault();done(false)}};
+    ov.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(b)done(b.dataset.x==='1');else if(e.target===ov)done(false)});
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(ov);ov.querySelector('[data-x="0"]').focus();
+  });
+}
+function guardButtons(container,map){
+  if(!container)return;
+  container.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b||!map[b.id]||b._ok)return;
+    e.stopPropagation();e.preventDefault();
+    const m=map[b.id]();
+    askConfirm(m[0],m[1],m[2]).then(ok=>{if(ok){b._ok=true;b.click();b._ok=false}});
+  },true);
+}
+function initConfirm(){
+  const who=()=>{readMember();return `<b>${esc(MEMBER.name||'(ยังไม่ได้กรอกชื่อ)')}</b>${MEMBER.sid?' · รหัส '+esc(MEMBER.sid):''}`};
+  guardButtons($('#smsend').parentElement,{
+    smsend:()=>['ยืนยันการส่งงาน?',`จะส่งผลสรุปของ ${who()} ไปให้ผู้สอน ส่งซ้ำได้ ระบบใช้ผลที่ส่งล่าสุด`,'ยืนยันส่งงาน'],
+    smshot:()=>['สร้างภาพรายงาน?','สร้างภาพรายงานจากผลปัจจุบัน ภาพอยู่ในเครื่องนี้เท่านั้น ไม่ได้ส่งให้ผู้สอน','ยืนยัน สร้างภาพ'],
+    smcopy:()=>['คัดลอกสรุป?','คัดลอกข้อความสรุปผลปัจจุบันไปที่คลิปบอร์ด','ยืนยัน คัดลอก']
+  });
+  guardButtons($('#cloudsave').parentElement,{
+    cloudsave:()=>['บันทึกขึ้น Drive?',`บันทึกงานของ ${who()} ขึ้น Drive ของผู้สอน ถ้าเคยบันทึกไว้แล้วจะถูกแทนที่ด้วยงานปัจจุบัน`,'ยืนยัน บันทึก'],
+    cloudload:()=>['โหลดจาก Drive?',`โหลดงานของ ${who()} จาก Drive งานที่เปิดอยู่ในเครื่องนี้จะถูกแทนที่ (ควรกด "บันทึกเป็นไฟล์" สำรองไว้ก่อน)`,'ยืนยัน โหลด']
+  });
+}
+
 /* ---- app shell: tabs, persistence, boot ---- */
 const TABS=['equip','wiring','ac','pv','load','backup','events','bench','submit'];
 let curTab='equip',loadedState=false,saveTimer=0,dirtyCat=false;
@@ -4220,7 +4260,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();initPdfImport();
-  initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();initFile();initCloud();
+  initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

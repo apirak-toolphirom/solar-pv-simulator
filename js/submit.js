@@ -260,3 +260,37 @@ function initCloud(){
     try{const o=JSON.parse(j.data);applyProjectFile({catalog:o.project&&o.project.catalog,project:o.project&&o.project.project});setSt('โหลดจาก Drive แล้ว (บันทึกเมื่อ '+new Date(j.saved).toLocaleString('th-TH')+')')}catch(e){setSt('ไฟล์บน Drive อ่านไม่ได้')}
   });
 }
+
+/* ---- confirmation pop-up for the submit buttons ---- */
+function askConfirm(title,body,okLabel){
+  return new Promise(res=>{
+    const prev=document.activeElement,ov=document.createElement('div');
+    ov.className='cfm';ov.innerHTML=`<div class="cfmbox" role="dialog" aria-modal="true" aria-labelledby="cfmt"><h2 id="cfmt">${esc(title)}</h2><p>${body}</p><div class="cfmbtn"><button class="btn" data-x="0">ยกเลิก</button><button class="btn pri" data-x="1">${esc(okLabel||'ยืนยัน')}</button></div></div>`;
+    const done=v=>{document.removeEventListener('keydown',key,true);ov.remove();try{prev&&prev.focus()}catch(e){}res(v)};
+    const key=e=>{if(e.key==='Escape'){e.preventDefault();done(false)}};
+    ov.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(b)done(b.dataset.x==='1');else if(e.target===ov)done(false)});
+    document.addEventListener('keydown',key,true);
+    document.body.appendChild(ov);ov.querySelector('[data-x="0"]').focus();
+  });
+}
+function guardButtons(container,map){
+  if(!container)return;
+  container.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b||!map[b.id]||b._ok)return;
+    e.stopPropagation();e.preventDefault();
+    const m=map[b.id]();
+    askConfirm(m[0],m[1],m[2]).then(ok=>{if(ok){b._ok=true;b.click();b._ok=false}});
+  },true);
+}
+function initConfirm(){
+  const who=()=>{readMember();return `<b>${esc(MEMBER.name||'(ยังไม่ได้กรอกชื่อ)')}</b>${MEMBER.sid?' · รหัส '+esc(MEMBER.sid):''}`};
+  guardButtons($('#smsend').parentElement,{
+    smsend:()=>['ยืนยันการส่งงาน?',`จะส่งผลสรุปของ ${who()} ไปให้ผู้สอน ส่งซ้ำได้ ระบบใช้ผลที่ส่งล่าสุด`,'ยืนยันส่งงาน'],
+    smshot:()=>['สร้างภาพรายงาน?','สร้างภาพรายงานจากผลปัจจุบัน ภาพอยู่ในเครื่องนี้เท่านั้น ไม่ได้ส่งให้ผู้สอน','ยืนยัน สร้างภาพ'],
+    smcopy:()=>['คัดลอกสรุป?','คัดลอกข้อความสรุปผลปัจจุบันไปที่คลิปบอร์ด','ยืนยัน คัดลอก']
+  });
+  guardButtons($('#cloudsave').parentElement,{
+    cloudsave:()=>['บันทึกขึ้น Drive?',`บันทึกงานของ ${who()} ขึ้น Drive ของผู้สอน ถ้าเคยบันทึกไว้แล้วจะถูกแทนที่ด้วยงานปัจจุบัน`,'ยืนยัน บันทึก'],
+    cloudload:()=>['โหลดจาก Drive?',`โหลดงานของ ${who()} จาก Drive งานที่เปิดอยู่ในเครื่องนี้จะถูกแทนที่ (ควรกด "บันทึกเป็นไฟล์" สำรองไว้ก่อน)`,'ยืนยัน โหลด']
+  });
+}
