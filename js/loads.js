@@ -61,14 +61,14 @@ function loadView(){
     ['โหลดสำคัญต่อวัน',f(Ec,2)+' kWh',`สูงสุด ${f(pc/1000,2)} kW`],
     ['เทียบพิกัด AC อินเวอร์เตอร์',I.pac?f(pk/I.pac*100,0)+' %':'-',`${esc(I.name)} ${I.pac/1000} kW`]
   ];
-  const p3=isPh3(I);
+  const inv3=isPh3(I),p3=inv3||(typeof ACS!=='undefined'&&ACS.set.supply==='3');
   if(p3){
     const pk3=P.ph.map(a=>Math.max(...a)),e3=P.ph.map(a=>a.reduce((x,y)=>x+y,0)*dt);
     mx.push(['สูงสุดรายเฟส L1 / L2 / L3',pk3.map(v=>f(v/1000,2)).join(' / ')+' kW',`พลังงาน ${e3.map(v=>f(v,1)).join(' / ')} kWh`]);
     const cap=I.pac/3;
-    pk3.forEach((v,q)=>{if(v>cap)w.push(`เฟส L${q+1} สูงสุด ${f(v/1000,2)} kW เกินกำลังที่อินเวอร์เตอร์จ่ายได้ต่อเฟส ${f(cap/1000,2)} kW ส่วนเกินซื้อจากกริด`)});
+    if(inv3)pk3.forEach((v,q)=>{if(v>cap)w.push(`เฟส L${q+1} สูงสุด ${f(v/1000,2)} kW เกินกำลังที่อินเวอร์เตอร์จ่ายได้ต่อเฟส ${f(cap/1000,2)} kW ส่วนเกินซื้อจากกริด`)});
     const hi=Math.max(...e3),lo=Math.min(...e3);
-    if(hi>0&&(hi-lo)/hi>0.4)w.push(`โหลดแต่ละเฟสไม่สมดุล (พลังงานต่อวันต่างกัน ${f((hi-lo)/hi*100,0)} %) ย้ายโหลดบางตัวไปเฟสที่เบากว่า`+(String(I.asym)==='1'?'':' รุ่นนี้จ่ายไฟเท่ากันทุกเฟส เฟสที่โหลดหนักจะซื้อไฟ ขณะเฟสอื่นขายไฟ'));
+    if(hi>0&&(hi-lo)/hi>0.4)w.push(`โหลดแต่ละเฟสไม่สมดุล (พลังงานต่อวันต่างกัน ${f((hi-lo)/hi*100,0)} %) ย้ายโหลดบางตัวไปเฟสที่เบากว่า`+(!inv3?' อินเวอร์เตอร์ 1 เฟสช่วยได้เฉพาะเฟสที่ต่อ เฟสอื่นซื้อไฟจากกริด':String(I.asym)==='1'?'':' รุ่นนี้จ่ายไฟเท่ากันทุกเฟส เฟสที่โหลดหนักจะซื้อไฟ ขณะเฟสอื่นขายไฟ'));
   }
   document.querySelectorAll('.ldph').forEach(e=>e.hidden=!p3);
   $('#ldmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');

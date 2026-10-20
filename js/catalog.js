@@ -57,6 +57,10 @@ const num=v=>{const n=typeof v==='number'?v:parseFloat(String(v).replace(/,/g,''
 const BUILTIN=(()=>{
   const inv=[],bat=[];
   const hw=(model,o)=>inv.push(Object.assign({id:slug('huawei '+model),brand:'Huawei',model,builtin:1},o));
+  // Solis S6-EH1P(6-8)K-L-PLUS / S6-EH1P10K-L-PLUS(21A): single-phase low-voltage hybrid (on/off-grid), Thai flyer
+  [[6,16,20,12000,1],[8,32,40,16000,2],[10,42,48,20000,2]].forEach(([k,im,sc,rec,ns])=>inv.push({id:slug(`solis s6-eh1p${k}k-l-plus`),brand:'Solis',model:`S6-EH1P${k}K-L-PLUS${k===10?' (21A)':''}`,type:'hybrid',phase:'1',
+    pac:k*1000,vmax:500,lo:90,hi:435,start:90,imax:im,isc:sc,pvRec:rec,eff:96.1,bvMin:40,bvMax:60,bchg:k,bdis:k,backupKw:k,builtin:1,
+    note:`Hybrid 1 เฟส On/Off-grid แบตแรงดันต่ำ 40–60 V (ลิเธียม/ตะกั่วกรด, CAN/RS485) ชาร์จ/จ่าย ${k} kW · 2 MPPT ${ns} สตริงต่อ MPPT กระแสต่ออินพุต ${k===10?21:16} A · มีพอร์ต GEN · สลับไปไฟสำรอง <10 ms · โอเวอร์โหลด 200% 10 วินาที · ขนานได้ 6 เครื่อง · eff สูงสุด 96.2%`}));
   // SUN2000-5/8/10KTL-M0: three-phase on-grid, no battery port
   [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',phase:'3',asym:'0',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
     note:`3 เฟส 380/400 V · 2 MPPT (1 สตริง/MPPT) · eff สูงสุด ${mx}% · PV แนะนำใช้ค่าเดียวกับรุ่น M1 (ดาต้าชีต M0 ไม่ระบุ)`}));

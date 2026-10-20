@@ -81,7 +81,7 @@ function acArt(k,c,I,S){
   }else if(k==='INV'){
     g+=`<rect x="0" y="0" width="${c.w}" height="${c.h}" rx="14" class="acbox inv"/>`;
     const band=(y0,y1,x0,x1,col,title,icon)=>`<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" rx="7" style="fill:${col};opacity:.13"/><text x="${x0+6}" y="${y0+12}" class="a-grp" style="fill:${col}">${title}</text>`+icon;
-    if(p3){
+    if(c.ph3){
       const b3=c.bp===3;
       g+=band(8,186,3,100,'var(--s1)','GRID 3 เฟส','')+AI.pylon(128,96,.5)
         +band(228,b3?370:330,3,100,'var(--s2)',b3?'BACKUP 3 เฟส':'BACKUP 1 เฟส','')

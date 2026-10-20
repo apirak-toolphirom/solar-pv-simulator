@@ -1,6 +1,6 @@
 /* ---- AC / system wiring: real inverter ports (GRID, BACKUP, GEN, CT, smart meter, BAT) ---- */
-const ACS={apply:false,wires:[],armed:null,pos:{},zoom:1,wm:{},pm:{},rh:12,
-  set:{mode:'selfuse',reserve:20,expLimOn:false,expLimW:0,gridStd:'PEA',backupEn:true,meterType:'ct',ctPos:'gridL',ctDir:'toGrid',
+const ACS={apply:false,wires:[],armed:null,pos:{},zoom:1,wm:{},pm:{},rh:12,invPh:0,
+  set:{supply:'1',mode:'selfuse',reserve:20,expLimOn:false,expLimW:0,gridStd:'PEA',backupEn:true,meterType:'ct',ctPos:'gridL',ctDir:'toGrid',
     mAddr:1,mBaud:9600,iAddr:1,iBaud:9600,batType:'li',batComm:'can',genMode:'off',cbGrid:32,cbBackup:32}};
 const AC_C1={
   G:{x:20,y:40,w:150,h:130,t:'กริด (การไฟฟ้า)'},
@@ -64,6 +64,10 @@ function acTables3(bp){
 const mkTM=T=>{const M={};T.forEach(t=>M[t[0]]={id:t[0],lab:t[1],kind:t[2],bx:t[3],by:t[4],x:t[3],y:t[4],side:t[5],comp:t[6],av:t[7]||''});return M};
 const AC_MODES={'1':{C:AC_C1,T:AC_T1,BUS:AC_BUS1}};
 {const a=acTables3(3),b=acTables3(1);AC_MODES['3']=a;AC_MODES['3b1']=b}
+/* 1-phase inverter on a 3-phase supply: 3-phase grid, meter and main board; the inverter's single L goes to any one phase */
+{const T3=acTables3(1),k3=new Set(['G','M','DB']),k1=['CDB','GEN','INV','BAT'];
+ AC_MODES['1x3']={C:{G:T3.C.G,M:T3.C.M,DB:T3.C.DB,CDB:AC_C1.CDB,GEN:AC_C1.GEN,INV:AC_C1.INV,BAT:AC_C1.BAT},
+  T:T3.T.filter(t=>k3.has(t[6])).concat(AC_T1.filter(t=>k1.includes(t[6])&&t[0]!=='INV.C1'&&t[0]!=='INV.C2')),BUS:T3.BUS}}
 /* Huawei SUN2000 layout: battery signal goes to the inverter COM port as EN/GND (enable) and 485A2/485B2 (RS485 to the LUNA power module),
    the smart meter uses 485A1/485B1; no CT input and no GEN port */
 function acHuawei(M){
@@ -77,11 +81,11 @@ function acHuawei(M){
     ['BAT.EP','Enable+','en+',bx,170,'l','BAT'],['BAT.EN','Enable−','en-',bx,195,'l','BAT'],['BAT.RA','485A','ba',bx,225,'l','BAT'],['BAT.RB','485B','bb',bx,250,'l','BAT']);
   return{C,T,BUS:M.BUS,hw:1};
 }
-['1','3','3b1'].forEach(k=>AC_MODES['h'+k]=acHuawei(AC_MODES[k]));
+['1','3','3b1','1x3'].forEach(k=>AC_MODES['h'+k]=acHuawei(AC_MODES[k]));
 Object.values(AC_MODES).forEach(m=>m.TM=mkTM(m.T));
 /* active mode follows the selected inverter; each mode keeps its own wires and module positions */
 let AC_C,AC_T,AC_BUS,AC_TM,AC_MODE=null;
-const acModeOf=I=>isPh3(I)?(bkPh3(I)||I.type==='on-grid'?'3':'3b1'):'1';
+const acModeOf=I=>isPh3(I)?(bkPh3(I)||I.type==='on-grid'?'3':'3b1'):(ACS.set.supply==='3'?'1x3':'1');
 const acHwOf=I=>String(I.brand||'').toLowerCase()==='huawei';
 let AC_HW=false,AC_KEY=null;
 function acEnsureMode(){
@@ -136,6 +140,7 @@ const hasWire=(a,b)=>ACS.wires.some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a));
 const anyOn=id=>ACS.wires.some(w=>w.a===id||w.b===id);
 
 const SWAP_OK=(a,b)=>{const P=[['a','b'],['ba','bb'],['en+','en-'],['ct1','ct2'],['canh','canl'],['dc+','dc-']];return P.some(([x,y])=>(a===x&&b===y)||(a===y&&b===x))};
+const acKindOk=(a,b)=>a===b||SWAP_OK(a,b)||(isLk(a)&&isLk(b)&&(a==='L'||b==='L'));
 const isLk=k=>k==='L'||k==='L1'||k==='L2'||k==='L3';
 const tName=T=>T.comp==='INV'?'INV '+T.lab:T.comp+' '+T.lab;
 function acAnalyze(){
@@ -146,20 +151,20 @@ function acAnalyze(){
   ACS.wires.forEach(w=>{
     const A=AC_TM[w.a],B=AC_TM[w.b];if(!A||!B)return;
     if(!acAvail(A)||!acAvail(B))add('err',`สาย ${tName(A)} ↔ ${tName(B)}: อินเวอร์เตอร์ประเภท ${ty} ไม่มีพอร์ตนี้`);
-    else if(A.kind!==B.kind&&!SWAP_OK(A.kind,B.kind)){
+    else if(!acKindOk(A.kind,B.kind)){
       if(p3&&isLk(A.kind)&&isLk(B.kind))add('err',`ต่อข้ามเฟส: ${tName(A)} (${A.kind}) ↔ ${tName(B)} (${B.kind}) ต้องต่อ L1→L1, L2→L2, L3→L3 ลำดับเฟสผิดทำให้อินเวอร์เตอร์ขึ้นเตือนลำดับเฟส และมิเตอร์วัดกำลังผิดเฟส`);
       else if(['a','b'].includes(A.kind)&&['ba','bb'].includes(B.kind)||['a','b'].includes(B.kind)&&['ba','bb'].includes(A.kind))add('err',`สาย ${tName(A)} ↔ ${tName(B)}: ต่อผิดพอร์ต RS485 ของ Huawei 485A1/485B1 สำหรับสมาร์ทมิเตอร์ 485A2/485B2 สำหรับแบต LUNA2000`);
       else add('err',`สาย ${tName(A)} ↔ ${tName(B)}: ต่อคนละชนิดขั้ว (${KIND_NAME[A.kind]} กับ ${KIND_NAME[B.kind]})`);
     }
   });
   /* short circuits inside a net */
-  const SRC=p3?{'G.L1':'กริด L1','G.L2':'กริด L2','G.L3':'กริด L3','INV.BL1':'BACKUP L1','INV.BL2':'BACKUP L2','INV.BL3':'BACKUP L3','INV.BL':'BACKUP L'}:{'G.L':'กริด','INV.BL':'ขา BACKUP ของอินเวอร์เตอร์','GEN.L':'เครื่องปั่นไฟ'};
+  const SRC=p3?{'G.L1':'กริด L1','G.L2':'กริด L2','G.L3':'กริด L3','INV.BL1':'BACKUP L1','INV.BL2':'BACKUP L2','INV.BL3':'BACKUP L3','INV.BL':'BACKUP L','GEN.L':'เครื่องปั่นไฟ'}:{'G.L':'กริด','INV.BL':'ขา BACKUP ของอินเวอร์เตอร์','GEN.L':'เครื่องปั่นไฟ'};
   const seen=new Set();
   AC_T.forEach(t=>{
     const r=N.root(t[0]);if(seen.has(r))return;seen.add(r);
     const mem=N.members(r);if(mem.length<2)return;
     const kinds=new Set(mem.map(m=>AC_TM[m].kind)),Ls=[...kinds].filter(isLk).sort();
-    const srcPh=[...new Set(mem.filter(m=>/^G\.L[123]$/.test(m)).map(m=>m.slice(2)))],bkPh=[...new Set(mem.filter(m=>/^INV\.BL[123]$/.test(m)).map(m=>'L'+m.slice(-1)))];
+    const srcPh=[...new Set(mem.filter(m=>['G','M','DB'].includes(AC_TM[m].comp)&&/^L[123]$/.test(AC_TM[m].kind)).map(m=>AC_TM[m].kind))].sort(),bkPh=[...new Set(mem.filter(m=>/^INV\.BL[123]$/.test(m)).map(m=>'L'+m.slice(-1)))];
     const shPh=srcPh.length>1?srcPh:bkPh.length>1?bkPh:null;
     if(shPh)add('err',`ชอตระหว่างเฟส ${shPh.join(' กับ ')} (แรงดันระหว่างเฟส 400 V) เบรกเกอร์ตัดทันที อันตรายมาก`);
     if(Ls.length&&kinds.has('N'))add('err',`ไฟ ${Ls.join('/')} ชอตกับ N: สายไลน์และ N ถูกต่อถึงกัน (`+mem.filter(m=>isLk(AC_TM[m].kind)||AC_TM[m].kind==='N').join(', ')+')');
@@ -287,15 +292,15 @@ function acAnalyze(){
   if(S.expLimOn&&d.meterOk&&S.meterType==='ct'&&d.ctRev)add('err','Export limit ทำงานผิดทิศ');
   if(!hyb&&S.batType&&false){}
   if(S.mode==='backup'&&!d.batOk&&hyb)add('warn','โหมด Backup reserve ต้องมีแบต');
-  if(S.genMode!=='off'&&!d.genOk&&hyb&&!p3&&!AC_HW)add('warn','เปิดใช้เครื่องปั่นไฟในตั้งค่า แต่ยังไม่ได้ต่อพอร์ต GEN');
+  if(S.genMode!=='off'&&!d.genOk&&hyb&&(!p3||AC_MODE==='1x3')&&!AC_HW)add('warn','เปิดใช้เครื่องปั่นไฟในตั้งค่า แต่ยังไม่ได้ต่อพอร์ต GEN');
   if(S.backupEn&&!d.backupOk&&hyb&&anyOn('INV.BL'))add('warn','เปิดใช้ Backup แต่การต่อพอร์ต BACKUP ยังไม่ถูก');
   if(!S.backupEn&&d.backupOk)add('warn','ต่อ BACKUP ครบแล้ว แต่ตั้งค่าปิด Backup ตอนไฟดับจะไม่จ่ายไฟ');
-  if(p3&&S.expLimOn&&d.meterOk&&String(I.asym)!=='1')add('warn','รุ่นนี้จ่ายไฟเท่ากันทุกเฟส จำกัดการขายไฟได้จากยอดรวม 3 เฟส ถ้าโหลดแต่ละเฟสไม่เท่ากัน บางเฟสยังไหลออกกริดได้ ดูตาราง "มิเตอร์ 3 เฟส" ด้านล่าง');
-  if((p3||AC_HW)&&S.genMode!=='off')add('warn','ผังนี้ไม่มีพอร์ต GEN (อินเวอร์เตอร์รุ่นนี้ไม่มีพอร์ตเครื่องปั่นไฟ) ตั้งค่าเครื่องปั่นไฟเป็น "ไม่ใช้"');
+  if(p3&&S.expLimOn&&d.meterOk&&String(I.asym)!=='1')add('warn',(AC_MODE==='1x3'?'อินเวอร์เตอร์ 1 เฟสบนไฟ 3 เฟส':'รุ่นนี้จ่ายไฟเท่ากันทุกเฟส')+' จำกัดการขายไฟได้จากยอดรวม 3 เฟส ถ้าโหลดแต่ละเฟสไม่เท่ากัน บางเฟสยังไหลออกกริดได้ ดูตาราง "มิเตอร์ 3 เฟส" ด้านล่าง');
+  if(((p3&&AC_MODE!=='1x3')||AC_HW)&&S.genMode!=='off')add('warn','ผังนี้ไม่มีพอร์ต GEN (อินเวอร์เตอร์รุ่นนี้ไม่มีพอร์ตเครื่องปั่นไฟ) ตั้งค่าเครื่องปั่นไฟเป็น "ไม่ใช้"');
   /* breakers (per phase on three-phase) */
-  const iRated=p3?I.pac/(3*230):I.pac/230,min=iRated*1.2,per=p3?' ต่อเฟส':'';
+  const ph3i=p3&&AC_MODE!=='1x3',iRated=ph3i?I.pac/(3*230):I.pac/230,min=iRated*1.2,per=ph3i?' ต่อเฟส':'';
   const cb=(v,nm,ir)=>{const mn=(ir||iRated)*1.2;if(v<mn)add('warn',`เบรกเกอร์ ${nm} ${v} A เล็กกว่าที่ควรใช้ (กระแสพิกัด${per} ${f(ir||iRated,0)} A × 1.2 ≈ ${f(mn,0)} A) อาจตัดเมื่อโหลดเต็ม`);else if(v>mn*2.2)add('warn',`เบรกเกอร์ ${nm} ${v} A ใหญ่เกินไป ใหญ่กว่าสายและอุปกรณ์ที่ป้องกันได้ ควรเลือกใกล้ ${f(mn,0)} A`)};
-  if(gridPort&&d.gridPort)cb(S.cbGrid,p3?'GRID (3 ขั้ว)':'GRID');
+  if(gridPort&&d.gridPort)cb(S.cbGrid,ph3i?'GRID (3 ขั้ว)':'GRID');
   if(hyb&&d.backupOk)cb(S.cbBackup,'BACKUP',p3&&AC_MODE==='3b1'?(I.backupKw>0?I.backupKw:I.pac/1000)*1000/230:null);
   /* errors summary */
   {const u=new Set();for(let i=ck.length-1;i>=0;i--){const k=ck[i][0]+ck[i][1];if(u.has(k))ck.splice(i,1);else u.add(k)}}
@@ -316,7 +321,16 @@ function acCheck3(I,S,N,add,d,hyb,gridPort){
   else if(!nPE)add('warn','ตู้เมนบ้านยังไม่ได้ต่อสายดิน PE');
   else add('ok','กริด 3 เฟส → ตู้เมนบ้าน ต่อ L1 L2 L3 N PE ครบ'+(d.viaMeter?' (ผ่านสมาร์ทมิเตอร์ 3 เฟส)':''));
   d.gridHouse=!miss.length&&nN;
-  if(gridPort){
+  if(gridPort&&AC_MODE==='1x3'){
+    const ph=PH3.filter(p=>N.same('INV.GL','DB.L'+p+'R')),gn=N.same('INV.GN','DB.NR'),gp=N.same('INV.GP','DB.PR')||N.same('INV.GP','G.PE');
+    if(!anyOn('INV.GL')&&!anyOn('INV.GN'))add('err','พอร์ต GRID (1 เฟส) ยังไม่ได้ต่อกับตู้เมนบ้าน ต่อ L เข้าเฟสใดเฟสหนึ่ง (L1, L2 หรือ L3) และต่อ N');
+    else if(!ph.length)add('err','พอร์ต GRID L ยังไม่ถึงเฟสใดของตู้เมนบ้าน');
+    else if(!gn)add('err','พอร์ต GRID ยังไม่ได้ต่อ N อินเวอร์เตอร์ 1 เฟสต้องใช้ L กับ N (230 V)');
+    else if(!gp)add('warn','พอร์ต GRID ยังไม่ได้ต่อ PE');
+    else add('ok',`พอร์ต GRID 1 เฟสต่อเข้าเฟส L${ph[0]} ของตู้เมนบ้าน ควรเลือกเฟสที่มีโหลดกลางวันมาก`);
+    d.gridPort=ph.length===1&&gn;ACS.invPh=ph.length?+ph[0]-1:0;
+    if(PH3.some((p,i)=>via[i]&&N.same('INV.GL','G.L'+p)&&!N.same('INV.GL','DB.L'+p+'R')))add('err','พอร์ต GRID ต่อก่อนสมาร์ทมิเตอร์ มิเตอร์จะไม่เห็นกำลังของอินเวอร์เตอร์ ต้องต่อหลังมิเตอร์ (ฝั่งโหลด)');
+  }else if(gridPort){
     const ok=PH3.map(p=>N.same('INV.GL'+p,'DB.L'+p+'R')),gn=N.same('INV.GN','DB.NR'),gp=N.same('INV.GP','DB.PR')||N.same('INV.GP','G.PE');
     const touched=PH3.some(p=>anyOn('INV.GL'+p))||anyOn('INV.GN');
     const lack=PH3.filter((p,i)=>!ok[i]).map(p=>'L'+p);
@@ -332,10 +346,16 @@ function acCheck3(I,S,N,add,d,hyb,gridPort){
   else if(!N.same('INV.PF','DB.PR')&&!N.same('INV.PF','G.PE'))add('warn','ตัวถังอินเวอร์เตอร์ต่อ PE แต่ไม่ถึงสายดินของบ้าน');
   d.backupOk=false;d.genOk=false;
   if(!hyb)return;
+  if(AC_MODE==='1x3'&&(anyOn('GEN.L')||anyOn('INV.EL'))){
+    const gl=N.same('GEN.L','INV.EL'),gn=N.same('GEN.N','INV.EN');
+    if(!gl||!gn)add('err','พอร์ต GEN ต้องต่อ L และ N จากเครื่องปั่นไฟ');
+    else{d.genOk=true;add('ok','เครื่องปั่นไฟต่อเข้าพอร์ต GEN')}
+    if(gl&&!(hasWire('GEN.S1','INV.D1')&&hasWire('GEN.S2','INV.D2')||hasWire('GEN.S1','INV.D2')&&hasWire('GEN.S2','INV.D1')))add('warn','ไม่ได้ต่อสาย Start (dry contact) อินเวอร์เตอร์สั่งสตาร์ทเครื่องปั่นไฟเองไม่ได้ ต้องสตาร์ทด้วยมือ');
+  }
   const b3=AC_MODE==='3';
   const outs=b3?PH3.map(p=>'INV.BL'+p):['INV.BL'],to=b3?PH3.map(p=>'CDB.L'+p):['CDB.L'];
   const touched=outs.some(anyOn)||anyOn('INV.BN');
-  if(!touched){add('warn',b3?'ยังไม่ได้ต่อพอร์ต BACKUP 3 เฟส ตอนไฟดับจะไม่มีไฟจ่ายโหลดสำรอง':'ยังไม่ได้ต่อพอร์ต BACKUP (1 เฟส ผ่าน Backup Box) ตอนไฟดับจะไม่มีไฟจ่ายโหลดสำคัญ');return}
+  if(!touched){add('warn',b3?'ยังไม่ได้ต่อพอร์ต BACKUP 3 เฟส ตอนไฟดับจะไม่มีไฟจ่ายโหลดสำรอง':(AC_MODE==='3b1'?'ยังไม่ได้ต่อพอร์ต BACKUP (1 เฟส ผ่าน Backup Box) ตอนไฟดับจะไม่มีไฟจ่ายโหลดสำคัญ':'ยังไม่ได้ต่อพอร์ต BACKUP ตอนไฟดับจะไม่มีไฟจ่ายโหลดสำคัญ'));return}
   const feed=outs.some(o=>PH3.some(p=>N.same(o,'DB.L'+p+'L')||N.same(o,'DB.L'+p+'R')||N.same(o,'G.L'+p)));
   const ok=outs.every((o,i)=>N.same(o,to[i])),bn=N.same('INV.BN','CDB.N');
   if(feed)add('err','พอร์ต BACKUP ต่อเข้าตู้เมนบ้านที่มีไฟกริด ตอนไฟดับอินเวอร์เตอร์จะจ่ายไฟย้อนเข้ากริด (back-feed) อันตรายต่อช่างไฟฟ้า');
@@ -382,6 +402,11 @@ function phaseAt(B,I,i){
   const load=[0,1,2].map(q=>(crit?LP.phc:LP.ph)[q][i]);
   const toLoad=R.direct[i]+R.fromBat[i],exp=R.exp[i];
   let inv;
+  if(AC_MODE==='1x3'){
+    /* 1-phase inverter: all of its output lands on the phase its GRID port is wired to */
+    const q=ACS.invPh||0;inv=[0,0,0];inv[q]=outage?toLoad:toLoad+exp;
+    return outage?{load,inv,grid:[0,0,0],outage:true}:{load,inv,grid:load.map((l,k)=>l-inv[k]),outage:false};
+  }
   if(outage){
     /* island: inverter feeds what it can; 1-phase backup box feeds one circuit only */
     inv=fill3(toLoad,load,asym||AC_MODE==='3b1'?cap*3:cap);
@@ -420,9 +445,10 @@ function acReadout(I){
     +`<tr class="tot"><th>นับแยกรายเฟส</th><td>${f(sum(imp),2)}</td><td>${f(sum(exp),2)}</td></tr>`
     +`<tr class="tot"><th>นับสุทธิรวม 3 เฟส</th><td>${f(nImp,2)}</td><td>${f(nExp,2)}</td></tr>`;
   const notes=[];
-  if(!X.outage&&X.grid.some(g=>g>20)&&X.grid.some(g=>g<-20))notes.push(`เวลา ${hhmm(ACS.rh)} มีเฟสที่ซื้อไฟและเฟสที่ขายไฟพร้อมกัน`+(String(I.asym)==='1'?'':' เพราะรุ่นนี้จ่ายเท่ากันทุกเฟส ขณะโหลดแต่ละเฟสไม่เท่ากัน'));
+  if(!X.outage&&X.grid.some(g=>g>20)&&X.grid.some(g=>g<-20))notes.push(`เวลา ${hhmm(ACS.rh)} มีเฟสที่ซื้อไฟและเฟสที่ขายไฟพร้อมกัน`+(AC_MODE==='1x3'?' เพราะอินเวอร์เตอร์ 1 เฟสจ่ายไฟเข้าเฟสเดียว':String(I.asym)==='1'?'':' เพราะรุ่นนี้จ่ายเท่ากันทุกเฟส ขณะโหลดแต่ละเฟสไม่เท่ากัน'));
   if(mix>0)notes.push(`ทั้งวันมีช่วงที่ซื้อและขายพร้อมกันคนละเฟสรวม ${f(mix,1)} ชม. ผลต่างระหว่าง "นับแยกรายเฟส" กับ "นับสุทธิ" ${f(sum(imp)-nImp,2)} kWh คือไฟที่ถูกนับว่าซื้อ ทั้งที่อีกเฟสกำลังขายอยู่ ค่าไฟจริงขึ้นกับว่ามิเตอร์ของการไฟฟ้านับแบบไหน`);
-  if(String(I.asym)==='1')notes.push('รุ่นนี้จ่ายไฟแต่ละเฟสตามโหลดได้ (สูงสุดเฟสละ '+f(I.pac/3000,2)+' kW) จึงลดการซื้อไฟเฟสที่โหลดหนักได้');
+  if(AC_MODE==='1x3')notes.push(`อินเวอร์เตอร์ 1 เฟสต่อที่เฟส L${(ACS.invPh||0)+1} ไฟจากแผงช่วยได้เฉพาะโหลดเฟสนี้ เฟสอื่นยังซื้อไฟจากกริด ย้ายโหลดกลางวันมาไว้เฟสนี้ หรือย้ายสาย GRID ไปเฟสที่โหลดมากที่สุด`);
+  else if(String(I.asym)==='1')notes.push('รุ่นนี้จ่ายไฟแต่ละเฟสตามโหลดได้ (สูงสุดเฟสละ '+f(I.pac/3000,2)+' kW) จึงลดการซื้อไฟเฟสที่โหลดหนักได้');
   if(X.outage)notes.push(AC_MODE==='3b1'?'ช่วงไฟดับ: พอร์ต BACKUP 1 เฟสจ่ายเฉพาะโหลดในตู้โหลดสำรอง':'ช่วงไฟดับ: อินเวอร์เตอร์จ่ายโหลดเองทั้ง 3 เฟส มิเตอร์กริดเป็นศูนย์');
   body.innerHTML=`<div class="ph3grid"><div><h3>ขณะนี้ (kW)</h3><table class="t ph3t"><thead><tr><th>เฟส</th><th>โหลด</th><th>อินเวอร์เตอร์จ่าย</th><th>กริด</th></tr></thead><tbody>${rows}</tbody></table></div>
     <div><h3>ทั้งวัน (kWh)</h3><table class="t ph3t"><thead><tr><th>เฟส</th><th>ซื้อจากกริด</th><th>ขายคืนกริด</th></tr></thead><tbody>${day}</tbody></table></div></div>`
@@ -463,7 +489,7 @@ function acRender(){
   const errW=new Set();
   ACS.wires.forEach((w,i)=>{
     const a=AC_TM[w.a],b=AC_TM[w.b];if(!a||!b)return;
-    const bad=a.kind!==b.kind&&!SWAP_OK(a.kind,b.kind);
+    const bad=!acKindOk(a.kind,b.kind);
     const col=KIND_COL[a.kind]||'#888',d=path(a,b);
     s+=`<path d="${d}" class="acw-hit" data-w="${i}"/><path d="${d}" class="acw${bad?' bad':''}" style="stroke:${col}" data-w="${i}"/>`;
     if(a.kind==='PE')s+=`<path d="${d}" class="acw pe"/>`;
@@ -497,17 +523,32 @@ function acSyncUI(I){
   {const b=document.querySelector('#acpre [data-acp="meter"]');if(b)b.textContent=p3?'3 เฟส ต่อถูก (สมาร์ทมิเตอร์ 3 เฟส)':'Hybrid ต่อถูก (ใช้สมาร์ทมิเตอร์)'}
   const k3=q('ackey3');if(k3)k3.hidden=!p3;
   const hwn=AC_HW?' · ขั้วตามรุ่น Huawei: แบตต่อ COM เป็น EN/GND และ 485A2/485B2 มิเตอร์ต่อ 485A1/485B1':'';
-  q('acinvnote').textContent=(p3?(I.type==='on-grid'?'รุ่นนี้เป็น On-grid 3 เฟส: มีพอร์ต GRID L1 L2 L3 N PE และ RS485 สำหรับสมาร์ทมิเตอร์ 3 เฟส ไม่มี BACKUP / แบตเตอรี่':`รุ่นนี้เป็น Hybrid 3 เฟส: GRID L1 L2 L3 N PE, BACKUP ${AC_MODE==='3'?'3 เฟส (ทั้งบ้าน)':'1 เฟส (ผ่าน Backup Box)'}, สมาร์ทมิเตอร์ 3 เฟส และแบตเตอรี่ ไม่มีพอร์ต GEN`)+(String(I.asym)==='1'?' · จ่ายไฟแต่ละเฟสตามโหลดได้ (asymmetric)':' · จ่ายไฟเท่ากันทุกเฟส'):I.type==='on-grid'?'รุ่นนี้เป็น On-grid: มีพอร์ต GRID, RS485 และ CT เท่านั้น ไม่มี BACKUP / GEN / แบตเตอรี่':I.type==='off-grid'?'รุ่นนี้เป็น Off-grid: ไม่มีพอร์ต GRID แบบขนานกริด ใช้ GEN เป็นทางเข้า AC และจ่ายโหลดที่ BACKUP':'รุ่นนี้เป็น Hybrid: มีครบทั้ง GRID, BACKUP, GEN, CT/มิเตอร์ และแบตเตอรี่')+hwn;
+  {const sp=q('acsup');if(sp){sp.value=isPh3(I)?'3':S.supply;sp.disabled=isPh3(I)}}
+  q('acinvnote').textContent=(AC_MODE==='1x3'?`ไฟเข้าบ้าน 3 เฟส กับอินเวอร์เตอร์ 1 เฟส (${I.type==='on-grid'?'On-grid':'Hybrid'}): ต่อพอร์ต GRID L เข้าเฟสใดเฟสหนึ่ง (L1, L2 หรือ L3) กับ N ของตู้เมน วัดกริดด้วยสมาร์ทมิเตอร์ 3 เฟส`:p3?(I.type==='on-grid'?'รุ่นนี้เป็น On-grid 3 เฟส: มีพอร์ต GRID L1 L2 L3 N PE และ RS485 สำหรับสมาร์ทมิเตอร์ 3 เฟส ไม่มี BACKUP / แบตเตอรี่':`รุ่นนี้เป็น Hybrid 3 เฟส: GRID L1 L2 L3 N PE, BACKUP ${AC_MODE==='3'?'3 เฟส (ทั้งบ้าน)':'1 เฟส (ผ่าน Backup Box)'}, สมาร์ทมิเตอร์ 3 เฟส และแบตเตอรี่ ไม่มีพอร์ต GEN`)+(String(I.asym)==='1'?' · จ่ายไฟแต่ละเฟสตามโหลดได้ (asymmetric)':' · จ่ายไฟเท่ากันทุกเฟส'):I.type==='on-grid'?'รุ่นนี้เป็น On-grid: มีพอร์ต GRID, RS485 และ CT เท่านั้น ไม่มี BACKUP / GEN / แบตเตอรี่':I.type==='off-grid'?'รุ่นนี้เป็น Off-grid: ไม่มีพอร์ต GRID แบบขนานกริด ใช้ GEN เป็นทางเข้า AC และจ่ายโหลดที่ BACKUP':'รุ่นนี้เป็น Hybrid: มีครบทั้ง GRID, BACKUP, GEN, CT/มิเตอร์ และแบตเตอรี่')+hwn;
 }
 function acBatSig(W){if(AC_HW){W('BAT.EP','INV.EP');W('BAT.EN','INV.EG');W('BAT.RA','INV.BA');W('BAT.RB','INV.BB')}else{W('BAT.H','INV.CH');W('BAT.L','INV.CL')}}
 function acPreset(name){
   acEnsureMode();
-  const want3=acPh3();
+  const want3=AC_MODE==='3'||AC_MODE==='3b1';
   ACS.wires=[];ACS.armed=null;
   if(name!=='clear'&&curInv().type!=='hybrid'){const h=CAT.inverters.find(x=>x.type==='hybrid'&&isPh3(x)===want3);if(h){ACT.inv=h.id;autoBat();applyActive();if(typeof quickSel==='function')quickSel();lastSig='';if(typeof render==='function')render();acEnsureMode();ACS.wires=[]}}
   const W=(a,b)=>ACS.wires.push({a,b});
   const S=ACS.set;
   if(name==='clear'){acRender();touch();return}
+  if(AC_MODE==='1x3'){
+    PH3.forEach(p=>{W('G.L'+p,'M.LI'+p);W('M.LO'+p,'DB.L'+p+'L')});
+    W('G.N','M.N');W('G.N','DB.NL');W('G.PE','DB.PL');W('M.A','INV.RA');W('M.B','INV.RB');
+    S.meterType='meter';S.mAddr=S.iAddr=1;S.mBaud=S.iBaud=9600;if(AC_HW)S.genMode='off';
+    W('DB.L1R','INV.GL');W('DB.NR','INV.GN');W('DB.PR','INV.GP');W('DB.PR','INV.PF');
+    W('INV.BL','CDB.L');W('INV.BN','CDB.N');W('INV.BP','CDB.PE');
+    W('BAT.+','INV.B+');W('BAT.-','INV.B-');acBatSig(W);
+    if(name==='bad'){
+      const rm=new Set(['INV.BL','M.A','M.B','BAT.+','BAT.-']);
+      ACS.wires=ACS.wires.filter(w=>!rm.has(w.a)&&!rm.has(w.b));
+      W('INV.BL','DB.L2R');W('DB.L2R','INV.GL');W('M.A','INV.RB');W('M.B','INV.RA');W('BAT.+','INV.B-');W('BAT.-','INV.B+');S.expLimOn=true;S.expLimW=0;
+    }
+    acRender();touch();return;
+  }
   if(acPh3()){
     const b3=AC_MODE==='3';
     PH3.forEach(p=>{W('G.L'+p,'M.LI'+p);W('M.LO'+p,'DB.L'+p+'L');W('DB.L'+p+'R','INV.GL'+p);if(b3)W('INV.BL'+p,'CDB.L'+p)});
@@ -604,6 +645,7 @@ function initAC(){
   const S=ACS.set,q=id=>document.getElementById(id);
   const bindSel=(id,key,num)=>q(id).addEventListener('change',e=>{S[key]=num?+e.target.value:e.target.value;acRender();rerunBk();touch()});
   const bindNum=(id,key,lo,hi)=>q(id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;S[key]=Math.max(lo,Math.min(hi,n));acRender();rerunBk();touch()});
+  {const sp=q('acsup');if(sp)sp.addEventListener('change',e=>{if(!['1','3'].includes(e.target.value))return;S.supply=e.target.value;acRender();if(typeof loadView==='function')loadView();rerunBk();touch()})}
   bindSel('acmode','mode');bindSel('acstd','gridStd');bindSel('acmt','meterType');bindSel('acctp','ctPos');bindSel('acctd','ctDir');
   bindSel('acbt','batType');bindSel('acbc','batComm');bindSel('acgen','genMode');bindSel('accg','cbGrid',true);bindSel('accb','cbBackup',true);
   bindNum('acres','reserve',0,100);bindNum('acmad','mAddr',1,247);bindNum('aciad','iAddr',1,247);bindNum('acel','expLimW',0,20000);
