@@ -346,3 +346,13 @@ label.chk input{width:18px;height:18px}
 .main,.main .wrap,.main .wrap>*{min-width:0}.main .wrap{width:100%;box-sizing:border-box}.acset .row3>*,.evb .row3>*{min-width:0}
 #acsvg,.scsvg{overflow:hidden}
 .main{overflow-x:clip}
+.pdfimp{display:flex;flex-direction:column;gap:10px}.pdfimp h2{margin:0}
+.pfk{display:flex;flex-direction:row;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.pfk select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:40px;color:var(--ink)}
+.pdfhead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:14px}
+.pdfcand{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.pfgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px 12px}
+.pff{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.pff i{font-style:normal;font-size:11px}.pff.found i{color:var(--ok)}.pff.miss i{color:var(--warn)}
+.pff input,.pff select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-height:38px;color:var(--ink);width:100%;min-width:0}
+.pff.found input{border-color:var(--ok)}.pff.miss input{background:var(--warnbg);border-color:var(--warn)}

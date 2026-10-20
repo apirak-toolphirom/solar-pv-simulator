@@ -142,7 +142,7 @@ function initReset(){
 /* ---- boot ---- */
 (function boot(){
   initSim();resetWith(1);
-  initCatalogUI();eqRenderAll();
+  initCatalogUI();eqRenderAll();initPdfImport();
   initLoads();initBackup();initAC();initEvents();initSubmit();initReset();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});

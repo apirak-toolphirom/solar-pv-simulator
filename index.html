@@ -26,6 +26,14 @@
   <section class="tab" id="tab-equip" hidden>
     <header><h1>อุปกรณ์</h1><p class="sub">เลือกรุ่นแผง อินเวอร์เตอร์ และแบตที่ใช้จำลอง เพิ่มรุ่นใหม่ด้วยมือหรือนำเข้าจากไฟล์ JSON และ CSV รุ่นที่เลือกจะถูกใช้ในทุกแท็บ</p></header>
     <div class="curequip" id="cur-equip"></div>
+    <div class="panelbox pdfimp">
+      <h2>นำเข้าจาก PDF (datasheet)</h2>
+      <p class="hint tight">เลือกไฟล์ datasheet ของแผง อินเวอร์เตอร์ หรือแบต ระบบจะอ่านข้อความในไฟล์ในเครื่องของคุณ (ไม่อัปโหลดไปไหน) ดึงค่าที่หาเจอมาใส่ฟอร์มให้ตรวจและแก้ก่อนเพิ่มเข้าแคตตาล็อก ใช้ได้กับ PDF ที่มีข้อความ ไม่ใช่ภาพสแกน</p>
+      <div class="eqact"><input type="file" id="pdffile" accept="application/pdf,.pdf" aria-label="เลือกไฟล์ PDF datasheet">
+        <label class="pfk">ชนิดอุปกรณ์<select id="pdfkind"><option value="auto">ตรวจอัตโนมัติ</option><option value="panels">แผงโซลาร์</option><option value="inverters">อินเวอร์เตอร์</option><option value="batteries">แบตเตอรี่</option></select></label>
+        <span class="eqmsg" id="pdfmsg" role="status"></span></div>
+      <div id="pdfrev" hidden></div>
+    </div>
     <div><h2>แผงโซลาร์</h2><div id="eq-panels"></div></div>
     <div><h2>อินเวอร์เตอร์ (ยี่ห้อ / รุ่น)</h2><div id="eq-inverters"></div></div>
     <div><h2>แบตเตอรี่</h2><div id="eq-batteries"></div></div>
@@ -327,6 +335,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/catalog.js"></script>
+<script src="js/pdfimport.js"></script>
 <script src="js/model.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/wiring.js"></script>
