@@ -37,10 +37,12 @@ const SCHEMA={
       ['brand','ยี่ห้อ','t',''],['model','รุ่น','t',''],
       ['chem','ชนิดเซลล์','s','LiFePO4',[['LiFePO4','LiFePO4'],['Li-ion','Li-ion (NMC)'],['Lead','ตะกั่วกรด (AGM/Gel)'],['Other','อื่นๆ']]],
       ['v','แรงดันต่อลูก (V)','n',0],['ah','ความจุต่อลูก (Ah)','n',0],['dod','ใช้ได้ (DoD %)','n',90],['rt','ประสิทธิภาพชาร์จ-จ่าย (%)','n',95],['maxC','กระแสสูงสุด (C) ใช้เมื่อไม่ได้ใส่แอมป์','n',0.5],['maxChg','กระแสชาร์จสูงสุดต่อลูก (A)','n',0],['maxDis','กระแสจ่ายสูงสุดต่อลูก (A)','n',0],['isc','กระแสลัดวงจรสูงสุดต่อลูก (A)','n',0],
+      ['v3','แรงดันเมื่อใช้กับอินเวอร์เตอร์ 3 เฟส (V) 0 = เท่าเดิม','n',0],['maxS','ต่ออนุกรมได้สูงสุด (0 = ไม่จำกัด)','n',0],['maxP','ต่อขนานได้สูงสุด (0 = ไม่จำกัด)','n',0],
+      ['compat','ใช้ได้เฉพาะอินเวอร์เตอร์ยี่ห้อ (ว่าง = ทุกยี่ห้อ)','t',''],
       ['note','หมายเหตุ','t','']
     ],
     req:['brand','model','v','ah'],
-    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],chem:['chem','chemistry','ชนิด','type'],v:['v','voltage','nominalvoltage','แรงดัน','vnom'],ah:['ah','capacity','ความจุ'],dod:['dod','depthofdischarge'],rt:['rt','roundtrip','efficiency','eff'],maxC:['maxc','crate','c'],maxChg:['maxchg','maxchargecurrent','chargecurrent','imaxcharge'],maxDis:['maxdis','maxdischargecurrent','dischargecurrent','imaxdischarge'],isc:['isc','shortcircuitcurrent','shortcircuit','ishort'],kwh:['kwh','energy','ขนาด'],note:['note','หมายเหตุ']}
+    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],chem:['chem','chemistry','ชนิด','type'],v:['v','voltage','nominalvoltage','แรงดัน','vnom'],ah:['ah','capacity','ความจุ'],dod:['dod','depthofdischarge'],rt:['rt','roundtrip','efficiency','eff'],maxC:['maxc','crate','c'],maxChg:['maxchg','maxchargecurrent','chargecurrent','imaxcharge'],maxDis:['maxdis','maxdischargecurrent','dischargecurrent','imaxdischarge'],isc:['isc','shortcircuitcurrent','shortcircuit','ishort'],v3:['v3','v3p','voltage3phase'],maxS:['maxs','maxseries'],maxP:['maxp','maxparallel'],compat:['compat','compatible','inverterbrand'],kwh:['kwh','energy','ขนาด'],note:['note','หมายเหตุ']}
   }
 };
 const KIND_ORDER=['panels','inverters','batteries'];
@@ -61,18 +63,21 @@ const BUILTIN=(()=>{
   // SUN2000-5/8/10KTL-M1: three-phase hybrid, HV battery (Huawei LUNA2000 / Smart String ESS)
   [[5,98.4,97.5,7500,5.5],[8,98.6,98.0,12000,8.8],[10,98.6,98.1,15000,10]].forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}KTL-M1`,{type:'hybrid',phase:'3',asym:'0',bph:'1',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
     bvMin:600,bvMax:980,bchg:10,bdis:dis,backupKw:3.3,
-    note:`3 เฟส 380/400 V · แบตแรงดันสูง 600–980 V เท่านั้น (Huawei LUNA2000 / Smart String ESS) แบต 51.2 V ใช้ไม่ได้ · Backup 1 เฟส 3.3 kVA ผ่าน Backup Box-B1 · จ่ายเท่ากันทุกเฟส · eff สูงสุด ${mx}%`}));
+    note:`3 เฟส 380/400 V · แบตแรงดันสูง 600–980 V (Huawei LUNA2000-S0 ทำงานที่ 600 V) ต่อได้สูงสุด 2 ชุด แบต 51.2 V ใช้ไม่ได้ · Backup 1 เฟส 3.3 kVA ผ่าน Backup Box-B1 · จ่ายเท่ากันทุกเฟส · eff สูงสุด ${mx}%`}));
   // SUN2000-2..6KTL-L1: single-phase hybrid
   [[2,98.2,96.7,3000,2.2,2],[3,98.3,97.3,4500,3.3,3],[3.68,98.4,97.3,5520,3.68,3.68],[4,98.4,97.5,6000,4.4,4.4],[4.6,98.4,97.7,6900,4.6,5],[5,98.4,97.8,7500,5,5.5],[6,98.4,97.8,9000,5,6]]
     .forEach(([k,mx,eu,rec,dis,va])=>hw(`SUN2000-${k}KTL-L1`,{type:'hybrid',phase:'1',pac:k*1000,vmax:600,lo:90,hi:560,start:100,imax:12.5,isc:18,pvRec:rec,eff:eu,
     bvMin:350,bvMax:560,bchg:5,bdis:dis,backupKw:Math.min(k,5),
-    note:`1 เฟส 220/230 V · S max ${va} kVA · แบตแรงดันสูง 350–560 V (Huawei LUNA2000 / LG RESU 7H_R·10H_R) แบต 51.2 V ใช้ไม่ได้ · Backup ผ่าน Backup Box-B0 (ดาต้าชีตไม่ระบุกำลัง ใช้ค่าประมาณ) · eff สูงสุด ${mx}%`}));
+    note:`1 เฟส 220/230 V · S max ${va} kVA · แบตแรงดันสูง 350–560 V (Huawei LUNA2000-S0 ทำงานที่ 450 V) ต่อได้สูงสุด 2 ชุด แบต 51.2 V ใช้ไม่ได้ · Backup ผ่าน Backup Box-B0 กำลังตามคู่มือ LUNA2000 · eff สูงสุด ${mx}%`}));
   // SUN2000-5..12K-MAP0: three-phase hybrid, whole-home backup with SmartGuard
   [[5,98.4,97.5,9000,5.5],[6,98.6,97.7,11000,6.6],[8,98.6,98.0,14600,8.8],[10,98.6,98.1,18000,11],[12,98.6,98.2,22000,12]]
     .forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}K-MAP0`,{type:'hybrid',phase:'3',asym:'1',bph:'3',pac:k*1000,vmax:1100,lo:160,hi:1000,start:160,imax:16,isc:22,pvRec:rec,eff:eu,
     bvMin:600,bvMax:980,bchg:12,bdis:dis,backupKw:k,
     note:`3 เฟส 380/400 V รองรับโหลดไม่สมดุล 100% · แบต LUNA2000-S0/S1 แรงดัน 600–980 V แบต 51.2 V ใช้ไม่ได้ · Backup ทั้งบ้านผ่าน SmartGuard-63A-T0 สลับ ≤20 ms · eff สูงสุด ${mx}%`}));
   const b=(brand,model,o)=>bat.push(Object.assign({id:slug(brand+' '+model),brand,model,chem:'LiFePO4',rt:95,builtin:1},o));
+  // Huawei LUNA2000-(5-30)-S0: power control module LUNA2000-5KW-C0 (5 kW, DC/DC) + 1-3 battery modules LUNA2000-5-E0 (5 kWh each)
+  [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${5*n}-S0`,{chem:'Li-ion',v:450,v3:600,ah:Math.round(5*n*1000/450*100)/100,dod:95,maxChg:11.11,maxDis:11.11,maxS:1,maxP:2,compat:'Huawei',
+    note:`LUNA2000-5KW-C0 (power module ชาร์จ/จ่าย 5 kW) + LUNA2000-5-E0 × ${n} (ก้อนละ 5 kWh) · ทำงาน 450 V กับอินเวอร์เตอร์ 1 เฟส (350–560 V) / 600 V กับ 3 เฟส (600–980 V) · ขนานได้ 2 ชุด รวมสูงสุด 30 kWh · ตัดจ่ายที่ SOC 5% (ค่าเริ่มต้น) · ใช้กับอินเวอร์เตอร์ Huawei เท่านั้น`}));
   b('Dyness','PowerBrick 14.3 kWh',{v:51.2,ah:280,dod:95,maxChg:200,maxDis:200,isc:0,note:'แนะนำชาร์จ/จ่าย 140 A (0.5C) · จ่ายพีค 300 A 2 นาที · ขนานได้ 50 ลูก · CAN/RS485 · IP20'});
   b('Solis','IntelliHome 5 kWh (OD)',{v:51.2,ah:100,dod:100,maxChg:50,maxDis:100,note:'แรงดันทำงาน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · ดาต้าชีตฉบับ Preliminary'});
   b('Solis','IntelliHome 10 kWh (OD)',{v:51.2,ah:200,dod:100,maxChg:100,maxDis:200,note:'ความจุคิดจาก 10 kWh ÷ 51.2 V (ดาต้าชีตระบุเซลล์ 100 Ah) · แรงดัน 44.8–57.6 V · ขนานได้ 8 ลูก · Preliminary'});
@@ -109,16 +114,38 @@ function curInv(){
   return Object.assign({},x,{name:(x.brand+' '+x.model).trim(),eff:x.eff||97});
 }
 function curBat(){return pick('batteries')}
+function batCompat(b,I){
+  I=I||curInv();if(!b)return true;
+  const ib=String(I.brand||'').toLowerCase();
+  if(b.compat)return ib===String(b.compat).toLowerCase();
+  if(ib==='huawei'&&I.type!=='on-grid')return false;
+  return true;
+}
+const batCompatMsg=(b,I)=>{I=I||curInv();return b.compat?`แบต ${b.brand} ${b.model} ใช้ได้กับอินเวอร์เตอร์ ${b.compat} เท่านั้น (สื่อสารและควบคุมผ่าน power module ของแบต)`:`อินเวอร์เตอร์ ${I.brand} ${I.model} รับเฉพาะแบต Huawei LUNA2000 (แรงดันสูง สื่อสาร RS485 กับอินเวอร์เตอร์) เลือกแบต LUNA2000 ที่หัวข้อแบตเตอรี่`};
+/* when the inverter changes, keep a battery that works with it (remembered per group) */
+let LAST_INV=null;const BAT_MEM={};
+function autoBat(){
+  const I=curInv();
+  if(LAST_INV===I.id)return;LAST_INV=I.id;
+  const b=curBat(),grp=String(I.brand).toLowerCase()==='huawei'&&I.type!=='on-grid'?'hw':'x';
+  if(b&&batCompat(b,I)){BAT_MEM[grp]=b.id;return}
+  const m=CAT.batteries.find(x=>x.id===BAT_MEM[grp]&&batCompat(x,I))||CAT.batteries.find(x=>x.id==='huawei-luna2000-10-s0'&&batCompat(x,I))||CAT.batteries.find(x=>batCompat(x,I));
+  if(m){ACT.bat=m.id;BAT_MEM[grp]=m.id;if(m.maxS>0)BANK.s=Math.min(BANK.s,m.maxS);if(m.maxP>0)BANK.p=Math.min(BANK.p,m.maxP)}
+}
 const isPh3=I=>String((I||curInv()).phase)==='3';
 const bkPh3=I=>{I=I||curInv();return isPh3(I)&&String(I.bph||I.phase)==='3'};
 function applyActive(){const p=curPanel();PV=Object.assign({},p,{name:(p.brand+' '+p.model).trim(),noct:p.noct||43})}
 applyActive();
 function bankInfo(){
   const b=curBat();if(!b)return null;
-  const s=Math.max(1,BANK.s|0),p=Math.max(1,BANK.p|0),V=s*b.v,Ah=p*b.ah,kwh=V*Ah/1000;
+  let s=Math.max(1,BANK.s|0),p=Math.max(1,BANK.p|0);
+  if(b.maxS>0)s=Math.min(s,b.maxS);if(b.maxP>0)p=Math.min(p,b.maxP);
+  /* packs with a DC/DC power module (Huawei LUNA) run at a different voltage on three-phase inverters; energy and power stay the same */
+  const vu=b.v3>0&&isPh3(curInv())?b.v3:b.v,k=b.v/vu;
+  const V=s*vu,Ah=p*b.ah*k,kwh=V*Ah/1000;
   const mc=b.maxC||0.5;
-  const chgA=b.maxChg>0?b.maxChg*p:mc*Ah,disA=b.maxDis>0?b.maxDis*p:mc*Ah;
-  return{b,s,p,n:s*p,V,Ah,kwh,usable:kwh*(b.dod||90)/100,rt:(b.rt||95)/100,maxC:mc,chgA,disA,chgKw:V*chgA/1000,disKw:V*disA/1000,scA:b.isc>0?b.isc*p:0};
+  const chgA=b.maxChg>0?b.maxChg*k*p:mc*Ah,disA=b.maxDis>0?b.maxDis*k*p:mc*Ah;
+  return{b,s,p,n:s*p,V,vu,Ah,kwh,usable:kwh*(b.dod||90)/100,rt:(b.rt||95)/100,maxC:mc,chgA,disA,chgKw:V*chgA/1000,disKw:V*disA/1000,scA:b.isc>0?b.isc*p:0};
 }
 
 /* ---- import / export ---- */
@@ -199,13 +226,13 @@ const EQ={edit:{panels:null,inverters:null,batteries:null}};
 function fmtSummary(kind,x){
   if(kind==='panels')return`${x.pmax} W · Voc ${x.voc} V · Vmp ${x.vmp} V · Isc ${x.isc} A`;
   if(kind==='inverters')return`${({'on-grid':'On-grid','hybrid':'Hybrid','off-grid':'Off-grid'})[x.type]||x.type} · ${x.pac/1000} kW · MPPT ${x.lo}–${x.hi} V`+(x.type!=='on-grid'&&x.bvMax?` · แบต ${x.bvMin}–${x.bvMax} V`:'');
-  return`${x.chem} · ${x.v} V · ${x.ah} Ah · ${f(x.v*x.ah/1000,2)} kWh`;
+  return`${x.chem} · ${x.v} V${x.v3>0?' / '+x.v3+' V (3 เฟส)':''} · ${x.ah} Ah · ${f(x.v*x.ah/1000,2)} kWh`;
 }
 function eqListHTML(kind){
   const key=ACTKEY[kind],sc=SCHEMA[kind];
   return CAT[kind].map(x=>{
     const on=(pick(kind)||{}).id===x.id;
-    return`<li class="eqrow${on?' on':''}"><label class="eqpick"><input type="radio" name="act-${kind}" value="${esc(x.id)}" ${on?'checked':''} data-act="${kind}"><span><b>${esc(x.brand)} ${esc(x.model)}</b><small>${esc(fmtSummary(kind,x))}</small>${x.note?`<small class="nt">${esc(x.note)}</small>`:''}</span></label><span class="eqbtn"><button class="btn sm" data-edit="${kind}" data-id="${esc(x.id)}">แก้ไข</button><button class="btn sm" data-del="${kind}" data-id="${esc(x.id)}" ${CAT[kind].length<2?'disabled':''}>ลบ</button></span></li>`;
+    return`<li class="eqrow${on?' on':''}"><label class="eqpick"><input type="radio" name="act-${kind}" value="${esc(x.id)}" ${on?'checked':''} data-act="${kind}"><span><b>${esc(x.brand)} ${esc(x.model)}</b><small>${esc(fmtSummary(kind,x))}</small>${x.note?`<small class="nt">${esc(x.note)}</small>`:''}${kind==='batteries'&&!batCompat(x)?'<small class="nt bad">ใช้กับอินเวอร์เตอร์ที่เลือกไม่ได้</small>':''}</span></label><span class="eqbtn"><button class="btn sm" data-edit="${kind}" data-id="${esc(x.id)}">แก้ไข</button><button class="btn sm" data-del="${kind}" data-id="${esc(x.id)}" ${CAT[kind].length<2?'disabled':''}>ลบ</button></span></li>`;
   }).join('');
 }
 function eqFormHTML(kind){
@@ -225,8 +252,11 @@ function bankHTML(){
   const warn=[];
   const I=curInv();
   if(I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warn.push(`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงแบตของอินเวอร์เตอร์ ${I.bvMin}–${I.bvMax} V`);
+  if(I.type!=='on-grid'&&!batCompat(b,I))warn.push(batCompatMsg(b,I));
+  if(b.maxS>0&&BANK.s>b.maxS||b.maxP>0&&BANK.p>b.maxP)warn.push(`รุ่นนี้ต่ออนุกรมได้ ${b.maxS||'ไม่จำกัด'} · ขนานได้ ${b.maxP||'ไม่จำกัด'} ชุด ระบบใช้ค่าสูงสุดที่ทำได้`);
+  if(b.v3>0)warn.push(`แรงดันชุดขึ้นกับอินเวอร์เตอร์: ${b.v} V กับรุ่น 1 เฟส, ${b.v3} V กับรุ่น 3 เฟส (power module ปรับแรงดันเอง)`);
   if(I.type==='on-grid')warn.push('อินเวอร์เตอร์ที่เลือกเป็นแบบ On-grid ต่อแบตตรงไม่ได้ เลือกรุ่น Hybrid หรือ Off-grid ที่หัวข้ออินเวอร์เตอร์ก่อนจำลอง Backup');
-  return`<div class="row3"><label>ต่ออนุกรม (ลูก)<input id="bk-s" type="number" min="1" max="32" step="1" value="${bi.s}"></label><label>ต่อขนาน (ชุด)<input id="bk-p" type="number" min="1" max="32" step="1" value="${bi.p}"></label></div>
+  return`<div class="row3"><label>ต่ออนุกรม (ลูก)<input id="bk-s" type="number" min="1" max="${b.maxS||32}" step="1" value="${bi.s}"></label><label>ต่อขนาน (ชุด)<input id="bk-p" type="number" min="1" max="${b.maxP||32}" step="1" value="${bi.p}"></label></div>
   <dl class="specs bk"><div><dt>จำนวนแบต</dt><dd>${bi.n} ลูก</dd></div><div><dt>แรงดันชุด</dt><dd>${f(bi.V,1)} V</dd></div><div><dt>ความจุชุด</dt><dd>${f(bi.Ah,0)} Ah</dd></div><div><dt>พลังงานรวม</dt><dd>${f(bi.kwh,2)} kWh</dd></div><div><dt>ใช้ได้จริง (DoD ${b.dod}%)</dt><dd>${f(bi.usable,2)} kWh</dd></div><div><dt>กระแสชาร์จสูงสุดของชุด</dt><dd>${f(bi.chgA,0)} A · ${f(bi.chgKw,1)} kW</dd></div><div><dt>กระแสจ่ายสูงสุดของชุด</dt><dd>${f(bi.disA,0)} A · ${f(bi.disKw,1)} kW</dd></div><div><dt>กระแสลัดวงจรสูงสุดของชุด</dt><dd>${bi.scA>0?f(bi.scA,0)+' A':'ไม่ระบุ'}</dd></div></dl>`+(warn.length?`<ul class="checks">${warn.map(w=>`<li><span class="b warn">!</span><span>${esc(w)}</span></li>`).join('')}</ul>`:'');
 }
 function eqRender(kind){
@@ -258,7 +288,8 @@ function fillSelectors(){
 }
 function eqMsg(sel,txt,cls){const m=document.querySelector(sel);if(m){m.className='eqmsg '+(cls||'');m.textContent=txt}}
 function onCatalogChange(){
-  applyActive();eqRenderAll();
+  autoBat();
+  applyActive();eqRenderAll();if(typeof quickSel==='function')quickSel();
   lastSig='';render();
   if(typeof loadView==='function'&&$('#ldmx'))loadView();
   if(typeof acRender==='function')acRender();

@@ -210,6 +210,7 @@ function acAnalyze(){
     const bi=bankInfo();
     if(d.batOk&&bi&&bi.scA>0)add('ok',`กระแสลัดวงจรของชุดแบตสูงสุด ${f(bi.scA,0)} A เบรกเกอร์หรือฟิวส์ DC ต้องมีค่าตัดกระแสลัดวงจร (breaking capacity) ไม่ต่ำกว่านี้`);
     if(d.batOk&&bi&&I.bchg>0&&bi.chgKw<I.bchg*0.999)add('warn',`แบตรับชาร์จได้ ${f(bi.chgA,0)} A (${f(bi.chgKw,1)} kW) น้อยกว่ากำลังชาร์จของอินเวอร์เตอร์ ${I.bchg} kW ระบบจะชาร์จได้เท่าที่แบตรับ เพิ่มจำนวนชุดขนานถ้าต้องการชาร์จเร็วขึ้น`);
+    if(bi&&!batCompat(bi.b,I))add('err',batCompatMsg(bi.b,I));
     if(d.batOk&&bi&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))add('err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วง ${I.bvMin}–${I.bvMax} V ของอินเวอร์เตอร์`);
     const cn=(hasWire('BAT.H','INV.CH')&&hasWire('BAT.L','INV.CL')),cs=(hasWire('BAT.H','INV.CL')&&hasWire('BAT.L','INV.CH'));
     d.canOk=cn;
@@ -472,7 +473,7 @@ function acPreset(name){
   acEnsureMode();
   const want3=acPh3();
   ACS.wires=[];ACS.armed=null;
-  if(name!=='clear'&&curInv().type!=='hybrid'){const h=CAT.inverters.find(x=>x.type==='hybrid'&&isPh3(x)===want3);if(h){ACT.inv=h.id;applyActive();if(typeof quickSel==='function')quickSel();lastSig='';if(typeof render==='function')render();acEnsureMode();ACS.wires=[]}}
+  if(name!=='clear'&&curInv().type!=='hybrid'){const h=CAT.inverters.find(x=>x.type==='hybrid'&&isPh3(x)===want3);if(h){ACT.inv=h.id;autoBat();applyActive();if(typeof quickSel==='function')quickSel();lastSig='';if(typeof render==='function')render();acEnsureMode();ACS.wires=[]}}
   const W=(a,b)=>ACS.wires.push({a,b});
   const S=ACS.set;
   if(name==='clear'){acRender();touch();return}

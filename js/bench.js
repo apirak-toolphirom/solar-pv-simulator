@@ -59,7 +59,7 @@ const BN={
 };
 let BLATCH={},BSOL=null;
 const benchPanels=()=>BPAN.concat((typeof CAT!=='undefined'?CAT.panels:[]).filter(p=>!BPAN.some(b=>b.id===p.id)));
-const benchBats=()=>BBAT.concat((typeof CAT!=='undefined'?CAT.batteries:[]).filter(p=>!BBAT.some(b=>b.id===p.id)));
+const benchBats=()=>BBAT.concat((typeof CAT!=='undefined'?CAT.batteries:[]).filter(p=>!p.compat&&!(p.v3>0)&&p.v<100&&!BBAT.some(b=>b.id===p.id)));
 const bSel=(list,id)=>list.find(x=>x.id===id)||list[0];
 const bInvList=()=>BINV.filter(i=>i.sys===BN.sys);
 const bInvSel=()=>BN.inv?BINV.find(i=>i.id===BN.inv&&i.sys===BN.sys)||null:null;

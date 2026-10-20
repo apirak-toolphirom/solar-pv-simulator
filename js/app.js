@@ -31,7 +31,7 @@ function quickSel(){
   const mk=(kind,id)=>{
     const el=$('#'+id);if(!el)return;
     const cur=(pick(kind)||{}).id;
-    el.innerHTML=CAT[kind].map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
+    el.innerHTML=CAT[kind].filter(x=>kind!=='batteries'||x.id===cur||batCompat(x)).map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
   mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
 }
@@ -138,7 +138,7 @@ function restoreExtra(p){
   if(p.sc&&['top','side'].includes(p.sc.view)){SC.view=p.sc.view;SC.h=num(p.sc.h,12,0,24)}
 }
 function refreshAll(){
-  applyActive();eqRenderAll();bkSync();loadRender();
+  autoBat();applyActive();if(typeof quickSel==='function')quickSel();eqRenderAll();bkSync();loadRender();
   lastSig='';render();acRender();runSim();
 }
 

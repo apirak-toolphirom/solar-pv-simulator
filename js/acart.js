@@ -65,11 +65,12 @@ function acArt(k,c,I,S){
       +`<rect x="22" y="80" width="18" height="26" rx="2" class="a-dark"/><rect x="25" y="84" width="12" height="9" class="a-fill"/><rect x="46" y="80" width="18" height="26" rx="2" class="a-dark"/><rect x="49" y="95" width="12" height="9" class="a-fill"/><rect x="70" y="80" width="18" height="26" rx="2" class="a-dark"/><rect x="73" y="84" width="12" height="9" class="a-fill"/>`
       +T(56,115,'ตู้เย็น · ไฟ · เราเตอร์','acnote').replace('class="acnote"','class="acnote" style="font-size:9px"');
   }else if(k==='BAT'){
-    g+=plate()+T(75,18,'แบตเตอรี่ LiFePO₄','actitle')
-      +`<rect x="44" y="28" width="92" height="128" rx="7" class="a-dark" style="stroke-width:2"/><rect x="50" y="34" width="80" height="24" rx="3" class="a-lcd"/>`+T(90,51,'51.2 V','a-lcdt')
+    const bi=typeof bankInfo==='function'?bankInfo():null;
+    g+=plate()+T(75,18,'แบตเตอรี่ '+esc(bi?bi.b.chem.replace('LiFePO4','LiFePO₄'):''),'actitle')
+      +`<rect x="44" y="28" width="92" height="128" rx="7" class="a-dark" style="stroke-width:2"/><rect x="50" y="34" width="80" height="24" rx="3" class="a-lcd"/>`+T(90,51,bi?f(bi.V,0)+' V':'—','a-lcdt')
       +`<rect x="50" y="66" width="80" height="12" rx="2" class="a-fill"/><rect x="52" y="68" width="14" height="8" class="a-grn"/><rect x="68" y="68" width="14" height="8" class="a-grn"/><rect x="84" y="68" width="14" height="8" class="a-grn"/><rect x="100" y="68" width="14" height="8" class="a-grn" style="opacity:.35"/>`
       +`<rect x="56" y="88" width="24" height="52" rx="3" class="a-fill"/><rect x="92" y="88" width="24" height="52" rx="3" class="a-fill"/><path d="M68 94V134M104 94V134" class="a-line" style="stroke:var(--s3)"/><rect x="48" y="146" width="84" height="4" rx="2" style="fill:var(--accent)"/>`
-      +T(90,170,'BMS สื่อสาร CAN','acnote');
+      +T(90,170,bi&&bi.b.compat?'สื่อสาร RS485/CAN':'BMS สื่อสาร CAN','acnote');
   }else if(k==='INV'){
     g+=`<rect x="0" y="0" width="${c.w}" height="${c.h}" rx="14" class="acbox inv"/>`;
     const band=(y0,y1,x0,x1,col,title,icon)=>`<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" rx="7" style="fill:${col};opacity:.13"/><text x="${x0+6}" y="${y0+12}" class="a-grp" style="fill:${col}">${title}</text>`+icon;

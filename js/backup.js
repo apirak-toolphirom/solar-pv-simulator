@@ -96,6 +96,7 @@ function backupRun(){
   /* warnings */
   if(need&&I.type==='on-grid')warns.push(['err',`อินเวอร์เตอร์ ${I.name} เป็นแบบ On-grid ต่อแบตไม่ได้ ผลด้านล่างจำลองเหมือนมีแบตเพื่อดูแนวทางเท่านั้น เลือกรุ่น Hybrid หรือ Off-grid ที่แท็บ "อุปกรณ์"`]);
   if(need&&bi&&I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warns.push(['err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงที่อินเวอร์เตอร์รับ ${I.bvMin}–${I.bvMax} V ปรับจำนวนต่ออนุกรมที่แท็บ "อุปกรณ์"`]);
+  if(need&&bi&&I.type!=='on-grid'&&!batCompat(bi.b,I))warns.push(['err',batCompatMsg(bi.b,I)]);
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
   const peakIsl=Math.max(...(BK.island==='crit'?LP.crit:LP.all));
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);

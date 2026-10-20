@@ -423,3 +423,4 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 .ph3t td,.ph3t th{font-family:var(--mono);text-align:right}.ph3t th:first-child{text-align:left;font-family:inherit}
 .ph3t tr.tot th,.ph3t tr.tot td{border-top:1px solid var(--line);font-weight:600}
 .ph3t .imp{color:var(--err)}.ph3t .exp{color:var(--ok)}.ph3t .z{color:var(--muted)}
+.eqpick small.nt.bad{color:var(--err);font-style:normal}
