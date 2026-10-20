@@ -64,15 +64,31 @@ function acTables3(bp){
 const mkTM=T=>{const M={};T.forEach(t=>M[t[0]]={id:t[0],lab:t[1],kind:t[2],bx:t[3],by:t[4],x:t[3],y:t[4],side:t[5],comp:t[6],av:t[7]||''});return M};
 const AC_MODES={'1':{C:AC_C1,T:AC_T1,BUS:AC_BUS1}};
 {const a=acTables3(3),b=acTables3(1);AC_MODES['3']=a;AC_MODES['3b1']=b}
+/* Huawei SUN2000 layout: battery signal goes to the inverter COM port as EN/GND (enable) and 485A2/485B2 (RS485 to the LUNA power module),
+   the smart meter uses 485A1/485B1; no CT input and no GEN port */
+function acHuawei(M){
+  const drop=new Set(['INV.CH','INV.CL','BAT.H','BAT.L','INV.C1','INV.C2','CT.S1','CT.S2','GEN.L','GEN.N','GEN.PE','GEN.S1','GEN.S2','INV.EL','INV.EN','INV.D1','INV.D2']);
+  const C={};Object.keys(M.C).forEach(k=>{if(k!=='CT'&&k!=='GEN')C[k]=Object.assign({},M.C[k],{hw:1})});
+  C.BAT=Object.assign({},C.BAT,{h:230,t:'Huawei LUNA2000'});
+  const ix=C.INV.x+C.INV.w,bx=C.BAT.x;
+  const lab={'INV.RA':'485A1 (มิเตอร์)','INV.RB':'485B1 (มิเตอร์)','INV.B+':'BAT+','INV.B-':'BAT−','M.A':'RS485A','M.B':'RS485B','BAT.+':'BAT+','BAT.-':'BAT−'};
+  const T=M.T.filter(t=>!drop.has(t[0])).map(t=>lab[t[0]]?[t[0],lab[t[0]]].concat(t.slice(2)):t.slice());
+  T.push(['INV.EP','EN','en+',ix,170,'r','INV','ho'],['INV.EG','GND (EN−)','en-',ix,195,'r','INV','ho'],['INV.BA','485A2 (แบต)','ba',ix,225,'r','INV','ho'],['INV.BB','485B2 (แบต)','bb',ix,250,'r','INV','ho'],
+    ['BAT.EP','Enable+','en+',bx,170,'l','BAT'],['BAT.EN','Enable−','en-',bx,195,'l','BAT'],['BAT.RA','485A','ba',bx,225,'l','BAT'],['BAT.RB','485B','bb',bx,250,'l','BAT']);
+  return{C,T,BUS:M.BUS,hw:1};
+}
+['1','3','3b1'].forEach(k=>AC_MODES['h'+k]=acHuawei(AC_MODES[k]));
 Object.values(AC_MODES).forEach(m=>m.TM=mkTM(m.T));
 /* active mode follows the selected inverter; each mode keeps its own wires and module positions */
 let AC_C,AC_T,AC_BUS,AC_TM,AC_MODE=null;
 const acModeOf=I=>isPh3(I)?(bkPh3(I)||I.type==='on-grid'?'3':'3b1'):'1';
+const acHwOf=I=>String(I.brand||'').toLowerCase()==='huawei';
+let AC_HW=false,AC_KEY=null;
 function acEnsureMode(){
-  const m=acModeOf(curInv());if(m===AC_MODE)return;
-  if(AC_MODE){ACS.wm[AC_MODE]=ACS.wires;ACS.pm[AC_MODE]=ACS.pos}
-  AC_MODE=m;const M=AC_MODES[m];AC_C=M.C;AC_T=M.T;AC_BUS=M.BUS;AC_TM=M.TM;
-  ACS.wires=ACS.wm[m]||[];ACS.pos=ACS.pm[m]||{};ACS.armed=null;
+  const I=curInv(),m=acModeOf(I),hw=acHwOf(I),key=(hw?'h':'')+m;if(key===AC_KEY)return;
+  if(AC_KEY){ACS.wm[AC_KEY]=ACS.wires;ACS.pm[AC_KEY]=ACS.pos}
+  AC_MODE=m;AC_HW=hw;AC_KEY=key;const M=AC_MODES[key];AC_C=M.C;AC_T=M.T;AC_BUS=M.BUS;AC_TM=M.TM;
+  ACS.wires=ACS.wm[key]||[];ACS.pos=ACS.pm[key]||{};ACS.armed=null;
 }
 const acPh3=()=>AC_MODE!=='1';
 /* live layout: each module can be moved (ACS.pos[comp]=[dx,dy]); terminals follow their module */
@@ -97,8 +113,8 @@ function acApplyZoom(){
   const z=document.getElementById('aczoomv');if(z)z.textContent=Math.round(ACS.zoom*100)+'%';
   const r=document.getElementById('aczoom');if(r&&document.activeElement!==r)r.value=Math.round(ACS.zoom*100);
 }
-const KIND_NAME={L:'L (ไลน์)',L1:'L1',L2:'L2',L3:'L3',N:'N',PE:'PE','dc+':'DC +','dc-':'DC −',ct1:'CT 1',ct2:'CT 2',a:'RS485 A',b:'RS485 B',canh:'CAN H',canl:'CAN L',dry1:'Dry contact 1',dry2:'Dry contact 2'};
-const KIND_COL={L:'#8b5a2b',L1:'#8b5a2b',L2:'#14191e',L3:'#7d8590',N:'#2a78d6',PE:'#1baf7a','dc+':'#d62828','dc-':'#14191e',ct1:'#e0762c',ct2:'#9a9aa3',a:'#d9a400',b:'#8a63d2',canh:'#d9a400',canl:'#8a63d2',dry1:'#e0762c',dry2:'#9a9aa3'};
+const KIND_NAME={ba:'485A2 (แบต)',bb:'485B2 (แบต)','en+':'EN (Enable+)','en-':'GND (Enable−)',L:'L (ไลน์)',L1:'L1',L2:'L2',L3:'L3',N:'N',PE:'PE','dc+':'DC +','dc-':'DC −',ct1:'CT 1',ct2:'CT 2',a:'RS485 A',b:'RS485 B',canh:'CAN H',canl:'CAN L',dry1:'Dry contact 1',dry2:'Dry contact 2'};
+const KIND_COL={ba:'#d9a400',bb:'#8a63d2','en+':'#a0522d','en-':'#c9a27e',L:'#8b5a2b',L1:'#8b5a2b',L2:'#14191e',L3:'#7d8590',N:'#2a78d6',PE:'#1baf7a','dc+':'#d62828','dc-':'#14191e',ct1:'#e0762c',ct2:'#9a9aa3',a:'#d9a400',b:'#8a63d2',canh:'#d9a400',canl:'#8a63d2',dry1:'#e0762c',dry2:'#9a9aa3'};
 function acAvail(t){
   const ty=curInv().type;
   if(!t.av||t.av==='all')return true;
@@ -119,7 +135,7 @@ function acNets(){
 const hasWire=(a,b)=>ACS.wires.some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a));
 const anyOn=id=>ACS.wires.some(w=>w.a===id||w.b===id);
 
-const SWAP_OK=(a,b)=>{const P=[['a','b'],['ct1','ct2'],['canh','canl'],['dc+','dc-']];return P.some(([x,y])=>(a===x&&b===y)||(a===y&&b===x))};
+const SWAP_OK=(a,b)=>{const P=[['a','b'],['ba','bb'],['en+','en-'],['ct1','ct2'],['canh','canl'],['dc+','dc-']];return P.some(([x,y])=>(a===x&&b===y)||(a===y&&b===x))};
 const isLk=k=>k==='L'||k==='L1'||k==='L2'||k==='L3';
 const tName=T=>T.comp==='INV'?'INV '+T.lab:T.comp+' '+T.lab;
 function acAnalyze(){
@@ -132,6 +148,7 @@ function acAnalyze(){
     if(!acAvail(A)||!acAvail(B))add('err',`สาย ${tName(A)} ↔ ${tName(B)}: อินเวอร์เตอร์ประเภท ${ty} ไม่มีพอร์ตนี้`);
     else if(A.kind!==B.kind&&!SWAP_OK(A.kind,B.kind)){
       if(p3&&isLk(A.kind)&&isLk(B.kind))add('err',`ต่อข้ามเฟส: ${tName(A)} (${A.kind}) ↔ ${tName(B)} (${B.kind}) ต้องต่อ L1→L1, L2→L2, L3→L3 ลำดับเฟสผิดทำให้อินเวอร์เตอร์ขึ้นเตือนลำดับเฟส และมิเตอร์วัดกำลังผิดเฟส`);
+      else if(['a','b'].includes(A.kind)&&['ba','bb'].includes(B.kind)||['a','b'].includes(B.kind)&&['ba','bb'].includes(A.kind))add('err',`สาย ${tName(A)} ↔ ${tName(B)}: ต่อผิดพอร์ต RS485 ของ Huawei 485A1/485B1 สำหรับสมาร์ทมิเตอร์ 485A2/485B2 สำหรับแบต LUNA2000`);
       else add('err',`สาย ${tName(A)} ↔ ${tName(B)}: ต่อคนละชนิดขั้ว (${KIND_NAME[A.kind]} กับ ${KIND_NAME[B.kind]})`);
     }
   });
@@ -214,7 +231,17 @@ function acAnalyze(){
     if(d.batOk&&bi&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))add('err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วง ${I.bvMin}–${I.bvMax} V ของอินเวอร์เตอร์`);
     const cn=(hasWire('BAT.H','INV.CH')&&hasWire('BAT.L','INV.CL')),cs=(hasWire('BAT.H','INV.CL')&&hasWire('BAT.L','INV.CH'));
     d.canOk=cn;
-    if(S.batType==='li'&&S.batComm!=='none'){
+    if(AC_HW){
+      const en=hasWire('BAT.EP','INV.EP')&&hasWire('BAT.EN','INV.EG'),ens=hasWire('BAT.EP','INV.EG')&&hasWire('BAT.EN','INV.EP');
+      const rs=hasWire('BAT.RA','INV.BA')&&hasWire('BAT.RB','INV.BB'),rss=hasWire('BAT.RA','INV.BB')&&hasWire('BAT.RB','INV.BA');
+      if(en)add('ok','สาย Enable ต่อถูก (Enable+ → EN, Enable− → GND) อินเวอร์เตอร์สั่งเปิดแบตได้');
+      else if(ens)add('err','สาย Enable+ / Enable− สลับกัน อินเวอร์เตอร์สั่งเปิดแบตไม่ได้ ไฟสถานะแบตไม่ติด');
+      else if(d.batOk)add('err','ยังไม่ได้ต่อสาย Enable (Enable+ → EN, Enable− → GND) แบต LUNA2000 จะไม่เปิดทำงาน');
+      if(rs)add('ok','สาย RS485 แบต (485A → 485A2, 485B → 485B2) ต่อถูก อินเวอร์เตอร์สื่อสารกับแบตได้');
+      else if(rss)add('err','สาย RS485 แบต A/B สลับกัน อินเวอร์เตอร์จะไม่เห็นแบต');
+      else if(d.batOk)add('err','ยังไม่ได้ต่อ RS485 ของแบต (485A → 485A2, 485B → 485B2) อินเวอร์เตอร์จะไม่เห็นแบต');
+      d.canOk=en&&rs;
+    }else if(S.batType==='li'&&S.batComm!=='none'){
       if(cn)add('ok','สื่อสาร BMS CAN ต่อถูกต้อง');
       else if(cs)add('err','สาย CAN H/L สลับกัน อินเวอร์เตอร์จะไม่เห็นแบต');
       else if(d.batOk)add('warn','แบตลิเธียมแต่ยังไม่ได้ต่อสาย BMS CAN อินเวอร์เตอร์อาจไม่ยอมชาร์จ หรือแสดง BMS fault');
@@ -222,6 +249,7 @@ function acAnalyze(){
     if(S.batType==='lead'&&(cn||cs))add('warn','แบตตะกั่วกรดไม่มี BMS สาย CAN ไม่จำเป็น');
   }
   if(p3)acMeter3(S,N,add,d);
+  else if(AC_HW&&S.meterType==='ct'){d.meterOk=false;add('err','อินเวอร์เตอร์ Huawei ไม่มีขั้ว CT ใช้สมาร์ทมิเตอร์ Huawei (DDSU666-H 1 เฟส) ต่อ RS485 เข้า 485A1/485B1 ตั้ง "อุปกรณ์วัดกริด" เป็นสมาร์ทมิเตอร์')}
   else{
   d.meterOk=false;
   const mt=S.meterType;
@@ -259,11 +287,11 @@ function acAnalyze(){
   if(S.expLimOn&&d.meterOk&&S.meterType==='ct'&&d.ctRev)add('err','Export limit ทำงานผิดทิศ');
   if(!hyb&&S.batType&&false){}
   if(S.mode==='backup'&&!d.batOk&&hyb)add('warn','โหมด Backup reserve ต้องมีแบต');
-  if(S.genMode!=='off'&&!d.genOk&&hyb)add('warn','เปิดใช้เครื่องปั่นไฟในตั้งค่า แต่ยังไม่ได้ต่อพอร์ต GEN');
+  if(S.genMode!=='off'&&!d.genOk&&hyb&&!p3&&!AC_HW)add('warn','เปิดใช้เครื่องปั่นไฟในตั้งค่า แต่ยังไม่ได้ต่อพอร์ต GEN');
   if(S.backupEn&&!d.backupOk&&hyb&&anyOn('INV.BL'))add('warn','เปิดใช้ Backup แต่การต่อพอร์ต BACKUP ยังไม่ถูก');
   if(!S.backupEn&&d.backupOk)add('warn','ต่อ BACKUP ครบแล้ว แต่ตั้งค่าปิด Backup ตอนไฟดับจะไม่จ่ายไฟ');
   if(p3&&S.expLimOn&&d.meterOk&&String(I.asym)!=='1')add('warn','รุ่นนี้จ่ายไฟเท่ากันทุกเฟส จำกัดการขายไฟได้จากยอดรวม 3 เฟส ถ้าโหลดแต่ละเฟสไม่เท่ากัน บางเฟสยังไหลออกกริดได้ ดูตาราง "มิเตอร์ 3 เฟส" ด้านล่าง');
-  if(p3&&S.genMode!=='off')add('warn','ผังนี้ไม่มีพอร์ต GEN (อินเวอร์เตอร์ 3 เฟสรุ่นนี้ไม่มีพอร์ตเครื่องปั่นไฟ) ตั้งค่าเครื่องปั่นไฟเป็น "ไม่ใช้"');
+  if((p3||AC_HW)&&S.genMode!=='off')add('warn','ผังนี้ไม่มีพอร์ต GEN (อินเวอร์เตอร์รุ่นนี้ไม่มีพอร์ตเครื่องปั่นไฟ) ตั้งค่าเครื่องปั่นไฟเป็น "ไม่ใช้"');
   /* breakers (per phase on three-phase) */
   const iRated=p3?I.pac/(3*230):I.pac/230,min=iRated*1.2,per=p3?' ต่อเฟส':'';
   const cb=(v,nm,ir)=>{const mn=(ir||iRated)*1.2;if(v<mn)add('warn',`เบรกเกอร์ ${nm} ${v} A เล็กกว่าที่ควรใช้ (กระแสพิกัด${per} ${f(ir||iRated,0)} A × 1.2 ≈ ${f(mn,0)} A) อาจตัดเมื่อโหลดเต็ม`);else if(v>mn*2.2)add('warn',`เบรกเกอร์ ${nm} ${v} A ใหญ่เกินไป ใหญ่กว่าสายและอุปกรณ์ที่ป้องกันได้ ควรเลือกใกล้ ${f(mn,0)} A`)};
@@ -462,13 +490,16 @@ function acSyncUI(I){
   q('acelon').checked=S.expLimOn;q('acbken').checked=S.backupEn;
   q('acelw').hidden=!S.expLimOn;
   const p3=acPh3();
-  q('acmeterbox').hidden=S.meterType!=='meter';q('acctbox').hidden=S.meterType!=='ct'||p3;
-  {const o=q('acmt').querySelector('option[value="ct"]');if(o)o.textContent=p3?'CT (ใช้ไม่ได้กับ 3 เฟส)':'CT';const m=q('acmt').querySelector('option[value="meter"]');if(m)m.textContent=p3?'สมาร์ทมิเตอร์ 3 เฟส RS485':'สมาร์ทมิเตอร์ RS485'}
-  document.querySelectorAll('#acpre [data-acp="ct"]').forEach(b=>b.hidden=p3);
+  q('acmeterbox').hidden=S.meterType!=='meter';q('acctbox').hidden=S.meterType!=='ct'||p3||AC_HW;
+  {const o=q('acmt').querySelector('option[value="ct"]');if(o)o.textContent=p3?'CT (ใช้ไม่ได้กับ 3 เฟส)':AC_HW?'CT (Huawei ไม่มีขั้ว CT)':'CT';const m=q('acmt').querySelector('option[value="meter"]');if(m)m.textContent=p3?'สมาร์ทมิเตอร์ 3 เฟส RS485':'สมาร์ทมิเตอร์ RS485'}
+  document.querySelectorAll('#acpre [data-acp="ct"]').forEach(b=>b.hidden=p3||AC_HW);
+  ['acbt','acbc'].forEach(id=>{const e=q(id);if(e&&e.closest('label'))e.closest('label').hidden=AC_HW});
   {const b=document.querySelector('#acpre [data-acp="meter"]');if(b)b.textContent=p3?'3 เฟส ต่อถูก (สมาร์ทมิเตอร์ 3 เฟส)':'Hybrid ต่อถูก (ใช้สมาร์ทมิเตอร์)'}
   const k3=q('ackey3');if(k3)k3.hidden=!p3;
-  q('acinvnote').textContent=p3?(I.type==='on-grid'?'รุ่นนี้เป็น On-grid 3 เฟส: มีพอร์ต GRID L1 L2 L3 N PE และ RS485 สำหรับสมาร์ทมิเตอร์ 3 เฟส ไม่มี BACKUP / แบตเตอรี่':`รุ่นนี้เป็น Hybrid 3 เฟส: GRID L1 L2 L3 N PE, BACKUP ${AC_MODE==='3'?'3 เฟส (ทั้งบ้าน)':'1 เฟส (ผ่าน Backup Box)'}, สมาร์ทมิเตอร์ 3 เฟส และแบตเตอรี่ ไม่มีพอร์ต GEN`)+(String(I.asym)==='1'?' · จ่ายไฟแต่ละเฟสตามโหลดได้ (asymmetric)':' · จ่ายไฟเท่ากันทุกเฟส'):I.type==='on-grid'?'รุ่นนี้เป็น On-grid: มีพอร์ต GRID, RS485 และ CT เท่านั้น ไม่มี BACKUP / GEN / แบตเตอรี่':I.type==='off-grid'?'รุ่นนี้เป็น Off-grid: ไม่มีพอร์ต GRID แบบขนานกริด ใช้ GEN เป็นทางเข้า AC และจ่ายโหลดที่ BACKUP':'รุ่นนี้เป็น Hybrid: มีครบทั้ง GRID, BACKUP, GEN, CT/มิเตอร์ และแบตเตอรี่';
+  const hwn=AC_HW?' · ขั้วตามรุ่น Huawei: แบตต่อ COM เป็น EN/GND และ 485A2/485B2 มิเตอร์ต่อ 485A1/485B1':'';
+  q('acinvnote').textContent=(p3?(I.type==='on-grid'?'รุ่นนี้เป็น On-grid 3 เฟส: มีพอร์ต GRID L1 L2 L3 N PE และ RS485 สำหรับสมาร์ทมิเตอร์ 3 เฟส ไม่มี BACKUP / แบตเตอรี่':`รุ่นนี้เป็น Hybrid 3 เฟส: GRID L1 L2 L3 N PE, BACKUP ${AC_MODE==='3'?'3 เฟส (ทั้งบ้าน)':'1 เฟส (ผ่าน Backup Box)'}, สมาร์ทมิเตอร์ 3 เฟส และแบตเตอรี่ ไม่มีพอร์ต GEN`)+(String(I.asym)==='1'?' · จ่ายไฟแต่ละเฟสตามโหลดได้ (asymmetric)':' · จ่ายไฟเท่ากันทุกเฟส'):I.type==='on-grid'?'รุ่นนี้เป็น On-grid: มีพอร์ต GRID, RS485 และ CT เท่านั้น ไม่มี BACKUP / GEN / แบตเตอรี่':I.type==='off-grid'?'รุ่นนี้เป็น Off-grid: ไม่มีพอร์ต GRID แบบขนานกริด ใช้ GEN เป็นทางเข้า AC และจ่ายโหลดที่ BACKUP':'รุ่นนี้เป็น Hybrid: มีครบทั้ง GRID, BACKUP, GEN, CT/มิเตอร์ และแบตเตอรี่')+hwn;
 }
+function acBatSig(W){if(AC_HW){W('BAT.EP','INV.EP');W('BAT.EN','INV.EG');W('BAT.RA','INV.BA');W('BAT.RB','INV.BB')}else{W('BAT.H','INV.CH');W('BAT.L','INV.CL')}}
 function acPreset(name){
   acEnsureMode();
   const want3=acPh3();
@@ -484,7 +515,7 @@ function acPreset(name){
     S.meterType='meter';S.mAddr=S.iAddr=1;S.mBaud=S.iBaud=9600;S.genMode='off';
     W('DB.NR','INV.GN');W('DB.PR','INV.GP');W('DB.PR','INV.PF');
     if(!b3)W('INV.BL','CDB.L');W('INV.BN','CDB.N');W('INV.BP','CDB.PE');
-    W('BAT.+','INV.B+');W('BAT.-','INV.B-');W('BAT.H','INV.CH');W('BAT.L','INV.CL');
+    W('BAT.+','INV.B+');W('BAT.-','INV.B-');acBatSig(W);
     if(name==='bad'){
       const rm=new Set(['INV.GL2','INV.GL3','M.A','M.B','BAT.+','BAT.-',b3?'INV.BL1':'INV.BL']);
       ACS.wires=ACS.wires.filter(w=>!rm.has(w.a)&&!rm.has(w.b));
@@ -494,14 +525,18 @@ function acPreset(name){
     }
     acRender();touch();return;
   }
+  if(AC_HW&&name==='ct')name='meter';
   if(name==='ct'||name==='meter'||name==='bad'){
-    if(name==='meter'){W('G.L','M.LI');W('M.LO','DB.LL');W('G.N','M.N');W('G.N','DB.NL');W('M.A','INV.RA');W('M.B','INV.RB');S.meterType='meter';S.mAddr=S.iAddr=1;S.mBaud=S.iBaud=9600}
+    if(name==='meter'||AC_HW){W('G.L','M.LI');W('M.LO','DB.LL');W('G.N','M.N');W('G.N','DB.NL');W('M.A','INV.RA');W('M.B','INV.RB');S.meterType='meter';S.mAddr=S.iAddr=1;S.mBaud=S.iBaud=9600;if(AC_HW)S.genMode='off'}
     else{W('G.L','DB.LL');W('G.N','DB.NL');S.meterType='ct';S.ctPos='gridL';S.ctDir='toGrid';W('CT.S1','INV.C1');W('CT.S2','INV.C2')}
     W('G.PE','DB.PL');
     W('DB.LR','INV.GL');W('DB.NR','INV.GN');W('DB.PR','INV.GP');W('DB.PR','INV.PF');
     W('INV.BL','CDB.L');W('INV.BN','CDB.N');W('INV.BP','CDB.PE');
-    W('BAT.+','INV.B+');W('BAT.-','INV.B-');W('BAT.H','INV.CH');W('BAT.L','INV.CL');
-    if(name==='bad'){
+    W('BAT.+','INV.B+');W('BAT.-','INV.B-');acBatSig(W);
+    if(name==='bad'&&AC_HW){
+      ACS.wires=ACS.wires.filter(w=>!['INV.BL','BAT.+','BAT.-','BAT.EP','BAT.EN','BAT.RA'].includes(w.a));
+      W('INV.BL','DB.LR');W('BAT.+','INV.B-');W('BAT.-','INV.B+');W('BAT.EP','INV.EG');W('BAT.EN','INV.EP');W('BAT.RA','INV.RA');S.expLimOn=true;S.expLimW=0;
+    }else if(name==='bad'){
       ACS.wires=ACS.wires.filter(w=>!(w.a==='INV.BL'||w.a==='BAT.+'||w.a==='BAT.-'||w.a==='CT.S1'));
       W('INV.BL','DB.LR');W('BAT.+','INV.B-');W('BAT.-','INV.B+');W('CT.S1','INV.C1');S.ctDir='toLoad';S.expLimOn=true;S.expLimW=0;
     }
