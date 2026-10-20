@@ -133,6 +133,23 @@ function refreshAll(){
 
 /* ---- reset ---- */
 let rsArm=0;
+function initFile(){
+  $('#savefile').addEventListener('click',()=>{
+    const o={app:'pvsim',v:1,saved:new Date().toISOString(),project:snapshot(),catalog:{panels:CAT.panels,inverters:CAT.inverters,batteries:CAT.batteries}};
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));
+    a.download='solar-project-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  });
+  $('#openfile').addEventListener('click',()=>$('#openfilein').click());
+  $('#openfilein').addEventListener('change',async e=>{
+    const f=e.target.files[0];e.target.value='';if(!f)return;
+    try{
+      const o=JSON.parse(await f.text());
+      if(!o||o.app!=='pvsim'||!o.project)throw 0;
+      restoreCatalog(o.catalog);restoreProject(o.project);refreshAll();bSyncCtl();bRender();touch(true);
+      setSt('เปิดไฟล์แล้ว: '+f.name);
+    }catch(err){setSt('ไฟล์นี้ไม่ใช่ไฟล์โปรเจ็คของโปรแกรมนี้')}
+  });
+}
 function initReset(){
   const b=$('#resetall');
   b.addEventListener('click',async()=>{
@@ -147,7 +164,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();initPdfImport();
-  initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();
+  initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();initFile();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
