@@ -6,6 +6,7 @@
  *   CLASS_CODE        รหัสห้องอบรม ถ้าตั้งไว้ ผู้เรียนต้องกรอกให้ตรงจึงจะบันทึก
  *   GOOGLE_CLIENT_ID  ถ้าใช้ปุ่ม Google Sign-in ให้ใส่ Client ID เดียวกับ js/config.js
  *   DRIVE_FOLDER_ID   ID ของโฟลเดอร์ Drive ที่เก็บไฟล์โปรเจ็คของผู้เรียน (ใช้กับปุ่ม บันทึก/โหลดจาก Drive)
+ *   TEACHER_CODE      รหัสผู้สอน ใช้เปิดหน้า dashboard.html (สรุปงานส่ง) ถ้าไม่ตั้ง หน้า dashboard จะใช้ไม่ได้
  */
 var SHEET_NAME = 'Submissions';
 var HEADERS = ['เวลาที่รับ', 'รหัสใบส่งงาน', 'ชื่อ', 'รหัสผู้เรียน', 'Google (ยืนยันแล้ว)', 'Google (แจ้งเอง)',
@@ -28,6 +29,8 @@ function doPost(e) {
     lock.waitLock(20000);
     var d = JSON.parse(e.postData.contents);
     var props = PropertiesService.getScriptProperties();
+
+    if (d.action === 'dash') return dash_(d, props);
 
     var code = props.getProperty('CLASS_CODE');
     if (code && s_(d.cls, 60) !== code) return json_({ ok: false, error: 'รหัสห้องอบรมไม่ถูกต้อง' });
@@ -104,4 +107,18 @@ function cloud_(d, verified, props) {
   var wrapped = JSON.stringify({ name: s_(d.name, 100), sid: s_(d.sid, 30), email: verified, saved: new Date().toISOString(), project: JSON.parse(data) });
   if (file) { file.setContent(wrapped); if (file.getName() !== fname) file.setName(fname); } else folder.createFile(fname, wrapped, 'application/json');
   return json_({ ok: true, cloud: true, file: fname });
+}
+
+// ---- หน้า dashboard ของผู้สอน: ส่งข้อมูลในชีตกลับไป เมื่อรหัสผู้สอน (TEACHER_CODE) ถูกต้อง ----
+function dash_(d, props) {
+  var tcode = props.getProperty('TEACHER_CODE');
+  if (!tcode) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
+  if (s_(d.tcode, 80) !== tcode) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, headers: HEADERS, rows: [] });
+  var n = sh.getLastRow() - 1, start = Math.max(2, sh.getLastRow() - 4999);
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  var vals = sh.getRange(start, 1, sh.getLastRow() - start + 1, sh.getLastColumn()).getValues();
+  var rows = vals.map(function (r) { return r.map(function (v) { return v instanceof Date ? v.toISOString() : v; }); });
+  return json_({ ok: true, dash: true, headers: head, rows: rows, total: n, at: new Date().toISOString() });
 }

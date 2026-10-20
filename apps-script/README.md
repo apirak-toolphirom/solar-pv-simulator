@@ -49,3 +49,11 @@ SUBMIT_URL:'https://script.google.com/macros/s/xxxxxxxx/exec',
 3. วาง `Code.gs` เวอร์ชันล่าสุด แล้ว **Deploy → Manage deployments → Edit → New version** (ต้องอนุญาตสิทธิ์ Drive เพิ่ม)
 - หนึ่งไฟล์ต่อผู้เรียน ชื่อตามอีเมล Google ที่ยืนยันแล้ว ถ้าไม่ได้ล็อกอิน Google ใช้รหัสผู้เรียน
 - ถ้าไม่ล็อกอิน Google คนที่รู้รหัสห้องและรหัสผู้เรียนของคนอื่นเขียนทับได้ แนะนำให้ตั้งปุ่ม Google Sign-in (ข้อ 5) ประวัติเวอร์ชันของ Drive ย้อนกลับได้
+
+## 7. หน้าสรุปงานส่งของผู้สอน (dashboard.html)
+1. Apps Script → Project Settings → Script properties → เพิ่ม `TEACHER_CODE` = รหัสผู้สอน (อย่าใช้รหัสเดียวกับ `CLASS_CODE`)
+2. วาง `Code.gs` เวอร์ชันล่าสุด แล้ว **Deploy → Manage deployments → Edit → New version**
+3. เปิด `https://apirak-toolphirom.github.io/solar-pv-simulator/dashboard.html` กรอกรหัสผู้สอน แล้วกด "โหลดข้อมูล"
+- แสดงจำนวนผู้ส่ง ผลต่อสาย DC / AC / Backup งานส่งรายวัน ข้อผิดพลาดที่พบบ่อย และตารางรายชื่อ (กรองวัน ผล ค้นหา ส่งออก CSV)
+- รหัสผู้สอนไม่อยู่ใน GitHub ตรวจที่ Apps Script ทุกครั้ง เบราว์เซอร์จำไว้เฉพาะแท็บที่เปิดอยู่ ปิดแท็บแล้วต้องกรอกใหม่
+- ปุ่ม "ดูข้อมูลตัวอย่าง" ใช้ดูหน้าตาได้โดยไม่ต้องตั้งค่า

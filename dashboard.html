@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>สรุปงานส่ง</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eaeef1;--surface:#f8fafb;--ink:#12202b;--muted:#566774;--line:#c9d3da;--grid:#dde4e9;
+  --s1:#2a78d6;--accent:#d98200;
+  --ok:#1a7f46;--okbg:#dcf2e5;--warn:#99600a;--warnbg:#fbedc9;--err:#b8302a;--errbg:#fadcd9;--idle:#8696a2;
+  --body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e161d;--surface:#162029;--ink:#e4ecf1;--muted:#90a1ae;--line:#2a3945;--grid:#22313c;
+  --s1:#3987e5;--accent:#f0a22a;
+  --ok:#47c97d;--okbg:#143324;--warn:#e8ae45;--warnbg:#35290f;--err:#f2766b;--errbg:#3a1a18;--idle:#6c7d8a;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e161d;--surface:#162029;--ink:#e4ecf1;--muted:#90a1ae;--line:#2a3945;--grid:#22313c;
+  --s1:#3987e5;--accent:#f0a22a;
+  --ok:#47c97d;--okbg:#143324;--warn:#e8ae45;--warnbg:#35290f;--err:#f2766b;--errbg:#3a1a18;--idle:#6c7d8a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--body)}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 48px}
+h1{margin:0;font-size:24px;font-weight:600}
+h2{margin:0 0 10px;font-size:15px;font-weight:600}
+.sub{margin:2px 0 0;color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+input,select,button{font:inherit;color:var(--ink)}
+input[type=text],input[type=password],input[type=search],select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-height:38px}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 12px;min-height:38px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.chk{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.msg{margin:8px 0 0;padding:8px 12px;border-radius:8px;font-size:13px}.msg.err{background:var(--errbg);color:var(--err)}.msg.ok{background:var(--okbg);color:var(--ok)}.msg.info{background:var(--bg);color:var(--muted)}
+.msg[hidden]{display:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:14px 0}
+.kpi .k{color:var(--muted);font-size:12.5px}.kpi .v{font:600 26px/1.2 var(--mono);margin-top:2px}.kpi .s{color:var(--muted);font-size:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin-bottom:12px}
+svg text{fill:var(--muted);font:11px var(--mono)}
+.axis{stroke:var(--line)}.gl{stroke:var(--grid)}
+.hit{fill:transparent;cursor:default}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--surface);padding:6px 9px;border-radius:7px;font-size:12.5px;z-index:9;max-width:320px;white-space:pre-line}
+.tip[hidden]{display:none}
+.res{display:flex;flex-direction:column;gap:12px}
+.resrow .lab{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.stack{display:flex;gap:2px;height:22px;border-radius:5px;overflow:hidden;background:var(--grid)}
+.stack span{display:block;min-width:2px}
+.lg{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--muted);margin-top:4px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.iss{display:flex;flex-direction:column;gap:7px}
+.iss .row{display:grid;grid-template-columns:minmax(0,1fr) 58px;gap:8px;align-items:center;font-size:12.5px}
+.iss .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iss .b{height:8px;border-radius:0 4px 4px 0;background:var(--s1);margin-top:3px}
+.iss .n{font-family:var(--mono);text-align:right;white-space:nowrap}
+.tblwrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:var(--surface);font-weight:600;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap}
+th[data-sort]::after{content:' ↕';opacity:.4}th.asc::after{content:' ↑';opacity:1}th.desc::after{content:' ↓';opacity:1}
+td.num{font-family:var(--mono);text-align:right}
+tbody tr.main{cursor:pointer}tbody tr.main:hover{background:var(--bg)}
+tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.err{background:var(--errbg);color:var(--err)}.pill.idle{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+.foot{margin-top:10px;color:var(--muted);font-size:12px}
+@media (max-width:600px){.kpi .v{font-size:22px}h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>สรุปงานส่ง</h1><p class="sub" id="course">เว็บจำลองระบบโซลาร์</p></div>
+    <div class="bar">
+      <input id="tcode" type="password" placeholder="รหัสผู้สอน" aria-label="รหัสผู้สอน" autocomplete="current-password">
+      <button class="btn pri" id="load">โหลดข้อมูล</button>
+      <button class="btn" id="demo">ดูข้อมูลตัวอย่าง</button>
+      <label class="chk"><input type="checkbox" id="auto"> อัปเดตทุก 1 นาที</label>
+    </div>
+  </div>
+  <p class="msg info" id="msg">กรอกรหัสผู้สอน (TEACHER_CODE ใน Script properties ของ Apps Script) แล้วกด "โหลดข้อมูล" หรือกด "ดูข้อมูลตัวอย่าง" เพื่อดูหน้าตา</p>
+
+  <div id="body" hidden>
+    <div class="card bar" style="margin-top:12px">
+      <select id="fday" aria-label="วันที่"></select>
+      <select id="fres" aria-label="ผลการต่อสาย DC"><option value="">ผลต่อสาย DC: ทั้งหมด</option><option value="ok">ผ่าน</option><option value="warn">มีข้อควรระวัง</option><option value="err">ไม่ผ่าน</option></select>
+      <input id="fq" type="search" placeholder="ค้นหาชื่อ / รหัส / รุ่นอุปกรณ์" aria-label="ค้นหา" style="flex:1;min-width:180px">
+      <label class="chk"><input type="checkbox" id="flast" checked> เฉพาะครั้งล่าสุดของแต่ละคน</label>
+      <button class="btn" id="csv">ส่งออก CSV</button>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grid2">
+      <div class="card"><h2>จำนวนงานส่งรายวัน</h2><div id="chDay"></div></div>
+      <div class="card"><h2>ผลการตรวจ (ครั้งล่าสุดของแต่ละคน)</h2><div class="res" id="chRes"></div>
+        <div class="lg"><span><i style="background:var(--ok)"></i>✓ ผ่าน</span><span><i style="background:var(--warn)"></i>! มีข้อควรระวัง</span><span><i style="background:var(--err)"></i>× ไม่ผ่าน</span><span><i style="background:var(--idle)"></i>ยังไม่ได้ทำ</span></div></div>
+    </div>
+    <div class="card" style="margin-bottom:12px"><h2>ข้อผิดพลาดที่พบบ่อย</h2><div class="iss" id="chIss"></div></div>
+
+    <div class="card">
+      <h2 id="tblh">รายชื่อผู้ส่งงาน</h2>
+      <div class="tblwrap"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+      <p class="foot" id="foot"></p>
+    </div>
+  </div>
+</div>
+<div class="tip" id="tip" hidden></div>
+<script src="js/config.js"></script>
+<script>
+/* Teacher dashboard: reads the Submissions sheet through the Apps Script web app (action "dash", checked against TEACHER_CODE). */
+const CFG=window.APP_CONFIG||{};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=(x,d=0)=>Number(x||0).toFixed(d);
+const pad=n=>String(n).padStart(2,'0');
+const dayKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const dayTh=k=>{const [y,m,d]=k.split('-').map(Number);return `${d}/${m}/${(y+543)%100}`};
+const LV={ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน',idle:'ยังไม่ได้ทำ'},GL={ok:'✓',warn:'!',err:'×',idle:'–'};
+const lvOf=v=>{v=String(v||'').toLowerCase();return v==='ok'||v==='warn'||v==='err'?v:'idle'};
+if(CFG.COURSE)$('#course').textContent=CFG.COURSE;
+let ROWS=[],SORT={k:'t',dir:-1},OPEN=new Set(),timer=0;
+const ss={get:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}};
+if(ss.get('pvdash.tcode'))$('#tcode').value=ss.get('pvdash.tcode');
+function msg(t,cls){const m=$('#msg');m.textContent=t;m.className='msg '+(cls||'info');m.hidden=!t}
+
+/* map sheet rows by header name so column order changes do not break the page */
+function parse(headers,rows){
+  const ix=n=>headers.indexOf(n),g=(r,n)=>{const i=ix(n);return i<0?'':r[i]};
+  return rows.map(r=>{
+    const t=new Date(g(r,'เวลาที่รับ'));
+    return{t:isNaN(t)?new Date(0):t,receipt:g(r,'รหัสใบส่งงาน'),name:String(g(r,'ชื่อ')||''),sid:String(g(r,'รหัสผู้เรียน')||''),gmail:String(g(r,'Google (ยืนยันแล้ว)')||''),
+      dc:lvOf(g(r,'ผลต่อสาย')),err:+g(r,'ไม่ผ่าน')||0,warn:+g(r,'ควรระวัง')||0,used:+g(r,'แผงที่ใช้')||0,panels:+g(r,'แผงทั้งหมด')||0,kwp:+g(r,'kWp')||0,ratio:+g(r,'DC/AC')||0,
+      topo:String(g(r,'รูปแบบการต่อ')||''),panel:String(g(r,'แผง')||''),inv:String(g(r,'อินเวอร์เตอร์')||''),bat:String(g(r,'แบตเตอรี่')||''),
+      pv:g(r,'ผลิตต่อวัน kWh'),load:g(r,'โหลดต่อวัน kWh'),bkMode:String(g(r,'โหมด Backup')||''),bk:lvOf(g(r,'ผล Backup')),bkText:String(g(r,'สรุป Backup')||''),unmet:+g(r,'ไฟขาด kWh')||0,
+      issues:String(g(r,'ข้อที่ต้องตรวจ')||'').split('\n').map(s=>s.trim()).filter(Boolean),ac:lvOf(g(r,'ผลต่อสาย AC')),acErr:+g(r,'ข้อผิดพลาด AC')||0,ev:String(g(r,'เหตุการณ์ที่จำลอง')||'')};
+  }).filter(r=>r.name||r.sid);
+}
+const who=r=>(r.sid||r.gmail||r.name).toLowerCase();
+
+async function load(){
+  const code=$('#tcode').value.trim();
+  if(!CFG.SUBMIT_URL){msg('ยังไม่ได้ตั้ง SUBMIT_URL ใน js/config.js','err');return}
+  if(!code){msg('กรอกรหัสผู้สอนก่อน','err');$('#tcode').focus();return}
+  msg('กำลังโหลด…');$('#load').disabled=true;
+  try{
+    const res=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'dash',tcode:code}),redirect:'follow'});
+    const j=await res.json();
+    if(!j||!j.ok){msg((j&&j.error)||'โหลดไม่สำเร็จ','err');return}
+    if(!j.dash){msg('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → Manage deployments → Edit → New version','err');return}
+    ss.set('pvdash.tcode',code);
+    ROWS=parse(j.headers,j.rows);
+    msg(`โหลดแล้ว ${ROWS.length} รายการ · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`+(j.total>j.rows.length?` (แสดง ${j.rows.length} รายการล่าสุดจาก ${j.total})`:''),'ok');
+    show();
+  }catch(e){msg('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ตและ SUBMIT_URL','err')}
+  finally{$('#load').disabled=false}
+}
+
+function demo(){
+  const names=['สมชาย ใจดี','สุดา แก้วมณี','อนุชา ศรีสุข','พิมพ์ชนก ทองดี','วีระ บุญมา','กาญจนา พรหมมา','ธนพล สายทอง','ศิริพร จันทร์เพ็ญ','ประยุทธ์ คำแก้ว','นภัสสร วงศ์ไทย','อำนาจ ดวงดี','รัตนา ศรีวงศ์'];
+  const iss=['Voc ที่ 10°C = 563 V เกิน 550 V ของอินเวอร์เตอร์ ต่ออนุกรมได้ไม่เกิน 10 แผง','Imp รวม 17.4 A เกิน 16 A กระแสจะถูกจำกัด สูญเสียราว 8% ตอนแดดเต็ม','มี 2 แผงที่ยังไม่ได้ต่อเข้าวงจรของอินเวอร์เตอร์','แรงดันชุดแบต 51.2 V อยู่นอกช่วง 600–980 V ของอินเวอร์เตอร์','ทิศ CT กลับด้าน','พอร์ต BACKUP ต่อเข้าตู้เมนบ้านที่มีไฟกริด'];
+  const pick=(a,i)=>a[i%a.length],out=[],now=new Date();let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  names.forEach((n,i)=>{const k=1+Math.floor(rnd()*3);for(let j=0;j<k;j++){
+    const t=new Date(now);t.setDate(now.getDate()-Math.floor(rnd()*6));t.setHours(9+Math.floor(rnd()*7),Math.floor(rnd()*60));
+    const dc=rnd()<.55?'ok':rnd()<.6?'warn':'err',e=dc==='err'?1+Math.floor(rnd()*2):0,w=dc==='warn'?1:0,used=8+Math.floor(rnd()*5);
+    out.push({t,receipt:'R'+i+j,name:n,sid:'6900'+pad(i+1),gmail:'',dc,err:e,warn:w,used,panels:used+(rnd()<.2?2:0),kwp:used*.65,ratio:used*.65/6,topo:used+'S1P',panel:'LONGi Hi-MO X10 650 W',
+      inv:pick(['Solis S6-GR1P6K-S','Huawei SUN2000-5KTL-L1','Solis S6-EH1P6K-L-PLUS'],i),bat:i%3?'Dyness PowerBrick 14.3 kWh × 1S1P':'-',pv:(used*.65*4.4).toFixed(1),load:11.2,bkMode:'hybrid',
+      bk:rnd()<.7?'ok':'warn',bkText:'ช่วงไฟดับ 18:00–00:00: ไฟพอใช้ตามโหลดที่เลือก',unmet:0,issues:dc==='ok'?[]:[pick(iss,i+j),dc==='err'?pick(iss,i+2):''].filter(Boolean),ac:rnd()<.5?'ok':rnd()<.5?'err':'idle',acErr:0,ev:''})}});
+  ROWS=out;msg('ข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริง) · กด "โหลดข้อมูล" เพื่อดูงานส่งจริง','info');show();
+}
+
+function filtered(){
+  const day=$('#fday').value,res=$('#fres').value,q=$('#fq').value.trim().toLowerCase();
+  let L=ROWS.filter(r=>(!day||dayKey(r.t)===day));
+  const cnt={};L.forEach(r=>{cnt[who(r)]=(cnt[who(r)]||0)+1});
+  if($('#flast').checked){const m={};L.forEach(r=>{const k=who(r);if(!m[k]||r.t>m[k].t)m[k]=r});L=Object.values(m)}
+  L=L.filter(r=>(!res||r.dc===res)&&(!q||[r.name,r.sid,r.gmail,r.inv,r.panel,r.bat].join(' ').toLowerCase().includes(q)));
+  L.forEach(r=>r.n=cnt[who(r)]||1);
+  return L;
+}
+function latestPerStudent(L){const m={};L.forEach(r=>{const k=who(r);if(!m[k]||r.t>m[k].t)m[k]=r});return Object.values(m)}
+
+function show(){
+  $('#body').hidden=false;
+  /* day filter options from data */
+  const days=[...new Set(ROWS.map(r=>dayKey(r.t)))].sort().reverse(),cur=$('#fday').value;
+  $('#fday').innerHTML='<option value="">ทุกวัน</option>'+days.map(d=>`<option value="${d}">${dayTh(d)}</option>`).join('');
+  if(days.includes(cur))$('#fday').value=cur;
+  render();
+}
+function render(){
+  const day=$('#fday').value,inDay=ROWS.filter(r=>!day||dayKey(r.t)===day),last=latestPerStudent(inDay),L=filtered();
+  /* KPIs */
+  const pct=(a,fn)=>a.length?f(a.filter(fn).length/a.length*100,0)+' %':'–';
+  const today=dayKey(new Date()),done=x=>x!=='idle';
+  const kp=[['ผู้ส่งงาน',last.length+' คน',`ส่งทั้งหมด ${inDay.length} ครั้ง`],['ต่อสาย DC ผ่าน',pct(last,r=>r.dc==='ok'),`${last.filter(r=>r.dc==='err').length} คนยังไม่ผ่าน`],
+    ['ต่อสาย AC ผ่าน',pct(last.filter(r=>done(r.ac)),r=>r.ac==='ok'),`ทำแล้ว ${last.filter(r=>done(r.ac)).length} คน`],['Backup ไฟพอใช้',pct(last.filter(r=>done(r.bk)),r=>r.bk==='ok'),`ทำแล้ว ${last.filter(r=>done(r.bk)).length} คน`],
+    ['ขนาดระบบเฉลี่ย',last.length?f(last.reduce((a,r)=>a+r.kwp,0)/last.length,2)+' kWp':'–',last.length?`${f(last.reduce((a,r)=>a+r.used,0)/last.length,1)} แผงต่อคน`:''],
+    ['ส่งวันนี้',ROWS.filter(r=>dayKey(r.t)===today).length+' ครั้ง',dayTh(today)]];
+  $('#kpis').innerHTML=kp.map(k=>`<div class="card kpi"><div class="k">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${esc(k[2])}</div></div>`).join('');
+  drawDays();drawRes(last);drawIssues(last);drawTable(L);
+}
+
+/* submissions per day: one series, bars from a zero baseline, hover tooltip */
+function drawDays(){
+  const m={};ROWS.forEach(r=>{const k=dayKey(r.t);m[k]=(m[k]||0)+1});
+  const ks=Object.keys(m).sort().slice(-14),host=$('#chDay');
+  if(!ks.length){host.innerHTML='<p class="empty">ยังไม่มีงานส่ง</p>';return}
+  const W=560,H=200,pl=34,pr=8,pt=10,pb=28,mx=Math.max(...ks.map(k=>m[k])),top=Math.max(4,Math.ceil(mx/4)*4);
+  const bw=(W-pl-pr)/ks.length,y=v=>pt+(H-pt-pb)*(1-v/top);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="จำนวนงานส่งรายวัน">`;
+  for(let i=0;i<=4;i++){const v=top*i/4,yy=y(v);s+=`<line class="gl" x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}"/><text x="${pl-6}" y="${yy+4}" text-anchor="end">${v}</text>`}
+  ks.forEach((k,i)=>{
+    const x=pl+i*bw+bw*.18,w=bw*.64,v=m[k],yy=y(v),h=H-pb-yy,r=Math.min(4,w/2,h);
+    s+=`<path d="M${x} ${H-pb}V${yy+r}Q${x} ${yy} ${x+r} ${yy}H${x+w-r}Q${x+w} ${yy} ${x+w} ${yy+r}V${H-pb}Z" fill="var(--s1)"/>`;
+    s+=`<rect class="hit" x="${pl+i*bw}" y="${pt}" width="${bw}" height="${H-pt-pb}" data-tip="${dayTh(k)}: ${v} ครั้ง"/>`;
+    if(ks.length<=8||i%2===ks.length%2)s+=`<text x="${x+w/2}" y="${H-pb+16}" text-anchor="middle">${dayTh(k)}</text>`;
+  });
+  s+=`<line class="axis" x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}"/></svg>`;
+  host.innerHTML=s;
+}
+/* result distribution: status colors with label and count, never color alone */
+function drawRes(last){
+  const rows=[['ต่อสาย DC','dc'],['ต่อสาย AC','ac'],['จำลอง Backup','bk']],n=last.length||1;
+  $('#chRes').innerHTML=last.length?rows.map(([lab,k])=>{
+    const c={ok:0,warn:0,err:0,idle:0};last.forEach(r=>c[r[k]]++);
+    const seg=['ok','warn','err','idle'].filter(x=>c[x]).map(x=>`<span style="width:${c[x]/n*100}%;background:var(--${x})" data-tip="${lab} · ${LV[x]}: ${c[x]} คน"></span>`).join('');
+    const txt=['ok','warn','err','idle'].filter(x=>c[x]).map(x=>`${GL[x]} ${c[x]}`).join(' · ');
+    return`<div class="resrow"><div class="lab"><span>${lab}</span><span style="font-family:var(--mono)">${txt}</span></div><div class="stack">${seg}</div></div>`;
+  }).join(''):'<p class="empty">ยังไม่มีงานส่ง</p>';
+}
+/* most frequent issues: numbers are masked so the same mistake with different values groups together */
+function drawIssues(last){
+  const m={};last.forEach(r=>[...new Set(r.issues.map(t=>t.replace(/[\d.,]+/g,'#')))].forEach(k=>{if(!m[k])m[k]={n:0,ex:r.issues.find(t=>t.replace(/[\d.,]+/g,'#')===k)};m[k].n++}));
+  const top=Object.entries(m).sort((a,b)=>b[1].n-a[1].n).slice(0,8),mx=top.length?top[0][1].n:1;
+  $('#chIss').innerHTML=top.length?top.map(([k,v])=>`<div class="row" data-tip="${esc(v.ex)}"><div><div class="t">${esc(v.ex)}</div><div class="b" style="width:${v.n/mx*100}%"></div></div><div class="n">${v.n} คน</div></div>`).join('')
+    :'<p class="empty">ไม่มีข้อผิดพลาดในงานส่งล่าสุด</p>';
+}
+const COLS=[['name','ชื่อ'],['sid','รหัส'],['t','เวลาที่ส่ง'],['dc','ต่อสาย DC'],['used','แผง'],['kwp','kWp'],['inv','อินเวอร์เตอร์'],['ac','ต่อสาย AC'],['bk','Backup'],['n','ส่ง (ครั้ง)']];
+const ORD={ok:0,warn:1,err:2,idle:3};
+function drawTable(L){
+  $('#thead').innerHTML=COLS.map(([k,h])=>`<th data-sort="${k}" class="${SORT.k===k?(SORT.dir>0?'asc':'desc'):''}">${h}</th>`).join('');
+  const key=r=>{const v=r[SORT.k];return SORT.k in{dc:1,ac:1,bk:1}?ORD[v]:v instanceof Date?+v:typeof v==='number'?v:String(v).toLowerCase()};
+  L.sort((a,b)=>{const x=key(a),y=key(b);return(x>y?1:x<y?-1:0)*SORT.dir});
+  const pill=v=>`<span class="pill ${v}">${GL[v]} ${LV[v]}</span>`;
+  const tm=d=>`${dayTh(dayKey(d))} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  $('#tbody').innerHTML=L.length?L.map(r=>{
+    const id=r.receipt||(who(r)+(+r.t)),open=OPEN.has(id);
+    return`<tr class="main" data-id="${esc(id)}" aria-expanded="${open}"><td>${esc(r.name)}</td><td>${esc(r.sid||r.gmail)}</td><td>${tm(r.t)}</td><td>${pill(r.dc)}${r.err?` <small>${r.err} ผิด</small>`:''}${r.warn?` <small>${r.warn} ระวัง</small>`:''}</td>
+      <td class="num">${r.used}/${r.panels}</td><td class="num">${f(r.kwp,2)}</td><td>${esc(r.inv)}</td><td>${pill(r.ac)}</td><td>${pill(r.bk)}</td><td class="num">${r.n||1}</td></tr>`
+      +(open?`<tr class="det"><td colspan="${COLS.length}"><b>การต่อ</b> ${esc(r.topo||'-')} · DC/AC ${f(r.ratio,2)} · แผง ${esc(r.panel)} · แบต ${esc(r.bat||'-')}
+<b>พลังงาน</b> ผลิต ${esc(r.pv===''?'-':r.pv)} kWh/วัน · โหลด ${esc(r.load)} kWh/วัน${r.bkText?' · '+esc(r.bkText):''}${r.ev?'\n<b>เหตุการณ์</b> '+esc(r.ev):''}
+<b>ข้อที่ต้องตรวจ</b>${r.issues.length?'\n• '+r.issues.map(esc).join('\n• '):' ไม่มี'}</td></tr>`:'');
+  }).join(''):`<tr><td colspan="${COLS.length}" class="empty">ไม่มีรายการตามตัวกรอง</td></tr>`;
+  $('#tblh').textContent=`รายชื่อผู้ส่งงาน (${L.length})`;
+  $('#foot').textContent='แตะแถวเพื่อดูรายละเอียด · แตะหัวคอลัมน์เพื่อเรียง · ข้อมูลมาจากแผ่น Submissions ใน Google Sheets ของผู้สอน';
+}
+function csv(){
+  const L=filtered(),q=v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`;
+  const head=['ชื่อ','รหัส','เวลาที่ส่ง','ต่อสาย DC','ไม่ผ่าน','ควรระวัง','แผงที่ใช้','แผงทั้งหมด','kWp','อินเวอร์เตอร์','แบต','ต่อสาย AC','Backup','ส่ง (ครั้ง)','ข้อที่ต้องตรวจ'];
+  const body=L.map(r=>[r.name,r.sid||r.gmail,r.t.toLocaleString('th-TH'),LV[r.dc],r.err,r.warn,r.used,r.panels,f(r.kwp,2),r.inv,r.bat,LV[r.ac],LV[r.bk],r.n||1,r.issues.join(' | ')].map(q).join(','));
+  const blob=new Blob(['﻿'+[head.map(q).join(','),...body].join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`งานส่ง-${dayKey(new Date())}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+
+$('#load').addEventListener('click',load);
+$('#tcode').addEventListener('keydown',e=>{if(e.key==='Enter')load()});
+$('#demo').addEventListener('click',demo);
+['#fday','#fres','#flast'].forEach(s=>$(s).addEventListener('change',render));
+$('#fq').addEventListener('input',render);
+$('#csv').addEventListener('click',csv);
+$('#auto').addEventListener('change',e=>{clearInterval(timer);if(e.target.checked)timer=setInterval(()=>{if($('#tcode').value.trim())load()},60000)});
+$('#thead').addEventListener('click',e=>{const th=e.target.closest('[data-sort]');if(!th)return;const k=th.dataset.sort;SORT=SORT.k===k?{k,dir:-SORT.dir}:{k,dir:k==='t'||k==='n'||k==='kwp'||k==='used'?-1:1};render()});
+$('#tbody').addEventListener('click',e=>{const tr=e.target.closest('tr.main');if(!tr)return;const id=tr.dataset.id;OPEN.has(id)?OPEN.delete(id):OPEN.add(id);render()});
+/* shared tooltip for bars, stacked segments and issue rows */
+const tip=$('#tip');
+document.addEventListener('pointermove',e=>{const t=e.target.closest('[data-tip]');if(!t){tip.hidden=true;return}tip.textContent=t.dataset.tip;tip.hidden=false;const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px'});
+document.addEventListener('pointerleave',()=>tip.hidden=true);
+if(ss.get('pvdash.tcode')&&CFG.SUBMIT_URL)load();
+</script>
+</body>
+</html>
