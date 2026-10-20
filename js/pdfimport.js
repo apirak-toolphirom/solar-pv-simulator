@@ -137,6 +137,8 @@ const DS_SPECS={
     {k:'kwh',re:/energy|capacity.*kwh|usable.*kwh/},
     {k:'dod',re:/depth of discharge|\bdod\b/},
     {k:'rt',re:/round.?trip|charge.*effic|efficiency/},
+    {k:'maxChg',re:/(max|continuous)[^/]*(?<!dis)charge[^/]*current/,not:/discharg|peak|pulse|recommend|\bsec\b/},
+    {k:'bisc',re:/short.?circuit/,not:/protect/},
     {k:'maxA',re:/(max|continuous)[^/]*discharge[^/]*current/,not:/peak|pulse|\bsec\b|recommend/}
   ]
 };
@@ -244,6 +246,7 @@ function dsParse(lines,forceKind){
       const kw=val('kwh');if(kw)put('kwh',kw.n[0]*(/\bwh\b/i.test(kw.lab)&&!/kwh/i.test(kw.lab)?.001:1),kw.r);
       g('dod',a=>a.find(x=>x>0&&x<=100)||a[0]);g('rt',a=>a.find(x=>x>50&&x<=100)||a[0]);
       raw.chem=/lifepo|lfp|lithium iron/i.test(text)?'LiFePO4':/nmc|li-ion|lithium-ion|ncm/i.test(text)?'Li-ion':/lead|agm|\bgel\b/i.test(text)?'Lead':'Other';
+      {const o=val('maxA');if(o)put('maxDis',o.n[0],o.r);const sc=val('bisc');if(sc)put('isc',sc.n[0],sc.r);const mc=val('maxChg');if(mc)put('maxChg',mc.n[0],mc.r)}
       const ma=val('maxA');if(ma&&raw.ah){const c=ma.n[0]/raw.ah;if(c>0&&c<=5){raw.maxC=Math.round(c*100)/100;src.maxC=ma.r.raw.trim().slice(0,120)}}
       raw.note='นำเข้าจาก PDF ตรวจกับ datasheet ก่อนใช้';
     }

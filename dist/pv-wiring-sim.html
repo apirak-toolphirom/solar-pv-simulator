@@ -731,11 +731,11 @@ const SCHEMA={
     fields:[
       ['brand','ยี่ห้อ','t',''],['model','รุ่น','t',''],
       ['chem','ชนิดเซลล์','s','LiFePO4',[['LiFePO4','LiFePO4'],['Li-ion','Li-ion (NMC)'],['Lead','ตะกั่วกรด (AGM/Gel)'],['Other','อื่นๆ']]],
-      ['v','แรงดันต่อลูก (V)','n',0],['ah','ความจุต่อลูก (Ah)','n',0],['dod','ใช้ได้ (DoD %)','n',90],['rt','ประสิทธิภาพชาร์จ-จ่าย (%)','n',95],['maxC','กระแสสูงสุด (C)','n',0.5],
+      ['v','แรงดันต่อลูก (V)','n',0],['ah','ความจุต่อลูก (Ah)','n',0],['dod','ใช้ได้ (DoD %)','n',90],['rt','ประสิทธิภาพชาร์จ-จ่าย (%)','n',95],['maxC','กระแสสูงสุด (C) ใช้เมื่อไม่ได้ใส่แอมป์','n',0.5],['maxChg','กระแสชาร์จสูงสุดต่อลูก (A)','n',0],['maxDis','กระแสจ่ายสูงสุดต่อลูก (A)','n',0],['isc','กระแสลัดวงจรสูงสุดต่อลูก (A)','n',0],
       ['note','หมายเหตุ','t','']
     ],
     req:['brand','model','v','ah'],
-    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],chem:['chem','chemistry','ชนิด','type'],v:['v','voltage','nominalvoltage','แรงดัน','vnom'],ah:['ah','capacity','ความจุ'],dod:['dod','depthofdischarge'],rt:['rt','roundtrip','efficiency','eff'],maxC:['maxc','crate','c'],kwh:['kwh','energy','ขนาด'],note:['note','หมายเหตุ']}
+    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],chem:['chem','chemistry','ชนิด','type'],v:['v','voltage','nominalvoltage','แรงดัน','vnom'],ah:['ah','capacity','ความจุ'],dod:['dod','depthofdischarge'],rt:['rt','roundtrip','efficiency','eff'],maxC:['maxc','crate','c'],maxChg:['maxchg','maxchargecurrent','chargecurrent','imaxcharge'],maxDis:['maxdis','maxdischargecurrent','dischargecurrent','imaxdischarge'],isc:['isc','shortcircuitcurrent','shortcircuit','ishort'],kwh:['kwh','energy','ขนาด'],note:['note','หมายเหตุ']}
   }
 };
 const KIND_ORDER=['panels','inverters','batteries'];
@@ -774,7 +774,9 @@ applyActive();
 function bankInfo(){
   const b=curBat();if(!b)return null;
   const s=Math.max(1,BANK.s|0),p=Math.max(1,BANK.p|0),V=s*b.v,Ah=p*b.ah,kwh=V*Ah/1000;
-  return{b,s,p,n:s*p,V,Ah,kwh,usable:kwh*(b.dod||90)/100,rt:(b.rt||95)/100,maxC:b.maxC||0.5};
+  const mc=b.maxC||0.5;
+  const chgA=b.maxChg>0?b.maxChg*p:mc*Ah,disA=b.maxDis>0?b.maxDis*p:mc*Ah;
+  return{b,s,p,n:s*p,V,Ah,kwh,usable:kwh*(b.dod||90)/100,rt:(b.rt||95)/100,maxC:mc,chgA,disA,chgKw:V*chgA/1000,disKw:V*disA/1000,scA:b.isc>0?b.isc*p:0};
 }
 
 /* ---- import / export ---- */
@@ -845,7 +847,7 @@ function importText(text,kind){
 const SAMPLE={
   panels:'brand,model,pmax,voc,vmp,isc,imp,kVoc,kPmax,kIsc,noct\nBrandX,ABC-600,600,51.5,43.2,14.9,13.9,-0.25,-0.30,0.05,44',
   inverters:'brand,model,type,pac,vmax,lo,hi,start,imax,isc,eff,bvMin,bvMax,bchg,bdis,backupKw\nBrandY,HY-5K,hybrid,5000,600,90,520,120,16,22,97,40,60,5,5,5',
-  batteries:'brand,model,chem,v,ah,dod,rt,maxC\nBrandZ,LFP-5.12,LiFePO4,51.2,100,90,95,0.5'
+  batteries:'brand,model,chem,v,ah,dod,rt,maxChg,maxDis,isc\nBrandZ,LFP-5.12,LiFePO4,51.2,100,90,95,50,50,2000'
 };
 function exportJSON(){return JSON.stringify({panels:CAT.panels,inverters:CAT.inverters,batteries:CAT.batteries},null,1)}
 
@@ -882,7 +884,7 @@ function bankHTML(){
   if(I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warn.push(`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงแบตของอินเวอร์เตอร์ ${I.bvMin}–${I.bvMax} V`);
   if(I.type==='on-grid')warn.push('อินเวอร์เตอร์ที่เลือกเป็นแบบ On-grid ต่อแบตตรงไม่ได้ เลือกรุ่น Hybrid หรือ Off-grid ที่หัวข้ออินเวอร์เตอร์ก่อนจำลอง Backup');
   return`<div class="row3"><label>ต่ออนุกรม (ลูก)<input id="bk-s" type="number" min="1" max="32" step="1" value="${bi.s}"></label><label>ต่อขนาน (ชุด)<input id="bk-p" type="number" min="1" max="32" step="1" value="${bi.p}"></label></div>
-  <dl class="specs bk"><div><dt>จำนวนแบต</dt><dd>${bi.n} ลูก</dd></div><div><dt>แรงดันชุด</dt><dd>${f(bi.V,1)} V</dd></div><div><dt>ความจุชุด</dt><dd>${f(bi.Ah,0)} Ah</dd></div><div><dt>พลังงานรวม</dt><dd>${f(bi.kwh,2)} kWh</dd></div><div><dt>ใช้ได้จริง (DoD ${b.dod}%)</dt><dd>${f(bi.usable,2)} kWh</dd></div><div><dt>กำลังสูงสุดที่แบตรับได้ (${bi.maxC}C)</dt><dd>${f(bi.kwh*bi.maxC,1)} kW</dd></div></dl>`+(warn.length?`<ul class="checks">${warn.map(w=>`<li><span class="b warn">!</span><span>${esc(w)}</span></li>`).join('')}</ul>`:'');
+  <dl class="specs bk"><div><dt>จำนวนแบต</dt><dd>${bi.n} ลูก</dd></div><div><dt>แรงดันชุด</dt><dd>${f(bi.V,1)} V</dd></div><div><dt>ความจุชุด</dt><dd>${f(bi.Ah,0)} Ah</dd></div><div><dt>พลังงานรวม</dt><dd>${f(bi.kwh,2)} kWh</dd></div><div><dt>ใช้ได้จริง (DoD ${b.dod}%)</dt><dd>${f(bi.usable,2)} kWh</dd></div><div><dt>กระแสชาร์จสูงสุดของชุด</dt><dd>${f(bi.chgA,0)} A · ${f(bi.chgKw,1)} kW</dd></div><div><dt>กระแสจ่ายสูงสุดของชุด</dt><dd>${f(bi.disA,0)} A · ${f(bi.disKw,1)} kW</dd></div><div><dt>กระแสลัดวงจรสูงสุดของชุด</dt><dd>${bi.scA>0?f(bi.scA,0)+' A':'ไม่ระบุ'}</dd></div></dl>`+(warn.length?`<ul class="checks">${warn.map(w=>`<li><span class="b warn">!</span><span>${esc(w)}</span></li>`).join('')}</ul>`:'');
 }
 function eqRender(kind){
   const host=$('#eq-'+kind);if(!host)return;
@@ -1156,6 +1158,8 @@ const DS_SPECS={
     {k:'kwh',re:/energy|capacity.*kwh|usable.*kwh/},
     {k:'dod',re:/depth of discharge|\bdod\b/},
     {k:'rt',re:/round.?trip|charge.*effic|efficiency/},
+    {k:'maxChg',re:/(max|continuous)[^/]*(?<!dis)charge[^/]*current/,not:/discharg|peak|pulse|recommend|\bsec\b/},
+    {k:'bisc',re:/short.?circuit/,not:/protect/},
     {k:'maxA',re:/(max|continuous)[^/]*discharge[^/]*current/,not:/peak|pulse|\bsec\b|recommend/}
   ]
 };
@@ -1263,6 +1267,7 @@ function dsParse(lines,forceKind){
       const kw=val('kwh');if(kw)put('kwh',kw.n[0]*(/\bwh\b/i.test(kw.lab)&&!/kwh/i.test(kw.lab)?.001:1),kw.r);
       g('dod',a=>a.find(x=>x>0&&x<=100)||a[0]);g('rt',a=>a.find(x=>x>50&&x<=100)||a[0]);
       raw.chem=/lifepo|lfp|lithium iron/i.test(text)?'LiFePO4':/nmc|li-ion|lithium-ion|ncm/i.test(text)?'Li-ion':/lead|agm|\bgel\b/i.test(text)?'Lead':'Other';
+      {const o=val('maxA');if(o)put('maxDis',o.n[0],o.r);const sc=val('bisc');if(sc)put('isc',sc.n[0],sc.r);const mc=val('maxChg');if(mc)put('maxChg',mc.n[0],mc.r)}
       const ma=val('maxA');if(ma&&raw.ah){const c=ma.n[0]/raw.ah;if(c>0&&c<=5){raw.maxC=Math.round(c*100)/100;src.maxC=ma.r.raw.trim().slice(0,120)}}
       raw.note='นำเข้าจาก PDF ตรวจกับ datasheet ก่อนใช้';
     }
@@ -1892,6 +1897,8 @@ function acAnalyze(){
     else add('warn','ยังไม่ได้ต่อแบตเตอรี่ ระบบทำงานเป็นไฟจากแผงและกริดเท่านั้น');
     d.batRev=br;
     const bi=bankInfo();
+    if(d.batOk&&bi&&bi.scA>0)add('ok',`กระแสลัดวงจรของชุดแบตสูงสุด ${f(bi.scA,0)} A เบรกเกอร์หรือฟิวส์ DC ต้องมีค่าตัดกระแสลัดวงจร (breaking capacity) ไม่ต่ำกว่านี้`);
+    if(d.batOk&&bi&&I.bchg>0&&bi.chgKw<I.bchg*0.999)add('warn',`แบตรับชาร์จได้ ${f(bi.chgA,0)} A (${f(bi.chgKw,1)} kW) น้อยกว่ากำลังชาร์จของอินเวอร์เตอร์ ${I.bchg} kW ระบบจะชาร์จได้เท่าที่แบตรับ เพิ่มจำนวนชุดขนานถ้าต้องการชาร์จเร็วขึ้น`);
     if(d.batOk&&bi&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))add('err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วง ${I.bvMin}–${I.bvMax} V ของอินเวอร์เตอร์`);
     const cn=(hasWire('BAT.H','INV.CH')&&hasWire('BAT.L','INV.CL')),cs=(hasWire('BAT.H','INV.CL')&&hasWire('BAT.L','INV.CH'));
     d.canOk=cn;
@@ -2593,8 +2600,8 @@ function backupRun(){
   msg.hidden=true;body.hidden=false;$('#bkverdict').hidden=false;
   const LP=loadProfile(5);
   if(!LOADS.length||Math.max(...LP.all)<=0){msg.hidden=false;msg.textContent='ยังไม่มีโหลด ไปแท็บ "จำลองโหลด" เพื่อใส่รายการ';body.hidden=true;$('#bkverdict').hidden=true;return}
-  const chgKw=bi?Math.min(I.bchg>0?I.bchg:I.pac/1000,bi.kwh*bi.maxC):0;
-  const disKw=bi?Math.min(I.bdis>0?I.bdis:I.pac/1000,bi.kwh*bi.maxC):0;
+  const chgKw=bi?Math.min(I.bchg>0?I.bchg:I.pac/1000,bi.chgKw):0;
+  const disKw=bi?Math.min(I.bdis>0?I.bdis:I.pac/1000,bi.disKw):0;
   const islandW=Math.min(I.pac,(I.backupKw>0?I.backupKw:I.pac/1000)*1000);
   const cfg={mode:BK.mode,bank:need?bi:null,chgKw,disKw,islandW,soc0:BK.soc0,outStart:BK.outStart,outDur:BK.outDur,island:BK.island,step:5};
   const ax=(typeof acsCfg==='function')?acsCfg():null;
@@ -2608,7 +2615,7 @@ function backupRun(){
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
   const peakIsl=Math.max(...(BK.island==='crit'?LP.crit:LP.all));
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);
-  if(need&&bi&&bi.kwh*bi.maxC<peakIsl/1000*0.999)warns.push(['warn',`แบตจ่ายกำลังสูงสุดได้ราว ${f(bi.kwh*bi.maxC,1)} kW (${bi.maxC}C) น้อยกว่าโหลดสูงสุด`]);
+  if(need&&bi&&bi.disKw<peakIsl/1000*0.999)warns.push(['warn',`แบตจ่ายกำลังสูงสุดได้ราว ${f(bi.disKw,1)} kW (${f(bi.disA,0)} A) น้อยกว่าโหลดสูงสุด`]);
   if(src.kwp>I.pvRec/1000)warns.push(['warn',`กำลังแผง ${f(src.kwp,2)} kWp เกินที่แนะนำสำหรับอินเวอร์เตอร์ ${I.pvRec/1000} kWp`]);
   if(ax)ax.notes.forEach(n=>warns.push(n));
   $('#bkwarn').innerHTML=warns.map(w=>`<li><span class="b ${w[0]}">${w[0]==='err'?'×':'!'}</span><span>${esc(w[1])}</span></li>`).join('');

@@ -134,6 +134,8 @@ function acAnalyze(){
     else add('warn','ยังไม่ได้ต่อแบตเตอรี่ ระบบทำงานเป็นไฟจากแผงและกริดเท่านั้น');
     d.batRev=br;
     const bi=bankInfo();
+    if(d.batOk&&bi&&bi.scA>0)add('ok',`กระแสลัดวงจรของชุดแบตสูงสุด ${f(bi.scA,0)} A เบรกเกอร์หรือฟิวส์ DC ต้องมีค่าตัดกระแสลัดวงจร (breaking capacity) ไม่ต่ำกว่านี้`);
+    if(d.batOk&&bi&&I.bchg>0&&bi.chgKw<I.bchg*0.999)add('warn',`แบตรับชาร์จได้ ${f(bi.chgA,0)} A (${f(bi.chgKw,1)} kW) น้อยกว่ากำลังชาร์จของอินเวอร์เตอร์ ${I.bchg} kW ระบบจะชาร์จได้เท่าที่แบตรับ เพิ่มจำนวนชุดขนานถ้าต้องการชาร์จเร็วขึ้น`);
     if(d.batOk&&bi&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))add('err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วง ${I.bvMin}–${I.bvMax} V ของอินเวอร์เตอร์`);
     const cn=(hasWire('BAT.H','INV.CH')&&hasWire('BAT.L','INV.CL')),cs=(hasWire('BAT.H','INV.CL')&&hasWire('BAT.L','INV.CH'));
     d.canOk=cn;

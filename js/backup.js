@@ -83,8 +83,8 @@ function backupRun(){
   msg.hidden=true;body.hidden=false;$('#bkverdict').hidden=false;
   const LP=loadProfile(5);
   if(!LOADS.length||Math.max(...LP.all)<=0){msg.hidden=false;msg.textContent='ยังไม่มีโหลด ไปแท็บ "จำลองโหลด" เพื่อใส่รายการ';body.hidden=true;$('#bkverdict').hidden=true;return}
-  const chgKw=bi?Math.min(I.bchg>0?I.bchg:I.pac/1000,bi.kwh*bi.maxC):0;
-  const disKw=bi?Math.min(I.bdis>0?I.bdis:I.pac/1000,bi.kwh*bi.maxC):0;
+  const chgKw=bi?Math.min(I.bchg>0?I.bchg:I.pac/1000,bi.chgKw):0;
+  const disKw=bi?Math.min(I.bdis>0?I.bdis:I.pac/1000,bi.disKw):0;
   const islandW=Math.min(I.pac,(I.backupKw>0?I.backupKw:I.pac/1000)*1000);
   const cfg={mode:BK.mode,bank:need?bi:null,chgKw,disKw,islandW,soc0:BK.soc0,outStart:BK.outStart,outDur:BK.outDur,island:BK.island,step:5};
   const ax=(typeof acsCfg==='function')?acsCfg():null;
@@ -98,7 +98,7 @@ function backupRun(){
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
   const peakIsl=Math.max(...(BK.island==='crit'?LP.crit:LP.all));
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);
-  if(need&&bi&&bi.kwh*bi.maxC<peakIsl/1000*0.999)warns.push(['warn',`แบตจ่ายกำลังสูงสุดได้ราว ${f(bi.kwh*bi.maxC,1)} kW (${bi.maxC}C) น้อยกว่าโหลดสูงสุด`]);
+  if(need&&bi&&bi.disKw<peakIsl/1000*0.999)warns.push(['warn',`แบตจ่ายกำลังสูงสุดได้ราว ${f(bi.disKw,1)} kW (${f(bi.disA,0)} A) น้อยกว่าโหลดสูงสุด`]);
   if(src.kwp>I.pvRec/1000)warns.push(['warn',`กำลังแผง ${f(src.kwp,2)} kWp เกินที่แนะนำสำหรับอินเวอร์เตอร์ ${I.pvRec/1000} kWp`]);
   if(ax)ax.notes.forEach(n=>warns.push(n));
   $('#bkwarn').innerHTML=warns.map(w=>`<li><span class="b ${w[0]}">${w[0]==='err'?'×':'!'}</span><span>${esc(w[1])}</span></li>`).join('');

@@ -33,11 +33,11 @@ const SCHEMA={
     fields:[
       ['brand','ยี่ห้อ','t',''],['model','รุ่น','t',''],
       ['chem','ชนิดเซลล์','s','LiFePO4',[['LiFePO4','LiFePO4'],['Li-ion','Li-ion (NMC)'],['Lead','ตะกั่วกรด (AGM/Gel)'],['Other','อื่นๆ']]],
-      ['v','แรงดันต่อลูก (V)','n',0],['ah','ความจุต่อลูก (Ah)','n',0],['dod','ใช้ได้ (DoD %)','n',90],['rt','ประสิทธิภาพชาร์จ-จ่าย (%)','n',95],['maxC','กระแสสูงสุด (C)','n',0.5],
+      ['v','แรงดันต่อลูก (V)','n',0],['ah','ความจุต่อลูก (Ah)','n',0],['dod','ใช้ได้ (DoD %)','n',90],['rt','ประสิทธิภาพชาร์จ-จ่าย (%)','n',95],['maxC','กระแสสูงสุด (C) ใช้เมื่อไม่ได้ใส่แอมป์','n',0.5],['maxChg','กระแสชาร์จสูงสุดต่อลูก (A)','n',0],['maxDis','กระแสจ่ายสูงสุดต่อลูก (A)','n',0],['isc','กระแสลัดวงจรสูงสุดต่อลูก (A)','n',0],
       ['note','หมายเหตุ','t','']
     ],
     req:['brand','model','v','ah'],
-    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],chem:['chem','chemistry','ชนิด','type'],v:['v','voltage','nominalvoltage','แรงดัน','vnom'],ah:['ah','capacity','ความจุ'],dod:['dod','depthofdischarge'],rt:['rt','roundtrip','efficiency','eff'],maxC:['maxc','crate','c'],kwh:['kwh','energy','ขนาด'],note:['note','หมายเหตุ']}
+    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],chem:['chem','chemistry','ชนิด','type'],v:['v','voltage','nominalvoltage','แรงดัน','vnom'],ah:['ah','capacity','ความจุ'],dod:['dod','depthofdischarge'],rt:['rt','roundtrip','efficiency','eff'],maxC:['maxc','crate','c'],maxChg:['maxchg','maxchargecurrent','chargecurrent','imaxcharge'],maxDis:['maxdis','maxdischargecurrent','dischargecurrent','imaxdischarge'],isc:['isc','shortcircuitcurrent','shortcircuit','ishort'],kwh:['kwh','energy','ขนาด'],note:['note','หมายเหตุ']}
   }
 };
 const KIND_ORDER=['panels','inverters','batteries'];
@@ -76,7 +76,9 @@ applyActive();
 function bankInfo(){
   const b=curBat();if(!b)return null;
   const s=Math.max(1,BANK.s|0),p=Math.max(1,BANK.p|0),V=s*b.v,Ah=p*b.ah,kwh=V*Ah/1000;
-  return{b,s,p,n:s*p,V,Ah,kwh,usable:kwh*(b.dod||90)/100,rt:(b.rt||95)/100,maxC:b.maxC||0.5};
+  const mc=b.maxC||0.5;
+  const chgA=b.maxChg>0?b.maxChg*p:mc*Ah,disA=b.maxDis>0?b.maxDis*p:mc*Ah;
+  return{b,s,p,n:s*p,V,Ah,kwh,usable:kwh*(b.dod||90)/100,rt:(b.rt||95)/100,maxC:mc,chgA,disA,chgKw:V*chgA/1000,disKw:V*disA/1000,scA:b.isc>0?b.isc*p:0};
 }
 
 /* ---- import / export ---- */
@@ -147,7 +149,7 @@ function importText(text,kind){
 const SAMPLE={
   panels:'brand,model,pmax,voc,vmp,isc,imp,kVoc,kPmax,kIsc,noct\nBrandX,ABC-600,600,51.5,43.2,14.9,13.9,-0.25,-0.30,0.05,44',
   inverters:'brand,model,type,pac,vmax,lo,hi,start,imax,isc,eff,bvMin,bvMax,bchg,bdis,backupKw\nBrandY,HY-5K,hybrid,5000,600,90,520,120,16,22,97,40,60,5,5,5',
-  batteries:'brand,model,chem,v,ah,dod,rt,maxC\nBrandZ,LFP-5.12,LiFePO4,51.2,100,90,95,0.5'
+  batteries:'brand,model,chem,v,ah,dod,rt,maxChg,maxDis,isc\nBrandZ,LFP-5.12,LiFePO4,51.2,100,90,95,50,50,2000'
 };
 function exportJSON(){return JSON.stringify({panels:CAT.panels,inverters:CAT.inverters,batteries:CAT.batteries},null,1)}
 
@@ -184,7 +186,7 @@ function bankHTML(){
   if(I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warn.push(`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงแบตของอินเวอร์เตอร์ ${I.bvMin}–${I.bvMax} V`);
   if(I.type==='on-grid')warn.push('อินเวอร์เตอร์ที่เลือกเป็นแบบ On-grid ต่อแบตตรงไม่ได้ เลือกรุ่น Hybrid หรือ Off-grid ที่หัวข้ออินเวอร์เตอร์ก่อนจำลอง Backup');
   return`<div class="row3"><label>ต่ออนุกรม (ลูก)<input id="bk-s" type="number" min="1" max="32" step="1" value="${bi.s}"></label><label>ต่อขนาน (ชุด)<input id="bk-p" type="number" min="1" max="32" step="1" value="${bi.p}"></label></div>
-  <dl class="specs bk"><div><dt>จำนวนแบต</dt><dd>${bi.n} ลูก</dd></div><div><dt>แรงดันชุด</dt><dd>${f(bi.V,1)} V</dd></div><div><dt>ความจุชุด</dt><dd>${f(bi.Ah,0)} Ah</dd></div><div><dt>พลังงานรวม</dt><dd>${f(bi.kwh,2)} kWh</dd></div><div><dt>ใช้ได้จริง (DoD ${b.dod}%)</dt><dd>${f(bi.usable,2)} kWh</dd></div><div><dt>กำลังสูงสุดที่แบตรับได้ (${bi.maxC}C)</dt><dd>${f(bi.kwh*bi.maxC,1)} kW</dd></div></dl>`+(warn.length?`<ul class="checks">${warn.map(w=>`<li><span class="b warn">!</span><span>${esc(w)}</span></li>`).join('')}</ul>`:'');
+  <dl class="specs bk"><div><dt>จำนวนแบต</dt><dd>${bi.n} ลูก</dd></div><div><dt>แรงดันชุด</dt><dd>${f(bi.V,1)} V</dd></div><div><dt>ความจุชุด</dt><dd>${f(bi.Ah,0)} Ah</dd></div><div><dt>พลังงานรวม</dt><dd>${f(bi.kwh,2)} kWh</dd></div><div><dt>ใช้ได้จริง (DoD ${b.dod}%)</dt><dd>${f(bi.usable,2)} kWh</dd></div><div><dt>กระแสชาร์จสูงสุดของชุด</dt><dd>${f(bi.chgA,0)} A · ${f(bi.chgKw,1)} kW</dd></div><div><dt>กระแสจ่ายสูงสุดของชุด</dt><dd>${f(bi.disA,0)} A · ${f(bi.disKw,1)} kW</dd></div><div><dt>กระแสลัดวงจรสูงสุดของชุด</dt><dd>${bi.scA>0?f(bi.scA,0)+' A':'ไม่ระบุ'}</dd></div></dl>`+(warn.length?`<ul class="checks">${warn.map(w=>`<li><span class="b warn">!</span><span>${esc(w)}</span></li>`).join('')}</ul>`:'');
 }
 function eqRender(kind){
   const host=$('#eq-'+kind);if(!host)return;
