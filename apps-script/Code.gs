@@ -89,12 +89,12 @@ function cloud_(d, verified, props) {
   var folder = DriveApp.getFolderById(fid);
   var it = folder.getFilesByName(fname), file = it.hasNext() ? it.next() : null;
   if (d.action === 'load') {
-    if (!file) return json_({ ok: true, found: false });
-    return json_({ ok: true, found: true, saved: file.getLastUpdated().toISOString(), data: file.getBlob().getDataAsString('UTF-8') });
+    if (!file) return json_({ ok: true, cloud: true, found: false });
+    return json_({ ok: true, cloud: true, found: true, saved: file.getLastUpdated().toISOString(), data: file.getBlob().getDataAsString('UTF-8') });
   }
   var data = typeof d.data === 'string' ? d.data : JSON.stringify(d.data || {});
   if (data.length > 1500000) return json_({ ok: false, error: 'ไฟล์โปรเจ็คใหญ่เกินไป' });
   var wrapped = JSON.stringify({ name: s_(d.name, 100), sid: s_(d.sid, 30), email: verified, saved: new Date().toISOString(), project: JSON.parse(data) });
   if (file) file.setContent(wrapped); else folder.createFile(fname, wrapped, 'application/json');
-  return json_({ ok: true });
+  return json_({ ok: true, cloud: true, file: fname });
 }

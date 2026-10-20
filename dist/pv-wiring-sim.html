@@ -763,6 +763,7 @@ body[data-tab="bench"] .wrap{max-width:1400px}
     <section class="card savecard"><h3>บันทึก / ย้ายงานไปเครื่องอื่น</h3>
       <p class="hint tight">บันทึกเป็นไฟล์เพื่อนำไปเปิดบนเครื่องอื่น หรือบันทึกขึ้น Drive ของผู้สอนแล้วโหลดกลับมาด้วยชื่อและรหัสเดิม (กรอกชื่อ รหัสผู้เรียน และรหัสห้องด้านบนก่อน)</p>
       <div class="actions"><button class="btn" id="savefile">บันทึกเป็นไฟล์</button><button class="btn" id="openfile">เปิดไฟล์โปรเจ็ค</button><input type="file" id="openfilein" accept=".json,application/json" hidden><button class="btn" id="cloudsave" hidden>บันทึกขึ้น Drive</button><button class="btn" id="cloudload" hidden>โหลดจาก Drive</button></div>
+      <p id="cloudmsg" class="simmsg" role="status" hidden></p>
     </section>
     <section class="card"><h3>ประวัติการส่งงานในเครื่องนี้</h3><ul id="smhist" class="checks"></ul></section>
     <p class="hint">ข้อมูลที่ส่งคือ ชื่อ รหัส รหัสห้อง เวลา ผลตรวจการต่อสาย รุ่นอุปกรณ์ และตัวเลขสรุปของแท็บจำลอง ไม่ส่งรูปวงจรเอง ภาพรายงานสร้างในเครื่องของคุณ</p>
@@ -4036,31 +4037,33 @@ function initSubmit(){
 }
 
 /* ---- project in the teacher's Google Drive (via the same Apps Script web app) ---- */
+function cloudMsg(t,cls){const m=$('#cloudmsg');if(!m)return;m.textContent=t;m.className='simmsg'+(cls?' '+cls:'');m.hidden=!t;setSt(t)}
 async function cloudCall(action,extra){
   readMember();
-  if(!MEMBER.name||!(MEMBER.sid||(MEMBER.gemail&&gToken))){setSt('กรอกชื่อ รหัสผู้เรียน และรหัสห้องในแท็บ "ส่งงาน" ก่อน');showTab('submit');return null}
+  if(!MEMBER.name||!(MEMBER.sid||(MEMBER.gemail&&gToken))){cloudMsg('กรอกชื่อ รหัสผู้เรียน และรหัสห้องด้านบนก่อน','err');return null}
   try{
     const res=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({action,name:MEMBER.name,sid:MEMBER.sid,cls:MEMBER.cls,idToken:gToken},extra||{})),redirect:'follow'});
     const j=await res.json();
-    if(!j||!j.ok){setSt('Drive: '+((j&&j.error)||'ไม่สำเร็จ'));return null}
+    if(!j||!j.ok){cloudMsg('Drive: '+((j&&j.error)||'ไม่สำเร็จ'),'err');return null}
+    if(!j.cloud){cloudMsg('ไม่ได้บันทึกลง Drive: Apps Script ยังเป็นโค้ดเวอร์ชันเก่า (ผู้สอนต้องวาง Code.gs ล่าสุดแล้ว Deploy → New version) คำขอนี้ถูกนับเป็นการส่งงานแทน','err');return null}
     return j;
-  }catch(e){setSt('เชื่อมต่อ Drive ไม่ได้ ตรวจอินเทอร์เน็ต');return null}
+  }catch(e){cloudMsg('เชื่อมต่อ Drive ไม่ได้ ตรวจอินเทอร์เน็ต','err');return null}
 }
 function initCloud(){
   const sv=$('#cloudsave'),ld=$('#cloudload');
   if(!sv||!CFG.SUBMIT_URL)return;
   sv.hidden=ld.hidden=false;
   sv.addEventListener('click',async()=>{
-    sv.disabled=true;setSt('กำลังบันทึกขึ้น Drive…');
+    sv.disabled=true;cloudMsg('กำลังบันทึกขึ้น Drive…');
     const j=await cloudCall('save',{data:JSON.stringify(projectFile())});
-    sv.disabled=false;if(j)setSt('บันทึกขึ้น Drive แล้ว '+new Date().toLocaleTimeString('th-TH'));
+    sv.disabled=false;if(j)cloudMsg('บันทึกขึ้น Drive แล้ว เวลา '+new Date().toLocaleTimeString('th-TH')+' (ไฟล์ '+(j.file||'')+')','ok');
   });
   ld.addEventListener('click',async()=>{
-    ld.disabled=true;setSt('กำลังโหลดจาก Drive…');
+    ld.disabled=true;cloudMsg('กำลังโหลดจาก Drive…');
     const j=await cloudCall('load');
     ld.disabled=false;if(!j)return;
-    if(!j.found){setSt('ยังไม่มีงานที่บันทึกไว้บน Drive สำหรับรหัสนี้');return}
-    try{const o=JSON.parse(j.data);applyProjectFile({catalog:o.project&&o.project.catalog,project:o.project&&o.project.project});setSt('โหลดจาก Drive แล้ว (บันทึกเมื่อ '+new Date(j.saved).toLocaleString('th-TH')+')')}catch(e){setSt('ไฟล์บน Drive อ่านไม่ได้')}
+    if(!j.found){cloudMsg('ยังไม่มีงานที่บันทึกไว้บน Drive สำหรับชื่อ/รหัสนี้ ตรวจว่ากรอกรหัสผู้เรียนตรงกับเครื่องที่บันทึก','err');return}
+    try{const o=JSON.parse(j.data);applyProjectFile({catalog:o.project&&o.project.catalog,project:o.project&&o.project.project});cloudMsg('โหลดจาก Drive แล้ว (บันทึกเมื่อ '+new Date(j.saved).toLocaleString('th-TH')+')','ok')}catch(e){cloudMsg('ไฟล์บน Drive อ่านไม่ได้','err')}
   });
 }
 
