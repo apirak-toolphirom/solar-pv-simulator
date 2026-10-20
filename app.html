@@ -10,7 +10,7 @@
     <button class="navb" data-tab="events"><span class="ic">07</span>จำลองเหตุการณ์</button>
     <button class="navb" data-tab="bench"><span class="ic">08</span>ชุดทดลองวงจร DC</button>
     <button class="navb" data-tab="submit"><span class="ic">09</span>ส่งงาน</button>
-    <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="savefile">บันทึกเป็นไฟล์</button><button class="btn sm" id="openfile">เปิดไฟล์โปรเจ็ค</button><input type="file" id="openfilein" accept=".json,application/json" hidden><button class="btn sm" id="cloudsave" hidden>บันทึกขึ้น Drive</button><button class="btn sm" id="cloudload" hidden>โหลดจาก Drive</button><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
+    <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
 
@@ -344,6 +344,10 @@
     <p id="smcfg" class="simmsg" hidden>ปุ่มส่งงานยังปิดอยู่ เพราะผู้สอนยังไม่ได้ตั้งปลายทางรับงาน (SUBMIT_URL ในไฟล์ js/config.js) สร้างภาพรายงานและคัดลอกสรุปได้ตามปกติ</p>
     <p id="smmsg" class="simmsg" role="status" hidden></p>
     <figure id="smimgw" class="smfig" hidden><img id="smimg" alt="ภาพรายงานผลการต่อสายและสรุปผลจำลอง"><figcaption><a class="btn" id="smdl" download="solar-report.png">ดาวน์โหลดภาพ PNG</a></figcaption></figure>
+    <section class="card savecard"><h3>บันทึก / ย้ายงานไปเครื่องอื่น</h3>
+      <p class="hint tight">บันทึกเป็นไฟล์เพื่อนำไปเปิดบนเครื่องอื่น หรือบันทึกขึ้น Drive ของผู้สอนแล้วโหลดกลับมาด้วยชื่อและรหัสเดิม (กรอกชื่อ รหัสผู้เรียน และรหัสห้องด้านบนก่อน)</p>
+      <div class="actions"><button class="btn" id="savefile">บันทึกเป็นไฟล์</button><button class="btn" id="openfile">เปิดไฟล์โปรเจ็ค</button><input type="file" id="openfilein" accept=".json,application/json" hidden><button class="btn" id="cloudsave" hidden>บันทึกขึ้น Drive</button><button class="btn" id="cloudload" hidden>โหลดจาก Drive</button></div>
+    </section>
     <section class="card"><h3>ประวัติการส่งงานในเครื่องนี้</h3><ul id="smhist" class="checks"></ul></section>
     <p class="hint">ข้อมูลที่ส่งคือ ชื่อ รหัส รหัสห้อง เวลา ผลตรวจการต่อสาย รุ่นอุปกรณ์ และตัวเลขสรุปของแท็บจำลอง ไม่ส่งรูปวงจรเอง ภาพรายงานสร้างในเครื่องของคุณ</p>
   </section>
