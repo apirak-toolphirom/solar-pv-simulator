@@ -2,8 +2,18 @@
 const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,INVY0=90,IW=160,IHT=270;
 /* inverter MPPT input box position (draggable); terminals sit on the side facing the middle of the canvas */
 let IX=IX0,INVY=INVY0;
-const invRight=()=>IX+IW/2<W/2;
-function clampInv(){IX=Math.round(Math.max(4,Math.min(W-IW-4,IX)));INVY=Math.round(Math.max(28,Math.min(H-IHT-8,INVY)))}
+/* IROT = side the DC terminals face: 0 left, 1 top, 2 right, 3 bottom (rotated in 90° steps, text stays upright) */
+let IROT=0;
+const invHz=()=>IROT%2===1,invW=()=>invHz()?IHT:IW,invH=()=>invHz()?IW:IHT;
+function invBlk(k){return invHz()?{x:IX+10+(k-1)*130,y:INVY+8,w:120,h:144}:{x:IX+8,y:INVY+10+(k-1)*130,w:144,h:120}}
+function invTerm(k,pos){
+  const b=invBlk(k),o=pos?22:100;
+  if(!invHz())return{x:IROT===0?IX:IX+IW,y:b.y+o};
+  return{x:b.x+o,y:IROT===1?INVY:INVY+IW};
+}
+const INV_DIR=[[-1,0],[0,-1],[1,0],[0,1]];
+function clampInv(){IX=Math.round(Math.max(4,Math.min(W-invW()-4,IX)));INVY=Math.round(Math.max(28,Math.min(H-invH()-(IROT===1?30:8),INVY)))}
+function rotInv(){const cx=IX+invW()/2,cy=INVY+invH()/2;IROT=(IROT+1)%4;IX=cx-invW()/2;INVY=cy-invH()/2;clampInv()}
 let H=680,PW=PW0,PH=PH0;
 const mpY=k=>INVY+10+(k-1)*130;
 const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null,scale:1};
@@ -22,7 +32,7 @@ function setScale(s){
   applyScale(s);
   st.panels.forEach((p,i)=>{p.x=c[i][0]-PW/2;p.y=c[i][1]-PH/2;clampPanel(p)});
 }
-function layoutAll(){IX=IX0;INVY=INVY0;st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
+function layoutAll(){IX=IX0;INVY=INVY0;IROT=0;st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
 function addPanel(){
   if(st.panels.length>=MAXP)return null;
   let i=0;while(st.panels.some(p=>p.sx===i))i++;

@@ -5,14 +5,14 @@ let wiring=null,moving=null,invMove=null,tr=9,fsOn=false;
 
 const ROT=[[1,0],[0,1],[-1,0],[0,-1]];
 function termPos(k){
-  if(k[0]==='i'){const n=+k[1],base=mpY(n);return{x:invRight()?IX+IW:IX,y:k.endsWith(":p")?base+22:base+100}}
+  if(k[0]==='i')return invTerm(+k[1],k.endsWith(':p'));
   const id=+k.split(':')[0],p=st.panels.find(q=>q.id===id);
   if(!p)return null;
   const [c,s]=ROT[p.rot||0],sg=k.endsWith(':p')?1:-1;
   return{x:p.x+PW/2+sg*c*PW/2,y:p.y+PH/2+sg*s*PW/2};
 }
 function dirVec(k){
-  if(k[0]==='i')return{x:invRight()?1:-1,y:0};
+  if(k[0]==='i'){const d=INV_DIR[IROT];return{x:d[0],y:d[1]}}
   const p=st.panels.find(q=>q.id===+k.split(':')[0]),[c,s]=ROT[(p&&p.rot)||0],sg=k.endsWith(':p')?1:-1;
   return{x:sg*c,y:sg*s};
 }
@@ -47,20 +47,24 @@ function drawSvg(A){
   const k0=.55+.45*Math.min(1,st.scale),hit=tr*2.2,fs=Math.round(tr*1.35),S=st.scale;
   const pw=12*S,ph=13*S;
   let s=`<defs><pattern id="cells" width="${pw}" height="${ph}" patternUnits="userSpaceOnUse"><path d="M${pw} 0V${ph}M0 ${ph}H${pw}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/></pattern></defs>`;
-  const R=invRight(),tx=R?IX+IW-18:IX+18,ta=R?'end':'start';
+  const iw=invW(),ih=invH(),hz=invHz();
   s+=`<g class="invbox${invMove?' moving':''}" data-inv="1"><title>ลากเพื่อย้ายตำแหน่งอินพุต MPPT</title>`;
-  s+=`<text class="svgt b" x="${IX+80}" y="${INVY-12}" text-anchor="middle">${A.I.name}</text>`;
-  s+=`<rect class="inv" x="${IX}" y="${INVY}" width="160" height="270" rx="8"/>`;
-  s+=`<g class="grip"><circle cx="${IX+74}" cy="${INVY+5}" r="1.6"/><circle cx="${IX+80}" cy="${INVY+5}" r="1.6"/><circle cx="${IX+86}" cy="${INVY+5}" r="1.6"/></g>`;
+  s+=`<text class="svgt b" x="${IX+iw/2}" y="${IROT===1?INVY+ih+20:INVY-12}" text-anchor="middle">${A.I.name}</text>`;
+  s+=`<rect class="inv" x="${IX}" y="${INVY}" width="${iw}" height="${ih}" rx="8"/>`;
+  {const gy=IROT===1?INVY+ih-5:INVY+5,gx=IX+iw/2;s+=`<g class="grip"><circle cx="${gx-6}" cy="${gy}" r="1.6"/><circle cx="${gx}" cy="${gy}" r="1.6"/><circle cx="${gx+6}" cy="${gy}" r="1.6"/></g>`}
   A.res.forEach(r=>{
-    const base=mpY(r.k),cls=r.lvl==='idle'?'':r.lvl;
-    s+=`<rect class="mp ${cls}" x="${IX+8}" y="${base}" width="144" height="120" rx="6"/>`;
-    s+=`<text class="svgt b" x="${IX+28}" y="${base+46}">MPPT ${r.k}</text>`;
-    s+=`<text class="svgt m" x="${IX+28}" y="${base+64}">${r.short}</text>`;
-    if(r.blk)s+=`<text class="svgt m mut" x="${IX+28}" y="${base+82}">Voc ${f(r.blk.voc)} V</text>`;
-    s+=`<text class="svgt m mut" x="${tx}" y="${base+26}" text-anchor="${ta}">DC${r.k}+</text><text class="svgt m mut" x="${tx}" y="${base+104}" text-anchor="${ta}">DC${r.k}−</text>`;
+    const b=invBlk(r.k),cls=r.lvl==='idle'?'':r.lvl;
+    s+=`<rect class="mp ${cls}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="6"/>`;
+    const lx=hz?b.x+12:b.x+20,ly=hz?b.y+(IROT===1?62:40):b.y+46;
+    s+=`<text class="svgt b" x="${lx}" y="${ly}">MPPT ${r.k}</text>`;
+    s+=`<text class="svgt m" x="${lx}" y="${ly+18}">${r.short}</text>`;
+    if(r.blk)s+=`<text class="svgt m mut" x="${lx}" y="${ly+36}">Voc ${f(r.blk.voc)} V</text>`;
+    const tp=invTerm(r.k,true),tn=invTerm(r.k,false);
+    if(hz){const ty=IROT===1?b.y+22:b.y+b.h-12;s+=`<text class="svgt m mut" x="${tp.x}" y="${ty}" text-anchor="middle">DC${r.k}+</text><text class="svgt m mut" x="${tn.x}" y="${ty}" text-anchor="middle">DC${r.k}−</text>`}
+    else{const tx=IROT===0?IX+18:IX+iw-18,ta=IROT===0?'start':'end';s+=`<text class="svgt m mut" x="${tx}" y="${tp.y+4}" text-anchor="${ta}">DC${r.k}+</text><text class="svgt m mut" x="${tx}" y="${tn.y+4}" text-anchor="${ta}">DC${r.k}−</text>`}
   });
   s+=`</g>`;
+  {const rx=IX+iw-4,ry=IROT===1?INVY+ih+16:INVY-16;s+=`<g class="rot invrot" data-irot="1"><circle cx="${rx}" cy="${ry}" r="12"/><text x="${rx}" y="${ry+5}">↻</text><title>หมุนอินพุต MPPT 90°</title></g>`}
   /* panels first, wires on top of them so a wire is never hidden under a panel */
   const fsz=Math.max(8,12*S);
   st.panels.forEach(p=>{
@@ -93,7 +97,7 @@ function drawSvg(A){
     const on=st.armed===k||(wiring&&wiring.cand===k);
     s+=`<g data-term="${k}"><circle class="hit" cx="${t.x}" cy="${t.y}" r="${hit}"/><circle class="term ${ty}${on?' armed':''}" cx="${t.x}" cy="${t.y}" r="${tr}"/><text class="tt" style="font-size:${fs}px" x="${t.x}" y="${t.y+fs*0.36}">${ty==='p'?'+':'−'}</text></g>`;
   });
-  A.si.inv.forEach(k=>{badges.push([invRight()?IX+36:IX+124,mpY(k)+56])});
+  A.si.inv.forEach(k=>{const b=invBlk(k);badges.push([b.x+b.w-24,b.y+b.h/2])});
   badges.forEach(m=>{s+=`<g class="shortbadge" transform="translate(${m[0].toFixed(1)} ${m[1].toFixed(1)})"><circle r="14"/><path d="M3,-9 L-5,2 L0,2 L-3,10 L6,-3 L1,-3 Z"/><text class="shortlbl" x="19" y="4" style="text-anchor:start">ชอต</text></g>`});
   if(wiring&&wiring.moved){
     const a=termPos(wiring.from),tgt=wiring.cand?termPos(wiring.cand):{x:wiring.x,y:wiring.y};
@@ -162,6 +166,7 @@ svg.addEventListener('pointerdown',e=>{
   if(rh){rotPanel(+rh.dataset.rot);e.preventDefault();return}
   const t=e.target.closest('[data-term]');
   if(t){const p=pt(e);wiring={from:t.dataset.term,x:p.x,y:p.y,sx:e.clientX,sy:e.clientY,moved:false,cand:null};e.preventDefault();render();return}
+  if(e.target.closest('[data-irot]')){rotInv();e.preventDefault();render();return}
   const ib=e.target.closest('[data-inv]');
   if(ib){const p=pt(e);invMove={dx:p.x-IX,dy:p.y-INVY};st.sel=null;e.preventDefault();render();return}
   const g=e.target.closest('[data-panel]');
@@ -214,6 +219,7 @@ document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click'
 $('#addp').addEventListener('click',()=>{const p=addPanel();if(p)st.sel=p.id;render()});
 $('#delp').addEventListener('click',delPanel);
 $('#rotp').addEventListener('click',()=>{if(st.sel!=null)rotPanel(st.sel)});
+$('#roti').addEventListener('click',()=>{rotInv();render()});
 $('#clrw').addEventListener('click',()=>{st.wires=[];st.armed=null;render()});
 ['tmin','thot'].forEach(id=>$('#'+id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(!isNaN(n)){st[id]=n;render()}}));
 $('#pscale').addEventListener('input',e=>{setScale(+e.target.value/100);render()});
