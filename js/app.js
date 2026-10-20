@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['equip','wiring','ac','pv','load','backup','events','submit'];
+const TABS=['equip','wiring','ac','pv','load','backup','events','bench','submit'];
 let curTab='equip',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -18,6 +18,7 @@ function showTab(t,fromHash){
     if(t==='wiring')render();
     else if(t==='ac')acRender();
     else if(t==='events')evRun();
+    else if(t==='bench')bRender();
     else if(t==='pv')drawCharts();
     else if(t==='load')drawLoadChart();
     else if(t==='backup')drawBackup();
@@ -40,7 +41,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wires:ACS.wires,set:ACS.set,apply:ACS.apply,pos:ACS.pos,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h}};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wires:ACS.wires,set:ACS.set,apply:ACS.apply,pos:ACS.pos,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot()};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -122,6 +123,7 @@ function restoreExtra(p){
     ACS.pos={};if(p.ac.pos&&typeof p.ac.pos==='object')Object.keys(AC_C).forEach(k=>{const a=p.ac.pos[k];if(Array.isArray(a)){const x=num(a[0],0,-2000,2000),y=num(a[1],0,-2000,2000);acMove(k,x,y)}});
     ACS.zoom=num(p.ac.zoom,1,.5,2.5);
   }
+  if(p.bn)bRestore(p.bn);
   if(p.sc&&['top','side'].includes(p.sc.view)){SC.view=p.sc.view;SC.h=num(p.sc.h,12,0,24)}
 }
 function refreshAll(){
@@ -145,7 +147,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   initCatalogUI();eqRenderAll();initPdfImport();
-  initLoads();initBackup();initAC();initEvents();initSubmit();initReset();
+  initLoads();initBackup();initAC();initBench();initEvents();initSubmit();initReset();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

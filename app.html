@@ -8,7 +8,8 @@
     <button class="navb" data-tab="load"><span class="ic">05</span>จำลองโหลด</button>
     <button class="navb" data-tab="backup"><span class="ic">06</span>จำลอง Backup</button>
     <button class="navb" data-tab="events"><span class="ic">07</span>จำลองเหตุการณ์</button>
-    <button class="navb" data-tab="submit"><span class="ic">08</span>ส่งงาน</button>
+    <button class="navb" data-tab="bench"><span class="ic">08</span>ชุดทดลองวงจร DC</button>
+    <button class="navb" data-tab="submit"><span class="ic">09</span>ส่งงาน</button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
@@ -252,6 +253,27 @@
       </div>
     </div>
     <p class="hint">เป็นแบบจำลองอย่างง่ายเพื่อการเรียนรู้และประเมินเบื้องต้น ตั้งโหมดแผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วจึงขายคืนกริด ไม่รวมการชาร์จจากกริด ค่า derating ตามอุณหภูมิของแบต และการสตาร์ทของมอเตอร์ ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  <section class="tab" id="tab-bench" hidden>
+    <header><h1>ชุดทดลองวงจร DC 12 / 24 / 48 V</h1><p class="sub">ทดลองต่อแผงอนุกรม–ขนาน เลือกฟิวส์ เบรกเกอร์ DC/AC SPD ชาร์จคอนโทรลเลอร์ แบตเตอรี่ อินเวอร์เตอร์ และโหลด (หลอดไฟ แอร์ ปั๊มน้ำ) แล้ววัดแรงดัน/กระแสด้วยแคลมป์มิเตอร์และโวลต์มิเตอร์ที่ลากย้ายได้ ลากกล่องอุปกรณ์เพื่อจัดตำแหน่งไม่ให้สายพาดทับกัน</p></header>
+    <div id="bnverdict" class="verdict"></div>
+    <section class="bar"><div class="grp" id="bnpre"><span class="lab">ตัวอย่าง</span>
+      <button class="chip" data-bp="p12">12 V ไฟส่องสว่าง</button><button class="chip" data-bp="p24">24 V ปั๊มน้ำ</button><button class="chip" data-bp="p48">48 V บ้านเล็ก + แอร์</button><button class="chip bad" data-bp="bad">ตัวอย่างต่อผิด + ลัดวงจร</button>
+    </div></section>
+    <div class="panelbox aclay"><span class="lab">มุมมอง</span>
+      <button class="chip" id="bnzout" aria-label="ย่อ">−</button><input id="bnzoom" type="range" min="50" max="250" step="5" value="100" aria-label="สเกล"><button class="chip" id="bnzin" aria-label="ขยาย">+</button><b id="bnzoomv">100%</b>
+      <button class="chip" id="bnreset">รีเซ็ตตำแหน่งและสเกล</button><button class="chip" id="bnreset2">ปิดสวิตช์/รีเซ็ตเบรกเกอร์ทั้งหมด</button>
+      <span class="hint">ลากกล่องเพื่อย้าย · แตะเบรกเกอร์/ฟิวส์/อินเวอร์เตอร์เพื่อเปิด-ปิดหรือรีเซ็ต · ลากแคลมป์ไปคล้องสาย · ลากปลายสายแดง/ดำไปแตะจุดต่อ</span>
+    </div>
+    <div class="canvas acscroll"><svg id="bnsvg" viewBox="0 0 1400 640" role="img" aria-label="วงจรทดลองระบบโซลาร์ DC"></svg></div>
+    <div class="key"><span><i style="background:#d62828"></i>DC +</span><span><i style="background:#2b3138"></i>DC −</span><span><i style="background:#8b5a2b"></i>AC L</span><span><i style="background:#2a78d6"></i>AC N</span><span><i style="background:#1baf7a"></i>กราวด์ PE</span></div>
+    <div class="panelbox"><h2>มิเตอร์</h2><div id="bnmeters" class="bmeters"></div></div>
+    <div class="metrics" id="bnmx"></div>
+    <div id="bnfault" class="panelbox bfault"></div>
+    <h2 class="sech">ผลการตรวจ</h2><ul class="checks" id="bnchecks"></ul>
+    <div id="bnctl" class="bnctl"></div>
+    <p class="hint">ค่าในเครื่องมือนี้เป็นแบบจำลองเพื่อการเรียนรู้ (ค่าแบต แผง และตัวควบคุมเป็นตัวอย่าง) ตรวจกับคู่มือรุ่นจริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตตรวจก่อนติดตั้งทุกครั้ง</p>
   </section>
 
   <section class="tab" id="tab-events" hidden>

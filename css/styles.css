@@ -380,3 +380,24 @@ label.chk input{width:18px;height:18px}
 .aclay{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 12px}
 .aclay input[type=range]{width:160px;max-width:40vw}
 .aclay .hint{font-size:12px;color:var(--muted)}
+
+/* ---- bench tab ---- */
+body[data-tab="bench"] .wrap{max-width:1400px}
+#bnsvg{display:block;width:100%;height:auto;max-width:none;touch-action:none;user-select:none}
+.bmod{cursor:move}.bmod.bsw{cursor:pointer}
+.bw{fill:none;stroke-width:3.2;stroke-linecap:round;pointer-events:none}.bw.dead{opacity:.35;stroke-dasharray:2 7}
+.blead{fill:none;stroke-width:2.4;pointer-events:none}
+.bmeter{cursor:grab}.bmeter:active{cursor:grabbing}
+.bnctl{display:grid;gap:12px;margin-top:12px}
+.bnctl h2{margin:0 0 8px}.bnctl h3{margin:12px 0 6px;font-size:14px}
+.bnloads{display:grid;gap:6px}
+.bnload{display:grid;grid-template-columns:1fr 110px 80px;gap:8px;align-items:center}
+.bnload label{display:flex;gap:6px;align-items:center;font-size:13px}.bnload input[type=number]{width:60px}
+.tag{font-style:normal;font-size:11px;padding:1px 6px;border-radius:99px;margin-right:6px;border:1px solid var(--line)}
+.tag.dc{background:#fde8e8}.tag.ac{background:#e8f0fd}
+.bmeters{display:grid;gap:8px}
+.bmrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bmval{font:600 15px var(--mono);background:#222;color:#9dff9d;padding:2px 10px;border-radius:5px;min-width:90px;text-align:center}
+.bfault:empty{display:none}.bfault{margin-top:10px}
+.sech{margin:14px 0 6px}
+@media(max-width:760px){.bnload{grid-template-columns:1fr 1fr}.bnload span:first-child{grid-column:1/-1}}
