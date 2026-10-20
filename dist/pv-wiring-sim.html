@@ -485,7 +485,7 @@ body[data-tab="bench"] .wrap{max-width:1400px}
     <div class="grp">
       <button class="btn" id="addp">+ แผง</button>
       <button class="btn" id="rotp" disabled>↻ หมุนแผง</button>
-      <button class="btn" id="roti" title="หมุนกล่องอินพุต MPPT ทีละ 90°">↻ หมุน MPPT</button>
+      <button class="btn" id="roti" title="หมุนกล่อง MPPT ทั้งสองทีละ 90° (หมุนทีละกล่องได้ที่ปุ่ม ↻ บนกล่อง)">↻ หมุน MPPT</button>
       <button class="btn" id="delp" disabled>ลบแผงที่เลือก</button>
       <button class="btn" id="clrw">ล้างสาย</button>
       <label class="scl">สเกลแผง <input id="pscale" type="range" min="35" max="150" step="5" value="100" aria-label="ขนาดแผง"><b id="pscalev">100%</b></label>
@@ -496,7 +496,7 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 
   <section class="fscan fsk">
     <div class="canvas"><svg id="svg" viewBox="0 0 1200 680" role="img" aria-label="พื้นที่ต่อสายแผงโซลาร์เข้าอินเวอร์เตอร์"></svg></div>
-    <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย ลากกล่องอินเวอร์เตอร์ (อินพุต MPPT) เพื่อย้ายไปตำแหน่งไหนก็ได้ กดปุ่ม ↻ ที่มุมกล่องหรือ "หมุน MPPT" เพื่อหมุนให้ขั้ว DC หันซ้าย บน ขวา หรือล่าง กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
+    <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย ลากกล่อง MPPT 1 และ MPPT 2 แยกกันไปวางตำแหน่งไหนก็ได้ กดปุ่ม ↻ ที่มุมกล่องหรือ "หมุน MPPT" เพื่อหมุนให้ขั้ว DC หันซ้าย บน ขวา หรือล่าง กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
     <div class="key">
       <span><i style="background:var(--pos)"></i>สายแดง = ขั้ว +</span>
       <span><i style="background:var(--neg);outline:1px solid var(--line)"></i>สายดำ = ขั้ว −</span>
@@ -1547,23 +1547,28 @@ function initPdfImport(){
 }
 
 
-const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,INVY0=90,IW=160,IHT=270;
-/* inverter MPPT input box position (draggable); terminals sit on the side facing the middle of the canvas */
-let IX=IX0,INVY=INVY0;
-/* IROT = side the DC terminals face: 0 left, 1 top, 2 right, 3 bottom (rotated in 90° steps, text stays upright) */
-let IROT=0;
-const invHz=()=>IROT%2===1,invW=()=>invHz()?IHT:IW,invH=()=>invHz()?IW:IHT;
-function invBlk(k){return invHz()?{x:IX+10+(k-1)*130,y:INVY+8,w:120,h:144}:{x:IX+8,y:INVY+10+(k-1)*130,w:144,h:120}}
+const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,IW=160,IHT=140;
+let H=680,PW=PW0,PH=PH0;
+/* each MPPT input is its own box (drag and rotate separately so wires to MPPT 1 and 2 do not cross).
+   r = side the DC terminals face: 0 left, 1 top, 2 right, 3 bottom; text stays upright */
+const INV0=()=>[{x:IX0,y:90,r:0},{x:IX0,y:270,r:0}];
+let INV=INV0();
+const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;
+function invBlk(k){const b=INV[k-1];return{x:b.x+8,y:b.y+8,w:ibW(k)-16,h:ibH(k)-16}}
 function invTerm(k,pos){
-  const b=invBlk(k),o=pos?22:100;
-  if(!invHz())return{x:IROT===0?IX:IX+IW,y:b.y+o};
-  return{x:b.x+o,y:IROT===1?INVY:INVY+IW};
+  const b=INV[k-1],o=pos?30:110;
+  if(!ibHz(k))return{x:b.r===0?b.x:b.x+IW,y:b.y+o};
+  return{x:b.x+o,y:b.r===1?b.y:b.y+IW};
 }
 const INV_DIR=[[-1,0],[0,-1],[1,0],[0,1]];
-function clampInv(){IX=Math.round(Math.max(4,Math.min(W-invW()-4,IX)));INVY=Math.round(Math.max(28,Math.min(H-invH()-(IROT===1?30:8),INVY)))}
-function rotInv(){const cx=IX+invW()/2,cy=INVY+invH()/2;IROT=(IROT+1)%4;IX=cx-invW()/2;INVY=cy-invH()/2;clampInv()}
-let H=680,PW=PW0,PH=PH0;
-const mpY=k=>INVY+10+(k-1)*130;
+function clampInv(k){
+  if(!k){clampInv(1);clampInv(2);return}
+  const b=INV[k-1];b.x=Math.round(Math.max(4,Math.min(W-ibW(k)-30,b.x)));b.y=Math.round(Math.max(28,Math.min(H-ibH(k)-(b.r===1?30:8),b.y)));
+}
+function rotInv(k){
+  if(!k){rotInv(1);rotInv(2);return}
+  const b=INV[k-1],cx=b.x+ibW(k)/2,cy=b.y+ibH(k)/2;b.r=(b.r+1)%4;b.x=cx-ibW(k)/2;b.y=cy-ibH(k)/2;clampInv(k);
+}
 const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null,scale:1};
 const f=(x,d=0)=>Number(x).toFixed(d);
 const RANK={err:0,warn:1,ok:2};
@@ -1580,7 +1585,7 @@ function setScale(s){
   applyScale(s);
   st.panels.forEach((p,i)=>{p.x=c[i][0]-PW/2;p.y=c[i][1]-PH/2;clampPanel(p)});
 }
-function layoutAll(){IX=IX0;INVY=INVY0;IROT=0;st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
+function layoutAll(){INV=INV0();st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
 function addPanel(){
   if(st.panels.length>=MAXP)return null;
   let i=0;while(st.panels.some(p=>p.sx===i))i++;
@@ -1760,7 +1765,7 @@ function termPos(k){
   return{x:p.x+PW/2+sg*c*PW/2,y:p.y+PH/2+sg*s*PW/2};
 }
 function dirVec(k){
-  if(k[0]==='i'){const d=INV_DIR[IROT];return{x:d[0],y:d[1]}}
+  if(k[0]==='i'){const d=INV_DIR[INV[+k[1]-1].r];return{x:d[0],y:d[1]}}
   const p=st.panels.find(q=>q.id===+k.split(':')[0]),[c,s]=ROT[(p&&p.rot)||0],sg=k.endsWith(':p')?1:-1;
   return{x:sg*c,y:sg*s};
 }
@@ -1795,24 +1800,23 @@ function drawSvg(A){
   const k0=.55+.45*Math.min(1,st.scale),hit=tr*2.2,fs=Math.round(tr*1.35),S=st.scale;
   const pw=12*S,ph=13*S;
   let s=`<defs><pattern id="cells" width="${pw}" height="${ph}" patternUnits="userSpaceOnUse"><path d="M${pw} 0V${ph}M0 ${ph}H${pw}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1"/></pattern></defs>`;
-  const iw=invW(),ih=invH(),hz=invHz();
-  s+=`<g class="invbox${invMove?' moving':''}" data-inv="1"><title>ลากเพื่อย้ายตำแหน่งอินพุต MPPT</title>`;
-  s+=`<text class="svgt b" x="${IX+iw/2}" y="${IROT===1?INVY+ih+20:INVY-12}" text-anchor="middle">${A.I.name}</text>`;
-  s+=`<rect class="inv" x="${IX}" y="${INVY}" width="${iw}" height="${ih}" rx="8"/>`;
-  {const gy=IROT===1?INVY+ih-5:INVY+5,gx=IX+iw/2;s+=`<g class="grip"><circle cx="${gx-6}" cy="${gy}" r="1.6"/><circle cx="${gx}" cy="${gy}" r="1.6"/><circle cx="${gx+6}" cy="${gy}" r="1.6"/></g>`}
   A.res.forEach(r=>{
-    const b=invBlk(r.k),cls=r.lvl==='idle'?'':r.lvl;
+    const k=r.k,B=INV[k-1],iw=ibW(k),ih=ibH(k),hz=ibHz(k),b=invBlk(k),cls=r.lvl==='idle'?'':r.lvl;
+    s+=`<g class="invbox${invMove&&invMove.k===k?' moving':''}" data-inv="${k}"><title>ลากเพื่อย้าย MPPT ${k}</title>`;
+    s+=`<text class="svgt b" x="${B.x+iw/2}" y="${B.r===1?B.y+ih+20:B.y-12}" text-anchor="middle">${esc(A.I.name)}</text>`;
+    s+=`<rect class="inv" x="${B.x}" y="${B.y}" width="${iw}" height="${ih}" rx="8"/>`;
     s+=`<rect class="mp ${cls}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="6"/>`;
-    const lx=hz?b.x+12:b.x+20,ly=hz?b.y+(IROT===1?62:40):b.y+46;
-    s+=`<text class="svgt b" x="${lx}" y="${ly}">MPPT ${r.k}</text>`;
+    const lx=b.x+(hz?12:20),ly=hz?b.y+(B.r===1?62:40):b.y+48;
+    s+=`<text class="svgt b" x="${lx}" y="${ly}">MPPT ${k}</text>`;
     s+=`<text class="svgt m" x="${lx}" y="${ly+18}">${r.short}</text>`;
     if(r.blk)s+=`<text class="svgt m mut" x="${lx}" y="${ly+36}">Voc ${f(r.blk.voc)} V</text>`;
-    const tp=invTerm(r.k,true),tn=invTerm(r.k,false);
-    if(hz){const ty=IROT===1?b.y+22:b.y+b.h-12;s+=`<text class="svgt m mut" x="${tp.x}" y="${ty}" text-anchor="middle">DC${r.k}+</text><text class="svgt m mut" x="${tn.x}" y="${ty}" text-anchor="middle">DC${r.k}−</text>`}
-    else{const tx=IROT===0?IX+18:IX+iw-18,ta=IROT===0?'start':'end';s+=`<text class="svgt m mut" x="${tx}" y="${tp.y+4}" text-anchor="${ta}">DC${r.k}+</text><text class="svgt m mut" x="${tx}" y="${tn.y+4}" text-anchor="${ta}">DC${r.k}−</text>`}
+    const tp=invTerm(k,true),tn=invTerm(k,false);
+    if(hz){const ty=B.r===1?b.y+18:b.y+b.h-8;s+=`<text class="svgt m mut" x="${tp.x}" y="${ty}" text-anchor="middle">DC${k}+</text><text class="svgt m mut" x="${tn.x}" y="${ty}" text-anchor="middle">DC${k}−</text>`}
+    else{const tx=B.r===0?B.x+18:B.x+iw-18,ta=B.r===0?'start':'end';s+=`<text class="svgt m mut" x="${tx}" y="${tp.y+4}" text-anchor="${ta}">DC${k}+</text><text class="svgt m mut" x="${tx}" y="${tn.y+4}" text-anchor="${ta}">DC${k}−</text>`}
+    s+=`</g>`;
+    const rx=B.x+iw+14,ry=B.r===1?B.y+ih+16:B.y-16;
+    s+=`<g class="rot invrot" data-irot="${k}"><circle cx="${rx}" cy="${ry}" r="12"/><text x="${rx}" y="${ry+5}">↻</text><title>หมุน MPPT ${k} 90°</title></g>`;
   });
-  s+=`</g>`;
-  {const rx=IX+iw-4,ry=IROT===1?INVY+ih+16:INVY-16;s+=`<g class="rot invrot" data-irot="1"><circle cx="${rx}" cy="${ry}" r="12"/><text x="${rx}" y="${ry+5}">↻</text><title>หมุนอินพุต MPPT 90°</title></g>`}
   /* panels first, wires on top of them so a wire is never hidden under a panel */
   const fsz=Math.max(8,12*S);
   st.panels.forEach(p=>{
@@ -1914,9 +1918,9 @@ svg.addEventListener('pointerdown',e=>{
   if(rh){rotPanel(+rh.dataset.rot);e.preventDefault();return}
   const t=e.target.closest('[data-term]');
   if(t){const p=pt(e);wiring={from:t.dataset.term,x:p.x,y:p.y,sx:e.clientX,sy:e.clientY,moved:false,cand:null};e.preventDefault();render();return}
-  if(e.target.closest('[data-irot]')){rotInv();e.preventDefault();render();return}
+  {const ro=e.target.closest('[data-irot]');if(ro){rotInv(+ro.dataset.irot);e.preventDefault();render();return}}
   const ib=e.target.closest('[data-inv]');
-  if(ib){const p=pt(e);invMove={dx:p.x-IX,dy:p.y-INVY};st.sel=null;e.preventDefault();render();return}
+  if(ib){const p=pt(e),k=+ib.dataset.inv,B=INV[k-1];invMove={k,dx:p.x-B.x,dy:p.y-B.y};st.sel=null;e.preventDefault();render();return}
   const g=e.target.closest('[data-panel]');
   if(g){
     const id=+g.dataset.panel,p=pt(e),pan=st.panels.find(q=>q.id===id);
@@ -1930,7 +1934,7 @@ document.addEventListener('pointermove',e=>{
     if(Math.hypot(e.clientX-wiring.sx,e.clientY-wiring.sy)>5)wiring.moved=true;
     wiring.cand=wiring.moved?nearest(p,wiring.from):null;render();
   }else if(invMove){
-    const p=pt(e);IX=p.x-invMove.dx;INVY=p.y-invMove.dy;clampInv();render();
+    const p=pt(e),B=INV[invMove.k-1];B.x=p.x-invMove.dx;B.y=p.y-invMove.dy;clampInv(invMove.k);render();
   }else if(moving){
     const p=pt(e),pan=st.panels.find(q=>q.id===moving.id);if(!pan)return;
     pan.x=p.x-moving.dx;pan.y=p.y-moving.dy;clampPanel(pan);render();
@@ -4691,7 +4695,7 @@ function quickSel(){
 /* ---- persistence ---- */
 function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
-    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,ix:IX,iy:INVY,ir:IROT},
+    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
     loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_MODE?{[AC_MODE]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_MODE?{[AC_MODE]:ACS.pos}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot()};
 }
@@ -4734,7 +4738,10 @@ function restoreProject(p){
     st.nextId=Math.max(fin(w.nextId,1),Math.max(0,...st.panels.map(q=>q.id))+1);
     st.sel=null;st.armed=null;
     st.tmin=fin(w.tmin,10);st.thot=fin(w.thot,70);
-    IROT=((fin(w.ir,0)|0)%4+4)%4;IX=fin(w.ix,IX0);INVY=fin(w.iy,INVY0);clampInv();
+    INV=INV0();
+    if(Array.isArray(w.mp))w.mp.slice(0,2).forEach((o,i)=>{if(o&&typeof o==='object')INV[i]={x:fin(o.x,INV[i].x),y:fin(o.y,INV[i].y),r:((fin(o.r,0)|0)%4+4)%4}});
+    else if(isFinite(w.ix)&&isFinite(w.iy)){const r=((fin(w.ir,0)|0)%4+4)%4,hz=r%2===1;INV=[{x:w.ix,y:w.iy,r},{x:w.ix+(hz?150:0),y:w.iy+(hz?0:180),r}]}
+    clampInv();
     $('#tmin').value=st.tmin;$('#thot').value=st.thot;
   }
   const s=p.sim;

@@ -1,21 +1,26 @@
 
-const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,INVY0=90,IW=160,IHT=270;
-/* inverter MPPT input box position (draggable); terminals sit on the side facing the middle of the canvas */
-let IX=IX0,INVY=INVY0;
-/* IROT = side the DC terminals face: 0 left, 1 top, 2 right, 3 bottom (rotated in 90° steps, text stays upright) */
-let IROT=0;
-const invHz=()=>IROT%2===1,invW=()=>invHz()?IHT:IW,invH=()=>invHz()?IW:IHT;
-function invBlk(k){return invHz()?{x:IX+10+(k-1)*130,y:INVY+8,w:120,h:144}:{x:IX+8,y:INVY+10+(k-1)*130,w:144,h:120}}
+const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,IW=160,IHT=140;
+let H=680,PW=PW0,PH=PH0;
+/* each MPPT input is its own box (drag and rotate separately so wires to MPPT 1 and 2 do not cross).
+   r = side the DC terminals face: 0 left, 1 top, 2 right, 3 bottom; text stays upright */
+const INV0=()=>[{x:IX0,y:90,r:0},{x:IX0,y:270,r:0}];
+let INV=INV0();
+const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;
+function invBlk(k){const b=INV[k-1];return{x:b.x+8,y:b.y+8,w:ibW(k)-16,h:ibH(k)-16}}
 function invTerm(k,pos){
-  const b=invBlk(k),o=pos?22:100;
-  if(!invHz())return{x:IROT===0?IX:IX+IW,y:b.y+o};
-  return{x:b.x+o,y:IROT===1?INVY:INVY+IW};
+  const b=INV[k-1],o=pos?30:110;
+  if(!ibHz(k))return{x:b.r===0?b.x:b.x+IW,y:b.y+o};
+  return{x:b.x+o,y:b.r===1?b.y:b.y+IW};
 }
 const INV_DIR=[[-1,0],[0,-1],[1,0],[0,1]];
-function clampInv(){IX=Math.round(Math.max(4,Math.min(W-invW()-4,IX)));INVY=Math.round(Math.max(28,Math.min(H-invH()-(IROT===1?30:8),INVY)))}
-function rotInv(){const cx=IX+invW()/2,cy=INVY+invH()/2;IROT=(IROT+1)%4;IX=cx-invW()/2;INVY=cy-invH()/2;clampInv()}
-let H=680,PW=PW0,PH=PH0;
-const mpY=k=>INVY+10+(k-1)*130;
+function clampInv(k){
+  if(!k){clampInv(1);clampInv(2);return}
+  const b=INV[k-1];b.x=Math.round(Math.max(4,Math.min(W-ibW(k)-30,b.x)));b.y=Math.round(Math.max(28,Math.min(H-ibH(k)-(b.r===1?30:8),b.y)));
+}
+function rotInv(k){
+  if(!k){rotInv(1);rotInv(2);return}
+  const b=INV[k-1],cx=b.x+ibW(k)/2,cy=b.y+ibH(k)/2;b.r=(b.r+1)%4;b.x=cx-ibW(k)/2;b.y=cy-ibH(k)/2;clampInv(k);
+}
 const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null,scale:1};
 const f=(x,d=0)=>Number(x).toFixed(d);
 const RANK={err:0,warn:1,ok:2};
@@ -32,7 +37,7 @@ function setScale(s){
   applyScale(s);
   st.panels.forEach((p,i)=>{p.x=c[i][0]-PW/2;p.y=c[i][1]-PH/2;clampPanel(p)});
 }
-function layoutAll(){IX=IX0;INVY=INVY0;IROT=0;st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
+function layoutAll(){INV=INV0();st.panels.forEach((p,i)=>{const s=slot(i);p.sx=i;p.x=s.x;p.y=s.y;p.rot=0});}
 function addPanel(){
   if(st.panels.length>=MAXP)return null;
   let i=0;while(st.panels.some(p=>p.sx===i))i++;

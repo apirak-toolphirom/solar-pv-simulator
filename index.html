@@ -61,7 +61,7 @@
     <div class="grp">
       <button class="btn" id="addp">+ แผง</button>
       <button class="btn" id="rotp" disabled>↻ หมุนแผง</button>
-      <button class="btn" id="roti" title="หมุนกล่องอินพุต MPPT ทีละ 90°">↻ หมุน MPPT</button>
+      <button class="btn" id="roti" title="หมุนกล่อง MPPT ทั้งสองทีละ 90° (หมุนทีละกล่องได้ที่ปุ่ม ↻ บนกล่อง)">↻ หมุน MPPT</button>
       <button class="btn" id="delp" disabled>ลบแผงที่เลือก</button>
       <button class="btn" id="clrw">ล้างสาย</button>
       <label class="scl">สเกลแผง <input id="pscale" type="range" min="35" max="150" step="5" value="100" aria-label="ขนาดแผง"><b id="pscalev">100%</b></label>
@@ -72,7 +72,7 @@
 
   <section class="fscan fsk">
     <div class="canvas"><svg id="svg" viewBox="0 0 1200 680" role="img" aria-label="พื้นที่ต่อสายแผงโซลาร์เข้าอินเวอร์เตอร์"></svg></div>
-    <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย ลากกล่องอินเวอร์เตอร์ (อินพุต MPPT) เพื่อย้ายไปตำแหน่งไหนก็ได้ กดปุ่ม ↻ ที่มุมกล่องหรือ "หมุน MPPT" เพื่อหมุนให้ขั้ว DC หันซ้าย บน ขวา หรือล่าง กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
+    <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย ลากกล่อง MPPT 1 และ MPPT 2 แยกกันไปวางตำแหน่งไหนก็ได้ กดปุ่ม ↻ ที่มุมกล่องหรือ "หมุน MPPT" เพื่อหมุนให้ขั้ว DC หันซ้าย บน ขวา หรือล่าง กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
     <div class="key">
       <span><i style="background:var(--pos)"></i>สายแดง = ขั้ว +</span>
       <span><i style="background:var(--neg);outline:1px solid var(--line)"></i>สายดำ = ขั้ว −</span>
@@ -377,9 +377,9 @@
 <script src="js/config.js?v=865ec074"></script>
 <script src="js/catalog.js?v=9580331d"></script>
 <script src="js/pdfimport.js?v=c2c908be"></script>
-<script src="js/model.js?v=8e18f639"></script>
+<script src="js/model.js?v=f2b8279f"></script>
 <script src="js/engine.js?v=042ffa26"></script>
-<script src="js/wiring.js?v=b1ee1fd3"></script>
+<script src="js/wiring.js?v=31fd2260"></script>
 <script src="js/acart.js?v=f68ce882"></script>
 <script src="js/acsys.js?v=d46c3b1d"></script>
 <script src="js/solar.js?v=236646d7"></script>
@@ -389,6 +389,6 @@
 <script src="js/bench.js?v=ebe5032f"></script>
 <script src="js/benchui.js?v=4cd609eb"></script>
 <script src="js/submit.js?v=c7ea3093"></script>
-<script src="js/app.js?v=17a6c961"></script>
+<script src="js/app.js?v=54af4a4f"></script>
 </body>
 </html>
