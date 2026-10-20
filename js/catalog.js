@@ -236,6 +236,42 @@ function exportJSON(){return JSON.stringify({panels:CAT.panels,inverters:CAT.inv
 
 /* ---- catalog UI (equipment tab) ---- */
 const EQ={edit:{panels:null,inverters:null,batteries:null}};
+/* teacher mode: adding, editing, deleting and importing equipment models is for the teacher only.
+   The code is checked by the Apps Script web app (TEACHER_CODE); nothing secret is in this page.
+   Catalog changes only ever affect the browser they are made in. */
+const TEACH={on:false};
+const tss={get:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
+async function teachVerify(code,quiet){
+  const CFG=window.APP_CONFIG||{},m=t=>{const e=document.getElementById('teachmsg');if(e&&!quiet){e.textContent=t;e.hidden=!t}};
+  if(!CFG.SUBMIT_URL){m('ยังไม่ได้ตั้ง SUBMIT_URL ใน js/config.js จึงตรวจรหัสผู้สอนไม่ได้');return false}
+  if(!code){m('กรอกรหัสผู้สอนก่อน');return false}
+  m('กำลังตรวจรหัส…');
+  try{
+    const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'tcheck',tcode:code}),redirect:'follow'}),j=await r.json();
+    if(!j||!j.tcheck){m('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → New version');return false}
+    if(!j.ok){m(j.error||'รหัสผู้สอนไม่ถูกต้อง');tss.set('pv.tcode',null);return false}
+    TEACH.on=true;tss.set('pv.tcode',code);m('');teachSync();return true;
+  }catch(e){m('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ต');return false}
+}
+function teachSync(){
+  const b=document.getElementById('teachbar');
+  if(b)b.innerHTML=TEACH.on
+    ?`<span class="tlab on">โหมดผู้สอน · เพิ่ม แก้ไข ลบ และนำเข้ารุ่นอุปกรณ์ได้</span><button class="btn" id="teachoff">ล็อก</button><span class="hint tight">การแก้ไขมีผลเฉพาะเบราว์เซอร์นี้ รุ่นที่ต้องการให้ทุกเครื่องเห็นต้องใส่ในโค้ดบน GitHub</span>`
+    :`<span class="tlab">🔒 เพิ่ม แก้ไข ลบ และนำเข้ารุ่นอุปกรณ์ เฉพาะผู้สอน</span><input type="password" id="teachcode" placeholder="รหัสผู้สอน" aria-label="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="teachon">ปลดล็อกผู้สอน</button><span class="eqmsg" id="teachmsg" role="status" hidden></span>`;
+  const p=document.querySelector('#tab-equip .pdfimp');if(p)p.hidden=!TEACH.on;
+  KIND_ORDER.forEach(eqRender);
+}
+function initTeach(){
+  const sec=document.getElementById('tab-equip');if(!sec)return;
+  if(!document.getElementById('teachbar')){const d=document.createElement('div');d.id='teachbar';d.className='panelbox teachbar';const c=document.getElementById('cur-equip');(c||sec.querySelector('header')).after(d)}
+  sec.addEventListener('click',e=>{
+    if(e.target.id==='teachon')teachVerify(document.getElementById('teachcode').value.trim());
+    else if(e.target.id==='teachoff'){TEACH.on=false;tss.set('pv.tcode',null);EQ.edit={panels:null,inverters:null,batteries:null};teachSync()}
+  });
+  sec.addEventListener('keydown',e=>{if(e.target.id==='teachcode'&&e.key==='Enter')teachVerify(e.target.value.trim())});
+  teachSync();
+  const saved=tss.get('pv.tcode');if(saved)teachVerify(saved,true);
+}
 function fmtSummary(kind,x){
   if(kind==='panels')return`${x.pmax} W · Voc ${x.voc} V · Vmp ${x.vmp} V · Isc ${x.isc} A`;
   if(kind==='inverters')return`${({'on-grid':'On-grid','hybrid':'Hybrid','off-grid':'Off-grid'})[x.type]||x.type} · ${x.pac/1000} kW · MPPT ${x.lo}–${x.hi} V`+(x.type!=='on-grid'&&x.bvMax?` · แบต ${x.bvMin}–${x.bvMax} V`:'');
@@ -245,7 +281,7 @@ function eqListHTML(kind){
   const key=ACTKEY[kind],sc=SCHEMA[kind];
   return CAT[kind].map(x=>{
     const on=(pick(kind)||{}).id===x.id;
-    return`<li class="eqrow${on?' on':''}"><label class="eqpick"><input type="radio" name="act-${kind}" value="${esc(x.id)}" ${on?'checked':''} data-act="${kind}"><span><b>${esc(x.brand)} ${esc(x.model)}</b><small>${esc(fmtSummary(kind,x))}</small>${x.note?`<small class="nt">${esc(x.note)}</small>`:''}${kind==='batteries'&&!batCompat(x)?'<small class="nt bad">ใช้กับอินเวอร์เตอร์ที่เลือกไม่ได้</small>':''}</span></label><span class="eqbtn"><button class="btn sm" data-edit="${kind}" data-id="${esc(x.id)}">แก้ไข</button><button class="btn sm" data-del="${kind}" data-id="${esc(x.id)}" ${CAT[kind].length<2?'disabled':''}>ลบ</button></span></li>`;
+    return`<li class="eqrow${on?' on':''}"><label class="eqpick"><input type="radio" name="act-${kind}" value="${esc(x.id)}" ${on?'checked':''} data-act="${kind}"><span><b>${esc(x.brand)} ${esc(x.model)}</b><small>${esc(fmtSummary(kind,x))}</small>${x.note?`<small class="nt">${esc(x.note)}</small>`:''}${kind==='batteries'&&!batCompat(x)?'<small class="nt bad">ใช้กับอินเวอร์เตอร์ที่เลือกไม่ได้</small>':''}</span></label>${TEACH.on?`<span class="eqbtn"><button class="btn sm" data-edit="${kind}" data-id="${esc(x.id)}">แก้ไข</button><button class="btn sm" data-del="${kind}" data-id="${esc(x.id)}" ${CAT[kind].length<2?'disabled':''}>ลบ</button></span>`:''}</li>`;
   }).join('');
 }
 function eqFormHTML(kind){
@@ -278,7 +314,7 @@ function eqRender(kind){
   host.innerHTML=`<div class="panelbox eqbox">
     <ul class="eqlist">${eqListHTML(kind)}</ul>
     ${kind==='batteries'?`<div class="bankbox"><h3>ชุดแบตเตอรี่ที่ใช้จำลอง</h3>${bankHTML()}</div>`:''}
-    <details class="eqd"${EQ.edit[kind]?' open':''}><summary>${EQ.edit[kind]?'แก้ไข':'เพิ่ม'}${sc.one}</summary>${eqFormHTML(kind)}</details>
+    ${TEACH.on?`<details class="eqd"${EQ.edit[kind]?' open':''}><summary>${EQ.edit[kind]?'แก้ไข':'เพิ่ม'}${sc.one}</summary>${eqFormHTML(kind)}</details>
     <details class="eqd"><summary>นำเข้า / ส่งออก</summary>
       <div class="eqimp">
         <p class="hint" style="margin:0">นำเข้าได้จากไฟล์ JSON หรือ CSV (หัวคอลัมน์ภาษาอังกฤษ เช่น ${sc.fields.slice(0,6).map(x=>x[0]).join(', ')}) หรือวางข้อความลงในช่อง ถ้า id ซ้ำจะแทนที่รายการเดิม</p>
@@ -286,7 +322,7 @@ function eqRender(kind){
         <textarea data-paste="${kind}" rows="4" spellcheck="false" placeholder="วาง JSON หรือ CSV ที่นี่"></textarea>
         <div class="eqact"><button class="btn pri" data-import="${kind}">นำเข้า</button><button class="btn" data-sample="${kind}">ใส่ตัวอย่างรูปแบบ CSV</button><button class="btn" data-export="${kind}">ส่งออกแคตตาล็อกทั้งหมดเป็น JSON</button><span class="eqmsg" data-imsg="${kind}" role="status"></span></div>
       </div>
-    </details>
+    </details>`:''}
   </div>`;
 }
 function eqRenderAll(){KIND_ORDER.forEach(eqRender);fillSelectors()}
@@ -314,6 +350,7 @@ function initCatalogUI(){
   const root=$('#tab-equip');
   root.addEventListener('change',e=>{
     const t=e.target;
+    if(t.dataset.file&&!TEACH.on)return;
     if(t.dataset.act){ACT[ACTKEY[t.dataset.act]]=t.value;onCatalogChange();return}
     if(t.dataset.file){
       const file=t.files[0];if(!file)return;
@@ -341,6 +378,7 @@ function initCatalogUI(){
   root.addEventListener('click',e=>{
     const t=e.target.closest('button');if(!t)return;
     const d=t.dataset;
+    if(!TEACH.on&&(d.edit||d.del||d.save||d.cancel||d.import||d.sample||d.export))return;
     if(d.edit){EQ.edit[d.edit]=CAT[d.edit].find(x=>x.id===d.id)||null;eqRender(d.edit);const dd=document.querySelector(`#eq-${d.edit} details`);if(dd)dd.scrollIntoView({block:'nearest'});return}
     if(d.cancel){EQ.edit[d.cancel]=null;eqRender(d.cancel);return}
     if(d.del){

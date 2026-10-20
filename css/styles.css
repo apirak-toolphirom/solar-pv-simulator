@@ -445,3 +445,7 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 button.ctxc{cursor:pointer}button.ctxc:hover{border-color:var(--accent)}
 .ctxfrom{flex:none;font-family:var(--mono);font-size:11px;padding:0 5px;border-radius:5px;background:var(--line);color:var(--ink)}
 @media (max-width:600px){.ctxc b{white-space:normal}}
+
+/* teacher-only equipment editing */
+.teachbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}.teachbar .tlab{font-weight:600;color:var(--muted)}.teachbar .tlab.on{color:var(--ok)}
+.teachbar input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-height:38px;color:var(--ink)}

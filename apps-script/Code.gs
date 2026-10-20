@@ -31,6 +31,12 @@ function doPost(e) {
     var props = PropertiesService.getScriptProperties();
 
     if (d.action === 'dash') return dash_(d, props);
+    if (d.action === 'tcheck') {
+      var tc = props.getProperty('TEACHER_CODE');
+      if (!tc) return json_({ ok: false, tcheck: true, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
+      if (s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return json_({ ok: false, tcheck: true, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+      return json_({ ok: true, tcheck: true });
+    }
 
     var code = props.getProperty('CLASS_CODE');
     if (code && s_(d.cls, 60) !== code) return json_({ ok: false, error: 'รหัสห้องอบรมไม่ถูกต้อง' });

@@ -334,7 +334,7 @@ function initPdfImport(){
   document.getElementById('pdftxtgo').addEventListener('click',pdfFromText);
   document.getElementById('pdfkind').addEventListener('change',()=>{if(PDFSTATE)pdfShow()});
   document.getElementById('pdfrev').addEventListener('click',e=>{
-    if(e.target.id==='pdfadd')pdfAdd();
+    if(e.target.id==='pdfadd'&&TEACH.on)pdfAdd();
     if(e.target.id==='pdfcancel'){document.getElementById('pdfrev').hidden=true;PDFSTATE=null;f.value=''}
   });
   document.getElementById('pdfrev').addEventListener('change',e=>{if(e.target.id==='pdfkind2'&&PDFSTATE)pdfShow(e.target.value)});
