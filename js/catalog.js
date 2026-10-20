@@ -17,6 +17,9 @@ const SCHEMA={
     fields:[
       ['brand','ยี่ห้อ','t',''],['model','รุ่น','t',''],
       ['type','ชนิด','s','on-grid',[['on-grid','On-grid'],['hybrid','Hybrid'],['off-grid','Off-grid']]],
+      ['phase','ระบบไฟ AC','s','1',[['1','1 เฟส (L N)'],['3','3 เฟส (L1 L2 L3 N)']]],
+      ['asym','จ่ายไฟแต่ละเฟสไม่เท่ากันได้ (3 เฟส)','s','0',[['0','ไม่ได้ จ่ายเท่ากันทุกเฟส'],['1','ได้ ตามโหลดแต่ละเฟส']]],
+      ['bph','พอร์ต Backup','s','',[['','เท่ากับระบบไฟ AC'],['1','1 เฟส'],['3','3 เฟส']],'hyb'],
       ['pac','กำลัง AC (W)','n',0],['vmax','Vdc สูงสุด (V)','n',0],['lo','MPPT ต่ำสุด (V)','n',0],['hi','MPPT สูงสุด (V)','n',0],['start','แรงดันเริ่มทำงาน (V)','n',0],
       ['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
       ['bvMin','แรงดันแบต ต่ำสุด (V)','n',0,null,'hyb'],['bvMax','แรงดันแบต สูงสุด (V)','n',0,null,'hyb'],
@@ -24,7 +27,7 @@ const SCHEMA={
       ['note','หมายเหตุ','t','']
     ],
     req:['brand','model','pac','vmax','lo','hi','start','imax'],
-    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],type:['type','ชนิด','topology'],pac:['pac','acpower','ratedac','power','กำลัง','ac'],vmax:['vmax','maxdcvoltage','vdcmax','maxvoltage'],lo:['lo','mpptmin','vmppmin','mpptlow'],hi:['hi','mpptmax','vmppmax','mppthigh'],start:['start','startvoltage','vstart'],
+    alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],type:['type','ชนิด','topology'],phase:['phase','phases','เฟส','gridphase'],asym:['asym','asymmetric','unbalanced'],bph:['bph','backupphase'],pac:['pac','acpower','ratedac','power','กำลัง','ac'],vmax:['vmax','maxdcvoltage','vdcmax','maxvoltage'],lo:['lo','mpptmin','vmppmin','mpptlow'],hi:['hi','mpptmax','vmppmax','mppthigh'],start:['start','startvoltage','vstart'],
       imax:['imax','maxinputcurrent','impptmax','inputcurrent'],isc:['isc','maxisc','iscmax'],pvRec:['pvrec','maxpv','pvmax','maxpvpower'],eff:['eff','efficiency'],
       bvMin:['bvmin','batvmin','batteryvmin'],bvMax:['bvmax','batvmax','batteryvmax'],bchg:['bchg','chargekw','maxcharge'],bdis:['bdis','dischargekw','maxdischarge'],backupKw:['backupkw','epskw','backuppower'],note:['note','หมายเหตุ']}
   },
@@ -48,25 +51,25 @@ const num=v=>{const n=typeof v==='number'?v:parseFloat(String(v).replace(/,/g,''
 
 /* ---- built-in models from manufacturer datasheets (ship with the site, same on every computer) ----
    Add new datasheet models here, commit and push: GitHub Pages serves them to every device.
-   eff = European weighted efficiency. Three-phase models are simulated as one AC output (phase is in the note). */
+   eff = European weighted efficiency. phase '3' = three-phase AC, asym '1' = each phase can deliver a different power, bph = backup port phases. */
 const BUILTIN=(()=>{
   const inv=[],bat=[];
   const hw=(model,o)=>inv.push(Object.assign({id:slug('huawei '+model),brand:'Huawei',model,builtin:1},o));
   // SUN2000-5/8/10KTL-M0: three-phase on-grid, no battery port
-  [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
+  [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',phase:'3',asym:'0',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
     note:`3 เฟส 380/400 V · 2 MPPT (1 สตริง/MPPT) · eff สูงสุด ${mx}% · PV แนะนำใช้ค่าเดียวกับรุ่น M1 (ดาต้าชีต M0 ไม่ระบุ)`}));
   // SUN2000-5/8/10KTL-M1: three-phase hybrid, HV battery (Huawei LUNA2000 / Smart String ESS)
-  [[5,98.4,97.5,7500,5.5],[8,98.6,98.0,12000,8.8],[10,98.6,98.1,15000,10]].forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}KTL-M1`,{type:'hybrid',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
+  [[5,98.4,97.5,7500,5.5],[8,98.6,98.0,12000,8.8],[10,98.6,98.1,15000,10]].forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}KTL-M1`,{type:'hybrid',phase:'3',asym:'0',bph:'1',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
     bvMin:600,bvMax:980,bchg:10,bdis:dis,backupKw:3.3,
-    note:`3 เฟส 380/400 V · แบตแรงดันสูง 600–980 V เท่านั้น (Huawei LUNA2000 / Smart String ESS) แบต 51.2 V ใช้ไม่ได้ · Backup 1 เฟส 3.3 kVA ผ่าน Backup Box-B1 · eff สูงสุด ${mx}%`}));
+    note:`3 เฟส 380/400 V · แบตแรงดันสูง 600–980 V เท่านั้น (Huawei LUNA2000 / Smart String ESS) แบต 51.2 V ใช้ไม่ได้ · Backup 1 เฟส 3.3 kVA ผ่าน Backup Box-B1 · จ่ายเท่ากันทุกเฟส · eff สูงสุด ${mx}%`}));
   // SUN2000-2..6KTL-L1: single-phase hybrid
   [[2,98.2,96.7,3000,2.2,2],[3,98.3,97.3,4500,3.3,3],[3.68,98.4,97.3,5520,3.68,3.68],[4,98.4,97.5,6000,4.4,4.4],[4.6,98.4,97.7,6900,4.6,5],[5,98.4,97.8,7500,5,5.5],[6,98.4,97.8,9000,5,6]]
-    .forEach(([k,mx,eu,rec,dis,va])=>hw(`SUN2000-${k}KTL-L1`,{type:'hybrid',pac:k*1000,vmax:600,lo:90,hi:560,start:100,imax:12.5,isc:18,pvRec:rec,eff:eu,
+    .forEach(([k,mx,eu,rec,dis,va])=>hw(`SUN2000-${k}KTL-L1`,{type:'hybrid',phase:'1',pac:k*1000,vmax:600,lo:90,hi:560,start:100,imax:12.5,isc:18,pvRec:rec,eff:eu,
     bvMin:350,bvMax:560,bchg:5,bdis:dis,backupKw:Math.min(k,5),
     note:`1 เฟส 220/230 V · S max ${va} kVA · แบตแรงดันสูง 350–560 V (Huawei LUNA2000 / LG RESU 7H_R·10H_R) แบต 51.2 V ใช้ไม่ได้ · Backup ผ่าน Backup Box-B0 (ดาต้าชีตไม่ระบุกำลัง ใช้ค่าประมาณ) · eff สูงสุด ${mx}%`}));
   // SUN2000-5..12K-MAP0: three-phase hybrid, whole-home backup with SmartGuard
   [[5,98.4,97.5,9000,5.5],[6,98.6,97.7,11000,6.6],[8,98.6,98.0,14600,8.8],[10,98.6,98.1,18000,11],[12,98.6,98.2,22000,12]]
-    .forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}K-MAP0`,{type:'hybrid',pac:k*1000,vmax:1100,lo:160,hi:1000,start:160,imax:16,isc:22,pvRec:rec,eff:eu,
+    .forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}K-MAP0`,{type:'hybrid',phase:'3',asym:'1',bph:'3',pac:k*1000,vmax:1100,lo:160,hi:1000,start:160,imax:16,isc:22,pvRec:rec,eff:eu,
     bvMin:600,bvMax:980,bchg:12,bdis:dis,backupKw:k,
     note:`3 เฟส 380/400 V รองรับโหลดไม่สมดุล 100% · แบต LUNA2000-S0/S1 แรงดัน 600–980 V แบต 51.2 V ใช้ไม่ได้ · Backup ทั้งบ้านผ่าน SmartGuard-63A-T0 สลับ ≤20 ms · eff สูงสุด ${mx}%`}));
   const b=(brand,model,o)=>bat.push(Object.assign({id:slug(brand+' '+model),brand,model,chem:'LiFePO4',rt:95,builtin:1},o));
@@ -106,6 +109,8 @@ function curInv(){
   return Object.assign({},x,{name:(x.brand+' '+x.model).trim(),eff:x.eff||97});
 }
 function curBat(){return pick('batteries')}
+const isPh3=I=>String((I||curInv()).phase)==='3';
+const bkPh3=I=>{I=I||curInv();return isPh3(I)&&String(I.bph||I.phase)==='3'};
 function applyActive(){const p=curPanel();PV=Object.assign({},p,{name:(p.brand+' '+p.model).trim(),noct:p.noct||43})}
 applyActive();
 function bankInfo(){
@@ -255,8 +260,10 @@ function eqMsg(sel,txt,cls){const m=document.querySelector(sel);if(m){m.classNam
 function onCatalogChange(){
   applyActive();eqRenderAll();
   lastSig='';render();
+  if(typeof loadView==='function'&&$('#ldmx'))loadView();
   if(typeof acRender==='function')acRender();
   if(typeof runSim==='function'&&lastA)runSim();
+  if(typeof backupRun==='function')backupRun();
   if(typeof touch==='function')touch(true);
 }
 function initCatalogUI(){

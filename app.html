@@ -116,7 +116,14 @@
     <div class="key">
       <span><i style="background:#8b5a2b"></i>L</span><span><i style="background:#2a78d6"></i>N</span><span><i style="background:#1baf7a"></i>PE</span>
       <span><i style="background:#d62828"></i>DC +</span><span><i style="background:#14191e;outline:1px solid var(--line)"></i>DC −</span>
+      <span id="ackey3" hidden><i style="background:#8b5a2b"></i>L1 <i style="background:#14191e;outline:1px solid var(--line)"></i>L2 <i style="background:#7d8590"></i>L3</span>
       <span><i style="background:#d9a400"></i>A / CAN H</span><span><i style="background:#8a63d2"></i>B / CAN L</span><span><i style="background:#e0762c"></i>CT / Start</span>
+    </div>
+    <div class="panelbox" id="acph3" hidden>
+      <h2>มิเตอร์ 3 เฟส: กำลังแต่ละเฟส</h2>
+      <label class="rhrow" for="acrh">เวลา <b id="acrhv">12:00</b><input id="acrh" type="range" min="0" max="23.75" step="0.25" value="12"></label>
+      <div id="acph3body"></div>
+      <p class="hint tight">ใช้แผง โหลด แบต และไฟดับจากแท็บ "จำลอง Backup" กับเฟสที่ตั้งให้แต่ละโหลดในแท็บ "จำลองโหลด" ค่า + คือซื้อจากกริด − คือขายคืน</p>
     </div>
     <div class="panelbox acset">
       <h2>ตั้งค่าอินเวอร์เตอร์และอุปกรณ์</h2>
@@ -209,7 +216,7 @@
     <header><h1>จำลองโหลด</h1><p class="sub">ใส่รายการเครื่องใช้ไฟฟ้า กำลัง ช่วงเวลา และเปอร์เซ็นต์ที่ทำงานจริง ติ๊ก "โหลดสำคัญ" ให้รายการที่ต้องมีไฟตอนไฟดับ</p></header>
     <div class="panelbox ldwrap">
       <div class="ldchips"><span class="lab" style="font-size:12.5px;color:var(--muted)">ตัวอย่าง</span><span id="ldpre" class="ldchips"></span></div>
-      <div class="ldscroll"><table class="ldt"><thead><tr><th>ชื่อ</th><th>กำลัง (W)</th><th>จำนวน</th><th>เริ่ม</th><th>หยุด</th><th>ใช้จริง (%)</th><th>สำคัญ</th><th></th></tr></thead><tbody id="ldrows"></tbody></table></div>
+      <div class="ldscroll"><table class="ldt"><thead><tr><th>ชื่อ</th><th>กำลัง (W)</th><th>จำนวน</th><th>เริ่ม</th><th>หยุด</th><th>ใช้จริง (%)</th><th class="ldph">เฟส</th><th>สำคัญ</th><th></th></tr></thead><tbody id="ldrows"></tbody></table></div>
       <p id="ldempty" class="simmsg" hidden>ยังไม่มีรายการ กด "เพิ่มโหลด" หรือเลือกตัวอย่าง</p>
       <div><button class="btn pri" id="ldadd">+ เพิ่มโหลด</button></div>
       <p class="hint tight">เวลาหยุดที่น้อยกว่าเวลาเริ่ม แปลว่าข้ามเที่ยงคืน เช่น 22:00 ถึง 06:00 ส่วนเวลาเริ่มเท่ากับหยุดคือทำงานทั้งวัน ตัวอย่างที่ให้มาเป็นค่าโดยประมาณ ปรับเป็นของจริงได้</p>

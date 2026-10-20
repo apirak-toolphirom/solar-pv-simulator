@@ -229,6 +229,8 @@ function dsParse(lines,forceKind){
       const b=val('bvr');if(b&&b.n.length>=2){put('bvMin',Math.min(b.n[0],b.n[1]),b.r);put('bvMax',Math.max(b.n[0],b.n[1]),b.r)}
       const kwOf=(x,l)=>/\(\s*kw\s*\)/i.test(l)?x:/\(\s*w\s*\)/i.test(l)?x/1000:(x>100?x/1000:x);
       g('bchg',(a,l)=>kwOf(a[0],l));g('bdis',(a,l)=>kwOf(a[0],l));g('backupKw',(a,l)=>kwOf(a[0],l));
+      raw.phase=/three[- ]?phase|3[- ]?phase|3w\s*\/\s*n|\b3p\b|l1.{0,20}l2.{0,20}l3|380\s*v.{0,6}ac|400\s*vac|380\s*\/\s*220|220\s*v?\s*ac\s*\/\s*380/i.test(text)?'3':'1';
+      if(raw.phase==='3'&&/asymmetric|unbalanced/i.test(text))raw.asym='1';
       raw.type=/hybrid|battery|\bbms\b|energy storage|backup/i.test(text)&&(raw.bvMin||/hybrid|backup|eps/i.test(text))?'hybrid':(/off.?grid/i.test(text)&&!/grid.?tie|on.?grid|utility-interactive|grid connection/i.test(text)?'off-grid':'on-grid');
       const notes=[];
       if(trk>2)notes.push(`มี ${trk} MPPT (ตัวจำลองใช้ได้ 2 MPPT) ค่าต่อ MPPT`);

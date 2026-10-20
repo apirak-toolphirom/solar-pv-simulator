@@ -1,5 +1,6 @@
 /* ---- load simulation ---- */
 let LOADS=[],nextLoad=1;
+const LOAD_PH=['L1','L2','L3','3P'];
 const LOAD_PRESETS={
   home:{name:'บ้านพักอาศัย',items:[
     ['ตู้เย็น',150,1,0,24,40,1],['Wi-Fi และคอมพิวเตอร์',80,1,0,24,100,1],['ไฟ LED',9,10,18,23,100,1],
@@ -10,14 +11,15 @@ const LOAD_PRESETS={
     ['เซิร์ฟเวอร์',300,2,0,24,100,1],['สวิตช์เครือข่าย',60,1,0,24,100,1],['แอร์ห้องเซิร์ฟเวอร์',1000,1,0,24,60,1],['ไฟส่องสว่าง',100,1,7,19,100,0]]}
 };
 function addLoad(a){
-  const L={id:nextLoad++,name:a[0],w:a[1],qty:a[2],start:a[3],end:a[4],duty:a[5],crit:a[6]?1:0};
+  const L={id:nextLoad++,name:a[0],w:a[1],qty:a[2],start:a[3],end:a[4],duty:a[5],crit:a[6]?1:0,ph:LOAD_PH.includes(a[7])?a[7]:'L1'};
   LOADS.push(L);return L;
 }
-function setLoads(items){LOADS=[];nextLoad=1;items.forEach(addLoad)}
+function setLoads(items){LOADS=[];nextLoad=1;items.forEach((a,i)=>addLoad(a[7]?a:a.concat([['L1','L2','L3'][i%3]])))}
 const inWin=(h,s,e)=>s===e?true:(s<e?(h>=s&&h<e):(h>=s||h<e));
 /* returns watts per step for the whole day: {all, crit} */
 function loadProfile(step){
   const n=Math.round(1440/step),all=new Array(n).fill(0),crit=new Array(n).fill(0);
+  const ph=[0,1,2].map(()=>new Array(n).fill(0)),phc=[0,1,2].map(()=>new Array(n).fill(0));
   for(let i=0;i<n;i++){
     const h=(i+.5)*step/60;
     LOADS.forEach(L=>{
@@ -25,10 +27,12 @@ function loadProfile(step){
       if(inWin(h,L.start,L.end)){
         const w=L.w*L.qty*Math.max(0,Math.min(100,L.duty))/100;
         all[i]+=w;if(L.crit)crit[i]+=w;
+        const k=['L1','L2','L3'].indexOf(L.ph);
+        if(k<0){for(let q=0;q<3;q++){ph[q][i]+=w/3;if(L.crit)phc[q][i]+=w/3}}else{ph[k][i]+=w;if(L.crit)phc[k][i]+=w}
       }
     });
   }
-  return{all,crit,n,step};
+  return{all,crit,ph,phc,n,step};
 }
 const hhmm=h=>{const m=Math.round(h*60)%1440;return pad2(Math.floor(m/60))+':'+pad2(m%60)};
 const parseHM=s=>{const m=/^(\d{1,2}):(\d{2})$/.exec(s||'');return m?(+m[1]+ +m[2]/60):NaN};
@@ -41,6 +45,7 @@ function loadRowsHTML(){
     <td data-th="เริ่ม"><input data-k="start" type="time" value="${hhmm(L.start)}" aria-label="เวลาเริ่ม"></td>
     <td data-th="หยุด"><input data-k="end" type="time" value="${L.end>=24?'00:00':hhmm(L.end)}" aria-label="เวลาหยุด"></td>
     <td data-th="ใช้จริง (%)"><input data-k="duty" type="number" inputmode="decimal" min="0" max="100" step="1" value="${L.duty}" aria-label="เปอร์เซ็นต์เวลาที่ทำงานจริง"></td>
+    <td data-th="เฟส" class="ldph"><select data-k="ph" aria-label="เฟสที่ต่อ">${LOAD_PH.map(p=>`<option value="${p}" ${L.ph===p?'selected':''}>${p==='3P'?'3 เฟส':p}</option>`).join('')}</select></td>
     <td data-th="สำคัญ"><label class="chk"><input data-k="crit" type="checkbox" ${L.crit?'checked':''}><span>โหลดสำคัญ</span></label></td>
     <td><button class="btn sm" data-ldel="${L.id}" aria-label="ลบ ${esc(L.name)}">ลบ</button></td></tr>`).join('');
 }
@@ -49,15 +54,24 @@ function loadView(){
   const P=loadProfile(5),dt=5/60/1000;
   let E=0,Ec=0,pk=0,pkI=0;
   P.all.forEach((w,i)=>{E+=w*dt;Ec+=P.crit[i]*dt;if(w>pk){pk=w;pkI=i}});
-  const I=curInv(),pc=Math.max(...P.crit);
+  const I=curInv(),pc=Math.max(...P.crit),w=[];
   const mx=[
     ['พลังงานต่อวัน',f(E,2)+' kWh',`เฉลี่ย ${f(E/24,2)} kW`],
     ['กำลังสูงสุด',f(pk/1000,2)+' kW',pk>0?`เวลา ${hhmm((pkI+.5)*5/60)}`:''],
     ['โหลดสำคัญต่อวัน',f(Ec,2)+' kWh',`สูงสุด ${f(pc/1000,2)} kW`],
     ['เทียบพิกัด AC อินเวอร์เตอร์',I.pac?f(pk/I.pac*100,0)+' %':'-',`${esc(I.name)} ${I.pac/1000} kW`]
   ];
+  const p3=isPh3(I);
+  if(p3){
+    const pk3=P.ph.map(a=>Math.max(...a)),e3=P.ph.map(a=>a.reduce((x,y)=>x+y,0)*dt);
+    mx.push(['สูงสุดรายเฟส L1 / L2 / L3',pk3.map(v=>f(v/1000,2)).join(' / ')+' kW',`พลังงาน ${e3.map(v=>f(v,1)).join(' / ')} kWh`]);
+    const cap=I.pac/3;
+    pk3.forEach((v,q)=>{if(v>cap)w.push(`เฟส L${q+1} สูงสุด ${f(v/1000,2)} kW เกินกำลังที่อินเวอร์เตอร์จ่ายได้ต่อเฟส ${f(cap/1000,2)} kW ส่วนเกินซื้อจากกริด`)});
+    const hi=Math.max(...e3),lo=Math.min(...e3);
+    if(hi>0&&(hi-lo)/hi>0.4)w.push(`โหลดแต่ละเฟสไม่สมดุล (พลังงานต่อวันต่างกัน ${f((hi-lo)/hi*100,0)} %) ย้ายโหลดบางตัวไปเฟสที่เบากว่า`+(String(I.asym)==='1'?'':' รุ่นนี้จ่ายไฟเท่ากันทุกเฟส เฟสที่โหลดหนักจะซื้อไฟ ขณะเฟสอื่นขายไฟ'));
+  }
+  document.querySelectorAll('.ldph').forEach(e=>e.hidden=!p3);
   $('#ldmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
-  const w=[];
   if(pk>I.pac)w.push(`กำลังโหลดสูงสุด ${f(pk/1000,2)} kW เกินพิกัด AC ของอินเวอร์เตอร์ ${I.pac/1000} kW`);
   if(I.type!=='on-grid'&&I.backupKw&&pc>I.backupKw*1000)w.push(`โหลดสำคัญสูงสุด ${f(pc/1000,2)} kW เกินกำลังขาออกโหมด Backup ${I.backupKw} kW`);
   $('#ldwarn').innerHTML=w.map(t=>`<li><span class="b warn">!</span><span>${esc(t)}</span></li>`).join('');
@@ -93,6 +107,7 @@ function initLoads(){
     const k=t.dataset.k;
     if(k==='name')L.name=t.value;
     else if(k==='crit')L.crit=t.checked?1:0;
+    else if(k==='ph'){if(LOAD_PH.includes(t.value))L.ph=t.value}
     else if(k==='start'||k==='end'){const h=parseHM(t.value);if(isNaN(h))return;L[k]=h}
     else{const n=parseFloat(t.value);if(isNaN(n))return;L[k]=Math.max(0,n)}
     loadView();loadChanged();

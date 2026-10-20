@@ -74,7 +74,7 @@ let bkCfg=null;
 function backupRun(){
   if(!$('#bkmx'))return;
   const msg=$('#bkmsg'),body=$('#bkbody'),I=curInv(),bi=bankInfo();
-  $('#bkverdict').hidden=true;window.lastBK=null;
+  $('#bkverdict').hidden=true;window.lastBK=null;window.lastBal=null;
   const src=bkSource();
   const need=BK.mode!=='grid';
   const warns=[];
@@ -90,6 +90,7 @@ function backupRun(){
   const ax=(typeof acsCfg==='function')?acsCfg():null;
   if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
   const R=balance(src.pv,LP.all,LP.crit,cfg);
+  window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island};
   const T=R.T;
 
   /* warnings */
@@ -151,6 +152,7 @@ function backupRun(){
   $('#bkleg1').innerHTML=s1.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('')+(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':'');
   $('#bkcard2').hidden=!bkCfg.B;
   drawBackup();
+  if(typeof acRender==='function'&&typeof AC_MODE!=='undefined'&&AC_MODE&&AC_MODE!=='1')acRender();
 }
 function drawBackup(){
   if(!bkCfg)return;

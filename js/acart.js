@@ -13,7 +13,24 @@ function acArt(k,c,I,S){
   const T=(x,y,t,cls,anc)=>`<text x="${x}" y="${y}" class="${cls||'a-t'}" text-anchor="${anc||'middle'}">${t}</text>`;
   let g=`<g transform="translate(${c.x} ${c.y})">`;
   const plate=(cls)=>`<rect x="0" y="0" width="${c.w}" height="${c.h}" rx="10" class="acbox${cls||''}"/>`;
-  if(k==='G'){
+  const p3=typeof AC_MODE!=='undefined'&&AC_MODE!=='1';
+  if(p3&&k==='G'){
+    g+=plate()+T(75,18,'กริด 3 เฟส','actitle')+AI.pylon(52,92,1.15)+AI.bolt(102,50,1.3)
+      +`<path d="M5 132H110" class="a-ground"/>`+T(70,152,'400 V ระหว่างเฟส','acnote')+T(70,168,'230 V เฟสกับ N','acnote')+T(70,186,'3 เฟส 4 สาย + PE','acnote');
+  }else if(p3&&k==='M'){
+    const R=(typeof AC_READ!=='undefined'&&AC_READ)||null;
+    g+=plate()+T(85,18,'สมาร์ทมิเตอร์ 3 เฟส','actitle')
+      +`<rect x="44" y="28" width="82" height="196" rx="8" class="a-fill"/>`;
+    PH3.forEach((p,i)=>{const v=R?R.grid[i]:null,t=v==null?'L'+p+'  —':`L${p} ${v>=0?'+':'−'}${f(Math.abs(v)/1000,2)}`;
+      g+=`<rect x="50" y="${36+i*26}" width="70" height="20" rx="3" class="a-lcd"/>`+T(85,50+i*26,t,'a-lcdt')});
+    const tot=R?R.grid.reduce((a,b)=>a+b,0):null;
+    g+=`<rect x="50" y="116" width="70" height="20" rx="3" class="a-lcd"/>`+T(85,130,tot==null?'Σ —':`Σ ${tot>=0?'+':'−'}${f(Math.abs(tot)/1000,2)}`,'a-lcdt')
+      +`<circle cx="85" cy="160" r="12" class="a-fill" style="stroke-width:2"/><path d="M85 160L93 153" class="a-line a-th"/><circle cx="85" cy="160" r="2.5" class="a-dark"/>`
+      +T(85,190,R?`kW · ${hhmm(R.h)}`:'kW','acnote').replace('class="acnote"','class="acnote" style="font-size:9.5px"')
+      +T(85,204,'+ ซื้อ − ขาย','acnote').replace('class="acnote"','class="acnote" style="font-size:9.5px"')
+      +`<rect x="56" y="212" width="28" height="7" rx="2" class="a-dark"/><rect x="88" y="212" width="28" height="7" rx="2" class="a-dark"/>`
+      +T(20,238,'← เข้า','acnote')+T(150,238,'ออก →','acnote');
+  }else if(k==='G'){
     g+=plate()+T(75,18,'กริด (การไฟฟ้า)','actitle')+AI.pylon(52,82,1.15)+AI.bolt(102,40,1.3)
       +`<path d="M5 112H110" class="a-ground"/>`+T(52,126,'หม้อแปลง / เสาไฟ','acnote');
   }else if(k==='M'){
@@ -26,6 +43,7 @@ function acArt(k,c,I,S){
       +`<rect x="32" y="24" width="86" height="96" rx="5" class="a-fill" style="stroke-width:2"/><path d="M38 52H112M38 98H112" class="a-line"/>`;
     for(let i=0;i<5;i++){const x=40+i*14;g+=`<rect x="${x}" y="58" width="11" height="34" rx="2" class="a-dark"/><rect x="${x+2}" y="${i%2?74:62}" width="7" height="14" rx="1.5" class="${i===4?'a-red':'a-fill'}"/>`}
     g+=AI.house(75,38,.62)+T(75,112,'เบรกเกอร์ย่อย · โหลดทั้งบ้าน','acnote').replace('class="acnote"','class="acnote" style="font-size:9px"');
+    if(p3)g+=T(75,190,'บัส L1 L2 L3 · N · PE','acnote').replace('class="acnote"','class="acnote" style="font-size:9.5px"');
   }else if(k==='CT'){
     const toGrid=S.ctDir==='toGrid';
     g+=plate()+T(75,16,'CT (ตัวคล้องสาย)','actitle')
@@ -55,7 +73,13 @@ function acArt(k,c,I,S){
   }else if(k==='INV'){
     g+=`<rect x="0" y="0" width="${c.w}" height="${c.h}" rx="14" class="acbox inv"/>`;
     const band=(y0,y1,x0,x1,col,title,icon)=>`<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" rx="7" style="fill:${col};opacity:.13"/><text x="${x0+6}" y="${y0+12}" class="a-grp" style="fill:${col}">${title}</text>`+icon;
-    g+=band(8,146,3,100,'var(--s1)','GRID · ไฟจากกริด','')+AI.pylon(128,88,.5)
+    if(p3){
+      const b3=c.bp===3;
+      g+=band(8,186,3,100,'var(--s1)','GRID 3 เฟส','')+AI.pylon(128,96,.5)
+        +band(228,b3?370:330,3,100,'var(--s2)',b3?'BACKUP 3 เฟส':'BACKUP 1 เฟส','')
+        +band(492,572,3,100,'var(--s3)','สมาร์ทมิเตอร์ RS485','')
+        +band(26,186,160,257,'var(--pos)','BAT · แบตเตอรี่','')+AI.bat(127,115,1);
+    }else g+=band(8,146,3,100,'var(--s1)','GRID · ไฟจากกริด','')+AI.pylon(128,88,.5)
       +band(152,258,3,100,'var(--s2)','BACKUP · ไฟสำรอง','')+AI.plug(128,214,.9)
       +band(268,428,3,100,'var(--accent)','GEN · เครื่องปั่นไฟ','')+AI.gen(128,356,.9)
       +band(462,612,3,100,'var(--s3)','วัดกริด · CT / มิเตอร์','')+AI.meter(128,545,.9)

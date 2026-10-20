@@ -413,3 +413,13 @@ body[data-tab="bench"] .wrap{max-width:1400px}
 .bw-hit{fill:none;stroke:transparent;stroke-width:12;cursor:pointer}
 .bw.mis{stroke-dasharray:6 4}
 .bpt{cursor:crosshair}
+
+/* three-phase meter readout */
+.ldt .ldph[hidden]{display:none!important}
+.ldt select{min-width:84px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-height:36px;color:var(--ink)}
+#acph3{display:flex;flex-direction:column;gap:10px}#acph3[hidden]{display:none}
+.rhrow{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}.rhrow input{flex:1;min-width:0}.rhrow b{font-family:var(--mono);color:var(--ink);min-width:44px}
+.ph3grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.ph3grid h3{margin:0 0 6px;font-size:13px}
+.ph3t td,.ph3t th{font-family:var(--mono);text-align:right}.ph3t th:first-child{text-align:left;font-family:inherit}
+.ph3t tr.tot th,.ph3t tr.tot td{border-top:1px solid var(--line);font-weight:600}
+.ph3t .imp{color:var(--err)}.ph3t .exp{color:var(--ok)}.ph3t .z{color:var(--muted)}

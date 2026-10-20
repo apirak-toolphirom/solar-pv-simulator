@@ -41,7 +41,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wires:ACS.wires,set:ACS.set,apply:ACS.apply,pos:ACS.pos,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot()};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_MODE?{[AC_MODE]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_MODE?{[AC_MODE]:ACS.pos}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot()};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -97,7 +97,7 @@ function restoreProject(p){
     else if(isFinite(s.lat)&&isFinite(s.lon)){SIM.lat=s.lat;SIM.lon=s.lon;SIM.refLat=fin(s.refLat,s.lat);SIM.refLon=fin(s.refLon,s.lon)}
   }
   if(Array.isArray(p.loads)){
-    LOADS=p.loads.filter(l=>l&&typeof l==='object').map(l=>({id:0,name:String(l.name||'').slice(0,60),w:Math.max(0,fin(l.w,0)),qty:Math.max(0,fin(l.qty,1)),start:clamp(fin(l.start,0),0,24),end:clamp(fin(l.end,24),0,24),duty:clamp(fin(l.duty,100),0,100),crit:l.crit?1:0}));
+    LOADS=p.loads.filter(l=>l&&typeof l==='object').map((l,i)=>({id:0,name:String(l.name||'').slice(0,60),w:Math.max(0,fin(l.w,0)),qty:Math.max(0,fin(l.qty,1)),start:clamp(fin(l.start,0),0,24),end:clamp(fin(l.end,24),0,24),duty:clamp(fin(l.duty,100),0,100),crit:l.crit?1:0,ph:LOAD_PH.includes(l.ph)?l.ph:['L1','L2','L3'][i%3]}));
     LOADS.forEach((l,i)=>l.id=i+1);nextLoad=LOADS.length+1;
   }
   if(p.bk&&typeof p.bk==='object'){
@@ -116,14 +116,22 @@ function restoreExtra(p){
     Object.assign(EV.tree,{on:!!t.on,h:num(t.h,12,1,40),d:num(t.d,7,1,60),az:num(t.az,180,0,359),w:num(t.w,90,5,160),pct:num(t.pct,60,10,100),mppt:[0,1,2].includes(t.mppt)?t.mppt:0,ph:num(t.ph,3,0,20)});
   }
   if(p.ac&&typeof p.ac==='object'){
-    if(Array.isArray(p.ac.wires))ACS.wires=p.ac.wires.filter(w=>w&&AC_TM[w.a]&&AC_TM[w.b]).map(w=>({a:w.a,b:w.b}));
+    /* wires and module positions per wiring mode (1 phase, 3 phase, 3 phase + 1 phase backup); old saves had one 1-phase set */
+    const wm=p.ac.wm&&typeof p.ac.wm==='object'?p.ac.wm:{'1':p.ac.wires},pm=p.ac.pm&&typeof p.ac.pm==='object'?p.ac.pm:{'1':p.ac.pos};
+    ACS.wm={};ACS.pm={};
+    Object.keys(AC_MODES).forEach(m=>{
+      const M=AC_MODES[m];
+      if(Array.isArray(wm[m]))ACS.wm[m]=wm[m].filter(w=>w&&M.TM[w.a]&&M.TM[w.b]).map(w=>({a:w.a,b:w.b}));
+      const P=pm[m];if(P&&typeof P==='object'){const o={};Object.keys(M.C).forEach(k=>{const a=P[k];if(Array.isArray(a)){const x=Math.round(num(a[0],0,-2000,2000)/10)*10,y=Math.round(num(a[1],0,-2000,2000)/10)*10;if(x||y)o[k]=[Math.max(-M.C[k].x,x),Math.max(-M.C[k].y,y)]}});ACS.pm[m]=o}
+    });
+    AC_MODE=null;acEnsureMode();
+    ACS.rh=num(p.ac.rh,12,0,23.75);
     const s=p.ac.set||{},S=ACS.set,pick=(k,opts)=>{if(opts.includes(s[k]))S[k]=s[k]};
     pick('mode',['selfuse','feedin','backup']);pick('gridStd',['PEA','MEA','other']);pick('meterType',['ct','meter','none']);pick('ctPos',['gridL','loadL','invL','N']);pick('ctDir',['toGrid','toLoad']);
     pick('batType',['li','lead']);pick('batComm',['can','rs485','none']);pick('genMode',['off','charge','supply']);pick('mBaud',[2400,4800,9600,19200]);pick('iBaud',[2400,4800,9600,19200]);
     pick('cbGrid',[16,20,25,32,40,50,63]);pick('cbBackup',[16,20,25,32,40,50,63]);
     S.reserve=num(s.reserve,20,0,100);S.expLimW=num(s.expLimW,0,0,20000);S.mAddr=num(s.mAddr,1,1,247);S.iAddr=num(s.iAddr,1,1,247);S.expLimOn=!!s.expLimOn;S.backupEn=s.backupEn!==false;
     ACS.apply=!!p.ac.apply;
-    ACS.pos={};if(p.ac.pos&&typeof p.ac.pos==='object')Object.keys(AC_C).forEach(k=>{const a=p.ac.pos[k];if(Array.isArray(a)){const x=num(a[0],0,-2000,2000),y=num(a[1],0,-2000,2000);acMove(k,x,y)}});
     ACS.zoom=num(p.ac.zoom,1,.5,2.5);
   }
   if(p.bn)bRestore(p.bn);
