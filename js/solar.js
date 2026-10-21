@@ -184,7 +184,7 @@ function drawLine(host,c){
   s+=`<line class="xh" y1="${mt}" y2="${mt+ih}" style="display:none"/>`;
   c.series.forEach(se=>{s+=`<circle class="hd" r="4.5" style="fill:${se.color};display:none"/>`});
   s+=`<rect class="ov" x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent"/></svg><div class="tip" hidden></div>`;
-  host.innerHTML=s;
+  host.innerHTML=s;host._map={ml,iw,x0,x1,mt,ih,W,H};
   const svgEl=host.querySelector('svg'),tip=host.querySelector('.tip'),xh=svgEl.querySelector('.xh'),dots=[...svgEl.querySelectorAll('.hd')],ov=svgEl.querySelector('.ov');
   const step=c.x.length>1?c.x[1]-c.x[0]:1;
   function show(ev){

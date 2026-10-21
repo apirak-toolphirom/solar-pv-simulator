@@ -606,3 +606,4 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .bkmic{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}.bkmich{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}.bkmich .inl{display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:13.5px}.bkmich input{width:72px}
 .bkmicsel{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.bkmicsel label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
 .ba-pw{fill:#fff;font:700 12px var(--mono);paint-order:stroke;stroke:#1f4f84;stroke-width:3px}
+.tcur line{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 3}.tcur rect{fill:var(--accent)}.tcur text{fill:#fff;font:700 11px var(--mono)}#chK1,#chK2{cursor:pointer}

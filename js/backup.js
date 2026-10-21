@@ -180,6 +180,7 @@ function drawBackup(){
   if(!bkCfg)return;
   if($('#chK1').clientWidth)drawLine($('#chK1'),bkCfg.A);
   if(bkCfg.B&&$('#chK2').clientWidth)drawLine($('#chK2'),bkCfg.B);
+  if(typeof bkaCursor==='function')bkaCursor();
 }
 /* a system type the current inverter cannot run: pick the closest inverter that can (same brand and phase first, then nearest power) */
 let BK_SWAP='';

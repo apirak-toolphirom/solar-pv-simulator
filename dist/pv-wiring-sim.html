@@ -611,6 +611,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .bkmic{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}.bkmich{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}.bkmich .inl{display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:13.5px}.bkmich input{width:72px}
 .bkmicsel{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.bkmicsel label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
 .ba-pw{fill:#fff;font:700 12px var(--mono);paint-order:stroke;stroke:#1f4f84;stroke-width:3px}
+.tcur line{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 3}.tcur rect{fill:var(--accent)}.tcur text{fill:#fff;font:700 11px var(--mono)}#chK1,#chK2{cursor:pointer}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -3433,7 +3434,7 @@ function drawLine(host,c){
   s+=`<line class="xh" y1="${mt}" y2="${mt+ih}" style="display:none"/>`;
   c.series.forEach(se=>{s+=`<circle class="hd" r="4.5" style="fill:${se.color};display:none"/>`});
   s+=`<rect class="ov" x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent"/></svg><div class="tip" hidden></div>`;
-  host.innerHTML=s;
+  host.innerHTML=s;host._map={ml,iw,x0,x1,mt,ih,W,H};
   const svgEl=host.querySelector('svg'),tip=host.querySelector('.tip'),xh=svgEl.querySelector('.xh'),dots=[...svgEl.querySelectorAll('.hd')],ov=svgEl.querySelector('.ov');
   const step=c.x.length>1?c.x[1]-c.x[0]:1;
   function show(ev){
@@ -4303,6 +4304,7 @@ function drawBackup(){
   if(!bkCfg)return;
   if($('#chK1').clientWidth)drawLine($('#chK1'),bkCfg.A);
   if(bkCfg.B&&$('#chK2').clientWidth)drawLine($('#chK2'),bkCfg.B);
+  if(typeof bkaCursor==='function')bkaCursor();
 }
 /* a system type the current inverter cannot run: pick the closest inverter that can (same brand and phase first, then nearest power) */
 let BK_SWAP='';
@@ -4459,7 +4461,7 @@ function bkaFrame(){
   q('bagrid').classList.toggle('ba-off',mode==='off'||out);q('bagridx').style.display=out&&mode!=='off'?'':'none';
   q('baload').classList.toggle('ba-dark',unmet>1&&load<1);q('baload').classList.toggle('ba-dim',unmet>1&&load>=1);
   ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
-  q('bkat').value=i;txt('bkatl',bkaHM(i));
+  q('bkat').value=i;txt('bkatl',bkaHM(i));bkaCursor();
   const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
     (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));
 }
@@ -4505,6 +4507,17 @@ function bkaInvPic(I){
   if(img.dataset.k!==k){img.dataset.k=k;img.onerror=()=>{BKA.picBad[k]=1;show(false)};img.setAttribute('href','img/inv/'+k+'.png?v=2')}
   show(true);
 }
+/* time cursor on the menu 07 charts follows the animation time; click a chart to jump the animation there */
+function bkaCursor(){
+  const h=(BKA.i+.5)*5/60,NS='http://www.w3.org/2000/svg';
+  ['chK1','chK2'].forEach(id=>{const host=document.getElementById(id),m=host&&host._map,svg=host&&host.querySelector('svg');if(!m||!svg)return;
+    let g=svg.querySelector('.tcur');
+    if(!g){g=document.createElementNS(NS,'g');g.setAttribute('class','tcur');g.innerHTML='<line/><rect rx="4" height="18" width="46"/><text text-anchor="middle"></text>';const ov=svg.querySelector('.ov');svg.insertBefore(g,ov||null)}
+    const x=m.ml+(h-m.x0)/(m.x1-m.x0)*m.iw,[l,r,t]=g.children;
+    l.setAttribute('x1',x);l.setAttribute('x2',x);l.setAttribute('y1',m.mt);l.setAttribute('y2',m.mt+m.ih);
+    const tx=Math.max(m.ml+23,Math.min(m.ml+m.iw-23,x));r.setAttribute('x',tx-23);r.setAttribute('y',m.mt-19);t.setAttribute('x',tx);t.setAttribute('y',m.mt-6);t.textContent=bkaHM(BKA.i);
+  });
+}
 function bkaTick(t){
   BKA.raf=0;
   const tab=document.getElementById('tab-backup');
@@ -4530,6 +4543,8 @@ function initBkAnim(){
   ct.addEventListener('change',e=>{BKA.cloud.thick=+e.target.value;bkaFrame()});
   cz.addEventListener('change',e=>{BKA.cloud.size=+e.target.value;bkaFrame()});
   document.addEventListener('visibilitychange',bkaKick);
+  ['chK1','chK2'].forEach(id=>{const host=document.getElementById(id);if(!host)return;host.addEventListener('click',e=>{const m=host._map,svg=host.querySelector('svg');if(!m||!svg)return;
+    const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*(m.W/r.width),h=m.x0+(px-m.ml)/m.iw*(m.x1-m.x0);if(h<m.x0||h>m.x1)return;BKA.i=Math.max(0,Math.min(287,Math.round(h*12-.5)));bkaFrame()})});
 }
 
 /* ---- system types: On-grid / Off-grid / Hybrid off-grid / Hybrid on-off grid, same day, same panels, loads and battery ----

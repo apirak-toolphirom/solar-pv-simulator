@@ -91,7 +91,7 @@ function bkaFrame(){
   q('bagrid').classList.toggle('ba-off',mode==='off'||out);q('bagridx').style.display=out&&mode!=='off'?'':'none';
   q('baload').classList.toggle('ba-dark',unmet>1&&load<1);q('baload').classList.toggle('ba-dim',unmet>1&&load>=1);
   ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
-  q('bkat').value=i;txt('bkatl',bkaHM(i));
+  q('bkat').value=i;txt('bkatl',bkaHM(i));bkaCursor();
   const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
     (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));
 }
@@ -137,6 +137,17 @@ function bkaInvPic(I){
   if(img.dataset.k!==k){img.dataset.k=k;img.onerror=()=>{BKA.picBad[k]=1;show(false)};img.setAttribute('href','img/inv/'+k+'.png?v=2')}
   show(true);
 }
+/* time cursor on the menu 07 charts follows the animation time; click a chart to jump the animation there */
+function bkaCursor(){
+  const h=(BKA.i+.5)*5/60,NS='http://www.w3.org/2000/svg';
+  ['chK1','chK2'].forEach(id=>{const host=document.getElementById(id),m=host&&host._map,svg=host&&host.querySelector('svg');if(!m||!svg)return;
+    let g=svg.querySelector('.tcur');
+    if(!g){g=document.createElementNS(NS,'g');g.setAttribute('class','tcur');g.innerHTML='<line/><rect rx="4" height="18" width="46"/><text text-anchor="middle"></text>';const ov=svg.querySelector('.ov');svg.insertBefore(g,ov||null)}
+    const x=m.ml+(h-m.x0)/(m.x1-m.x0)*m.iw,[l,r,t]=g.children;
+    l.setAttribute('x1',x);l.setAttribute('x2',x);l.setAttribute('y1',m.mt);l.setAttribute('y2',m.mt+m.ih);
+    const tx=Math.max(m.ml+23,Math.min(m.ml+m.iw-23,x));r.setAttribute('x',tx-23);r.setAttribute('y',m.mt-19);t.setAttribute('x',tx);t.setAttribute('y',m.mt-6);t.textContent=bkaHM(BKA.i);
+  });
+}
 function bkaTick(t){
   BKA.raf=0;
   const tab=document.getElementById('tab-backup');
@@ -162,4 +173,6 @@ function initBkAnim(){
   ct.addEventListener('change',e=>{BKA.cloud.thick=+e.target.value;bkaFrame()});
   cz.addEventListener('change',e=>{BKA.cloud.size=+e.target.value;bkaFrame()});
   document.addEventListener('visibilitychange',bkaKick);
+  ['chK1','chK2'].forEach(id=>{const host=document.getElementById(id);if(!host)return;host.addEventListener('click',e=>{const m=host._map,svg=host.querySelector('svg');if(!m||!svg)return;
+    const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*(m.W/r.width),h=m.x0+(px-m.ml)/m.iw*(m.x1-m.x0);if(h<m.x0||h>m.x1)return;BKA.i=Math.max(0,Math.min(287,Math.round(h*12-.5)));bkaFrame()})});
 }
