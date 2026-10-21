@@ -119,6 +119,10 @@ const BUILTIN=(()=>{
     note:'16.07 kWh LiFePO4 ตั้งพื้น · ชาร์จ 150 A (7.68 kW) / จ่าย 200 A (10.24 kW) · 8000 รอบที่ DoD 90% · ขนานได้ 63 ลูก · RS232/RS485/CAN + Bluetooth/WiFi · IP65 · ชาร์จที่ 0–45°C · 120 kg · CE, UN38.3 · ประกัน 10 ปี · ข้อมูลจากหน้าเว็บผู้ผลิต (ไม่มีดาต้าชีต PDF ไม่ระบุช่วงแรงดันและ DoD ใช้งาน ใช้ 90% ตามเงื่อนไขอายุรอบ)'});
   // LVTOPSUN LVTS-512314-G4: product page lvtopsun.com (checked 2026-10-21): DoD 90%, 63 in parallel (16.07–1012.83 kWh), touchscreen, WiFi upgrade, IP65, wheels
   b('LVTOPSUN','LVTS-512314-G4 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,maxP:63,note:'16.07 kWh LiFePO4 เซลล์ 314 Ah · ชาร์จ 150 A (7.68 kW) / จ่าย 200 A (10.24 kW) · DoD 90% · ขนานได้ 63 ลูก (16.07–1012.83 kWh) · จอสัมผัสแสดงสถานะ · อัปเดตผ่าน WiFi · ตั้งพื้นมีล้อ เสียบต่อเร็ว · IP65 · ประกัน 10 ปี (ข้อมูลเดิม หน้าเว็บไม่ระบุ) · ตรวจกับหน้าเว็บผู้ผลิต 21 ต.ค. 69'});
+  // LVTOPSUN LVTS-512300-G3: product page lvtopsun.com (2026-10-21): 51.2 V 300 Ah 15.36 kWh, 150 A / 200 A, Isc 540 A, DoD 90%, 63 in parallel,
+  //   RS232/RS485/CAN, LCD + LED, floor stand, 866×450×230 mm, 117 kg, −20~60 °C
+  b('LVTOPSUN','LVTS-512300-G3 15 kWh',{v:51.2,ah:300,dod:90,maxChg:150,maxDis:200,isc:540,maxP:63,
+    note:'15.36 kWh LiFePO4 300 Ah · ชาร์จ 150 A (7.68 kW) / จ่าย 200 A (10.24 kW) · DoD 90% · ขนานได้ 63 ลูก (15.36–967.68 kWh) · RS232/RS485/CAN · จอ LCD + ไฟ LED · ตั้งพื้น 866×450×230 mm · 117 kg · ทำงาน −20~60°C · ข้อมูลจากหน้าเว็บผู้ผลิต (ไม่ระบุช่วงแรงดัน อายุรอบ IP และประกัน)'});
   b('LVTOPSUN','LVTS-512314-G3 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,note:'16.08 kWh · แรงดันชาร์จ 55.68–56.16 V จ่าย 45.6–56.16 V · ขนานได้ 63 ลูก · จอสัมผัส · IP20 · ประกัน 5 ปี'});
   // AIKO Stellar 3N+72 (AIKO-A-MDE72Dw), N-type ABC, dual glass. NOCT temperature derived from the datasheet's NOCT Pmax (493 W of 650 W at 800 W/m², 20 °C ambient)
   const pan=[];
