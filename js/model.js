@@ -18,7 +18,7 @@ function pvOf(id){const p=id&&typeof CAT!=='undefined'&&CAT.panels.find(x=>x.id=
 const mpPV=k=>pvOf(MP_PM[k]);
 /* microinverters: menu 02 wires ONE unit; MICRO.n identical units make the system (AC side planned in menu 03) */
 const isMicro=I=>{try{return String((I||curInv()).micro||'')==='1'}catch(e){return false}};
-const MICRO={n:4,br:2,brk:20,cab:4,len:15,cap:true,rcd:true,pe:true};
+const MICRO={n:1,br:2,brk:20,cab:4,len:15,cap:true,rcd:true,pe:true};
 const microU=I=>isMicro(I)?Math.max(1,MICRO.n|0):1;
 const microIac=I=>+I.iac>0?+I.iac:(+I.pac||0)/220;
 const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;

@@ -140,7 +140,7 @@ function render(){
   v.innerHTML=`<span class="pill ${A.lvl}">${A.lvl==='idle'?'รอต่อสาย':LABEL[A.lvl]}</span><b>${msg}</b><span class="nums">${A.used}/${st.panels.length} แผง · ${f(A.pv/1000,2)} kWp</span>${fi?`<span class="vfirst">${fi.t}</span>`:''}`;
 
   /* panel size per MPPT: each input can take a different module (e.g. micro: MPPT1 650 W, MPPT2 700 W) */
-  const pvSel=k=>{const cur=MP_PM[k]||'';return`<label class="mppv">แผงที่ต่อ MPPT ${k}<select data-mppv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())} (${p.pmax} W)</option>`).join('')}</select></label>`};
+  const pvSel=k=>{const cur=MP_PM[k]||'';return`<label class="mppv">แผงที่ต่อ MPPT ${k}<select data-mppv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`};
   $('#cards').innerHTML=A.res.map(r=>{
     if(r.status==='idle')return`<section class="card"><div class="chead"><h3>MPPT ${r.k}</h3><span class="pill idle">ว่าง</span></div>${pvSel(r.k)}<p class="idlehint">ยังไม่ได้ต่อสาย ลากสายจากขั้ว DC${r.k}+ และ DC${r.k}− ของอินเวอร์เตอร์ไปที่แผง</p></section>`;
     const b=r.blk,P=b?b.pv:mpPV(r.k),e=A.evOf(P);

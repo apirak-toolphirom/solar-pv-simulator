@@ -608,6 +608,9 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .mic-pe path{fill:none;stroke:#1baf7a;stroke-width:3}.mic-pe.off path{stroke:var(--err);stroke-dasharray:8 6}
 .bkasvg:not(.micro) .ba-mic{display:none}.bkasvg.micro .ba-str{display:none}.ba-mu{fill:#6f7b86;stroke:#3f4a54}.ba-mut{fill:#fff;font:700 9px var(--body)}
 .ba-pin{fill:#2f6fd0;font:700 8px var(--body)}
+.bkmic{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}.bkmich{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}.bkmich .inl{display:inline-flex;flex-direction:row;align-items:center;gap:6px;font-size:13.5px}.bkmich input{width:72px}
+.bkmicsel{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.bkmicsel label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.ba-pw{fill:#fff;font:700 12px var(--mono);paint-order:stroke;stroke:#1f4f84;stroke-width:3px}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -905,6 +908,11 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
         <label for="bksrc">แหล่งไฟจากแผง<select id="bksrc"><option value="ideal">แผงสมมติ (ไม่ตรวจการต่อสาย)</option><option value="wiring">ตามที่ต่อสายไว้</option></select></label>
         <label id="bknwrap" for="bkn" hidden>จำนวนแผงสมมติ<input id="bkn" type="number" inputmode="numeric" min="1" max="200" step="1" value="9"></label>
         <label for="bkis">โหลดที่ต้องจ่ายตอนจ่ายไฟเอง<select id="bkis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
+      </div>
+      <div id="bkmicbox" class="bkmic" hidden>
+        <div class="bkmich"><b>ไมโครอินเวอร์เตอร์: เลือกแผงแต่ละช่อง</b><label for="bkmicn" class="inl">จำนวนไมโคร<input id="bkmicn" type="number" inputmode="numeric" min="1" max="60" step="1" value="1"> ตัว</label></div>
+        <div class="bkmicsel" id="bkmicsel"></div>
+        <p class="hint tight" id="bkmicinfo"></p>
       </div>
       <div class="row3">
         <label id="bkoutbox" for="bkos">ไฟดับตั้งแต่<input id="bkos" type="time" value="18:00"></label>
@@ -1923,7 +1931,7 @@ function pvOf(id){const p=id&&typeof CAT!=='undefined'&&CAT.panels.find(x=>x.id=
 const mpPV=k=>pvOf(MP_PM[k]);
 /* microinverters: menu 02 wires ONE unit; MICRO.n identical units make the system (AC side planned in menu 03) */
 const isMicro=I=>{try{return String((I||curInv()).micro||'')==='1'}catch(e){return false}};
-const MICRO={n:4,br:2,brk:20,cab:4,len:15,cap:true,rcd:true,pe:true};
+const MICRO={n:1,br:2,brk:20,cab:4,len:15,cap:true,rcd:true,pe:true};
 const microU=I=>isMicro(I)?Math.max(1,MICRO.n|0):1;
 const microIac=I=>+I.iac>0?+I.iac:(+I.pac||0)/220;
 const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;
@@ -2272,7 +2280,7 @@ function render(){
   v.innerHTML=`<span class="pill ${A.lvl}">${A.lvl==='idle'?'รอต่อสาย':LABEL[A.lvl]}</span><b>${msg}</b><span class="nums">${A.used}/${st.panels.length} แผง · ${f(A.pv/1000,2)} kWp</span>${fi?`<span class="vfirst">${fi.t}</span>`:''}`;
 
   /* panel size per MPPT: each input can take a different module (e.g. micro: MPPT1 650 W, MPPT2 700 W) */
-  const pvSel=k=>{const cur=MP_PM[k]||'';return`<label class="mppv">แผงที่ต่อ MPPT ${k}<select data-mppv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())} (${p.pmax} W)</option>`).join('')}</select></label>`};
+  const pvSel=k=>{const cur=MP_PM[k]||'';return`<label class="mppv">แผงที่ต่อ MPPT ${k}<select data-mppv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`};
   $('#cards').innerHTML=A.res.map(r=>{
     if(r.status==='idle')return`<section class="card"><div class="chead"><h3>MPPT ${r.k}</h3><span class="pill idle">ว่าง</span></div>${pvSel(r.k)}<p class="idlehint">ยังไม่ได้ต่อสาย ลากสายจากขั้ว DC${r.k}+ และ DC${r.k}− ของอินเวอร์เตอร์ไปที่แผง</p></section>`;
     const b=r.blk,P=b?b.pv:mpPV(r.k),e=A.evOf(P);
@@ -4173,6 +4181,12 @@ function balance(pv,loadAll,loadCrit,cfg){
 function bkSource(noEv){
   /* returns {pv:[W per 5-min], label, kwp, err} using the same site/orientation as the panel tab */
   const I=curInv();
+  if(BK.src==='ideal'&&isMicro(I)){
+    /* micro: one panel per input, each input its own module (shared with menu 02), × number of units */
+    const nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4))),blocks=[...Array(nm)].map((_,j)=>({n:1,ns:1,mp:1,pv:mpPV(j+1)}));
+    const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv),U=microU(I),kw=blocks.reduce((a,b)=>a+b.pv.pmax,0)*U/1000;
+    return{pv:R.pac,label:`ไมโคร ${U} ตัว × ${nm} แผง (${blocks.map(b=>b.pv.pmax).join('/')} W)`,kwp:kw,E:R.E};
+  }
   if(BK.src==='ideal'){
     const N=Math.max(1,BK.nIdeal|0);
     const R=simDay([{n:N,ns:N,mp:1}],I,SIM.tilt,SIM.az,5,true,noEv);
@@ -4318,7 +4332,14 @@ function bkSync(){
   if(is){is.disabled=g;is.title=g?'On-grid ไม่จ่ายไฟตอนไฟดับ':''}
   document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=false;
     b.title=ok.includes(b.dataset.bm)?'':'กดแล้วจะเปลี่ยนอินเวอร์เตอร์เป็นรุ่นที่ใช้ระบบนี้ได้ (ยี่ห้อเดิม ขนาดใกล้เคียง)'});
-  $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal';
+  const mic=isMicro(curInv());
+  $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal'||mic;
+  $('#bkmicbox').hidden=!(mic&&BK.src==='ideal');
+  if(mic&&BK.src==='ideal'){const I=curInv(),nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4)));
+    if(document.activeElement!==$('#bkmicn'))$('#bkmicn').value=MICRO.n;
+    $('#bkmicsel').innerHTML=[...Array(nm)].map((_,j)=>{const k=j+1,cur=MP_PM[k]||'';return`<label>PV${k}<select data-bkpv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`}).join('');
+    const W=[...Array(nm)].map((_,j)=>mpPV(j+1).pmax),sum=W.reduce((a,b)=>a+b,0);
+    $('#bkmicinfo').textContent=`ไมโคร 1 ตัวต่อแผงได้ ${nm} แผง (ช่องละ 1 แผง) รวม ${sum} W ต่อตัว · ${MICRO.n} ตัว = ${f(sum*MICRO.n/1000,2)} kWp · AC ${f(I.pac*MICRO.n/1000,2)} kW · ใช้ค่าเดียวกับเมนู 02`+(I.pvRec&&sum>I.pvRec?` · เกินกำลังแผงที่แนะนำ ${I.pvRec} W ต่อตัว`:'');}
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
   document.querySelectorAll('#bkexp [data-be]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.be===BK.exp)));
   $('#bkexpbox').hidden=BK.mode==='off';$('#bkexpwbox').hidden=BK.exp!=='limit';$('#bkexpw').value=BK.expW;
@@ -4332,6 +4353,8 @@ function bkSync(){
   }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
+  $('#bkmicsel').addEventListener('change',e=>{const s=e.target.closest('[data-bkpv]');if(!s)return;const k=+s.dataset.bkpv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];bkSync();backupRun();if(typeof render==='function')render();if(typeof touch==='function')touch()});
+  $('#bkmicn').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(!(n>=1))return;MICRO.n=Math.min(60,n);bkSync();backupRun();if(typeof render==='function')render();if(typeof touch==='function')touch()});
   $('#bkexp').addEventListener('click',e=>{const b=e.target.closest('[data-be]');if(!b)return;BK.exp=b.dataset.be;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bkexpw').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.expW=Math.max(0,Math.min(20000,n));backupRun();if(typeof touch==='function')touch()});
   $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b)return;const m=b.dataset.bm;BK.mode=BK.want=m;
@@ -4368,7 +4391,7 @@ function bkaSVG(){
     .map(([id,d,c])=>`<path d="${d}" class="ba-w ${c}"/><path id="baw-${id}" d="${d}" class="ba-f ${c}"/>`).join('')}
   <!-- microinverters: one under each panel, AC trunk straight to the board -->
   <g class="ba-mic"><image href="img/inv/deye-micro.png?v=2" x="140" y="150" width="200" height="109" preserveAspectRatio="xMidYMid meet"/>
-    <text x="100" y="236" class="ba-pin">PV1</text><text x="96" y="168" class="ba-pin">PV2</text><text x="300" y="168" class="ba-pin">PV3</text><text x="300" y="211" class="ba-pin">PV4</text>
+    ${[0,1,2,3].map(k=>`<text id="bapw${k}" x="${54+k*82+32}" y="74" text-anchor="middle" class="ba-pw"></text>`).join('')}<text x="100" y="236" class="ba-pin">PV1</text><text x="96" y="168" class="ba-pin">PV2</text><text x="300" y="168" class="ba-pin">PV3</text><text x="300" y="211" class="ba-pin">PV4</text>
     <text id="bamicn" x="242" y="278" text-anchor="middle" class="ba-lab">ไมโครอินเวอร์เตอร์</text><text x="242" y="296" text-anchor="middle" class="ba-sm">แผงละ 1 ช่อง (4 แผงต่อ 1 ตัว) แปลง DC เป็น AC ที่หลังแผง</text>
     <text id="bav-md" x="242" y="314" text-anchor="middle" class="ba-sm"></text></g>
   <!-- DC isolator -->
@@ -4415,8 +4438,10 @@ function bkaFrame(){
   const inv=pv+bat;
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   const mic=isMicro(curInv());host.classList.toggle('micro',mic);
-  const md=mic?pv/4:0;BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md,md1:md,md2:md,md3:md,grid,load};
-  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`);txt('bav-md',pv>1?`DC ${bkaKW(pv/U)} ต่อตัว`:'')}/* positive = along the path as drawn */
+  const Wp=[1,2,3,4].map(k=>mpPV(k).pmax),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
+  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load};
+  if(mic)Wp.forEach((w,k)=>txt('bapw'+k,w+' W'));
+  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง 4 แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
   if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('transform',`translate(${(430+(h-6)/12*210).toFixed(1)} ${(125-Math.sin(a)*95).toFixed(1)})`);sun.style.display=''}else sun.style.display='none';
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
@@ -4763,6 +4788,7 @@ function evSource(){
     const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
     if(blocks.some(Boolean))return{blocks,I:lastA.I||I,ideal:false,label:'ตามที่ต่อสายไว้ในแท็บ "ต่อสาย"'+(isMicro(I)?` (ไมโคร ${microU(I)} ตัว)`:''),n:blocks.reduce((a,b)=>a+(b?b.n:0),0)*microU(I)};
   }
+  if(isMicro(I)){const nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4))),bl=[...Array(nm)].map((_,j)=>({n:1,ns:1,mp:1,pv:mpPV(j+1)}));return{blocks:bl,I,ideal:false,label:`ไมโคร ${microU(I)} ตัว × ${nm} แผง`,n:nm*microU(I)}}
   const N=Math.max(1,BK.nIdeal|0);
   return{blocks:[{n:N,ns:N,mp:1}],I,ideal:true,label:`แผงสมมติ ${N} แผง (ยังไม่ได้ต่อสายที่ถูกต้อง)`,n:N};
 }

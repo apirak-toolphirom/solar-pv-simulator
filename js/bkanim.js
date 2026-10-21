@@ -20,7 +20,7 @@ function bkaSVG(){
     .map(([id,d,c])=>`<path d="${d}" class="ba-w ${c}"/><path id="baw-${id}" d="${d}" class="ba-f ${c}"/>`).join('')}
   <!-- microinverters: one under each panel, AC trunk straight to the board -->
   <g class="ba-mic"><image href="img/inv/deye-micro.png?v=2" x="140" y="150" width="200" height="109" preserveAspectRatio="xMidYMid meet"/>
-    <text x="100" y="236" class="ba-pin">PV1</text><text x="96" y="168" class="ba-pin">PV2</text><text x="300" y="168" class="ba-pin">PV3</text><text x="300" y="211" class="ba-pin">PV4</text>
+    ${[0,1,2,3].map(k=>`<text id="bapw${k}" x="${54+k*82+32}" y="74" text-anchor="middle" class="ba-pw"></text>`).join('')}<text x="100" y="236" class="ba-pin">PV1</text><text x="96" y="168" class="ba-pin">PV2</text><text x="300" y="168" class="ba-pin">PV3</text><text x="300" y="211" class="ba-pin">PV4</text>
     <text id="bamicn" x="242" y="278" text-anchor="middle" class="ba-lab">ไมโครอินเวอร์เตอร์</text><text x="242" y="296" text-anchor="middle" class="ba-sm">แผงละ 1 ช่อง (4 แผงต่อ 1 ตัว) แปลง DC เป็น AC ที่หลังแผง</text>
     <text id="bav-md" x="242" y="314" text-anchor="middle" class="ba-sm"></text></g>
   <!-- DC isolator -->
@@ -67,8 +67,10 @@ function bkaFrame(){
   const inv=pv+bat;
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   const mic=isMicro(curInv());host.classList.toggle('micro',mic);
-  const md=mic?pv/4:0;BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md,md1:md,md2:md,md3:md,grid,load};
-  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`);txt('bav-md',pv>1?`DC ${bkaKW(pv/U)} ต่อตัว`:'')}/* positive = along the path as drawn */
+  const Wp=[1,2,3,4].map(k=>mpPV(k).pmax),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
+  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load};
+  if(mic)Wp.forEach((w,k)=>txt('bapw'+k,w+' W'));
+  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง 4 แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
   if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('transform',`translate(${(430+(h-6)/12*210).toFixed(1)} ${(125-Math.sin(a)*95).toFixed(1)})`);sun.style.display=''}else sun.style.display='none';
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
