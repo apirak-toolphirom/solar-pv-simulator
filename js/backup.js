@@ -205,7 +205,7 @@ function bkSync(){
   const ok=bkModes(curInv());
   /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
   const kb=$('#kbat'),is=$('#bkis'),g=BK.mode==='grid';
-  if(kb)kb.title=g?'โหมด On-grid ไม่ใช้แบตในการคำนวณ เลือก Hybrid เพื่อจำลองแบต':'';
+  if(kb&&!isMicro())kb.title=g?'โหมด On-grid ไม่ใช้แบตในการคำนวณ เลือก Hybrid เพื่อจำลองแบต':'';
   if(is){is.disabled=g;is.title=g?'On-grid ไม่จ่ายไฟตอนไฟดับ':''}
   document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=false;
     b.title=ok.includes(b.dataset.bm)?'':'กดแล้วจะเปลี่ยนอินเวอร์เตอร์เป็นรุ่นที่ใช้ระบบนี้ได้ (ยี่ห้อเดิม ขนาดใกล้เคียง)'});

@@ -42,7 +42,8 @@ function quickSel(){
     const cur=(pick(kind)||{}).id;
     el.innerHTML=CAT[kind].filter(x=>kind!=='batteries'||x.id===cur||batCompat(x)).map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
-  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
+  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');
+  {const kb=$('#kbat');if(kb&&isMicro()){kb.innerHTML='<option>ไม่มีช่องต่อแบต (ไมโครอินเวอร์เตอร์)</option>';kb.disabled=true;kb.title='ไมโครอินเวอร์เตอร์ต่อแบตไม่ได้ ถ้าจะเพิ่มแบตต้องใช้อินเวอร์เตอร์ Hybrid หรือ AC-coupled'}else{if(kb)kb.disabled=false;mk('batteries','kbat')}}
 }
 
 /* ---- persistence ---- */

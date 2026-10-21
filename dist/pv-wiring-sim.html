@@ -4329,7 +4329,7 @@ function bkSync(){
   const ok=bkModes(curInv());
   /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
   const kb=$('#kbat'),is=$('#bkis'),g=BK.mode==='grid';
-  if(kb)kb.title=g?'โหมด On-grid ไม่ใช้แบตในการคำนวณ เลือก Hybrid เพื่อจำลองแบต':'';
+  if(kb&&!isMicro())kb.title=g?'โหมด On-grid ไม่ใช้แบตในการคำนวณ เลือก Hybrid เพื่อจำลองแบต':'';
   if(is){is.disabled=g;is.title=g?'On-grid ไม่จ่ายไฟตอนไฟดับ':''}
   document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=false;
     b.title=ok.includes(b.dataset.bm)?'':'กดแล้วจะเปลี่ยนอินเวอร์เตอร์เป็นรุ่นที่ใช้ระบบนี้ได้ (ยี่ห้อเดิม ขนาดใกล้เคียง)'});
@@ -6486,7 +6486,8 @@ function quickSel(){
     const cur=(pick(kind)||{}).id;
     el.innerHTML=CAT[kind].filter(x=>kind!=='batteries'||x.id===cur||batCompat(x)).map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
-  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
+  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');
+  {const kb=$('#kbat');if(kb&&isMicro()){kb.innerHTML='<option>ไม่มีช่องต่อแบต (ไมโครอินเวอร์เตอร์)</option>';kb.disabled=true;kb.title='ไมโครอินเวอร์เตอร์ต่อแบตไม่ได้ ถ้าจะเพิ่มแบตต้องใช้อินเวอร์เตอร์ Hybrid หรือ AC-coupled'}else{if(kb)kb.disabled=false;mk('batteries','kbat')}}
 }
 
 /* ---- persistence ---- */
