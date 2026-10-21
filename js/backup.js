@@ -161,6 +161,7 @@ function backupRun(){
   $('#bkleg1').innerHTML=legHTML('bkleg1',s1,(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':''),drawBackup);
   $('#bkcard2').hidden=!bkCfg.B;
   drawBackup();
+  if(typeof bkAnimUpdate==='function')bkAnimUpdate();
   if(typeof acRender==='function'&&typeof AC_MODE!=='undefined'&&AC_MODE&&AC_MODE!=='1')acRender();
 }
 function drawBackup(){

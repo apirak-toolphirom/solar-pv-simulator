@@ -6,7 +6,7 @@
 <title>ต่อสายแผงโซลาร์</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=316254fc">
+<link rel="stylesheet" href="css/styles.css?v=90b2ee4b">
 </head>
 <body>
 <div class="app">
@@ -311,6 +311,12 @@
     <div id="bkbody">
       <div id="bkmx" class="metrics"></div>
       <p id="bklim" class="hint" style="margin:8px 0 14px"></p>
+      <section class="card bka-card"><div class="bkah"><h3>ภาพเคลื่อนไหวการไหลของไฟ</h3>
+        <div class="bkactl"><button class="btn sm pri" id="bkaplay" aria-pressed="false">▶ เล่นทั้งวัน</button>
+          <select id="bkasp" aria-label="ความเร็ว"><option value="1">ช้า</option><option value="3" selected>ปกติ</option><option value="8">เร็ว</option></select>
+          <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button></div></div>
+        <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="144" aria-label="เวลาในวัน"><output id="bkatl">12:00</output></div>
+        <div id="bkasvg" class="bkasvg"></div><p class="hint tight" id="bkanote" aria-live="polite"></p></section>
       <div class="simcards">
         <section class="card"><h3>กำลังจากแผง โหลด และไฟจากกริด</h3><div id="bkleg1" class="legend"></div><div id="chK1" class="chart"></div></section>
         <section class="card" id="bkcard2"><h3>สถานะประจุแบต (SOC)</h3><div id="chK2" class="chart"></div></section>
@@ -488,7 +494,8 @@
 <script src="js/solar.js?v=da5fc384"></script>
 <script src="js/site.js?v=3ef896c8"></script>
 <script src="js/loads.js?v=d3b46921"></script>
-<script src="js/backup.js?v=ecdd00c8"></script>
+<script src="js/backup.js?v=404941de"></script>
+<script src="js/bkanim.js?v=e27702f2"></script>
 <script src="js/systems.js?v=3112aceb"></script>
 <script src="js/events.js?v=6ac6c563"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
@@ -497,6 +504,6 @@
 <script src="js/worksheets.js?v=b0a4dc21"></script>
 <script src="js/access.js?v=759a8de2"></script>
 <script src="js/ctx.js?v=309b3aac"></script>
-<script src="js/app.js?v=772fe016"></script>
+<script src="js/app.js?v=455953f0"></script>
 </body>
 </html>

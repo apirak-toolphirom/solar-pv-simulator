@@ -300,6 +300,12 @@
     <div id="bkbody">
       <div id="bkmx" class="metrics"></div>
       <p id="bklim" class="hint" style="margin:8px 0 14px"></p>
+      <section class="card bka-card"><div class="bkah"><h3>ภาพเคลื่อนไหวการไหลของไฟ</h3>
+        <div class="bkactl"><button class="btn sm pri" id="bkaplay" aria-pressed="false">▶ เล่นทั้งวัน</button>
+          <select id="bkasp" aria-label="ความเร็ว"><option value="1">ช้า</option><option value="3" selected>ปกติ</option><option value="8">เร็ว</option></select>
+          <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button></div></div>
+        <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="144" aria-label="เวลาในวัน"><output id="bkatl">12:00</output></div>
+        <div id="bkasvg" class="bkasvg"></div><p class="hint tight" id="bkanote" aria-live="polite"></p></section>
       <div class="simcards">
         <section class="card"><h3>กำลังจากแผง โหลด และไฟจากกริด</h3><div id="bkleg1" class="legend"></div><div id="chK1" class="chart"></div></section>
         <section class="card" id="bkcard2"><h3>สถานะประจุแบต (SOC)</h3><div id="chK2" class="chart"></div></section>
