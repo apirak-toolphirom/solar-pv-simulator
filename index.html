@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="a13583e775">
+<meta name="build" content="c4e1dfdf27">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='a13583e775'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='c4e1dfdf27'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>ต่อสายแผงโซลาร์</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=b1e503b8">
+<link rel="stylesheet" href="css/styles.css?v=b02cce6f">
 </head>
 <body>
 <div class="app">
@@ -309,6 +309,12 @@ if(m&&m[1]!=='a13583e775'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <label for="bkod" id="bkoutbox2">ไฟดับนาน (ชม. 0 = ไม่ดับ)<input id="bkod" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="6"></label>
         <label id="bksocbox" for="bksoc">แบตเริ่มต้นที่เวลา 00:00 (% SOC)<input id="bksoc" type="number" inputmode="decimal" min="0" max="100" step="5" value="50"></label>
       </div>
+      <div id="bkexpbox" class="bkexp">
+        <div class="bkexph"><b>การขายไฟคืนกริด</b>
+          <div id="bkexp" class="chips" role="group" aria-label="การขายไฟคืนกริด"><button class="chip" data-be="full" aria-pressed="true">ขายได้ (Export ON)</button><button class="chip" data-be="zero" aria-pressed="false">Zero export (0 W)</button><button class="chip" data-be="limit" aria-pressed="false">จำกัดกำลังขาย</button></div>
+          <label id="bkexpwbox" class="inl" hidden>ขายได้สูงสุด<input id="bkexpw" type="number" inputmode="numeric" min="0" max="20000" step="100" value="1000"> W</label></div>
+        <div id="bkexpinfo" class="bkexpinfo"></div>
+      </div>
       <ul id="bkwarn" class="checks"></ul>
     </div>
     <p id="bkmsg" class="simmsg" hidden></p>
@@ -499,8 +505,8 @@ if(m&&m[1]!=='a13583e775'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/solar.js?v=da5fc384"></script>
 <script src="js/site.js?v=3ef896c8"></script>
 <script src="js/loads.js?v=d3b46921"></script>
-<script src="js/backup.js?v=837625da"></script>
-<script src="js/bkanim.js?v=f3228b77"></script>
+<script src="js/backup.js?v=42043ede"></script>
+<script src="js/bkanim.js?v=5ef60a5e"></script>
 <script src="js/systems.js?v=a0f2fb7f"></script>
 <script src="js/events.js?v=25b18749"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
@@ -509,6 +515,6 @@ if(m&&m[1]!=='a13583e775'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/worksheets.js?v=f8ef6079"></script>
 <script src="js/access.js?v=a90bc0d5"></script>
 <script src="js/ctx.js?v=c2d1f26b"></script>
-<script src="js/app.js?v=919d5a68"></script>
+<script src="js/app.js?v=b9e6aecd"></script>
 </body>
 </html>

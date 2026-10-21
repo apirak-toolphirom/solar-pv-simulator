@@ -1,5 +1,5 @@
 /* ---- backup simulation: on-grid / hybrid / off-grid, 5-minute energy balance ---- */
-const BK={mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,island:'crit',soc0:50};
+const BK={exp:'full',expW:1000,mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,island:'crit',soc0:50};
 const MODE_NAME={grid:'On-grid (ไม่มีแบต)',hybrid:'Hybrid (กริด + แบต)',off:'Off-grid (ไม่ต่อกริด)'};
 
 /* pure energy balance. inputs: pv[], load[], crit[] in W (same length), cfg. returns arrays and totals */
@@ -94,6 +94,9 @@ function backupRun(){
   const cfg={mode:BK.mode,bank:need?bi:null,chgKw,disKw,islandW,soc0:BK.soc0,outStart:BK.outStart,outDur:BK.outDur,island:BK.island,step:5};
   const ax=(typeof acsCfg==='function')?acsCfg():null;
   if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
+  /* export setting of this menu (used unless menu 03 results are applied with their own export limit) */
+  BK_EXPSRC=ax&&ax.expLimW!=null?'ac':BK.exp!=='full'&&BK.mode!=='off'?'bk':'';
+  if(BK_EXPSRC==='bk')cfg.expLimW=BK.exp==='zero'?0:BK.expW;
   const R=balance(src.pv,LP.all,LP.crit,cfg);
   window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island,cfg};
   const T=R.T;
@@ -103,6 +106,8 @@ function backupRun(){
   if(need&&bi&&I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warns.push(['err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงที่อินเวอร์เตอร์รับ ${I.bvMin}–${I.bvMax} V ปรับจำนวนต่ออนุกรมที่แท็บ "อุปกรณ์"`]);
   if(need&&bi&&I.type!=='on-grid'&&!batCompat(bi.b,I))warns.push(['err',batCompatMsg(bi.b,I)]);
   if(BK_SWAP)warns.push(['warn',BK_SWAP]);
+  if(BK_EXPSRC==='ac'&&BK.exp!=='full')warns.push(['warn',`ใช้ค่า Export limit ${cfg.expLimW} W จากเมนู 03 ต่อสาย AC (ติ๊ก "นำผลการต่อสายไปใช้" ไว้) แทนค่าที่เลือกในหน้านี้`]);
+  if(cfg.expLimW!=null&&T.curt>0.05&&BK.mode!=='off')warns.push(['warn',`${cfg.expLimW===0?'Zero export':'จำกัดการขาย '+cfg.expLimW+' W'}: อินเวอร์เตอร์ลดกำลังแผงลง ไฟที่ผลิตได้แต่ไม่ได้ใช้ ${f(T.curt,1)} kWh/วัน ${BK.mode==='grid'?'(ไม่มีแบตเก็บ ควรย้ายโหลดมาใช้กลางวัน)':'(แบตเต็มแล้ว)'}`]);
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
   const peakIsl=Math.max(...(BK.island==='crit'?LP.crit:LP.all));
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);
@@ -177,6 +182,18 @@ function bkSwapInv(I,m){
   const sc=x=>(String(x.brand)===String(I.brand)?0:1e6)+(String(x.phase||'1')===String(I.phase||'1')?0:1e5)+Math.abs((+x.pac||0)-(+I.pac||0));
   return CAT.inverters.filter(ok).sort((a,b)=>sc(a)-sc(b))[0]||null;
 }
+let BK_EXPSRC='';
+/* how each brand names and wires export control (menu names can differ by model and firmware) */
+function bkExpInfo(I){
+  const b=String(I.brand||'').toLowerCase(),ph3=isPh3(I);
+  if(b==='huawei')return{fn:'Active power control → Grid connection with zero power (Zero export) / Grid connection with limited power (kW) / Unlimited',
+    where:'ตั้งในแอป FusionSolar หรือ SUN2000 App: Settings → Power adjustment',
+    need:`ต้องมี Smart Power Sensor ${ph3?'DTSU666-H (3 เฟส)':'DDSU666-H (1 เฟส)'} ต่อ RS485 (485A/485B) ที่จุดต่อกริด และกำหนดทิศ CT ให้ถูก`};
+  if(b==='solis')return{fn:'Export Power Set / Backflow Power: ON + ค่ากำลัง (W) · 0 W = Zero export',
+    where:'ตั้งที่หน้าจออินเวอร์เตอร์: Advanced Settings → Export Power Set หรือในแอป SolisCloud',
+    need:'ต้องเลือกชนิดเซนเซอร์ให้ตรงกับที่ติดตั้ง: CT ที่สาย L ด้านกริด หรือมิเตอร์ (เช่น Eastron / Acrel) ต่อ RS485 ลูกศร CT ชี้ไปทางกริด'};
+  return{fn:'Export limit / Zero export (ชื่อเมนูต่างกันตามยี่ห้อ)',where:'ตั้งที่หน้าจออินเวอร์เตอร์หรือแอปของยี่ห้อ',need:'ต้องมี CT หรือมิเตอร์วัดกำลังที่จุดต่อกริด ไม่มีเซนเซอร์ = จำกัดการขายไม่ได้'};
+}
 function bkSync(){
   const ok=bkModes(curInv());
   /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
@@ -187,6 +204,10 @@ function bkSync(){
     b.title=ok.includes(b.dataset.bm)?'':'กดแล้วจะเปลี่ยนอินเวอร์เตอร์เป็นรุ่นที่ใช้ระบบนี้ได้ (ยี่ห้อเดิม ขนาดใกล้เคียง)'});
   $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal';
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
+  document.querySelectorAll('#bkexp [data-be]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.be===BK.exp)));
+  $('#bkexpbox').hidden=BK.mode==='off';$('#bkexpwbox').hidden=BK.exp!=='limit';$('#bkexpw').value=BK.expW;
+  {const x=bkExpInfo(curInv());$('#bkexpinfo').innerHTML=`<span class="bkbrand">${esc(curInv().brand||'')}</span> <b>ฟังก์ชัน:</b> ${esc(x.fn)}<br><b>ตั้งค่า:</b> ${esc(x.where)}<br><b>อุปกรณ์ที่ต้องมี:</b> ${esc(x.need)}<br><span class="muted">ชื่อเมนูอาจต่างตามรุ่นและเวอร์ชันเฟิร์มแวร์ ตรวจกับคู่มือของรุ่นที่ติดตั้งจริง</span>`+
+    (BK.exp==='full'?'<br><span class="muted">ไม่จำกัด: ไฟเหลือขายคืนกริดได้ทั้งหมด (ต้องได้รับอนุญาตขนานไฟจากการไฟฟ้า)</span>':BK.exp==='zero'?'<br><span class="muted">Zero export: ไม่ให้ไฟไหลออกกริดเลย ใช้เมื่อไม่ได้ขออนุญาตขายไฟ ไฟเหลือที่แบตรับไม่ได้จะถูกลดกำลัง</span>':'')}
   $('#bkoutbox').hidden=BK.mode==='off';$('#bkoutbox2').hidden=BK.mode==='off';$('#bksocbox').hidden=BK.mode==='grid';
   $('#bkmodenote').textContent={
     grid:'ใช้แผงจ่ายโหลดและขายส่วนเกินคืนกริด ไม่มีแบต เมื่อกริดดับอินเวอร์เตอร์ต้องหยุดจ่ายไฟ',
@@ -195,6 +216,8 @@ function bkSync(){
   }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
+  $('#bkexp').addEventListener('click',e=>{const b=e.target.closest('[data-be]');if(!b)return;BK.exp=b.dataset.be;bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkexpw').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.expW=Math.max(0,Math.min(20000,n));backupRun();if(typeof touch==='function')touch()});
   $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b)return;const m=b.dataset.bm;BK.mode=BK.want=m;
     const I=curInv();BK_SWAP='';
     if(!bkModes(I).includes(m)){const n=bkSwapInv(I,m);if(n){BK_SWAP=`เปลี่ยนอินเวอร์เตอร์จาก ${I.name} เป็น ${(n.brand+' '+n.model).trim()} เพราะระบบ ${m==='off'?'Off-grid':'Hybrid'} ต้องใช้อินเวอร์เตอร์ที่ต่อแบตได้`;ACT.inv=n.id;onCatalogChange()}}

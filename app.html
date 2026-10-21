@@ -294,6 +294,12 @@
         <label for="bkod" id="bkoutbox2">ไฟดับนาน (ชม. 0 = ไม่ดับ)<input id="bkod" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="6"></label>
         <label id="bksocbox" for="bksoc">แบตเริ่มต้นที่เวลา 00:00 (% SOC)<input id="bksoc" type="number" inputmode="decimal" min="0" max="100" step="5" value="50"></label>
       </div>
+      <div id="bkexpbox" class="bkexp">
+        <div class="bkexph"><b>การขายไฟคืนกริด</b>
+          <div id="bkexp" class="chips" role="group" aria-label="การขายไฟคืนกริด"><button class="chip" data-be="full" aria-pressed="true">ขายได้ (Export ON)</button><button class="chip" data-be="zero" aria-pressed="false">Zero export (0 W)</button><button class="chip" data-be="limit" aria-pressed="false">จำกัดกำลังขาย</button></div>
+          <label id="bkexpwbox" class="inl" hidden>ขายได้สูงสุด<input id="bkexpw" type="number" inputmode="numeric" min="0" max="20000" step="100" value="1000"> W</label></div>
+        <div id="bkexpinfo" class="bkexpinfo"></div>
+      </div>
       <ul id="bkwarn" class="checks"></ul>
     </div>
     <p id="bkmsg" class="simmsg" hidden></p>

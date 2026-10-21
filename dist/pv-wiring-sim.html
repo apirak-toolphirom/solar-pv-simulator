@@ -580,6 +580,15 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .ba-lab{fill:#24323e;font:600 14px var(--body)}.ba-sm{fill:#566676;font:12px var(--body)}
 .ba-val text{fill:#24323e;font:700 14px var(--mono);paint-order:stroke;stroke:#ffffffcc;stroke-width:4px}
 @media (max-width:760px){.ba-lab{font-size:17px}.ba-val text{font-size:17px}.ba-sm{font-size:14px}}
+
+.bkexp{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.bkexph{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.bkexp .inl{display:inline-flex;align-items:center;gap:6px;font-size:13.5px}.bkexp .inl input{width:96px}
+.bkexpinfo{font-size:13px;line-height:1.55;color:var(--ink);background:var(--band);border-radius:8px;padding:8px 10px}
+.bkexpinfo .muted{color:var(--muted)}
+.bkbrand{display:inline-block;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);background:var(--surface);margin-right:4px}
+#bkexp .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.ba-brand{fill:#3b4a58;font:800 12px var(--body);letter-spacing:.14em}.ba-brand.sm{font-size:10px;letter-spacing:.1em}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -876,6 +885,12 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
         <label id="bkoutbox" for="bkos">ไฟดับตั้งแต่<input id="bkos" type="time" value="18:00"></label>
         <label for="bkod" id="bkoutbox2">ไฟดับนาน (ชม. 0 = ไม่ดับ)<input id="bkod" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="6"></label>
         <label id="bksocbox" for="bksoc">แบตเริ่มต้นที่เวลา 00:00 (% SOC)<input id="bksoc" type="number" inputmode="decimal" min="0" max="100" step="5" value="50"></label>
+      </div>
+      <div id="bkexpbox" class="bkexp">
+        <div class="bkexph"><b>การขายไฟคืนกริด</b>
+          <div id="bkexp" class="chips" role="group" aria-label="การขายไฟคืนกริด"><button class="chip" data-be="full" aria-pressed="true">ขายได้ (Export ON)</button><button class="chip" data-be="zero" aria-pressed="false">Zero export (0 W)</button><button class="chip" data-be="limit" aria-pressed="false">จำกัดกำลังขาย</button></div>
+          <label id="bkexpwbox" class="inl" hidden>ขายได้สูงสุด<input id="bkexpw" type="number" inputmode="numeric" min="0" max="20000" step="100" value="1000"> W</label></div>
+        <div id="bkexpinfo" class="bkexpinfo"></div>
       </div>
       <ul id="bkwarn" class="checks"></ul>
     </div>
@@ -3949,7 +3964,7 @@ function loadChanged(){
 }
 
 /* ---- backup simulation: on-grid / hybrid / off-grid, 5-minute energy balance ---- */
-const BK={mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,island:'crit',soc0:50};
+const BK={exp:'full',expW:1000,mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,island:'crit',soc0:50};
 const MODE_NAME={grid:'On-grid (ไม่มีแบต)',hybrid:'Hybrid (กริด + แบต)',off:'Off-grid (ไม่ต่อกริด)'};
 
 /* pure energy balance. inputs: pv[], load[], crit[] in W (same length), cfg. returns arrays and totals */
@@ -4044,6 +4059,9 @@ function backupRun(){
   const cfg={mode:BK.mode,bank:need?bi:null,chgKw,disKw,islandW,soc0:BK.soc0,outStart:BK.outStart,outDur:BK.outDur,island:BK.island,step:5};
   const ax=(typeof acsCfg==='function')?acsCfg():null;
   if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
+  /* export setting of this menu (used unless menu 03 results are applied with their own export limit) */
+  BK_EXPSRC=ax&&ax.expLimW!=null?'ac':BK.exp!=='full'&&BK.mode!=='off'?'bk':'';
+  if(BK_EXPSRC==='bk')cfg.expLimW=BK.exp==='zero'?0:BK.expW;
   const R=balance(src.pv,LP.all,LP.crit,cfg);
   window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island,cfg};
   const T=R.T;
@@ -4053,6 +4071,8 @@ function backupRun(){
   if(need&&bi&&I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warns.push(['err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงที่อินเวอร์เตอร์รับ ${I.bvMin}–${I.bvMax} V ปรับจำนวนต่ออนุกรมที่แท็บ "อุปกรณ์"`]);
   if(need&&bi&&I.type!=='on-grid'&&!batCompat(bi.b,I))warns.push(['err',batCompatMsg(bi.b,I)]);
   if(BK_SWAP)warns.push(['warn',BK_SWAP]);
+  if(BK_EXPSRC==='ac'&&BK.exp!=='full')warns.push(['warn',`ใช้ค่า Export limit ${cfg.expLimW} W จากเมนู 03 ต่อสาย AC (ติ๊ก "นำผลการต่อสายไปใช้" ไว้) แทนค่าที่เลือกในหน้านี้`]);
+  if(cfg.expLimW!=null&&T.curt>0.05&&BK.mode!=='off')warns.push(['warn',`${cfg.expLimW===0?'Zero export':'จำกัดการขาย '+cfg.expLimW+' W'}: อินเวอร์เตอร์ลดกำลังแผงลง ไฟที่ผลิตได้แต่ไม่ได้ใช้ ${f(T.curt,1)} kWh/วัน ${BK.mode==='grid'?'(ไม่มีแบตเก็บ ควรย้ายโหลดมาใช้กลางวัน)':'(แบตเต็มแล้ว)'}`]);
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
   const peakIsl=Math.max(...(BK.island==='crit'?LP.crit:LP.all));
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);
@@ -4127,6 +4147,18 @@ function bkSwapInv(I,m){
   const sc=x=>(String(x.brand)===String(I.brand)?0:1e6)+(String(x.phase||'1')===String(I.phase||'1')?0:1e5)+Math.abs((+x.pac||0)-(+I.pac||0));
   return CAT.inverters.filter(ok).sort((a,b)=>sc(a)-sc(b))[0]||null;
 }
+let BK_EXPSRC='';
+/* how each brand names and wires export control (menu names can differ by model and firmware) */
+function bkExpInfo(I){
+  const b=String(I.brand||'').toLowerCase(),ph3=isPh3(I);
+  if(b==='huawei')return{fn:'Active power control → Grid connection with zero power (Zero export) / Grid connection with limited power (kW) / Unlimited',
+    where:'ตั้งในแอป FusionSolar หรือ SUN2000 App: Settings → Power adjustment',
+    need:`ต้องมี Smart Power Sensor ${ph3?'DTSU666-H (3 เฟส)':'DDSU666-H (1 เฟส)'} ต่อ RS485 (485A/485B) ที่จุดต่อกริด และกำหนดทิศ CT ให้ถูก`};
+  if(b==='solis')return{fn:'Export Power Set / Backflow Power: ON + ค่ากำลัง (W) · 0 W = Zero export',
+    where:'ตั้งที่หน้าจออินเวอร์เตอร์: Advanced Settings → Export Power Set หรือในแอป SolisCloud',
+    need:'ต้องเลือกชนิดเซนเซอร์ให้ตรงกับที่ติดตั้ง: CT ที่สาย L ด้านกริด หรือมิเตอร์ (เช่น Eastron / Acrel) ต่อ RS485 ลูกศร CT ชี้ไปทางกริด'};
+  return{fn:'Export limit / Zero export (ชื่อเมนูต่างกันตามยี่ห้อ)',where:'ตั้งที่หน้าจออินเวอร์เตอร์หรือแอปของยี่ห้อ',need:'ต้องมี CT หรือมิเตอร์วัดกำลังที่จุดต่อกริด ไม่มีเซนเซอร์ = จำกัดการขายไม่ได้'};
+}
 function bkSync(){
   const ok=bkModes(curInv());
   /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
@@ -4137,6 +4169,10 @@ function bkSync(){
     b.title=ok.includes(b.dataset.bm)?'':'กดแล้วจะเปลี่ยนอินเวอร์เตอร์เป็นรุ่นที่ใช้ระบบนี้ได้ (ยี่ห้อเดิม ขนาดใกล้เคียง)'});
   $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal';
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
+  document.querySelectorAll('#bkexp [data-be]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.be===BK.exp)));
+  $('#bkexpbox').hidden=BK.mode==='off';$('#bkexpwbox').hidden=BK.exp!=='limit';$('#bkexpw').value=BK.expW;
+  {const x=bkExpInfo(curInv());$('#bkexpinfo').innerHTML=`<span class="bkbrand">${esc(curInv().brand||'')}</span> <b>ฟังก์ชัน:</b> ${esc(x.fn)}<br><b>ตั้งค่า:</b> ${esc(x.where)}<br><b>อุปกรณ์ที่ต้องมี:</b> ${esc(x.need)}<br><span class="muted">ชื่อเมนูอาจต่างตามรุ่นและเวอร์ชันเฟิร์มแวร์ ตรวจกับคู่มือของรุ่นที่ติดตั้งจริง</span>`+
+    (BK.exp==='full'?'<br><span class="muted">ไม่จำกัด: ไฟเหลือขายคืนกริดได้ทั้งหมด (ต้องได้รับอนุญาตขนานไฟจากการไฟฟ้า)</span>':BK.exp==='zero'?'<br><span class="muted">Zero export: ไม่ให้ไฟไหลออกกริดเลย ใช้เมื่อไม่ได้ขออนุญาตขายไฟ ไฟเหลือที่แบตรับไม่ได้จะถูกลดกำลัง</span>':'')}
   $('#bkoutbox').hidden=BK.mode==='off';$('#bkoutbox2').hidden=BK.mode==='off';$('#bksocbox').hidden=BK.mode==='grid';
   $('#bkmodenote').textContent={
     grid:'ใช้แผงจ่ายโหลดและขายส่วนเกินคืนกริด ไม่มีแบต เมื่อกริดดับอินเวอร์เตอร์ต้องหยุดจ่ายไฟ',
@@ -4145,6 +4181,8 @@ function bkSync(){
   }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
+  $('#bkexp').addEventListener('click',e=>{const b=e.target.closest('[data-be]');if(!b)return;BK.exp=b.dataset.be;bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkexpw').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.expW=Math.max(0,Math.min(20000,n));backupRun();if(typeof touch==='function')touch()});
   $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b)return;const m=b.dataset.bm;BK.mode=BK.want=m;
     const I=curInv();BK_SWAP='';
     if(!bkModes(I).includes(m)){const n=bkSwapInv(I,m);if(n){BK_SWAP=`เปลี่ยนอินเวอร์เตอร์จาก ${I.name} เป็น ${(n.brand+' '+n.model).trim()} เพราะระบบ ${m==='off'?'Off-grid':'Hybrid'} ต้องใช้อินเวอร์เตอร์ที่ต่อแบตได้`;ACT.inv=n.id;onCatalogChange()}}
@@ -4182,11 +4220,11 @@ function bkaSVG(){
   <!-- inverter -->
   <g id="bainv"><rect x="262" y="180" width="118" height="150" rx="10" class="ba-inv"/><rect x="282" y="196" width="78" height="44" rx="6" class="ba-lcd"/>
     <text id="bainvt1" x="321" y="214" text-anchor="middle" class="ba-lcdt">—</text><text id="bainvt2" x="321" y="231" text-anchor="middle" class="ba-lcdt sm">—</text>
-    <circle id="baled" cx="321" cy="262" r="6" class="ba-led"/><text x="321" y="300" text-anchor="middle" class="ba-lab">อินเวอร์เตอร์</text><text id="bainvm" x="321" y="317" text-anchor="middle" class="ba-sm">—</text></g>
+    <circle id="baled" cx="321" cy="258" r="6" class="ba-led"/><text id="bainvb" x="321" y="284" text-anchor="middle" class="ba-brand"></text><text x="321" y="303" text-anchor="middle" class="ba-lab">อินเวอร์เตอร์</text><text id="bainvm" x="321" y="319" text-anchor="middle" class="ba-sm">—</text></g>
   <!-- battery -->
   <g id="babat"><rect x="96" y="300" width="104" height="138" rx="10" class="ba-bat"/><rect x="112" y="314" width="72" height="22" rx="4" class="ba-lcd"/><text id="basoc" x="148" y="330" text-anchor="middle" class="ba-lcdt">—</text>
     <rect x="132" y="350" width="32" height="70" rx="4" class="ba-cell"/><rect id="basocf" x="135" y="353" width="26" height="64" rx="2" class="ba-socf"/>
-    <text x="148" y="455" text-anchor="middle" class="ba-lab">แบตเตอรี่</text><text id="babatx" x="148" y="300" dy="-8" text-anchor="middle" class="ba-sm"></text></g>
+    <text id="babatb" x="148" y="432" text-anchor="middle" class="ba-brand sm"></text><text x="148" y="455" text-anchor="middle" class="ba-lab">แบตเตอรี่</text><text id="babatx" x="148" y="300" dy="-8" text-anchor="middle" class="ba-sm"></text></g>
   <!-- AC board -->
   <g><rect x="470" y="226" width="100" height="72" rx="6" class="ba-box"/>${[0,1,2,3,4].map(k=>`<rect x="${482+k*16}" y="244" width="11" height="22" rx="2" class="ba-brk"/>`).join('')}<text x="520" y="290" text-anchor="middle" class="ba-sm">ตู้ไฟ AC</text></g>
   <!-- grid -->
@@ -4227,7 +4265,9 @@ function bkaFrame(){
   host.classList.toggle('night',!day);
   txt('bav-pv',pv>1?bkaKW(pv):'0 kW');txt('bav-ac',Math.abs(inv)>1?bkaKW(inv):'0 kW');txt('bav-load',(load>1?bkaKW(load):'0 kW')+(unmet>1?' · ขาด '+bkaKW(unmet):''));
   txt('bav-bat',mode==='grid'?'':Math.abs(bat)<1?'พัก':(bat>0?'จ่าย ':'ชาร์จ ')+bkaKW(bat));
-  txt('bav-grid',mode==='off'?'':out?'ไฟดับ':Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid));
+  const lim=window.lastBal.cfg&&window.lastBal.cfg.expLimW;
+  txt('bav-grid',mode==='off'?'':out?'ไฟดับ':(Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid))+(lim!=null?(lim===0?' · Zero export':' · จำกัด '+bkaKW(lim)):''));
+  {const I=curInv(),B=typeof curBat==='function'?curBat():null;txt('bainvb',String(I.brand||'').toUpperCase());txt('babatb',mode==='grid'?'':B?String(B.brand||'').toUpperCase():'')}
   const stop=mode==='grid'&&out;
   txt('bainvt1',stop?'STOP':bkaKW(inv));txt('bainvt2',stop?'กริดดับ':out?'จ่ายเอง':mode==='off'?'Off-grid':'ต่อกริด');
   txt('bainvm',mode==='grid'?'On-grid':mode==='off'?'Off-grid':'Hybrid');
@@ -6310,6 +6350,7 @@ function restoreProject(p){
     if(['grid','hybrid','off'].includes(p.bk.mode))BK.mode=BK.want=p.bk.mode;
     if(['wiring','ideal'].includes(p.bk.src))BK.src=p.bk.src;
     if(['crit','all'].includes(p.bk.island))BK.island=p.bk.island;
+    if(['full','zero','limit'].includes(p.bk.exp))BK.exp=p.bk.exp;BK.expW=clamp(fin(p.bk.expW,1000),0,20000);
     BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
   }
 }

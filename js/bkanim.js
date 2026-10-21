@@ -23,11 +23,11 @@ function bkaSVG(){
   <!-- inverter -->
   <g id="bainv"><rect x="262" y="180" width="118" height="150" rx="10" class="ba-inv"/><rect x="282" y="196" width="78" height="44" rx="6" class="ba-lcd"/>
     <text id="bainvt1" x="321" y="214" text-anchor="middle" class="ba-lcdt">—</text><text id="bainvt2" x="321" y="231" text-anchor="middle" class="ba-lcdt sm">—</text>
-    <circle id="baled" cx="321" cy="262" r="6" class="ba-led"/><text x="321" y="300" text-anchor="middle" class="ba-lab">อินเวอร์เตอร์</text><text id="bainvm" x="321" y="317" text-anchor="middle" class="ba-sm">—</text></g>
+    <circle id="baled" cx="321" cy="258" r="6" class="ba-led"/><text id="bainvb" x="321" y="284" text-anchor="middle" class="ba-brand"></text><text x="321" y="303" text-anchor="middle" class="ba-lab">อินเวอร์เตอร์</text><text id="bainvm" x="321" y="319" text-anchor="middle" class="ba-sm">—</text></g>
   <!-- battery -->
   <g id="babat"><rect x="96" y="300" width="104" height="138" rx="10" class="ba-bat"/><rect x="112" y="314" width="72" height="22" rx="4" class="ba-lcd"/><text id="basoc" x="148" y="330" text-anchor="middle" class="ba-lcdt">—</text>
     <rect x="132" y="350" width="32" height="70" rx="4" class="ba-cell"/><rect id="basocf" x="135" y="353" width="26" height="64" rx="2" class="ba-socf"/>
-    <text x="148" y="455" text-anchor="middle" class="ba-lab">แบตเตอรี่</text><text id="babatx" x="148" y="300" dy="-8" text-anchor="middle" class="ba-sm"></text></g>
+    <text id="babatb" x="148" y="432" text-anchor="middle" class="ba-brand sm"></text><text x="148" y="455" text-anchor="middle" class="ba-lab">แบตเตอรี่</text><text id="babatx" x="148" y="300" dy="-8" text-anchor="middle" class="ba-sm"></text></g>
   <!-- AC board -->
   <g><rect x="470" y="226" width="100" height="72" rx="6" class="ba-box"/>${[0,1,2,3,4].map(k=>`<rect x="${482+k*16}" y="244" width="11" height="22" rx="2" class="ba-brk"/>`).join('')}<text x="520" y="290" text-anchor="middle" class="ba-sm">ตู้ไฟ AC</text></g>
   <!-- grid -->
@@ -68,7 +68,9 @@ function bkaFrame(){
   host.classList.toggle('night',!day);
   txt('bav-pv',pv>1?bkaKW(pv):'0 kW');txt('bav-ac',Math.abs(inv)>1?bkaKW(inv):'0 kW');txt('bav-load',(load>1?bkaKW(load):'0 kW')+(unmet>1?' · ขาด '+bkaKW(unmet):''));
   txt('bav-bat',mode==='grid'?'':Math.abs(bat)<1?'พัก':(bat>0?'จ่าย ':'ชาร์จ ')+bkaKW(bat));
-  txt('bav-grid',mode==='off'?'':out?'ไฟดับ':Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid));
+  const lim=window.lastBal.cfg&&window.lastBal.cfg.expLimW;
+  txt('bav-grid',mode==='off'?'':out?'ไฟดับ':(Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid))+(lim!=null?(lim===0?' · Zero export':' · จำกัด '+bkaKW(lim)):''));
+  {const I=curInv(),B=typeof curBat==='function'?curBat():null;txt('bainvb',String(I.brand||'').toUpperCase());txt('babatb',mode==='grid'?'':B?String(B.brand||'').toUpperCase():'')}
   const stop=mode==='grid'&&out;
   txt('bainvt1',stop?'STOP':bkaKW(inv));txt('bainvt2',stop?'กริดดับ':out?'จ่ายเอง':mode==='off'?'Off-grid':'ต่อกริด');
   txt('bainvm',mode==='grid'?'On-grid':mode==='off'?'Off-grid':'Hybrid');

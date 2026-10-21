@@ -575,3 +575,12 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .ba-lab{fill:#24323e;font:600 14px var(--body)}.ba-sm{fill:#566676;font:12px var(--body)}
 .ba-val text{fill:#24323e;font:700 14px var(--mono);paint-order:stroke;stroke:#ffffffcc;stroke-width:4px}
 @media (max-width:760px){.ba-lab{font-size:17px}.ba-val text{font-size:17px}.ba-sm{font-size:14px}}
+
+.bkexp{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.bkexph{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.bkexp .inl{display:inline-flex;align-items:center;gap:6px;font-size:13.5px}.bkexp .inl input{width:96px}
+.bkexpinfo{font-size:13px;line-height:1.55;color:var(--ink);background:var(--band);border-radius:8px;padding:8px 10px}
+.bkexpinfo .muted{color:var(--muted)}
+.bkbrand{display:inline-block;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);background:var(--surface);margin-right:4px}
+#bkexp .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.ba-brand{fill:#3b4a58;font:800 12px var(--body);letter-spacing:.14em}.ba-brand.sm{font-size:10px;letter-spacing:.1em}
