@@ -101,6 +101,9 @@ const BUILTIN=(()=>{
   // Huawei LUNA2000-(5-30)-S0: power control module LUNA2000-5KW-C0 (5 kW, DC/DC) + 1-3 battery modules LUNA2000-5-E0 (5 kWh each)
   [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${5*n}-S0`,{chem:'Li-ion',v:450,v3:600,ah:Math.round(5*n*1000/450*100)/100,dod:95,maxChg:11.11,maxDis:11.11,maxS:1,maxP:2,compat:'Huawei',
     note:`LUNA2000-5KW-C0 (power module ชาร์จ/จ่าย 5 kW) + LUNA2000-5-E0 × ${n} (ก้อนละ 5 kWh) · ทำงาน 450 V กับอินเวอร์เตอร์ 1 เฟส (350–560 V) / 600 V กับ 3 เฟส (600–980 V) · ขนานได้ 2 ชุด รวมสูงสุด 30 kWh · ตัดจ่ายที่ SOC 5% (ค่าเริ่มต้น) · ใช้กับอินเวอร์เตอร์ Huawei เท่านั้น`}));
+  // Huawei LUNA2000-7/14/21-S1: power module LUNA2000-10KW-C1 + 1-3 battery modules LUNA2000-7-E1 (6.9 kWh, LFP, 100% DoD). Datasheet 01-202411
+  [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${7*n}-S1`,{chem:'LiFePO4',v:450,v3:600,ah:Math.round(6.9*n*1000/450*100)/100,dod:100,maxChg:Math.round(3500*n/450*100)/100,maxDis:Math.round(3500*n/450*100)/100,maxS:1,maxP:2,compat:'Huawei',
+    note:`LUNA2000-10KW-C1 + LUNA2000-7-E1 × ${n} (ก้อนละ 6.9 kWh) · ใช้ได้ ${(6.9*n).toFixed(1)} kWh (DoD 100%) · ชาร์จ/จ่ายสูงสุด ${3.5*n} kW · ทำงาน 350–560 V กับอินเวอร์เตอร์ 1 เฟส / 600–980 V กับ 3 เฟส · LiFePO4 · IP66 · ใช้กับ SUN2000-KTL-M1, MAP0, LC0, MB0 และ L1 (L1 ให้ตรวจกับ Huawei ก่อน) · ขนานได้สูงสุด 4 ชุดเฉพาะ MB0 · ดาต้าชีต 01-202411`}));
   b('Dyness','PowerBrick 14.3 kWh',{v:51.2,ah:280,dod:95,maxChg:200,maxDis:200,isc:0,note:'แนะนำชาร์จ/จ่าย 140 A (0.5C) · จ่ายพีค 300 A 2 นาที · ขนานได้ 50 ลูก · CAN/RS485 · IP20'});
   b('Solis','IntelliHome 5 kWh (OD)',{v:51.2,ah:100,dod:100,maxChg:50,maxDis:100,note:'แรงดันทำงาน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · ดาต้าชีตฉบับ Preliminary'});
   b('Solis','IntelliHome 10 kWh (OD)',{v:51.2,ah:200,dod:100,maxChg:100,maxDis:200,note:'ความจุคิดจาก 10 kWh ÷ 51.2 V (ดาต้าชีตระบุเซลล์ 100 Ah) · แรงดัน 44.8–57.6 V · ขนานได้ 8 ลูก · Preliminary'});
