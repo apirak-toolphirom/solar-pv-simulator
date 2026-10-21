@@ -1,6 +1,6 @@
 /* ---- context strip: a small bar under each tab's heading showing which data that tab is using and where it comes from.
    Each chip links to its source tab. Colors: ok = taken from another tab, idle = stand-in value (example panels, not ticked), warn = source not ready ---- */
-const CTX_NO={equip:'01',wiring:'02',ac:'03',pv:'04',load:'05',backup:'06',systems:'07',events:'08',bench:'09',submit:'10'};
+const CTX_NO={equip:'01',wiring:'02',ac:'03',pv:'04',site:'05',load:'06',backup:'07',systems:'08',events:'09',bench:'10',submit:'11'};
 let ctxRaf=0;
 function ctxSchedule(){if(ctxRaf)return;ctxRaf=requestAnimationFrame(()=>{ctxRaf=0;try{ctxRender()}catch(e){}})}
 function ctxInit(){
@@ -24,7 +24,7 @@ function ctxChips(t){
     :['idle',`แผงสมมติ ${BK.nIdeal} แผง (ไม่ใช้สายจาก 02)`,'backup'];
   const C=(lvl,k,v,go)=>({lvl,k,v,go});
   switch(t){
-    case'equip':return[C('ok','อุปกรณ์ที่เลือก',`${pan} · ${inv}${bi?' · '+bi.b.brand+' '+bi.b.model:''}`,null),C('idle','ใช้ใน','แท็บ 02–08 และ 10',null)];
+    case'equip':return[C('ok','อุปกรณ์ที่เลือก',`${pan} · ${inv}${bi?' · '+bi.b.brand+' '+bi.b.model:''}`,null),C('idle','ใช้ใน','แท็บ 02–09 และ 11',null)];
     case'wiring':return[C('ok','แผง',pan,'equip'),C('ok','อินเวอร์เตอร์',inv,'equip'),C('ok','ส่งต่อไป','04 จำลองแผง · 06/07 ถ้าเลือก',null)];
     case'ac':{
       const a=[C('ok','อินเวอร์เตอร์',inv,'equip')];
@@ -47,13 +47,15 @@ function ctxChips(t){
       const ps=panelSrc();
       return[C(ps[0],'แผง',ps[1],ps[2]),C(loads.length?'ok':'warn','โหลด',loads.length?`${loads.length} รายการ · ${f(kwh,1)} kWh/วัน`:'ยังไม่มี','load'),C('ok','อินเวอร์เตอร์',inv,'equip'),
         C(bi?'ok':'warn','แบต',bi?`${bi.b.brand} ${bi.b.model} × ${bi.n} · ${f(bi.kwh,1)} kWh`:'ยังไม่มี','equip'),C('ok','พิกัด / มุมแผง',site,'pv'),
-        C(BK.outDur>0?'ok':'idle','ไฟดับ',BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (ร่วมกับ 06)`:'ไม่ดับ','backup')];
+        C(BK.outDur>0?'ok':'idle','ไฟดับ',BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (ร่วมกับ 07)`:'ไม่ดับ','backup')];
     }
     case'events':{
       const ev=typeof evSource==='function'?evSource():null,bk=window.lastBK;
       return[C(ev&&!ev.ideal?'ok':'idle','แผง',ev?(ev.ideal?`แผงสมมติ ${ev.n} แผง`:`ตามที่ต่อสาย ${ev.n} แผง`):'-','wiring'),C('ok','พิกัด / วันที่',site,'pv'),
         C(bk&&BK.mode!=='off'&&BK.outDur>0?'ok':'idle','ไฟดับ',bk&&BK.mode!=='off'&&BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (จาก 06)`:'ไม่ได้ตั้งในแท็บ 06','backup')];
     }
+    case'site':{const n=SITE.objs.length,k=c=>SITE.objs.filter(o=>o.t===c).length;
+      return[C('ok','พิกัด',`${f(SIM.lat,3)}, ${f(SIM.lon,3)}`,'pv'),C(n?'ok':'warn','ผัง',n?`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')}`:'ยังว่าง',null),C('idle','ส่งต่อ','ยังไม่เชื่อมกับแท็บอื่น (ขั้นที่ 2)',null)]}
     case'bench':return[C('idle','อิสระ','ไม่ใช้ข้อมูลจากแท็บอื่น (ระบบ 12 / 24 / 48 V)',null)];
     case'submit':{
       const lv=x=>x==='ok'?'ok':x==='err'||x==='warn'?'warn':'idle',lab=x=>x==='ok'?'ผ่าน':x==='warn'?'มีข้อควรระวัง':x==='err'?'ไม่ผ่าน':'ยังไม่ได้ทำ';

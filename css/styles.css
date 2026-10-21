@@ -475,3 +475,39 @@ table.t.sytbl td,table.t.sytbl th{white-space:normal;overflow-wrap:anywhere}tabl
 .syeh{margin:14px 0 6px;font-size:14px}.syenv{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
 .syenv .evb{border:1px solid var(--line);border-radius:10px;padding:10px}.syenv .evb.on{border-color:var(--accent);background:var(--accentbg)}
 .syloss{margin:0 0 12px;padding:8px 12px;border-radius:8px;background:var(--warnbg);color:var(--warn);font-size:13px}.syloss[hidden]{display:none}
+
+/* site & shadow tab */
+.sitools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}.sitools .sp{flex:1}
+.sizone{display:inline-flex;gap:6px;align-items:center}.sizone select,.silot2 input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:36px;color:var(--ink)}
+.silot2{display:flex;gap:6px}.silot2 input{width:50%}
+.sictl{display:flex;flex-direction:column;gap:10px}.sictl label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}.sictl label b{color:var(--ink);font-family:var(--mono)}
+.sictl input[type=date],.sictl select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-height:40px;color:var(--ink)}
+.sidays{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px}
+.sitime{display:flex;flex-wrap:wrap;align-items:center;gap:10px}.sitime>input[type=range]{flex:1;min-width:160px}.sitime label{flex-direction:row;align-items:center;gap:6px}
+.sigridmain{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:12px;margin:12px 0}@media (max-width:900px){.sigridmain{grid-template-columns:1fr}}
+.siside{display:flex;flex-direction:column;gap:12px}
+.siwrap svg{width:100%;height:auto;touch-action:none;background:var(--band);border-radius:8px}
+.sigl{stroke:var(--line);stroke-width:1;fill:none}.sigl.ax0{stroke:var(--frame)}
+.silot{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:6 4}
+.silab{font:11px var(--body);fill:var(--ink);pointer-events:none}.silab.b{font-weight:600}
+.sio{cursor:grab}.sio.sel polygon,.sio.sel circle:first-child{stroke:var(--accent)!important;stroke-width:3!important}
+.sio.house polygon{fill:#e9d8bf;stroke:#8a6d45;stroke-width:1.5}.sio.house .ridge{stroke:#8a6d45;stroke-width:2}
+.sio.bldg polygon{fill:#9aa6b0;stroke:#5a6772;stroke-width:1.5}
+.sio.tree circle:first-child{fill:#2f8a4b;fill-opacity:.75;stroke:#1f6a38;stroke-width:1.5}.sio.tree .trunk{fill:#6b4a2b}
+.sio.zone polygon{fill:var(--s1);fill-opacity:.12;stroke:var(--s1);stroke-width:1.2;stroke-dasharray:4 3}
+.sio.zone.k-pool polygon{fill:#2a9fd6;fill-opacity:.35}.sio.zone.k-garden polygon{fill:#4caf50;fill-opacity:.2;stroke:#3d8b40}.sio.zone.k-laundry polygon{fill:#f5b800;fill-opacity:.2;stroke:#b58900}
+.sio.zone.k-bedroom polygon,.sio.zone.k-living polygon,.sio.zone.k-kitchen polygon{fill:#8a63d2;fill-opacity:.12;stroke:#8a63d2}
+.sishd{fill:#0b1218;opacity:.32;pointer-events:none}
+.siray{stroke:#f5b800;stroke-width:2;stroke-dasharray:4 4}.sisun{fill:#f5b800;stroke:#c98c00;stroke-width:2}
+.sinorth path{fill:var(--ink)}
+.spc{fill:none;stroke-width:2}.spc.jun{stroke:var(--s2)}.spc.eq{stroke:var(--s3)}.spc.dec{stroke:var(--s1)}.spc.cur{stroke:var(--ink);stroke-width:2.5}
+.silab.jun{fill:var(--s2)}.silab.eq{fill:var(--s3)}.silab.dec{fill:var(--s1)}.sihd{fill:var(--ink)}
+.sigrad{display:inline-block;width:120px;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--surface),var(--accent));border:1px solid var(--line)}
+.siph{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sigrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sigrid .wide{grid-column:1/-1}
+.sigrid label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.sigrid input,.sigrid select{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-height:36px;color:var(--ink);width:100%}
+table.t.sitbl td small{display:block;color:var(--muted);font-family:var(--body)}table.t.sitbl td.sm{font-family:var(--body);font-size:12px;text-align:left;white-space:normal}
+table.t.sitbl td:first-child{font-family:var(--body)}table.t.sitbl .empty{text-align:left;color:var(--muted);font-family:var(--body)}
+.sizone .chip,.sitools .chip{white-space:nowrap}.sio.zone.k-bedroom polygon,.sio.zone.k-living polygon,.sio.zone.k-kitchen polygon{fill-opacity:.18}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sishd{fill:#000;opacity:.55}}:root[data-theme="dark"] .sishd{fill:#000;opacity:.55}
