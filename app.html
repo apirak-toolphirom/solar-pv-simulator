@@ -7,9 +7,10 @@
     <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
     <button class="navb" data-tab="load"><span class="ic">05</span>จำลองโหลด</button>
     <button class="navb" data-tab="backup"><span class="ic">06</span>จำลอง Backup</button>
-    <button class="navb" data-tab="events"><span class="ic">07</span>จำลองเหตุการณ์</button>
-    <button class="navb" data-tab="bench"><span class="ic">08</span>ชุดทดลองวงจร DC</button>
-    <button class="navb" data-tab="submit"><span class="ic">09</span>ส่งงาน</button>
+    <button class="navb" data-tab="systems"><span class="ic">07</span>จำลองระบบ 4 แบบ</button>
+    <button class="navb" data-tab="events"><span class="ic">08</span>จำลองเหตุการณ์</button>
+    <button class="navb" data-tab="bench"><span class="ic">09</span>ชุดทดลองวงจร DC</button>
+    <button class="navb" data-tab="submit"><span class="ic">10</span>ส่งงาน</button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
@@ -284,6 +285,37 @@
     <h2 class="sech">ผลการตรวจ</h2><ul class="checks" id="bnchecks"></ul>
     <div id="bnctl" class="bnctl"></div>
     <p class="hint">ค่าในเครื่องมือนี้เป็นแบบจำลองเพื่อการเรียนรู้ (ค่าแบต แผง และตัวควบคุมเป็นตัวอย่าง) ตรวจกับคู่มือรุ่นจริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตตรวจก่อนติดตั้งทุกครั้ง</p>
+  </section>
+
+  <section class="tab" id="tab-systems" hidden>
+    <header><h1>จำลองระบบ 4 แบบ</h1><p class="sub">เปรียบเทียบ On-grid, Off-grid, Hybrid off-grid และ Hybrid on/off-grid ในวันเดียวกัน ใช้แผง โหลด แบต และไฟดับชุดเดียวกัน เห็นว่าไฟไหลไปทางไหน ซื้อ ขาย ทิ้ง หรือขาดเท่าไร แตะการ์ดระบบเพื่อดูกราฟทั้งวัน</p></header>
+    <div class="panelbox bkc">
+      <div class="row3">
+        <label for="sysrc">แหล่งไฟจากแผง<select id="sysrc"><option value="ideal">แผงสมมติ (ไม่ตรวจการต่อสาย)</option><option value="wiring">ตามที่ต่อสายไว้</option></select></label>
+        <label id="synwrap" for="syn">จำนวนแผงสมมติ<input id="syn" type="number" inputmode="numeric" min="1" max="200" step="1"></label>
+        <label for="syis">โหลดที่ต้องจ่ายตอนไฟดับ<select id="syis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
+      </div>
+      <div class="row3">
+        <label for="syos">ไฟดับตั้งแต่<input id="syos" type="time"></label>
+        <label for="syod">ไฟดับนาน (ชม. 0 = ไม่ดับ)<input id="syod" type="number" inputmode="decimal" min="0" max="24" step="0.5"></label>
+        <label for="sysoc">แบตเริ่มต้นที่เวลา 00:00 (% SOC)<input id="sysoc" type="number" inputmode="decimal" min="0" max="100" step="5"></label>
+      </div>
+      <div class="row3">
+        <label for="sybtg">SOC ที่กลับไปใช้กริด (Hybrid) %<input id="sybtg" type="number" inputmode="decimal" min="0" max="100" step="5"></label>
+        <label for="sybuy">ค่าไฟซื้อ (บาท/kWh)<input id="sybuy" type="number" inputmode="decimal" min="0" step="0.1"></label>
+        <label for="sysell">ราคาขายคืน (บาท/kWh)<input id="sysell" type="number" inputmode="decimal" min="0" step="0.1"></label>
+      </div>
+      <p class="hint tight">ค่าแผง ไฟดับ และ SOC เริ่มต้นใช้ร่วมกับแท็บ "จำลอง Backup" แก้ที่แท็บไหนก็เปลี่ยนทั้งสองแท็บ ค่าไฟและราคาขายเป็นค่าตัวอย่าง แก้ให้ตรงอัตราจริงได้</p>
+    </div>
+    <p id="symsg" class="simmsg" hidden></p>
+    <div id="sybody">
+      <div class="panelbox syhbar"><label for="syh">ดูการไหลของไฟเวลา <b id="syhv">13:00</b></label><input id="syh" type="range" min="0" max="23.75" step="0.25" aria-label="เวลา"><span id="systate" class="pill idle"></span></div>
+      <div id="sycards" class="sycards"></div>
+      <section class="card"><h3>กราฟทั้งวัน: <span id="sysel"></span></h3><p id="synote" class="hint tight"></p><div id="syleg" class="legend"></div><div id="chS1" class="chart"></div></section>
+      <section class="card" id="sycard2" style="margin-top:12px"><h3>สถานะประจุแบต (SOC)</h3><div id="chS2" class="chart"></div></section>
+      <section class="card tbl" style="margin-top:12px"><h3>เปรียบเทียบทั้ง 4 ระบบ</h3><div class="tblwrap"><table class="t sytbl" id="sytbl"></table></div></section>
+    </div>
+    <p class="hint">แบบจำลองอย่างง่ายเพื่อการเรียนรู้ ใช้อินเวอร์เตอร์และแบตที่เลือกในแท็บ "อุปกรณ์" กับทุกระบบเพื่อเทียบหลักการทำงาน ไม่รวมการชาร์จแบตจากกริด เครื่องปั่นไฟ และเงื่อนไขของการไฟฟ้า ตรวจกับคู่มืออินเวอร์เตอร์และข้อกำหนดการเชื่อมต่อของการไฟฟ้าก่อนติดตั้งจริง</p>
   </section>
 
   <section class="tab" id="tab-events" hidden>

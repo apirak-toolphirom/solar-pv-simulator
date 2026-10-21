@@ -1,6 +1,6 @@
 /* ---- context strip: a small bar under each tab's heading showing which data that tab is using and where it comes from.
    Each chip links to its source tab. Colors: ok = taken from another tab, idle = stand-in value (example panels, not ticked), warn = source not ready ---- */
-const CTX_NO={equip:'01',wiring:'02',ac:'03',pv:'04',load:'05',backup:'06',events:'07',bench:'08',submit:'09'};
+const CTX_NO={equip:'01',wiring:'02',ac:'03',pv:'04',load:'05',backup:'06',systems:'07',events:'08',bench:'09',submit:'10'};
 let ctxRaf=0;
 function ctxSchedule(){if(ctxRaf)return;ctxRaf=requestAnimationFrame(()=>{ctxRaf=0;try{ctxRender()}catch(e){}})}
 function ctxInit(){
@@ -24,7 +24,7 @@ function ctxChips(t){
     :['idle',`แผงสมมติ ${BK.nIdeal} แผง (ไม่ใช้สายจาก 02)`,'backup'];
   const C=(lvl,k,v,go)=>({lvl,k,v,go});
   switch(t){
-    case'equip':return[C('ok','อุปกรณ์ที่เลือก',`${pan} · ${inv}${bi?' · '+bi.b.brand+' '+bi.b.model:''}`,null),C('idle','ใช้ใน','แท็บ 02–07 และ 09',null)];
+    case'equip':return[C('ok','อุปกรณ์ที่เลือก',`${pan} · ${inv}${bi?' · '+bi.b.brand+' '+bi.b.model:''}`,null),C('idle','ใช้ใน','แท็บ 02–08 และ 10',null)];
     case'wiring':return[C('ok','แผง',pan,'equip'),C('ok','อินเวอร์เตอร์',inv,'equip'),C('ok','ส่งต่อไป','04 จำลองแผง · 06/07 ถ้าเลือก',null)];
     case'ac':{
       const a=[C('ok','อินเวอร์เตอร์',inv,'equip')];
@@ -42,6 +42,12 @@ function ctxChips(t){
       if(BK.mode!=='grid')a.push(C(bi?'ok':'warn','แบต',bi?`${bi.b.brand} ${bi.b.model} × ${bi.n} · ${f(bi.kwh,1)} kWh`:'ยังไม่มี','equip'));
       a.push(C(ACS.apply?'ok':'idle','ผลต่อสาย AC',ACS.apply?(window.lastAC&&window.lastAC.lvl==='err'?'ใช้ (ยังมีข้อผิดพลาด)':'ใช้'):'ไม่ใช้','ac'));
       return a;
+    }
+    case'systems':{
+      const ps=panelSrc();
+      return[C(ps[0],'แผง',ps[1],ps[2]),C(loads.length?'ok':'warn','โหลด',loads.length?`${loads.length} รายการ · ${f(kwh,1)} kWh/วัน`:'ยังไม่มี','load'),C('ok','อินเวอร์เตอร์',inv,'equip'),
+        C(bi?'ok':'warn','แบต',bi?`${bi.b.brand} ${bi.b.model} × ${bi.n} · ${f(bi.kwh,1)} kWh`:'ยังไม่มี','equip'),C('ok','พิกัด / มุมแผง',site,'pv'),
+        C(BK.outDur>0?'ok':'idle','ไฟดับ',BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (ร่วมกับ 06)`:'ไม่ดับ','backup')];
     }
     case'events':{
       const ev=typeof evSource==='function'?evSource():null,bk=window.lastBK;

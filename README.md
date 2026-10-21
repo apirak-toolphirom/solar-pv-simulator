@@ -8,10 +8,11 @@
 3. **จำลองแผง**: กำลังผลิตทั้งวันตามพิกัด Plus Code มุมเอียง และทิศ
 4. **จำลองโหลด**: รายการเครื่องใช้ไฟฟ้าและช่วงเวลา
 5. **จำลอง Backup**: On-grid / Hybrid / Off-grid พร้อมแบตและไฟดับ
-6. **ส่งงาน**: กรอกชื่อ (หรือ Google Sign-in) ส่งผลสรุปไป Google Sheets ของผู้สอน และสร้างภาพรายงาน PNG ตั้งค่าตาม `apps-script/README.md`
+6. **จำลองระบบ 4 แบบ**: เทียบ On-grid / Off-grid / Hybrid off-grid / Hybrid on/off-grid วันเดียวกัน ภาพการไหลของไฟตามเวลา กราฟทั้งวัน ตารางเทียบ ค่าไฟ
+7. **ส่งงาน**: กรอกชื่อ (หรือ Google Sign-in) ส่งผลสรุปไป Google Sheets ของผู้สอน และสร้างภาพรายงาน PNG ตั้งค่าตาม `apps-script/README.md`
 
 ## โครงสร้าง
-`css/` `js/` (config, catalog, model, engine, wiring, solar, loads, backup, submit, app) · `apps-script/` ตัวรับงานฝั่ง Google Sheets · `app.html` · `build.py` · `dist/` ไฟล์รวมหน้าเดียว · `archive/` เวอร์ชันเก่า
+`css/` `js/` (config, catalog, model, engine, wiring, solar, loads, backup, systems, submit, ctx, app) · `apps-script/` ตัวรับงานฝั่ง Google Sheets · `app.html` · `build.py` · `dist/` ไฟล์รวมหน้าเดียว · `archive/` เวอร์ชันเก่า
 
 รัน `python3 build.py` เพื่อสร้าง `index.html` และ `dist/pv-wiring-sim.html` ใหม่
 
