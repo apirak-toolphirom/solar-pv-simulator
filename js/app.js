@@ -122,7 +122,7 @@ function restoreProject(p){
     if(['wiring','ideal'].includes(p.bk.src))BK.src=p.bk.src;
     if(['crit','all'].includes(p.bk.island))BK.island=p.bk.island;
     if(['full','zero','limit'].includes(p.bk.exp))BK.exp=p.bk.exp;if(['auto','ddsu','dtsu','dtsu250','none'].includes(p.bk.meter))BK.meter=p.bk.meter;BK.expW=clamp(fin(p.bk.expW,1000),0,20000);
-    BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
+    BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.outKeep=clamp(fin(p.bk.outKeep,BK.outDur||6),.5,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
   }
 }
 function restoreExtra(p){

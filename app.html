@@ -302,9 +302,17 @@
         <p class="hint tight" id="bkmicinfo"></p>
       </div>
       <div class="row3">
-        <label id="bkoutbox" for="bkos">ไฟดับตั้งแต่<input id="bkos" type="time" value="18:00"></label>
-        <label for="bkod" id="bkoutbox2">ไฟดับนาน (ชม. 0 = ไม่ดับ)<input id="bkod" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="6"></label>
         <label id="bksocbox" for="bksoc">แบตเริ่มต้นที่เวลา 00:00 (% SOC)<input id="bksoc" type="number" inputmode="decimal" min="0" max="100" step="5" value="50"></label>
+      </div>
+      <div id="bkoutwrap" class="bkexp">
+        <div class="bkexph"><b>ไฟดับ</b>
+          <div id="bkout" class="chips" role="group" aria-label="จำลองไฟดับ"><button class="chip" data-bo="0">ไม่มีไฟดับ (ปกติทั้งวัน)</button><button class="chip" data-bo="1">มีไฟดับ</button></div></div>
+        <div class="bkexph" id="bkoutset">
+          <label id="bkoutbox" for="bkos" class="inl">เริ่มดับ<input id="bkos" type="time" value="18:00"></label>
+          <label for="bkod" id="bkoutbox2" class="inl">นาน<input id="bkod" type="number" inputmode="decimal" min="0.5" max="24" step="0.5" value="6"> ชม.</label>
+          <div id="bkodq" class="chips" role="group" aria-label="ระยะเวลาไฟดับ"><button class="chip sm" data-od="1">1 ชม.</button><button class="chip sm" data-od="2">2</button><button class="chip sm" data-od="4">4</button><button class="chip sm" data-od="6">6</button><button class="chip sm" data-od="8">8</button><button class="chip sm" data-od="12">12</button><button class="chip sm" data-od="24">24 ชม.</button></div>
+        </div>
+        <p class="hint tight" id="bkoutinfo"></p>
       </div>
       <div id="bkexpbox" class="bkexp">
         <div class="bkexph"><b>การขายไฟคืนกริด</b>
@@ -318,6 +326,7 @@
     <p id="bkmsg" class="simmsg" hidden></p>
     <div id="bkbody">
       <div id="bkmx" class="metrics"></div>
+      <div id="bkper" class="tblwrap"></div>
       <p id="bklim" class="hint" style="margin:8px 0 14px"></p>
       <section class="card bka-card"><div class="bkah"><h3>ภาพเคลื่อนไหวการไหลของไฟ</h3>
         <div class="bkactl"><button class="btn sm pri" id="bkaplay" aria-pressed="false">▶ เล่นทั้งวัน</button>

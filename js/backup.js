@@ -1,5 +1,5 @@
 /* ---- backup simulation: on-grid / hybrid / off-grid, 5-minute energy balance ---- */
-const BK={exp:'full',expW:1000,meter:'auto',mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,island:'crit',soc0:50};
+const BK={exp:'full',expW:1000,meter:'auto',mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,outKeep:6,island:'crit',soc0:50};
 const MODE_NAME={grid:'On-grid (ไม่มีแบต)',hybrid:'Hybrid (กริด + แบต)',off:'Off-grid (ไม่ต่อกริด)'};
 
 /* pure energy balance. inputs: pv[], load[], crit[] in W (same length), cfg. returns arrays and totals */
@@ -156,6 +156,7 @@ function backupRun(){
   if(BK.mode!=='off')mx.push(['ซื้อไฟจากกริด',f(T.imp,1)+' kWh',`ขายคืนกริด ${f(T.exp,1)} kWh`]);
   mx.push(['ไฟขาด (ไม่มีไฟใช้)',f(T.unmet,2)+' kWh',`${f(T.unmetH,1)} ชม.`+(T.curt>0.01?` · ไฟแผงเหลือทิ้ง ${f(T.curt,1)} kWh`:'')]);
   if(autonomy!=null&&(BK.mode!=='grid'))mx.push(['แบตเต็มอยู่ได้ (ไม่มีแดด)',f(autonomy,1)+' ชม.',`โหลดเฉลี่ย ${f(avgIsl,2)} kW · ${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'โหลดทั้งหมด'}`]);
+  bkPeriods(R,bi);
   $('#bkmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   $('#bklim').textContent=!need?'โหมด On-grid ไม่ใช้แบตในการคำนวณ (รายการแบตแสดงเฉพาะรุ่นที่ต่อกับอินเวอร์เตอร์นี้ได้: ยี่ห้อและแรงดันตรงกัน)':need&&bi?`ขีดจำกัดที่ใช้คำนวณ: ชาร์จสูงสุด ${f(chgKw,1)} kW · จ่ายสูงสุด ${f(disKw,1)} kW · ประสิทธิภาพรอบ ${f(bi.rt*100,0)} % · กำลังขาออกช่วงจ่ายเอง ${f(islandW/1000,1)} kW`:'';
 
@@ -182,6 +183,37 @@ function backupRun(){
   drawBackup();
   if(typeof bkAnimUpdate==='function')bkAnimUpdate();
   if(typeof acRender==='function'&&typeof AC_MODE!=='undefined'&&AC_MODE&&AC_MODE!=='1')acRender();
+}
+/* normal hours vs outage hours: where the energy came from in each part of the day */
+function bkPeriods(R,bi){
+  const el=$('#bkper');if(!el)return;
+  if(BK.mode==='off'){el.innerHTML='';return}
+  const dt=5/60,k=dt/1000,P=[0,1].map(()=>({h:0,load:0,pv:0,direct:0,fromBat:0,toBat:0,imp:0,exp:0,unmet:0,curt:0}));
+  R.pv.forEach((_,i)=>{const p=P[R.outage[i]?1:0];p.h+=dt;p.load+=R.load[i]*k;p.pv+=(R.pv[i]-R.curt[i])*k;p.direct+=R.direct[i]*k;p.fromBat+=R.fromBat[i]*k;p.toBat+=R.toBat[i]*k;p.imp+=R.imp[i]*k;p.exp+=R.exp[i]*k;p.unmet+=R.unmet[i]*k;p.curt+=R.curt[i]*k});
+  const on=BK.outDur>0,bat=BK.mode!=='grid'&&bi,cov=p=>p.load>1e-6?Math.min(100,(1-p.unmet/p.load)*100):100;
+  /* SOC when the outage starts and ends */
+  /* SOC through each outage block (a block that crosses midnight is shown as two parts of the simulated day) */
+  let socTxt='';
+  if(on&&bat){const n=R.outage.length,seg=[];let i=0;
+    while(i<n){if(!R.outage[i]){i++;continue}let j=i;while(j<n&&R.outage[j])j++;seg.push([i,j]);i=j}
+    socTxt=seg.map(([a,b])=>`${hhmm(a*5/60)} ${f(a>0?R.soc[a-1]:BK.soc0,0)} % → ${b>=n?'24:00':hhmm(b*5/60)} ${f(R.soc[b-1],0)} %`).join(' · ')}
+  const row=(nm,a,b,u)=>`<tr><td>${nm}</td><td>${a}</td>${on?`<td>${b}</td>`:''}</tr>`,v=x=>f(x,2)+' kWh',N=P[0],O=P[1];
+  let h=`<table class="t bkper"><thead><tr><th>ช่วงเวลา</th><th>ปกติ (กริดมีไฟ)</th>${on?'<th class="out">ไฟดับ</th>':''}</tr></thead><tbody>`
+    +row('ระยะเวลา',f(N.h,1)+' ชม.',f(O.h,1)+' ชม.')
+    +row('โหลดที่ต้องจ่าย',v(N.load)+' <small>(ทั้งหมด)</small>',v(O.load)+` <small>(${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'ทั้งหมด'})</small>`)
+    +row('จากแผงตรง',v(N.direct),v(O.direct))
+    +(bat?row('จากแบต',v(N.fromBat),v(O.fromBat))+row('ชาร์จเข้าแบต',v(N.toBat),v(O.toBat)):'')
+    +row('ซื้อจากกริด',v(N.imp),on?'— <small>(กริดดับ)</small>':'')
+    +row('ขายคืนกริด',v(N.exp),on?'—':'')
+    +row('ไฟแผงเหลือทิ้ง',v(N.curt),v(O.curt))
+    +row('ไฟขาด',v(N.unmet),`<b class="${O.unmet>0.005?'bad':''}">${v(O.unmet)}</b>`)
+    +row('จ่ายโหลดได้',f(cov(N),0)+' %',`<b>${f(cov(O),0)} %</b>`)
+    +(socTxt?row('SOC แบต ช่วงไฟดับ','—',socTxt):'')
+    +'</tbody></table>';
+  if(on&&bat&&BK.outStart+BK.outDur>24)h+=`<p class="hint tight">ไฟดับข้ามเที่ยงคืน: จำลอง 1 วัน (00:00–24:00) ช่วง 00:00–${hhmm((BK.outStart+BK.outDur)%24)} จึงเริ่มจาก SOC ตั้งต้น ${BK.soc0} % ที่ตั้งไว้ด้านบน</p>`;
+  if(on&&BK.mode==='grid')h+='<p class="hint tight">On-grid ไม่มีแบตและหยุดจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) โหลดช่วงไฟดับจึงไม่มีไฟใช้ทั้งหมด แม้มีแดด</p>';
+  else if(on&&bat&&O.unmet>0.005){const need=O.unmet+(s1!=null?0:0);h+=`<p class="hint tight">ช่วงไฟดับขาดไฟ ${f(O.unmet,2)} kWh: เพิ่มแบตอีกประมาณ ${f(O.unmet/((bi.b.dod||90)/100)/Math.sqrt(bi.rt),1)} kWh ตั้ง SOC สำรอง (reserve) ให้สูงขึ้นก่อนไฟดับ หรือลดโหลดช่วงไฟดับ</p>`}
+  el.innerHTML=h;
 }
 function drawBackup(){
   if(!bkCfg)return;
@@ -249,7 +281,11 @@ function bkSync(){
     else{const t=document.getElementById('bkameter');if(t)t.textContent='kWh'}}
   {const x=bkExpInfo(curInv());$('#bkexpinfo').innerHTML=`<span class="bkbrand">${esc(curInv().brand||'')}</span> <b>ฟังก์ชัน:</b> ${esc(x.fn)}<br><b>ตั้งค่า:</b> ${esc(x.where)}<br><b>อุปกรณ์ที่ต้องมี:</b> ${esc(x.need)}<br><span class="muted">ชื่อเมนูอาจต่างตามรุ่นและเวอร์ชันเฟิร์มแวร์ ตรวจกับคู่มือของรุ่นที่ติดตั้งจริง</span>`+
     (BK.exp==='full'?'<br><span class="muted">ไม่จำกัด: ไฟเหลือขายคืนกริดได้ทั้งหมด (ต้องได้รับอนุญาตขนานไฟจากการไฟฟ้า)</span>':BK.exp==='zero'?'<br><span class="muted">Zero export: ไม่ให้ไฟไหลออกกริดเลย ใช้เมื่อไม่ได้ขออนุญาตขายไฟ ไฟเหลือที่แบตรับไม่ได้จะถูกลดกำลัง</span>':'')}
-  $('#bkoutbox').hidden=BK.mode==='off';$('#bkoutbox2').hidden=BK.mode==='off';$('#bksocbox').hidden=BK.mode==='grid';
+  {const on=BK.outDur>0;$('#bkoutwrap').hidden=BK.mode==='off';$('#bkoutset').hidden=!on;
+    document.querySelectorAll('#bkout [data-bo]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.bo==='1')===on)));
+    document.querySelectorAll('#bkodq [data-od]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.od===BK.outDur)));
+    $('#bkoutinfo').textContent=!on?'ทั้งวันเป็นช่วงปกติ: กริดมีไฟตลอด ผลด้านล่างเป็นการใช้พลังงานปกติ (เลือก "มีไฟดับ" เพื่อดูว่าระบบจ่ายไฟได้แค่ไหนตอนกริดดับ)'
+      :`ช่วงไฟดับ ${hhmm(BK.outStart)}–${hhmm((BK.outStart+BK.outDur)%24)}${BK.outStart+BK.outDur>24?' (ข้ามเที่ยงคืน วนไปช่วงต้นวัน)':''} · ช่วงปกติอีก ${f(24-BK.outDur,1)} ชม. · ตอนไฟดับจ่าย${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'โหลดทั้งหมด'}${BK.mode==='grid'?' · On-grid หยุดจ่ายไฟทันที':''}`}$('#bksocbox').hidden=BK.mode==='grid';
   $('#bkmodenote').textContent={
     grid:'ใช้แผงจ่ายโหลดและขายส่วนเกินคืนกริด ไม่มีแบต เมื่อกริดดับอินเวอร์เตอร์ต้องหยุดจ่ายไฟ',
     hybrid:'แผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วค่อยขายคืนกริด ตอนไฟดับแบตและแผงจ่ายโหลดที่เลือกต่อเอง',
@@ -266,8 +302,11 @@ function initBackup(){
     if(!bkModes(I).includes(m)){const n=bkSwapInv(I,m);if(n){BK_SWAP=`เปลี่ยนอินเวอร์เตอร์จาก ${I.name} เป็น ${(n.brand+' '+n.model).trim()} เพราะระบบ ${m==='off'?'Off-grid':'Hybrid'} ต้องใช้อินเวอร์เตอร์ที่ต่อแบตได้`;ACT.inv=n.id;onCatalogChange()}}
     bkSync();backupRun();if(typeof touch==='function')touch()});
   const num=(id,key,lo,hi)=>$('#'+id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK[key]=Math.max(lo,Math.min(hi,n));backupRun();if(typeof touch==='function')touch()});
-  num('bkn','nIdeal',1,200);num('bkod','outDur',0,24);num('bksoc','soc0',0,100);
-  $('#bkos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;backupRun();if(typeof touch==='function')touch()});
+  num('bkn','nIdeal',1,200);
+  $('#bkod').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.outDur=Math.max(.5,Math.min(24,n));BK.outKeep=BK.outDur;bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkout').addEventListener('click',e=>{const b=e.target.closest('[data-bo]');if(!b)return;if(b.dataset.bo==='1'){BK.outDur=BK.outKeep>0?BK.outKeep:4}else{if(BK.outDur>0)BK.outKeep=BK.outDur;BK.outDur=0}bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkodq').addEventListener('click',e=>{const b=e.target.closest('[data-od]');if(!b)return;BK.outDur=BK.outKeep=+b.dataset.od;bkSync();backupRun();if(typeof touch==='function')touch()});num('bksoc','soc0',0,100);
+  $('#bkos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bksrc').addEventListener('change',e=>{BK.src=e.target.value;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bkis').addEventListener('change',e=>{BK.island=e.target.value;backupRun();if(typeof touch==='function')touch()});
   bkSync();

@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="a61a593b1f">
+<meta name="build" content="c58164db07">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='a61a593b1f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='c58164db07'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=3542740a">
+<link rel="stylesheet" href="css/styles.css?v=35536d92">
 </head>
 <body>
 <div class="app">
@@ -317,9 +317,17 @@ if(m&&m[1]!=='a61a593b1f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <p class="hint tight" id="bkmicinfo"></p>
       </div>
       <div class="row3">
-        <label id="bkoutbox" for="bkos">ไฟดับตั้งแต่<input id="bkos" type="time" value="18:00"></label>
-        <label for="bkod" id="bkoutbox2">ไฟดับนาน (ชม. 0 = ไม่ดับ)<input id="bkod" type="number" inputmode="decimal" min="0" max="24" step="0.5" value="6"></label>
         <label id="bksocbox" for="bksoc">แบตเริ่มต้นที่เวลา 00:00 (% SOC)<input id="bksoc" type="number" inputmode="decimal" min="0" max="100" step="5" value="50"></label>
+      </div>
+      <div id="bkoutwrap" class="bkexp">
+        <div class="bkexph"><b>ไฟดับ</b>
+          <div id="bkout" class="chips" role="group" aria-label="จำลองไฟดับ"><button class="chip" data-bo="0">ไม่มีไฟดับ (ปกติทั้งวัน)</button><button class="chip" data-bo="1">มีไฟดับ</button></div></div>
+        <div class="bkexph" id="bkoutset">
+          <label id="bkoutbox" for="bkos" class="inl">เริ่มดับ<input id="bkos" type="time" value="18:00"></label>
+          <label for="bkod" id="bkoutbox2" class="inl">นาน<input id="bkod" type="number" inputmode="decimal" min="0.5" max="24" step="0.5" value="6"> ชม.</label>
+          <div id="bkodq" class="chips" role="group" aria-label="ระยะเวลาไฟดับ"><button class="chip sm" data-od="1">1 ชม.</button><button class="chip sm" data-od="2">2</button><button class="chip sm" data-od="4">4</button><button class="chip sm" data-od="6">6</button><button class="chip sm" data-od="8">8</button><button class="chip sm" data-od="12">12</button><button class="chip sm" data-od="24">24 ชม.</button></div>
+        </div>
+        <p class="hint tight" id="bkoutinfo"></p>
       </div>
       <div id="bkexpbox" class="bkexp">
         <div class="bkexph"><b>การขายไฟคืนกริด</b>
@@ -333,6 +341,7 @@ if(m&&m[1]!=='a61a593b1f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p id="bkmsg" class="simmsg" hidden></p>
     <div id="bkbody">
       <div id="bkmx" class="metrics"></div>
+      <div id="bkper" class="tblwrap"></div>
       <p id="bklim" class="hint" style="margin:8px 0 14px"></p>
       <section class="card bka-card"><div class="bkah"><h3>ภาพเคลื่อนไหวการไหลของไฟ</h3>
         <div class="bkactl"><button class="btn sm pri" id="bkaplay" aria-pressed="false">▶ เล่นทั้งวัน</button>
@@ -519,7 +528,7 @@ if(m&&m[1]!=='a61a593b1f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/solar.js?v=7d664a76"></script>
 <script src="js/site.js?v=68afc494"></script>
 <script src="js/loads.js?v=d3b46921"></script>
-<script src="js/backup.js?v=e3ed1428"></script>
+<script src="js/backup.js?v=049edc23"></script>
 <script src="js/bkanim.js?v=018245ea"></script>
 <script src="js/systems.js?v=a0f2fb7f"></script>
 <script src="js/events.js?v=50b85166"></script>
@@ -529,6 +538,6 @@ if(m&&m[1]!=='a61a593b1f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/worksheets.js?v=f8ef6079"></script>
 <script src="js/access.js?v=8f712e15"></script>
 <script src="js/ctx.js?v=c2d1f26b"></script>
-<script src="js/app.js?v=45750d5a"></script>
+<script src="js/app.js?v=b9682219"></script>
 </body>
 </html>
