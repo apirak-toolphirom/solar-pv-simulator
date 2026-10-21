@@ -4197,7 +4197,7 @@ function initBackup(){
 
 /* ---- menu 07: animated power-flow picture (panels → DC box → inverter ↔ battery, inverter → AC board ↔ grid, board → loads)
    Reads the 5-minute balance from backupRun (window.lastBal). Dash speed follows the power on each wire, direction follows its sign. */
-const BKA={i:144,play:false,speed:3,last:0,acc:0,off:{},raf:0,cloud:{on:false,x:520,y:70,thick:0.75,size:1.5}};
+const BKA={picBad:{},i:144,play:false,speed:3,last:0,acc:0,off:{},raf:0,cloud:{on:false,x:520,y:70,thick:0.75,size:1.5}};
 const bkaHM=i=>{const m=i*5;return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const bkaKW=w=>(Math.abs(w)/1000).toFixed(Math.abs(w)<10000?2:1)+' kW';
 function bkaSVG(){
@@ -4218,9 +4218,10 @@ function bkaSVG(){
   <!-- DC isolator -->
   <g><rect x="52" y="190" width="56" height="48" rx="5" class="ba-box"/><rect x="66" y="203" width="28" height="18" rx="3" class="ba-sw"/><text x="80" y="252" text-anchor="middle" class="ba-sm">DC isolator</text></g>
   <!-- inverter -->
-  <g id="bainv"><rect x="262" y="180" width="118" height="150" rx="10" class="ba-inv"/><rect x="282" y="196" width="78" height="44" rx="6" class="ba-lcd"/>
-    <text id="bainvt1" x="321" y="214" text-anchor="middle" class="ba-lcdt">—</text><text id="bainvt2" x="321" y="231" text-anchor="middle" class="ba-lcdt sm">—</text>
-    <circle id="baled" cx="321" cy="258" r="6" class="ba-led"/><text id="bainvb" x="321" y="284" text-anchor="middle" class="ba-brand"></text><text x="321" y="303" text-anchor="middle" class="ba-lab">อินเวอร์เตอร์</text><text id="bainvm" x="321" y="319" text-anchor="middle" class="ba-sm">—</text></g>
+  <g id="bainv"><g id="bainvbody"><rect x="262" y="180" width="118" height="150" rx="10" class="ba-inv"/><circle id="baled" cx="321" cy="258" r="6" class="ba-led"/><text id="bainvb" x="321" y="284" text-anchor="middle" class="ba-brand"></text></g>
+    <image id="bainvimg" x="250" y="168" width="142" height="128" preserveAspectRatio="xMidYMid meet" style="display:none"/>
+    <g id="bainvlcd"><rect x="282" y="196" width="78" height="44" rx="6" class="ba-lcd"/><text id="bainvt1" x="321" y="214" text-anchor="middle" class="ba-lcdt">—</text><text id="bainvt2" x="321" y="231" text-anchor="middle" class="ba-lcdt sm">—</text></g>
+    <text id="bainvl" x="321" y="303" text-anchor="middle" class="ba-lab">อินเวอร์เตอร์</text><text id="bainvm" x="321" y="319" text-anchor="middle" class="ba-sm">—</text></g>
   <!-- battery -->
   <g id="babat"><rect x="96" y="300" width="104" height="138" rx="10" class="ba-bat"/><rect x="112" y="314" width="72" height="22" rx="4" class="ba-lcd"/><text id="basoc" x="148" y="330" text-anchor="middle" class="ba-lcdt">—</text>
     <rect x="132" y="350" width="32" height="70" rx="4" class="ba-cell"/><rect id="basocf" x="135" y="353" width="26" height="64" rx="2" class="ba-socf"/>
@@ -4267,7 +4268,7 @@ function bkaFrame(){
   txt('bav-bat',mode==='grid'?'':Math.abs(bat)<1?'พัก':(bat>0?'จ่าย ':'ชาร์จ ')+bkaKW(bat));
   const lim=window.lastBal.cfg&&window.lastBal.cfg.expLimW;
   txt('bav-grid',mode==='off'?'':out?'ไฟดับ':(Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid))+(lim!=null?(lim===0?' · Zero export':' · จำกัด '+bkaKW(lim)):''));
-  {const I=curInv(),B=typeof curBat==='function'?curBat():null;txt('bainvb',String(I.brand||'').toUpperCase());txt('babatb',mode==='grid'?'':B?String(B.brand||'').toUpperCase():'')}
+  {const I=curInv(),B=typeof curBat==='function'?curBat():null;txt('bainvb',String(I.brand||'').toUpperCase());bkaInvPic(I);txt('babatb',mode==='grid'?'':B?String(B.brand||'').toUpperCase():'')}
   const stop=mode==='grid'&&out;
   txt('bainvt1',stop?'STOP':bkaKW(inv));txt('bainvt2',stop?'กริดดับ':out?'จ่ายเอง':mode==='off'?'Off-grid':'ต่อกริด');
   txt('bainvm',mode==='grid'?'On-grid':mode==='off'?'Off-grid':'Hybrid');
@@ -4308,6 +4309,21 @@ function bkaDrag(){
   cl.addEventListener('pointermove',e=>{if(!d)return;const p=pt(e);BKA.cloud.x=Math.max(30,Math.min(770,p.x-d.dx));BKA.cloud.y=Math.max(46,Math.min(200,p.y-d.dy));bkaFrame()});
   const up=()=>{d=null;cl.classList.remove('drag')};cl.addEventListener('pointerup',up);cl.addEventListener('pointercancel',up);
   cl.addEventListener('keydown',e=>{const k={ArrowLeft:-20,ArrowRight:20}[e.key];if(k){BKA.cloud.x=Math.max(30,Math.min(770,BKA.cloud.x+k));bkaFrame();e.preventDefault()}});
+}
+/* product picture of the chosen inverter brand (img/inv/*.png, transparent background); the drawn box stays as fallback */
+function bkaInvSrc(I){
+  const b=String(I.brand||'').toLowerCase(),m=String(I.model||'');
+  if(b==='huawei')return'huawei';if(b==='solis')return'solis';
+  if(b==='deye')return /SUN-M|micro|ไมโคร/i.test(m+' '+(I.note||''))||I.type==='micro'?'deye-micro':'deye-hybrid';
+  return'';
+}
+function bkaInvPic(I){
+  const img=document.getElementById('bainvimg');if(!img)return;const k=bkaInvSrc(I),body=document.getElementById('bainvbody'),lcd=document.getElementById('bainvlcd');
+  const show=on=>{img.style.display=on?'':'none';body.style.display=on?'none':'';lcd.setAttribute('transform',on?'translate(0 -70)':'');
+    document.getElementById('bainvl').setAttribute('y',on?316:303);document.getElementById('bainvm').setAttribute('y',on?331:319)};
+  if(!k||BKA.picBad[k]){show(false);return}
+  if(img.dataset.k!==k){img.dataset.k=k;img.onerror=()=>{BKA.picBad[k]=1;show(false)};img.setAttribute('href','img/inv/'+k+'.png')}
+  show(true);
 }
 function bkaTick(t){
   BKA.raf=0;
