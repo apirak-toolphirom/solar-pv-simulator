@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="1b1b8b3d33">
+<meta name="build" content="cec4048485">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='1b1b8b3d33'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='cec4048485'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>ต่อสายแผงโซลาร์</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=a04c6dba">
+<link rel="stylesheet" href="css/styles.css?v=04c38048">
 </head>
 <body>
 <div class="app">
@@ -323,6 +323,7 @@ if(m&&m[1]!=='1b1b8b3d33'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <div class="bkexph"><b>การขายไฟคืนกริด</b>
           <div id="bkexp" class="chips" role="group" aria-label="การขายไฟคืนกริด"><button class="chip" data-be="full" aria-pressed="true">ขายได้ (Export ON)</button><button class="chip" data-be="zero" aria-pressed="false">Zero export (0 W)</button><button class="chip" data-be="limit" aria-pressed="false">จำกัดกำลังขาย</button></div>
           <label id="bkexpwbox" class="inl" hidden>ขายได้สูงสุด<input id="bkexpw" type="number" inputmode="numeric" min="0" max="20000" step="100" value="1000"> W</label></div>
+        <div id="bkmeterbox" class="bkmeter" hidden><div class="bkmrow"><label for="bkmeter"><b>มิเตอร์ Huawei</b> (Smart Power Sensor)</label><select id="bkmeter"></select></div><div id="bkmeterinfo" class="muted"></div></div>
         <div id="bkexpinfo" class="bkexpinfo"></div>
       </div>
       <ul id="bkwarn" class="checks"></ul>
@@ -516,8 +517,8 @@ if(m&&m[1]!=='1b1b8b3d33'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/solar.js?v=7d664a76"></script>
 <script src="js/site.js?v=3ef896c8"></script>
 <script src="js/loads.js?v=d3b46921"></script>
-<script src="js/backup.js?v=c4a06f5f"></script>
-<script src="js/bkanim.js?v=0b1b2743"></script>
+<script src="js/backup.js?v=e3ed1428"></script>
+<script src="js/bkanim.js?v=018245ea"></script>
 <script src="js/systems.js?v=a0f2fb7f"></script>
 <script src="js/events.js?v=50b85166"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
@@ -526,6 +527,6 @@ if(m&&m[1]!=='1b1b8b3d33'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/worksheets.js?v=f8ef6079"></script>
 <script src="js/access.js?v=a90bc0d5"></script>
 <script src="js/ctx.js?v=c2d1f26b"></script>
-<script src="js/app.js?v=63c62637"></script>
+<script src="js/app.js?v=1af21d71"></script>
 </body>
 </html>

@@ -608,3 +608,5 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .ba-pw{fill:#fff;font:700 12px var(--mono);paint-order:stroke;stroke:#1f4f84;stroke-width:3px}
 .tcur line{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 3}.tcur rect{fill:var(--accent)}.tcur text{fill:#fff;font:700 11px var(--mono)}#chK1,#chK2{cursor:pointer}
 .micman summary{cursor:pointer}.micmang{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 24px;margin-top:10px;font-size:13.5px}.micmang h3{font-size:14px;margin:8px 0 4px}.micmang ol,.micmang ul{margin:0;padding-left:20px}.mictab{border-collapse:collapse;width:100%}.mictab td{border-bottom:1px solid var(--line);padding:4px 6px}
+
+.bkmeter{display:flex;flex-direction:column;gap:4px;font-size:13px}.bkmrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.bkmrow select{width:auto;max-width:100%;height:auto}.bkmeter .bad{color:var(--bad,#c0392b)}

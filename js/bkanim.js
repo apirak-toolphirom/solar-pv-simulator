@@ -42,7 +42,7 @@ function bkaSVG(){
     ${[664,700,736].map(x=>`<rect x="${x-3}" y="36" width="6" height="9" rx="2" class="ba-ins"/>`).join('')}
     <rect x="672" y="70" width="22" height="34" rx="6" class="ba-tr"/><line x1="683" y1="70" x2="683" y2="52" class="ba-hv"/><text x="660" y="92" text-anchor="end" class="ba-sm">หม้อแปลง</text>
     <path d="M694 96 Q700 128 700 150" class="ba-hv"/>
-    <rect x="678" y="150" width="44" height="34" rx="5" class="ba-box"/><text x="700" y="172" text-anchor="middle" class="ba-sm">kWh</text>
+    <rect x="678" y="150" width="44" height="34" rx="5" class="ba-box"/><text id="bkameter" x="700" y="172" text-anchor="middle" class="ba-sm">kWh</text>
     <text x="700" y="30" text-anchor="middle" class="ba-lab">การไฟฟ้า (กริด)</text><g id="bagridx" class="ba-x"><line x1="684" y1="86" x2="716" y2="118"/><line x1="716" y1="86" x2="684" y2="118"/></g></g>
   <!-- loads -->
   <g id="baload"><rect x="600" y="400" width="180" height="8" class="ba-shelf"/>

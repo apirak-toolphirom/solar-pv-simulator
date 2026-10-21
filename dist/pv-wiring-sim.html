@@ -613,6 +613,8 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .ba-pw{fill:#fff;font:700 12px var(--mono);paint-order:stroke;stroke:#1f4f84;stroke-width:3px}
 .tcur line{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 3}.tcur rect{fill:var(--accent)}.tcur text{fill:#fff;font:700 11px var(--mono)}#chK1,#chK2{cursor:pointer}
 .micman summary{cursor:pointer}.micmang{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 24px;margin-top:10px;font-size:13.5px}.micmang h3{font-size:14px;margin:8px 0 4px}.micmang ol,.micmang ul{margin:0;padding-left:20px}.mictab{border-collapse:collapse;width:100%}.mictab td{border-bottom:1px solid var(--line);padding:4px 6px}
+
+.bkmeter{display:flex;flex-direction:column;gap:4px;font-size:13px}.bkmrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.bkmrow select{width:auto;max-width:100%;height:auto}.bkmeter .bad{color:var(--bad,#c0392b)}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -924,6 +926,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
         <div class="bkexph"><b>การขายไฟคืนกริด</b>
           <div id="bkexp" class="chips" role="group" aria-label="การขายไฟคืนกริด"><button class="chip" data-be="full" aria-pressed="true">ขายได้ (Export ON)</button><button class="chip" data-be="zero" aria-pressed="false">Zero export (0 W)</button><button class="chip" data-be="limit" aria-pressed="false">จำกัดกำลังขาย</button></div>
           <label id="bkexpwbox" class="inl" hidden>ขายได้สูงสุด<input id="bkexpw" type="number" inputmode="numeric" min="0" max="20000" step="100" value="1000"> W</label></div>
+        <div id="bkmeterbox" class="bkmeter" hidden><div class="bkmrow"><label for="bkmeter"><b>มิเตอร์ Huawei</b> (Smart Power Sensor)</label><select id="bkmeter"></select></div><div id="bkmeterinfo" class="muted"></div></div>
         <div id="bkexpinfo" class="bkexpinfo"></div>
       </div>
       <ul id="bkwarn" class="checks"></ul>
@@ -4179,7 +4182,7 @@ function loadChanged(){
 }
 
 /* ---- backup simulation: on-grid / hybrid / off-grid, 5-minute energy balance ---- */
-const BK={exp:'full',expW:1000,mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,island:'crit',soc0:50};
+const BK={exp:'full',expW:1000,meter:'auto',mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,island:'crit',soc0:50};
 const MODE_NAME={grid:'On-grid (ไม่มีแบต)',hybrid:'Hybrid (กริด + แบต)',off:'Off-grid (ไม่ต่อกริด)'};
 
 /* pure energy balance. inputs: pv[], load[], crit[] in W (same length), cfg. returns arrays and totals */
@@ -4282,7 +4285,8 @@ function backupRun(){
   if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
   /* export setting of this menu (used unless menu 03 results are applied with their own export limit) */
   BK_EXPSRC=ax&&ax.expLimW!=null?'ac':BK.exp!=='full'&&BK.mode!=='off'?'bk':'';
-  if(BK_EXPSRC==='bk')cfg.expLimW=BK.exp==='zero'?0:BK.expW;
+  const MOK=bkMeterOk(I);
+  if(BK_EXPSRC==='bk'&&MOK.ok)cfg.expLimW=BK.exp==='zero'?0:BK.expW;
   const R=balance(src.pv,LP.all,LP.crit,cfg);
   window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island,cfg};
   const T=R.T;
@@ -4293,6 +4297,11 @@ function backupRun(){
   if(need&&bi&&I.type!=='on-grid'&&!batCompat(bi.b,I))warns.push(['err',batCompatMsg(bi.b,I)]);
   if(BK_SWAP)warns.push(['warn',BK_SWAP]);
   if(need&&bi&&String(I.brand).toLowerCase()==='deye'&&!isMicro(I)&&bi.b.brand!=='ตัวอย่าง'&&!deyeApproved(bi.b))warns.push(['warn',`แบต ${bi.b.brand} ไม่อยู่ในรายชื่อแบตที่ Deye รับรอง (DY-LV48-0109) ใช้สื่อสาร BMS แบบลิเธียมไม่ได้ ต้องตั้งเป็นโหมดแรงดัน/ตะกั่วกรด หรือยืนยันกับผู้ขายแบตก่อน`]);
+  if(BK_EXPSRC==='bk'&&!MOK.ok)warns.push(['err',MOK.msg]);
+  if(MOK.M&&BK.exp!=='full'&&BK.mode!=='off'){
+    if(!isPh3(I)&&MOK.M.ph==='3')warns.push(['warn',`${MOK.M.name} เป็นมิเตอร์ 3 เฟส ใช้กับอินเวอร์เตอร์ 1 เฟสได้เมื่อบ้านใช้ไฟ 3 เฟส ถ้าบ้านใช้ไฟ 1 เฟส ใช้ DDSU666-H จะเหมาะกว่า`]);
+    const pk=Math.max(...LP.all),ia=pk/230/(isPh3(I)?3:1);
+    if(ia>MOK.M.imax)warns.push(['warn',`กระแสโหลดสูงสุดประมาณ ${f(ia,0)} A ต่อเฟส เกินช่วงวัดของ ${MOK.M.name} (${MOK.M.imax} A) ${MOK.M.imax<250&&isPh3(I)?'ควรใช้ DTSU666-H 250A':''}`]);}
   if(BK_EXPSRC==='ac'&&BK.exp!=='full')warns.push(['warn',`ใช้ค่า Export limit ${cfg.expLimW} W จากเมนู 03 ต่อสาย AC (ติ๊ก "นำผลการต่อสายไปใช้" ไว้) แทนค่าที่เลือกในหน้านี้`]);
   if(cfg.expLimW!=null&&T.curt>0.05&&BK.mode!=='off')warns.push(['warn',`${cfg.expLimW===0?'Zero export':'จำกัดการขาย '+cfg.expLimW+' W'}: อินเวอร์เตอร์ลดกำลังแผงลง ไฟที่ผลิตได้แต่ไม่ได้ใช้ ${f(T.curt,1)} kWh/วัน ${BK.mode==='grid'?'(ไม่มีแบตเก็บ ควรย้ายโหลดมาใช้กลางวัน)':'(แบตเต็มแล้ว)'}`]);
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
@@ -4371,6 +4380,20 @@ function bkSwapInv(I,m){
   return CAT.inverters.filter(ok).sort((a,b)=>sc(a)-sc(b))[0]||null;
 }
 let BK_EXPSRC='';
+/* Huawei Smart Power Sensor, datasheet 06.2025 (Drive: 01 อินเวอร์เตอร์/Huawei) */
+const HW_METERS={
+  ddsu:{name:'DDSU666-H',ph:'1',imax:100,ct:'CT 100 A/40 mA ×1',grid:'1P2W'},
+  dtsu:{name:'DTSU666-H',ph:'3',imax:100,ct:'CT 100 A/40 mA ×3',grid:'3P3W/3P4W'},
+  dtsu250:{name:'DTSU666-H 250A',ph:'3',imax:250,ct:'CT 250 A/50 mA ×3',grid:'3P3W/3P4W'}};
+const isHw=I=>String((I||{}).brand||'').toLowerCase()==='huawei';
+/* meter actually used: 'auto' picks the one that matches the inverter phase */
+function bkMeter(I){if(!isHw(I))return null;const m=BK.meter;if(m==='none')return'none';if(HW_METERS[m])return m;return isPh3(I)?'dtsu':'ddsu'}
+/* can this Huawei inverter limit export with the chosen meter? */
+function bkMeterOk(I){const m=bkMeter(I);if(m===null)return{ok:true};
+  if(m==='none')return{ok:false,msg:'ไม่ได้ติดตั้ง Smart Power Sensor: อินเวอร์เตอร์ Huawei วัดไฟที่จุดต่อกริดไม่ได้ จึงทำ Zero export / จำกัดการขายไม่ได้ ไฟเหลือไหลออกกริดทั้งหมด (ผลด้านล่างคิดแบบขายได้ไม่จำกัด)'};
+  const M=HW_METERS[m];
+  if(isPh3(I)&&M.ph==='1')return{ok:false,msg:`${M.name} เป็นมิเตอร์ 1 เฟส (${M.grid}) ใช้กับอินเวอร์เตอร์ 3 เฟส ${I.name} ไม่ได้ วัดได้แค่เฟสเดียว Zero export จึงไม่ทำงาน ต้องใช้ DTSU666-H (ผลด้านล่างคิดแบบขายได้ไม่จำกัด)`};
+  return{ok:true,M};}
 /* how each brand names and wires export control (menu names can differ by model and firmware) */
 function bkExpInfo(I){
   const b=String(I.brand||'').toLowerCase(),ph3=isPh3(I);
@@ -4400,6 +4423,13 @@ function bkSync(){
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
   document.querySelectorAll('#bkexp [data-be]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.be===BK.exp)));
   $('#bkexpbox').hidden=BK.mode==='off';$('#bkexpwbox').hidden=BK.exp!=='limit';$('#bkexpw').value=BK.expW;
+  {const I=curInv(),hw=isHw(I),mb=$('#bkmeterbox');mb.hidden=!hw||BK.mode==='off';
+    if(hw){const ph3=isPh3(I),m=bkMeter(I);
+      $('#bkmeter').innerHTML=`<option value="auto">อัตโนมัติ (${ph3?'DTSU666-H':'DDSU666-H'} ตามเฟสอินเวอร์เตอร์)</option>`+Object.entries(HW_METERS).map(([k,M])=>`<option value="${k}">${M.name} · ${M.ph==='1'?'1 เฟส':'3 เฟส'} · ${M.imax} A</option>`).join('')+'<option value="none">ไม่ติดตั้งมิเตอร์</option>';
+      $('#bkmeter').value=BK.meter;const M=HW_METERS[m],ok=bkMeterOk(I);
+      $('#bkmeterinfo').innerHTML=M?`${esc(M.name)}: ระบบไฟ ${M.grid} · วัด 0–${M.imax} A · ${esc(M.ct)} สาย 5 m · RS485 Modbus-RTU 9600 bps สาย 10 m · ±1 % (Class 1) · ติดราง DIN · กินไฟ ≤ 1 W${ok.ok?'':' · <b class="bad">ใช้กับอินเวอร์เตอร์รุ่นนี้ไม่ได้</b>'}`:'<b class="bad">ไม่มีมิเตอร์: ทำ Zero export / จำกัดการขายไม่ได้</b>';
+      const t=document.getElementById('bkameter');if(t)t.textContent=M?M.name.slice(0,4):'kWh';}
+    else{const t=document.getElementById('bkameter');if(t)t.textContent='kWh'}}
   {const x=bkExpInfo(curInv());$('#bkexpinfo').innerHTML=`<span class="bkbrand">${esc(curInv().brand||'')}</span> <b>ฟังก์ชัน:</b> ${esc(x.fn)}<br><b>ตั้งค่า:</b> ${esc(x.where)}<br><b>อุปกรณ์ที่ต้องมี:</b> ${esc(x.need)}<br><span class="muted">ชื่อเมนูอาจต่างตามรุ่นและเวอร์ชันเฟิร์มแวร์ ตรวจกับคู่มือของรุ่นที่ติดตั้งจริง</span>`+
     (BK.exp==='full'?'<br><span class="muted">ไม่จำกัด: ไฟเหลือขายคืนกริดได้ทั้งหมด (ต้องได้รับอนุญาตขนานไฟจากการไฟฟ้า)</span>':BK.exp==='zero'?'<br><span class="muted">Zero export: ไม่ให้ไฟไหลออกกริดเลย ใช้เมื่อไม่ได้ขออนุญาตขายไฟ ไฟเหลือที่แบตรับไม่ได้จะถูกลดกำลัง</span>':'')}
   $('#bkoutbox').hidden=BK.mode==='off';$('#bkoutbox2').hidden=BK.mode==='off';$('#bksocbox').hidden=BK.mode==='grid';
@@ -4412,6 +4442,7 @@ function bkSync(){
 function initBackup(){
   $('#bkmicsel').addEventListener('change',e=>{const s=e.target.closest('[data-bkpv]');if(!s)return;const k=+s.dataset.bkpv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];bkSync();backupRun();if(typeof render==='function')render();if(typeof touch==='function')touch()});
   $('#bkexp').addEventListener('click',e=>{const b=e.target.closest('[data-be]');if(!b)return;BK.exp=b.dataset.be;bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkmeter').addEventListener('change',e=>{BK.meter=e.target.value;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bkexpw').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.expW=Math.max(0,Math.min(20000,n));backupRun();if(typeof touch==='function')touch()});
   $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b)return;const m=b.dataset.bm;BK.mode=BK.want=m;
     const I=curInv();BK_SWAP='';
@@ -4469,7 +4500,7 @@ function bkaSVG(){
     ${[664,700,736].map(x=>`<rect x="${x-3}" y="36" width="6" height="9" rx="2" class="ba-ins"/>`).join('')}
     <rect x="672" y="70" width="22" height="34" rx="6" class="ba-tr"/><line x1="683" y1="70" x2="683" y2="52" class="ba-hv"/><text x="660" y="92" text-anchor="end" class="ba-sm">หม้อแปลง</text>
     <path d="M694 96 Q700 128 700 150" class="ba-hv"/>
-    <rect x="678" y="150" width="44" height="34" rx="5" class="ba-box"/><text x="700" y="172" text-anchor="middle" class="ba-sm">kWh</text>
+    <rect x="678" y="150" width="44" height="34" rx="5" class="ba-box"/><text id="bkameter" x="700" y="172" text-anchor="middle" class="ba-sm">kWh</text>
     <text x="700" y="30" text-anchor="middle" class="ba-lab">การไฟฟ้า (กริด)</text><g id="bagridx" class="ba-x"><line x1="684" y1="86" x2="716" y2="118"/><line x1="716" y1="86" x2="684" y2="118"/></g></g>
   <!-- loads -->
   <g id="baload"><rect x="600" y="400" width="180" height="8" class="ba-shelf"/>
@@ -6622,7 +6653,7 @@ function restoreProject(p){
     if(['grid','hybrid','off'].includes(p.bk.mode))BK.mode=BK.want=p.bk.mode;
     if(['wiring','ideal'].includes(p.bk.src))BK.src=p.bk.src;
     if(['crit','all'].includes(p.bk.island))BK.island=p.bk.island;
-    if(['full','zero','limit'].includes(p.bk.exp))BK.exp=p.bk.exp;BK.expW=clamp(fin(p.bk.expW,1000),0,20000);
+    if(['full','zero','limit'].includes(p.bk.exp))BK.exp=p.bk.exp;if(['auto','ddsu','dtsu','dtsu250','none'].includes(p.bk.meter))BK.meter=p.bk.meter;BK.expW=clamp(fin(p.bk.expW,1000),0,20000);
     BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
   }
 }
