@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="169abe42d2">
+<meta name="build" content="823afb225b">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='169abe42d2'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='823afb225b'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -165,7 +165,7 @@ if(m&&m[1]!=='169abe42d2'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       </div>
       <div class="row3" id="acctbox">
         <label for="acctp" id="acctpl">ตำแหน่งคล้อง CT<select id="acctp"><option value="gridL">สาย L ที่จุดต่อกริด (ถูกต้อง)</option><option value="loadL">สาย L ของโหลดบ้าน</option><option value="invL">สาย L ของอินเวอร์เตอร์</option><option value="N">สาย N</option></select></label>
-        <label for="acctd" id="acctdl">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label>
+        <label for="acctd" id="acctdl">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label><button class="chip" id="acctflip" type="button" title="หมุน CT กลับด้านบนสาย">⟲ หมุน CT</button>
       </div>
       <div class="row3" id="acmeterbox">
         <label for="acmad">แอดเดรสมิเตอร์<input id="acmad" type="number" min="1" max="247"></label>
@@ -513,8 +513,8 @@ if(m&&m[1]!=='169abe42d2'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/model.js?v=f5bf7887"></script>
 <script src="js/engine.js?v=0c08839d"></script>
 <script src="js/wiring.js?v=431b1ab5"></script>
-<script src="js/acart.js?v=a3b82336"></script>
-<script src="js/acsys.js?v=2b9c8b60"></script>
+<script src="js/acart.js?v=a67bdc03"></script>
+<script src="js/acsys.js?v=2847dcf4"></script>
 <script src="js/acmicro.js?v=622b90f2"></script>
 <script src="js/solar.js?v=7d664a76"></script>
 <script src="js/site.js?v=68afc494"></script>

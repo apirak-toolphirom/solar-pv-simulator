@@ -16,7 +16,7 @@ const AC_C1={
 const AC_T1=[
  ['G.L','L','L',170,70,'r','G'],['G.N','N','N',170,100,'r','G'],['G.PE','PE','PE',170,130,'r','G'],
  /* 1-phase smart meter (DDSU666-H / Eastron SDM120CT): measures voltage from L-N, current from an external CT, talks RS485 to the inverter */
- ['M.UL','L (วัดแรงดัน)','L',230,180,'l','M'],['M.N','N','N',230,210,'l','M'],['M.I1','CT S1','ct1',380,245,'r','M'],['M.I2','CT S2','ct2',380,275,'r','M'],['M.A','A','a',270,320,'b','M'],['M.B','B','b',330,320,'b','M'],
+ ['M.UL','L (วัดแรงดัน)','L',230,180,'l','M'],['M.N','N','N',230,210,'l','M'],['M.A','A','a',380,185,'r','M'],['M.B','B','b',380,210,'r','M'],['M.I1','CT S1','ct1',380,260,'r','M'],['M.I2','CT S2','ct2',380,290,'r','M'],
  ['DB.LL','L','L',450,70,'l','DB'],['DB.NL','N','N',450,100,'l','DB'],['DB.PL','PE','PE',450,130,'l','DB'],
  ['DB.LR','L','L',600,70,'r','DB'],['DB.NR','N','N',600,100,'r','DB'],['DB.PR','PE','PE',600,130,'r','DB'],
  ['CT.S1','S1','ct1',380,375,'r','CT'],['CT.S2','S2','ct2',380,405,'r','CT'],
@@ -70,18 +70,19 @@ const AC_MODES={'1':{C:AC_C1,T:AC_T1,BUS:AC_BUS1}};
  AC_MODES['1x3']={C:{G:T3.C.G,M:T3.C.M,DB:T3.C.DB,CDB:AC_C1.CDB,GEN:AC_C1.GEN,INV:AC_C1.INV,BAT:AC_C1.BAT},
   T:T3.T.filter(t=>k3.has(t[6])).concat(AC_T1.filter(t=>k1.includes(t[6])&&t[0]!=='INV.C1'&&t[0]!=='INV.C2')),BUS:T3.BUS}}
 /* Huawei SUN2000 layout: battery signal goes to the inverter COM port as EN/GND (enable) and 485A2/485B2 (RS485 to the LUNA power module),
-   the smart meter uses 485A1/485B1; no CT input and no GEN port */
+   the smart power sensor shares the same 485A2/485B2 bus (COM pin 4 = 485A2, pin 3 = 485B2, DDSU666-H manual fig. 2-9); no CT input and no GEN port */
 function acHuawei(M){
   const drop=new Set(['INV.CH','INV.CL','BAT.H','BAT.L','INV.C1','INV.C2','GEN.L','GEN.N','GEN.PE','GEN.S1','GEN.S2','INV.EL','INV.EN','INV.D1','INV.D2']);
   const C={};Object.keys(M.C).forEach(k=>{if(k!=='GEN')C[k]=Object.assign({},M.C[k],{hw:1})});
   C.BAT=Object.assign({},C.BAT,{h:230,t:'Huawei LUNA2000'});
   const ix=C.INV.x+C.INV.w,bx=C.BAT.x;
-  const lab={'INV.RA':'485A1 (มิเตอร์)','INV.RB':'485B1 (มิเตอร์)','INV.B+':'BAT+','INV.B-':'BAT−','M.A':'RS485A','M.B':'RS485B','BAT.+':'BAT+','BAT.-':'BAT−',
-    'M.UL':'L (3)','M.N':'N (4)','M.I1':'I* (5)','M.I2':'I (6)'};
+  const lab={'INV.RA':'485A2 ขา 4 (มิเตอร์)','INV.RB':'485B2 ขา 3 (มิเตอร์)','INV.B+':'BAT+','INV.B-':'BAT−','M.A':'RS485A','M.B':'RS485B','BAT.+':'BAT+','BAT.-':'BAT−',
+    'M.UL':'L (3)','M.N':'N (4)','M.I1':'I* (5)','M.I2':'I (6)','CT.S1':'ขาว','CT.S2':'น้ำเงิน'};
   const T=M.T.filter(t=>!drop.has(t[0])).map(t=>lab[t[0]]?[t[0],lab[t[0]]].concat(t.slice(2)):t.slice());
   T.push(['INV.EP','EN','en+',ix,170,'r','INV','ho'],['INV.EG','GND (EN−)','en-',ix,195,'r','INV','ho'],['INV.BA','485A2 (แบต)','ba',ix,225,'r','INV','ho'],['INV.BB','485B2 (แบต)','bb',ix,250,'r','INV','ho'],
     ['BAT.EP','Enable+','en+',bx,170,'l','BAT'],['BAT.EN','Enable−','en-',bx,195,'l','BAT'],['BAT.RA','485A','ba',bx,225,'l','BAT'],['BAT.RB','485B','bb',bx,250,'l','BAT']);
-  return{C,T,BUS:M.BUS,hw:1};
+  /* meter terminals and battery terminals are the same COM pins: one RS485 bus */
+  return{C,T,BUS:M.BUS.concat([['INV.RA','INV.BA'],['INV.RB','INV.BB']]),hw:1};
 }
 ['1','3','3b1','1x3'].forEach(k=>AC_MODES['h'+k]=acHuawei(AC_MODES[k]));
 Object.values(AC_MODES).forEach(m=>m.TM=mkTM(m.T));
@@ -92,8 +93,8 @@ const acHwOf=I=>String(I.brand||'').toLowerCase()==='huawei';
 /* smart meter of each brand (1 phase), from the meter manuals */
 function acMeterInfo(I){
   const b=String((I||curInv()).brand||'').toLowerCase();
-  if(b==='huawei')return{nm:'Huawei DDSU666-H',ct:'CT 100 A/40 mA',lab:{'M.UL':'L (3)','M.N':'N (4)','M.I1':'I* (5)','M.I2':'I (6)','M.A':'485A (24)','M.B':'485B (25)'},
-    note:'DDSU666-H: ขั้ว 3 = L, 4 = N (วัดแรงดันและเป็นไฟเลี้ยง), 5 = I* และ 6 = I (สาย CT), 24 = RS485A, 25 = RS485B → อินเวอร์เตอร์ COM 485A1/485B1 · RS485 9600 bps Modbus-RTU · CT 100 A/40 mA คล้องสาย L ที่จุดต่อกริด'};
+  if(b==='huawei')return{nm:'Huawei DDSU666-H',ct:'CT 100 A/40 mA',lab:{'M.UL':'L (3)','M.N':'N (4)','M.I1':'I* (5)','M.I2':'I (6)','M.A':'485A (24)','M.B':'485B (25)','CT.S1':'ขาว','CT.S2':'น้ำเงิน'},
+    note:'DDSU666-H (คู่มือ รูป 2-9): ขั้ว 3 = L, 4 = N (วัดแรงดัน ต่อจากบัสหลังเมนสวิตช์) · CT คล้องสาย L หลังเมนสวิตช์ ก่อนแยกไปอินเวอร์เตอร์และโหลด ลูกศรชี้จากกริดเข้าบ้าน · สาย CT ขาว → 5 (I*), น้ำเงิน → 6 (I) · 24 = RS485A → COM ขา 4 (485A2), 25 = RS485B → COM ขา 3 (485B2) ใช้บัสเดียวกับแบต LUNA2000 · 9600 bps Modbus-RTU'};
   if(b==='solis')return{nm:'Eastron SDM120CT',ct:'CT ESCT 100 A/100 mA หรือ 120 A/40 mA ตามรุ่นมิเตอร์',lab:{'M.UL':'L','M.N':'N','M.I1':'CT S1','M.I2':'CT S2','M.A':'A (10)','M.B':'B (9)'},
     note:'Eastron SDM120CT (Solis): ต่อ L และ N เพื่อวัดแรงดัน ต่อสาย CT เข้าขั้ว CT ของมิเตอร์ ขั้ว 10 = RS485A, 9 = RS485B → พอร์ต METER ของอินเวอร์เตอร์ · มิเตอร์จากโรงงาน Eastron ตั้ง ID 001 และ 2400 bps ต้องตั้งให้ตรงกับที่อินเวอร์เตอร์ใช้ (มิเตอร์ชุดของ Solis ตั้งมาให้แล้ว) · ใช้ CT ตามที่ระบุคู่กับมิเตอร์เท่านั้น'};
   return{nm:'สมาร์ทมิเตอร์ RS485',ct:'CT ตามรุ่นมิเตอร์',lab:{'M.UL':'L (วัดแรงดัน)','M.N':'N','M.I1':'CT S1','M.I2':'CT S2','M.A':'A','M.B':'B'},
@@ -109,7 +110,7 @@ function acEnsureMode(){
   ACS.wires=ACS.wm[key]||[];ACS.pos=ACS.pm[key]||{};ACS.msc=ACS.scm[key]||{};ACS.armed=null;ACS.selMod=null;
 }
 /* terminal names of the meter follow the brand's meter (same layout for every brand) */
-function acMeterLabels(I){if(!acMeterCT())return;const L=acMeterInfo(I).lab;Object.keys(L).forEach(id=>{if(AC_TM[id])AC_TM[id].lab=L[id]})}
+function acMeterLabels(I){if(!acMeterCT())return;const L=Object.assign({'CT.S1':'S1','CT.S2':'S2'},acMeterInfo(I).lab);Object.keys(L).forEach(id=>{if(AC_TM[id])AC_TM[id].lab=L[id]})}
 const acPh3=()=>AC_MODE!=='1';
 /* live layout: each module can be moved (ACS.pos[comp]=[dx,dy]); terminals follow their module */
 const AC_CL={},AC_VB={w:1200,h:690},AC_GRID=10;
@@ -160,7 +161,7 @@ const hasWire=(a,b)=>ACS.wires.some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a));
 const anyOn=id=>ACS.wires.some(w=>w.a===id||w.b===id);
 
 const SWAP_OK=(a,b)=>{const P=[['a','b'],['ba','bb'],['en+','en-'],['ct1','ct2'],['canh','canl'],['dc+','dc-']];return P.some(([x,y])=>(a===x&&b===y)||(a===y&&b===x))};
-const acKindOk=(a,b)=>a===b||SWAP_OK(a,b)||(isLk(a)&&isLk(b)&&(a==='L'||b==='L'));
+const acKindOk=(a,b)=>a===b||(AC_HW&&((a==='a'&&b==='ba')||(a==='ba'&&b==='a')||(a==='b'&&b==='bb')||(a==='bb'&&b==='b')))||SWAP_OK(a,b)||(isLk(a)&&isLk(b)&&(a==='L'||b==='L'));
 const isLk=k=>k==='L'||k==='L1'||k==='L2'||k==='L3';
 const tName=T=>T.comp==='INV'?'INV '+T.lab:T.comp+' '+T.lab;
 function acAnalyze(){
@@ -173,7 +174,7 @@ function acAnalyze(){
     if(!acAvail(A)||!acAvail(B))add('err',`สาย ${tName(A)} ↔ ${tName(B)}: อินเวอร์เตอร์ประเภท ${ty} ไม่มีพอร์ตนี้`);
     else if(!acKindOk(A.kind,B.kind)){
       if(p3&&isLk(A.kind)&&isLk(B.kind))add('err',`ต่อข้ามเฟส: ${tName(A)} (${A.kind}) ↔ ${tName(B)} (${B.kind}) ต้องต่อ L1→L1, L2→L2, L3→L3 ลำดับเฟสผิดทำให้อินเวอร์เตอร์ขึ้นเตือนลำดับเฟส และมิเตอร์วัดกำลังผิดเฟส`);
-      else if(['a','b'].includes(A.kind)&&['ba','bb'].includes(B.kind)||['a','b'].includes(B.kind)&&['ba','bb'].includes(A.kind))add('err',`สาย ${tName(A)} ↔ ${tName(B)}: ต่อผิดพอร์ต RS485 ของ Huawei 485A1/485B1 สำหรับสมาร์ทมิเตอร์ 485A2/485B2 สำหรับแบต LUNA2000`);
+      else if(['a','b'].includes(A.kind)&&['ba','bb'].includes(B.kind)||['a','b'].includes(B.kind)&&['ba','bb'].includes(A.kind))add('err',`สาย ${tName(A)} ↔ ${tName(B)}: RS485 A ต้องต่อกับ A และ B ต่อกับ B (มิเตอร์และแบตใช้บัส 485A2/485B2 เดียวกัน)`);
       else add('err',`สาย ${tName(A)} ↔ ${tName(B)}: ต่อคนละชนิดขั้ว (${KIND_NAME[A.kind]} กับ ${KIND_NAME[B.kind]})`);
     }
   });
@@ -258,7 +259,7 @@ function acAnalyze(){
     d.canOk=cn;
     if(AC_HW){
       const en=hasWire('BAT.EP','INV.EP')&&hasWire('BAT.EN','INV.EG'),ens=hasWire('BAT.EP','INV.EG')&&hasWire('BAT.EN','INV.EP');
-      const rs=hasWire('BAT.RA','INV.BA')&&hasWire('BAT.RB','INV.BB'),rss=hasWire('BAT.RA','INV.BB')&&hasWire('BAT.RB','INV.BA');
+      const rs=N.same('BAT.RA','INV.BA')&&N.same('BAT.RB','INV.BB'),rss=N.same('BAT.RA','INV.BB')&&N.same('BAT.RB','INV.BA');
       if(en)add('ok','สาย Enable ต่อถูก (Enable+ → EN, Enable− → GND) อินเวอร์เตอร์สั่งเปิดแบตได้');
       else if(ens)add('err','สาย Enable+ / Enable− สลับกัน อินเวอร์เตอร์สั่งเปิดแบตไม่ได้ ไฟสถานะแบตไม่ติด');
       else if(d.batOk)add('err','ยังไม่ได้ต่อสาย Enable (Enable+ → EN, Enable− → GND) แบต LUNA2000 จะไม่เปิดทำงาน');
@@ -274,7 +275,7 @@ function acAnalyze(){
     if(S.batType==='lead'&&(cn||cs))add('warn','แบตตะกั่วกรดไม่มี BMS สาย CAN ไม่จำเป็น');
   }
   if(p3)acMeter3(S,N,add,d);
-  else if(AC_HW&&S.meterType==='ct'){d.meterOk=false;add('err','อินเวอร์เตอร์ Huawei ไม่มีขั้ว CT: CT ต้องต่อเข้าสมาร์ทมิเตอร์ DDSU666-H (I*/I) แล้วมิเตอร์ส่งข้อมูลผ่าน RS485 เข้า 485A1/485B1 ตั้ง "อุปกรณ์วัดกริด" เป็นสมาร์ทมิเตอร์')}
+  else if(AC_HW&&S.meterType==='ct'){d.meterOk=false;add('err','อินเวอร์เตอร์ Huawei ไม่มีขั้ว CT: CT ต้องต่อเข้าสมาร์ทมิเตอร์ DDSU666-H (I*/I) แล้วมิเตอร์ส่งข้อมูลผ่าน RS485 เข้า 485A2/485B2 (COM ขา 4/3) ตั้ง "อุปกรณ์วัดกริด" เป็นสมาร์ทมิเตอร์')}
   else{
   d.meterOk=false;
   const mt=S.meterType;
@@ -306,15 +307,15 @@ function acAnalyze(){
     const rev=(S.mctDir!=='toLoad')!==cSw;
     if((cOk||cSw)&&rev){add('err','ทิศ CT ของมิเตอร์กลับด้าน (ลูกศรต้องชี้จากกริดเข้าบ้าน และ S1 → S1, S2 → S2) มิเตอร์จะอ่านซื้อไฟเป็นขายไฟ อินเวอร์เตอร์ควบคุมผิด');bad=true}
     if(hasWire('CT.S1','INV.C1')||hasWire('CT.S1','INV.C2')||hasWire('CT.S2','INV.C1')||hasWire('CT.S2','INV.C2'))add('warn','สาย CT ต่อเข้าขั้ว CT ของอินเวอร์เตอร์ แต่ตั้งค่าใช้สมาร์ทมิเตอร์ CT ต้องต่อเข้ามิเตอร์');
-    const ab=hasWire('M.A','INV.RA')&&hasWire('M.B','INV.RB'),sw=hasWire('M.A','INV.RB')&&hasWire('M.B','INV.RA');
+    const ab=N.same('M.A','INV.RA')&&N.same('M.B','INV.RB'),sw=N.same('M.A','INV.RB')&&N.same('M.B','INV.RA');
     if(sw){add('err','สาย RS485 A/B สลับกัน มิเตอร์จะสื่อสารไม่ได้');bad=true}
-    else if(!ab){add('err',`ยังไม่ได้ต่อ RS485 A→A, B→B ระหว่างมิเตอร์กับอินเวอร์เตอร์${AC_HW?' (485A1/485B1)':''}`);bad=true}
+    else if(!ab){add('err',`ยังไม่ได้ต่อ RS485 A→A, B→B ระหว่างมิเตอร์กับอินเวอร์เตอร์${AC_HW?' (24 → 485A2 ขา 4, 25 → 485B2 ขา 3)':''}`);bad=true}
     if(S.mAddr!==S.iAddr||S.mBaud!==S.iBaud){add('err',`ค่าสื่อสารไม่ตรงกัน: มิเตอร์ ${S.mAddr}/${S.mBaud} อินเวอร์เตอร์ ${S.iAddr}/${S.iBaud} (แอดเดรส/Baud) จะขึ้น Meter fault`);bad=true}
     if(!bad)add('ok',`${MI.nm} ต่อถูก: วัดแรงดัน L-N, CT คล้องสาย L จุดต่อกริดทิศถูก, RS485 สื่อสารกับอินเวอร์เตอร์ได้`);
     d.meterOk=!bad;d.ctRev=(cOk||cSw)&&rev;
   }else if(mt==='meter'){
     let bad=false;
-    const ab=hasWire('M.A','INV.RA')&&hasWire('M.B','INV.RB'),sw=hasWire('M.A','INV.RB')&&hasWire('M.B','INV.RA');
+    const ab=N.same('M.A','INV.RA')&&N.same('M.B','INV.RB'),sw=N.same('M.A','INV.RB')&&N.same('M.B','INV.RA');
     if(!d.viaMeter){add('err','เลือกใช้สมาร์ทมิเตอร์ แต่ยังไม่ได้ต่ออนุกรมระหว่างกริดกับตู้เมน (L เข้า ← กริด, L ออก → ตู้เมน)');bad=true}
     if(!N.same('M.N','G.N')&&!N.same('M.N','DB.NL')){add('err','มิเตอร์ยังไม่ได้ต่อ N (ไม่มีไฟเลี้ยงมิเตอร์)');bad=true}
     if(sw){add('err','สาย RS485 A/B สลับกัน มิเตอร์จะสื่อสารไม่ได้');bad=true}
@@ -416,7 +417,7 @@ function acMeter3(S,N,add,d){
     bad=true;
   }
   if(!N.same('M.N','G.N')&&!N.same('M.N','DB.NL')){add('err','มิเตอร์ยังไม่ได้ต่อ N มิเตอร์ใช้ N เป็นจุดอ้างอิงวัดแรงดันแต่ละเฟส');bad=true}
-  const ab=hasWire('M.A','INV.RA')&&hasWire('M.B','INV.RB'),sw=hasWire('M.A','INV.RB')&&hasWire('M.B','INV.RA');
+  const ab=N.same('M.A','INV.RA')&&N.same('M.B','INV.RB'),sw=N.same('M.A','INV.RB')&&N.same('M.B','INV.RA');
   if(sw){add('err','สาย RS485 A/B สลับกัน มิเตอร์จะสื่อสารไม่ได้');bad=true}
   else if(!ab){add('err','ยังไม่ได้ต่อ RS485 A→A, B→B ระหว่างมิเตอร์กับอินเวอร์เตอร์');bad=true}
   if(S.mAddr!==S.iAddr||S.mBaud!==S.iBaud){add('err',`ค่าสื่อสารไม่ตรงกัน: มิเตอร์ ${S.mAddr}/${S.mBaud} อินเวอร์เตอร์ ${S.iAddr}/${S.iBaud} (แอดเดรส/Baud) จะขึ้น Meter fault`);bad=true}
@@ -520,7 +521,7 @@ function acRender(){
   Object.keys(AC_CL).forEach(k=>{s+=`<g class="acmod" data-c="${k}">${acArt(k,AC_CL[k],I,ACS.set)}</g>`});
   /* CT clamp symbol drawn on the position choice */
   const S=ACS.set;
-  if(AC_CL.CT)s+=`<text x="${AC_CL.CT.x+75*AC_CL.CT.s}" y="${AC_CL.CT.y+108*AC_CL.CT.s}" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="${AC_CL.CT.x+75}" y="${AC_CL.CT.y+125*AC_CL.CT.s}" class="acnote" text-anchor="middle">ลูกศรชี้ ${acCtDir()==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}${S.meterType==='meter'&&acMeterCT()?' · ต่อเข้ามิเตอร์':S.meterType==='ct'?' · ต่อเข้าอินเวอร์เตอร์':''}</text>`;
+  if(AC_CL.CT)s+=`<text x="${AC_CL.CT.x+75*AC_CL.CT.s}" y="${AC_CL.CT.y+108*AC_CL.CT.s}" class="acnote" text-anchor="middle">คล้องที่: ${({gridL:'สาย L จุดต่อกริด',loadL:'สาย L โหลดบ้าน',invL:'สาย L อินเวอร์เตอร์',N:'สาย N'})[S.ctPos]}</text><text x="${AC_CL.CT.x+75}" y="${AC_CL.CT.y+125*AC_CL.CT.s}" class="acnote" text-anchor="middle">ลูกศรชี้ ${acCtDir()==='toGrid'?'ไปทางกริด':'ไปทางบ้าน/อินเวอร์เตอร์'}${S.meterType==='meter'&&acMeterCT()?' · ต่อเข้ามิเตอร์':S.meterType==='ct'?' · ต่อเข้าอินเวอร์เตอร์':''}</text><text x="${AC_CL.CT.x+75*AC_CL.CT.s}" y="${AC_CL.CT.y+142*AC_CL.CT.s}" class="acnote" text-anchor="middle" style="fill:var(--accent)">⟲ แตะที่ CT เพื่อหมุนกลับด้าน</text>`;
   /* wires */
   const side=a=>a==='l'?[-1,0]:a==='r'?[1,0]:[0,1];
   const path=(t1,t2)=>{
@@ -569,7 +570,7 @@ function acSyncUI(I){
   ['acbt','acbc'].forEach(id=>{const e=q(id);if(e&&e.closest('label'))e.closest('label').hidden=AC_HW});
   {const b=document.querySelector('#acpre [data-acp="meter"]');if(b)b.textContent=p3?'3 เฟส ต่อถูก (สมาร์ทมิเตอร์ 3 เฟส)':'Hybrid ต่อถูก (ใช้สมาร์ทมิเตอร์)'}
   const k3=q('ackey3');if(k3)k3.hidden=!p3;
-  const hwn=AC_HW?' · ขั้วตามรุ่น Huawei: แบตต่อ COM เป็น EN/GND และ 485A2/485B2 มิเตอร์ DDSU666-H ต่อ 485A1/485B1 (CT ต่อเข้ามิเตอร์ ไม่ได้ต่อเข้าอินเวอร์เตอร์)':'';
+  const hwn=AC_HW?' · ขั้วตามรุ่น Huawei: แบตต่อ COM เป็น EN/GND และ 485A2/485B2 มิเตอร์ DDSU666-H ต่อบัสเดียวกัน 485A2 ขา 4 / 485B2 ขา 3 (CT ต่อเข้ามิเตอร์ ไม่ได้ต่อเข้าอินเวอร์เตอร์)':'';
   {const sp=q('acsup');if(sp){sp.value=isPh3(I)?'3':S.supply;sp.disabled=isPh3(I)}}
   q('acinvnote').textContent=(AC_MODE==='1x3'?`ไฟเข้าบ้าน 3 เฟส กับอินเวอร์เตอร์ 1 เฟส (${I.type==='on-grid'?'On-grid':'Hybrid'}): ต่อพอร์ต GRID L เข้าเฟสใดเฟสหนึ่ง (L1, L2 หรือ L3) กับ N ของตู้เมน วัดกริดด้วยสมาร์ทมิเตอร์ 3 เฟส`:p3?(I.type==='on-grid'?'รุ่นนี้เป็น On-grid 3 เฟส: มีพอร์ต GRID L1 L2 L3 N PE และ RS485 สำหรับสมาร์ทมิเตอร์ 3 เฟส ไม่มี BACKUP / แบตเตอรี่':`รุ่นนี้เป็น Hybrid 3 เฟส: GRID L1 L2 L3 N PE, BACKUP ${AC_MODE==='3'?'3 เฟส (ทั้งบ้าน)':'1 เฟส (ผ่าน Backup Box)'}, สมาร์ทมิเตอร์ 3 เฟส และแบตเตอรี่ ไม่มีพอร์ต GEN`)+(String(I.asym)==='1'?' · จ่ายไฟแต่ละเฟสตามโหลดได้ (asymmetric)':' · จ่ายไฟเท่ากันทุกเฟส'):I.type==='on-grid'?'รุ่นนี้เป็น On-grid: มีพอร์ต GRID, RS485 และ CT เท่านั้น ไม่มี BACKUP / GEN / แบตเตอรี่':I.type==='off-grid'?'รุ่นนี้เป็น Off-grid: ไม่มีพอร์ต GRID แบบขนานกริด ใช้ GEN เป็นทางเข้า AC และจ่ายโหลดที่ BACKUP':'รุ่นนี้เป็น Hybrid: มีครบทั้ง GRID, BACKUP, GEN, CT/มิเตอร์ และแบตเตอรี่')+hwn;
 }
@@ -650,7 +651,7 @@ function initAC(){
       const m=e.target.closest('[data-c]');
       if(m&&!e.target.closest('[data-w]')){
         e.preventDefault();const p=acPoint(svg,e),o=ACS.pos[m.dataset.c]||[0,0];
-        mv={k:m.dataset.c,sx:p.x,sy:p.y,ox:o[0],oy:o[1],moved:false};
+        mv={k:m.dataset.c,sx:p.x,sy:p.y,ox:o[0],oy:o[1],moved:false,flip:!!e.target.closest('[data-ctflip]')};
         try{svg.setPointerCapture(e.pointerId)}catch(_){}
         return;
       }
@@ -676,7 +677,7 @@ function initAC(){
     if(drag.moved)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
   });
   const end=e=>{
-    if(mv){const m=mv;mv=null;if(m.moved){acRender();touch()}else{ACS.selMod=ACS.selMod===m.k?null:m.k;acRender()}return}
+    if(mv){const m=mv;mv=null;if(m.moved){acRender();touch()}else if(m.flip){acFlipCT()}else{ACS.selMod=ACS.selMod===m.k?null:m.k;acRender()}return}
     if(!drag)return;
     const d=drag;drag=null;if(tmp){tmp.remove();tmp=null}
     if(d.moved){
@@ -694,7 +695,7 @@ function initAC(){
   const bindSel=(id,key,num)=>q(id).addEventListener('change',e=>{S[key]=num?+e.target.value:e.target.value;acRender();rerunBk();touch()});
   const bindNum=(id,key,lo,hi)=>q(id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;S[key]=Math.max(lo,Math.min(hi,n));acRender();rerunBk();touch()});
   {const sp=q('acsup');if(sp)sp.addEventListener('change',e=>{if(!['1','3'].includes(e.target.value))return;S.supply=e.target.value;acRender();if(typeof loadView==='function')loadView();rerunBk();touch()})}
-  bindSel('acmode','mode');bindSel('acstd','gridStd');bindSel('acmt','meterType');bindSel('acctp','ctPos');q('acctd').addEventListener('change',e=>{S[S.meterType==='meter'&&acMeterCT()?'mctDir':'ctDir']=e.target.value;acRender();rerunBk();touch()});
+  bindSel('acmode','mode');bindSel('acstd','gridStd');bindSel('acmt','meterType');bindSel('acctp','ctPos');q('acctflip').addEventListener('click',()=>acFlipCT());q('acctd').addEventListener('change',e=>{S[S.meterType==='meter'&&acMeterCT()?'mctDir':'ctDir']=e.target.value;acRender();rerunBk();touch()});
   bindSel('acbt','batType');bindSel('acbc','batComm');bindSel('acgen','genMode');bindSel('accg','cbGrid',true);bindSel('accb','cbBackup',true);
   bindNum('acres','reserve',0,100);bindNum('acmad','mAddr',1,247);bindNum('aciad','iAddr',1,247);bindNum('acel','expLimW',0,20000);
   bindSel('acmbd','mBaud',true);bindSel('acibd','iBaud',true);
@@ -714,4 +715,6 @@ function initAC(){
   const rh=q('acrh');if(rh){rh.addEventListener('input',e=>{ACS.rh=+e.target.value;acRender()});rh.addEventListener('change',()=>touch())}
   acRender();
 }
+/* turn the CT round on the cable (reverses the arrow) */
+function acFlipCT(){const S=ACS.set,k=S.meterType==='meter'&&acMeterCT()?'mctDir':'ctDir';S[k]=S[k]==='toGrid'?'toLoad':'toGrid';acRender();rerunBk();touch()}
 function rerunBk(){if(typeof backupRun==='function')backupRun();if(typeof evRun==='function')evRun()}

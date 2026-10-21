@@ -35,9 +35,9 @@ function acArt(k,c,I,S){
       +`<path d="M5 112H110" class="a-ground"/>`+T(52,126,'หม้อแปลง / เสาไฟ','acnote');
   }else if(k==='M'){
     g+=plate()+T(75,18,'สมาร์ทมิเตอร์','actitle')
-      +`<rect x="48" y="30" width="56" height="102" rx="8" class="a-fill"/><rect x="53" y="36" width="46" height="24" rx="3" class="a-lcd"/>`
-      +T(76,52,'0123.4','a-lcdt')+`<circle cx="76" cy="90" r="15" class="a-fill" style="stroke-width:2"/><path d="M76 90L86 81" class="a-line a-th"/><circle cx="76" cy="90" r="2.5" class="a-dark"/>`
-      +`<rect x="56" y="112" width="18" height="7" rx="2" class="a-dark"/><rect x="78" y="112" width="18" height="7" rx="2" class="a-dark"/>`+T(76,146,(typeof acMeterInfo==='function'?acMeterInfo(I).nm.replace(/^Huawei /,''):'')+' · RS485','acnote');
+      +`<g transform="translate(36.6 53.4) scale(.62)">`+`<rect x="34" y="30" width="56" height="102" rx="8" class="a-fill"/><rect x="39" y="36" width="46" height="24" rx="3" class="a-lcd"/>`
+      +T(62,52,'0123.4','a-lcdt')+`<circle cx="62" cy="90" r="15" class="a-fill" style="stroke-width:2"/><path d="M62 90L72 81" class="a-line a-th"/><circle cx="62" cy="90" r="2.5" class="a-dark"/>`
+      +`<rect x="42" y="112" width="18" height="7" rx="2" class="a-dark"/><rect x="64" y="112" width="18" height="7" rx="2" class="a-dark"/>`+`</g>`+T(75,158,(typeof acMeterInfo==='function'?acMeterInfo(I).nm.replace(/^Huawei /,''):'')+' · RS485','acnote');
   }else if(k==='DB'){
     g+=plate()+T(75,16,'ตู้เมนบ้าน','actitle')
       +`<rect x="32" y="24" width="86" height="96" rx="5" class="a-fill" style="stroke-width:2"/><path d="M38 52H112M38 98H112" class="a-line"/>`;
@@ -45,12 +45,14 @@ function acArt(k,c,I,S){
     g+=AI.house(75,38,.62)+T(75,112,'เบรกเกอร์ย่อย · โหลดทั้งบ้าน','acnote').replace('class="acnote"','class="acnote" style="font-size:9px"');
     if(p3)g+=T(75,190,'บัส L1 L2 L3 · N · PE','acnote').replace('class="acnote"','class="acnote" style="font-size:9.5px"');
   }else if(k==='CT'){
+    /* clamp on the L cable: grid on the left, house on the right; the arrow shows the CT orientation. Tap it to turn the CT round */
     const toGrid=(typeof acCtDir==='function'?acCtDir():S.ctDir)==='toGrid';
     g+=plate()+T(75,16,'CT (ตัวคล้องสาย)','actitle')
-      +`<path d="M0 46H98" class="a-wire" style="stroke:#8b5a2b"/>`
-      +`<circle cx="58" cy="46" r="24" class="a-fill" style="stroke-width:7;stroke:#46535e"/><circle cx="58" cy="46" r="14" style="fill:var(--bg);stroke:none"/>`
-      +`<path d="M58 22V28M58 64V70" class="a-line" style="stroke:var(--bg);stroke-width:3"/>`
-      +`<path d="${toGrid?'M70 80H34M34 80l6-5M34 80l6 5':'M46 80H82M82 80l-6-5M82 80l-6 5'}" class="a-line a-th" style="stroke:var(--accent)"/>`
+      +`<path d="M0 46H98" class="a-wire" style="stroke:#8b5a2b"/>`+T(4,68,'กริด','acnote','start')
+      +`<g data-ctflip="1" style="cursor:pointer"><title>แตะเพื่อหมุน CT กลับด้าน</title><rect x="28" y="14" width="62" height="78" rx="8" style="fill:transparent;stroke:none"/>`
+      +`<g transform="translate(58 46) scale(${toGrid?-1:1} 1)"><circle r="24" class="a-fill" style="stroke-width:7;stroke:#46535e"/><circle r="14" style="fill:var(--bg);stroke:none"/>`
+      +`<path d="M0 -24V-18M0 18V24" class="a-line" style="stroke:var(--bg);stroke-width:3"/></g>`
+      +`<path d="${toGrid?'M70 80H34M34 80l6-5M34 80l6 5':'M46 80H82M82 80l-6-5M82 80l-6 5'}" class="a-line a-th" style="stroke:var(--accent)"/></g>`
       +`<path d="M80 40C110 36 120 30 150 30M80 52C110 56 120 60 150 60" class="a-line" style="stroke:#e0762c"/><path d="M80 52C110 56 120 60 150 60" class="a-line" style="stroke:#9a9aa3"/>`;
   }else if(k==='GEN'){
     g+=plate()+T(85,18,'เครื่องปั่นไฟ','actitle')
@@ -90,7 +92,7 @@ function acArt(k,c,I,S){
     }else g+=band(8,146,3,100,'var(--s1)','GRID · ไฟจากกริด','')+AI.pylon(128,88,.5)
       +band(152,258,3,100,'var(--s2)','BACKUP · ไฟสำรอง','')+AI.plug(128,214,.9)
       +(hw?'':band(268,428,3,100,'var(--accent)','GEN · เครื่องปั่นไฟ','')+AI.gen(128,356,.9))
-      +band(462,hw?572:612,3,100,'var(--s3)',hw?'สมาร์ทมิเตอร์ 485A1/B1':'วัดกริด · CT / มิเตอร์','')+(hw?'':AI.meter(128,545,.9))
+      +band(462,hw?572:612,3,100,'var(--s3)',hw?'มิเตอร์ · 485A2/B2':'วัดกริด · CT / มิเตอร์','')+(hw?'':AI.meter(128,545,.9))
       +band(26,hw?262:186,160,257,'var(--pos)',hw?'BAT · COM แบต':'BAT · แบตเตอรี่','')+AI.bat(127,115,1)
       ;
     /* inverter face on the free right side */
