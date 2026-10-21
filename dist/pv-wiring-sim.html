@@ -6372,7 +6372,7 @@ function accBar(){
   if(ACC.role==='visitor'){
     b.className='accbar visitor';
     b.innerHTML=`<div class="accrow"><b>ผู้เยี่ยมชม</b><span class="hint tight">ดูได้เฉพาะ ${esc(vis.join(', ')||'—')} · ผู้เรียนกรอกข้อมูลเพื่อเริ่มใช้งานทุกเมนูที่เปิด</span></div>
-      <div class="accrow accform"><input id="accname" placeholder="ชื่อ-นามสกุล" autocomplete="name" value="${esc(MEMBER.name)}"><input id="accsid" placeholder="รหัสผู้เรียน" value="${esc(MEMBER.sid)}"><input id="acccls" type="password" placeholder="รหัสห้องอบรม" autocomplete="off" value=""><button class="btn pri" id="accgo">เข้าใช้งาน</button>
+      <div class="accrow accform"><input id="accname" placeholder="ชื่อ-นามสกุล" autocomplete="off" value=""><input id="accsid" placeholder="รหัสผู้เรียน" autocomplete="off" value=""><input id="acccls" type="password" placeholder="รหัสห้องอบรม" autocomplete="off" value=""><button class="btn pri" id="accgo">เข้าใช้งาน</button>
       <span class="accsep">ผู้สอน</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>
       <p class="simmsg" id="accmsg" role="status" hidden></p>`;
   }else if(ACC.role==='student'){
@@ -6434,7 +6434,7 @@ async function initAccess(){
   const s=(()=>{try{return JSON.parse(localStorage.getItem(ACC_KEY)||'{}')}catch(e){return{}}})();
   if(typeof TEACH!=='undefined'&&TEACH.on)ACC.role='teacher';
   else if(s.role==='student'&&s.day===accToday())ACC.role='student';
-  if(ACC.role==='visitor')accForget(false);
+  if(ACC.role==='visitor')accForget(true);
   accApply();
   accRefreshMenus();
   const bar=document.getElementById('accbar');
@@ -6449,7 +6449,7 @@ async function initAccess(){
   });
   bar.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='acctc')document.getElementById('acctgo').click();else if(e.target.closest('.accform')&&e.target.id!=='acctc')document.getElementById('accgo').click()});
   /* a saved student unlock is checked again: changed class code or removal from the roster locks the page */
-  if(ACC.role==='student'&&MEMBER.name){const ok=await accStudent(MEMBER.name,MEMBER.sid,MEMBER.cls,true);if(ok===false){ACC.role='visitor';accForget(false);accSave();accApply()}}
+  if(ACC.role==='student'&&MEMBER.name){const ok=await accStudent(MEMBER.name,MEMBER.sid,MEMBER.cls,true);if(ok===false){ACC.role='visitor';accForget(true);accSave();accApply()}}
 }
 
 /* ---- context strip: a small bar under each tab's heading showing which data that tab is using and where it comes from.
