@@ -102,10 +102,10 @@ const BUILTIN=(()=>{
   // Huawei LUNA2000-(5-30)-S0: power control module LUNA2000-5KW-C0 (5 kW, DC/DC) + 1-3 battery modules LUNA2000-5-E0 (5 kWh each)
   [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${5*n}-S0`,{chem:'Li-ion',v:450,v3:600,ah:Math.round(5*n*1000/450*100)/100,dod:95,maxChg:11.11,maxDis:11.11,maxS:1,maxP:2,compat:'Huawei',
     note:`LUNA2000-5KW-C0 (power module ชาร์จ/จ่าย 5 kW) + LUNA2000-5-E0 × ${n} (ก้อนละ 5 kWh) · ทำงาน 450 V กับอินเวอร์เตอร์ 1 เฟส (350–560 V) / 600 V กับ 3 เฟส (600–980 V) · ขนานได้ 2 ชุด รวมสูงสุด 30 kWh · ตัดจ่ายที่ SOC 5% (ค่าเริ่มต้น) · ใช้กับอินเวอร์เตอร์ Huawei เท่านั้น`}));
-  // Deye SE-G5.1 Pro-B: 51.2 V 100 Ah LFP rack battery (5.12 kWh), 100 A charge/discharge, 6000 cycles @ 90% DoD, CAN/RS485, IP20, 45 kg (ENF datasheet listing);
-  //   on Deye approved battery list DY-LV48-0109 (2025-07) for SG01/03/04/05LP1 and SG04/05LP3
-  b('Deye','SE-G5.1 Pro-B (5.12 kWh)',{v:51.2,ah:100,dod:90,maxChg:100,maxDis:100,maxP:64,
-    note:'แบต 48 V แบบแร็ค LiFePO4 51.2 V 100 Ah 5.12 kWh · ชาร์จ/จ่ายสูงสุด 100 A · 6000 รอบที่ DoD 90% · CAN/RS485 · IP20 ใช้ในอาคาร · 45 kg · อยู่ในรายชื่อแบตที่ Deye รับรอง (DY-LV48-0109)'});
+  // Deye SE-G5.1 Pro-B: datasheet in Drive (brochure 2024-11-27 V1.0): LFP 51.2 V 100 Ah 5.12 kWh, usable 5.12 kWh (100% DoD), 43.2–57.6 V,
+  //   charge/discharge 50 A recommended (2.5 kW rated) / 100 A max / 150 A peak 2 min, 64 in parallel (32 without setup), CAN2.0/RS485, IP20, 45 kg
+  b('Deye','SE-G5.1 Pro-B (5.12 kWh)',{v:51.2,ah:100,dod:100,maxChg:100,maxDis:100,maxP:64,
+    note:'แบต 48 V แบบแร็ค LiFePO4 51.2 V 100 Ah ใช้ได้ 5.12 kWh (DoD 100%) · แรงดันทำงาน 43.2–57.6 V · ชาร์จ/จ่ายแนะนำ 50 A (2.5 kW) สูงสุด 100 A พีค 150 A 2 นาที · ขนานได้ 64 ก้อน (32 ก้อนไม่ต้องตั้งค่า) · เบรกเกอร์ในตัว 125 A · CAN2.0/RS485 · IP20 ติดตั้งในอาคาร · ชาร์จที่ 0–55°C · 6000 รอบ · 45 kg · อยู่ในรายชื่อแบตที่ Deye รับรอง · ดาต้าชีต 2024-11'});
   // Huawei LUNA2000-7/14/21-S1: power module LUNA2000-10KW-C1 + 1-3 battery modules LUNA2000-7-E1 (6.9 kWh, LFP, 100% DoD). Datasheet 01-202411
   [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${7*n}-S1`,{chem:'LiFePO4',v:450,v3:600,ah:Math.round(6.9*n*1000/450*100)/100,dod:100,maxChg:Math.round(3500*n/450*100)/100,maxDis:Math.round(3500*n/450*100)/100,maxS:1,maxP:2,compat:'Huawei',
     note:`LUNA2000-10KW-C1 + LUNA2000-7-E1 × ${n} (ก้อนละ 6.9 kWh) · ใช้ได้ ${(6.9*n).toFixed(1)} kWh (DoD 100%) · ชาร์จ/จ่ายสูงสุด ${3.5*n} kW · ทำงาน 350–560 V กับอินเวอร์เตอร์ 1 เฟส / 600–980 V กับ 3 เฟส · LiFePO4 · IP66 · ใช้กับ SUN2000-KTL-M1, MAP0, LC0, MB0, L1 (ดาต้าชีต S1) และ LB0 (ดาต้าชีต LB0 01-202502) · ขนานได้สูงสุด 4 ชุดเฉพาะ MB0 · ดาต้าชีต 01-202411`}));
