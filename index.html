@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="62ed47faf8">
+<meta name="build" content="169abe42d2">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='62ed47faf8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='169abe42d2'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -164,8 +164,8 @@ if(m&&m[1]!=='62ed47faf8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <label id="acelw" for="acel">ขายได้สูงสุด (W) 0 = ห้ามขาย<input id="acel" type="number" inputmode="numeric" min="0" step="100"></label>
       </div>
       <div class="row3" id="acctbox">
-        <label for="acctp">ตำแหน่งคล้อง CT<select id="acctp"><option value="gridL">สาย L ที่จุดต่อกริด (ถูกต้อง)</option><option value="loadL">สาย L ของโหลดบ้าน</option><option value="invL">สาย L ของอินเวอร์เตอร์</option><option value="N">สาย N</option></select></label>
-        <label for="acctd">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label>
+        <label for="acctp" id="acctpl">ตำแหน่งคล้อง CT<select id="acctp"><option value="gridL">สาย L ที่จุดต่อกริด (ถูกต้อง)</option><option value="loadL">สาย L ของโหลดบ้าน</option><option value="invL">สาย L ของอินเวอร์เตอร์</option><option value="N">สาย N</option></select></label>
+        <label for="acctd" id="acctdl">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label>
       </div>
       <div class="row3" id="acmeterbox">
         <label for="acmad">แอดเดรสมิเตอร์<input id="acmad" type="number" min="1" max="247"></label>
@@ -173,6 +173,7 @@ if(m&&m[1]!=='62ed47faf8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <label for="aciad">แอดเดรสที่ตั้งในอินเวอร์เตอร์<input id="aciad" type="number" min="1" max="247"></label>
         <label for="acibd">Baud ที่ตั้งในอินเวอร์เตอร์<select id="acibd"><option value="2400">2400</option><option value="4800">4800</option><option value="9600">9600</option><option value="19200">19200</option></select></label>
       </div>
+      <p class="hint tight" id="acmnote" hidden></p>
       <div class="row3">
         <label for="acbt">ชนิดแบตเตอรี่<select id="acbt"><option value="li">ลิเธียม (มี BMS)</option><option value="lead">ตะกั่วกรด</option></select></label>
         <label for="acbc">สื่อสารกับ BMS<select id="acbc"><option value="can">CAN</option><option value="rs485">RS485</option><option value="none">ไม่ใช้</option></select></label>
@@ -512,8 +513,8 @@ if(m&&m[1]!=='62ed47faf8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/model.js?v=f5bf7887"></script>
 <script src="js/engine.js?v=0c08839d"></script>
 <script src="js/wiring.js?v=431b1ab5"></script>
-<script src="js/acart.js?v=f733ded9"></script>
-<script src="js/acsys.js?v=142656c7"></script>
+<script src="js/acart.js?v=a3b82336"></script>
+<script src="js/acsys.js?v=2b9c8b60"></script>
 <script src="js/acmicro.js?v=622b90f2"></script>
 <script src="js/solar.js?v=7d664a76"></script>
 <script src="js/site.js?v=68afc494"></script>
@@ -528,6 +529,6 @@ if(m&&m[1]!=='62ed47faf8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/worksheets.js?v=f8ef6079"></script>
 <script src="js/access.js?v=8f712e15"></script>
 <script src="js/ctx.js?v=c2d1f26b"></script>
-<script src="js/app.js?v=1af21d71"></script>
+<script src="js/app.js?v=45750d5a"></script>
 </body>
 </html>

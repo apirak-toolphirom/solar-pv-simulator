@@ -148,7 +148,7 @@ function restoreExtra(p){
     });
     ACS.rh=num(p.ac.rh,12,0,23.75);
     const s=p.ac.set||{},S=ACS.set,pick=(k,opts)=>{if(opts.includes(s[k]))S[k]=s[k]};
-    pick('supply',['1','3']);pick('mode',['selfuse','feedin','backup']);pick('gridStd',['PEA','MEA','other']);pick('meterType',['ct','meter','none']);pick('ctPos',['gridL','loadL','invL','N']);pick('ctDir',['toGrid','toLoad']);
+    pick('supply',['1','3']);pick('mode',['selfuse','feedin','backup']);pick('gridStd',['PEA','MEA','other']);pick('meterType',['ct','meter','none']);pick('ctPos',['gridL','loadL','invL','N']);pick('ctDir',['toGrid','toLoad']);pick('mctDir',['toGrid','toLoad']);
     pick('batType',['li','lead']);pick('batComm',['can','rs485','none']);pick('genMode',['off','charge','supply']);pick('mBaud',[2400,4800,9600,19200]);pick('iBaud',[2400,4800,9600,19200]);
     pick('cbGrid',[16,20,25,32,40,50,63]);pick('cbBackup',[16,20,25,32,40,50,63]);
     S.reserve=num(s.reserve,20,0,100);S.expLimW=num(s.expLimW,0,0,20000);S.mAddr=num(s.mAddr,1,1,247);S.iAddr=num(s.iAddr,1,1,247);S.expLimOn=!!s.expLimOn;S.backupEn=s.backupEn!==false;

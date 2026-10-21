@@ -37,7 +37,7 @@ function acArt(k,c,I,S){
     g+=plate()+T(75,18,'สมาร์ทมิเตอร์','actitle')
       +`<rect x="48" y="30" width="56" height="102" rx="8" class="a-fill"/><rect x="53" y="36" width="46" height="24" rx="3" class="a-lcd"/>`
       +T(76,52,'0123.4','a-lcdt')+`<circle cx="76" cy="90" r="15" class="a-fill" style="stroke-width:2"/><path d="M76 90L86 81" class="a-line a-th"/><circle cx="76" cy="90" r="2.5" class="a-dark"/>`
-      +`<rect x="56" y="112" width="18" height="7" rx="2" class="a-dark"/><rect x="78" y="112" width="18" height="7" rx="2" class="a-dark"/>`+T(76,148,hw?'DDSU666-H · RS485':'RS485','acnote');
+      +`<rect x="56" y="112" width="18" height="7" rx="2" class="a-dark"/><rect x="78" y="112" width="18" height="7" rx="2" class="a-dark"/>`+T(76,146,(typeof acMeterInfo==='function'?acMeterInfo(I).nm.replace(/^Huawei /,''):'')+' · RS485','acnote');
   }else if(k==='DB'){
     g+=plate()+T(75,16,'ตู้เมนบ้าน','actitle')
       +`<rect x="32" y="24" width="86" height="96" rx="5" class="a-fill" style="stroke-width:2"/><path d="M38 52H112M38 98H112" class="a-line"/>`;
@@ -45,7 +45,7 @@ function acArt(k,c,I,S){
     g+=AI.house(75,38,.62)+T(75,112,'เบรกเกอร์ย่อย · โหลดทั้งบ้าน','acnote').replace('class="acnote"','class="acnote" style="font-size:9px"');
     if(p3)g+=T(75,190,'บัส L1 L2 L3 · N · PE','acnote').replace('class="acnote"','class="acnote" style="font-size:9.5px"');
   }else if(k==='CT'){
-    const toGrid=S.ctDir==='toGrid';
+    const toGrid=(typeof acCtDir==='function'?acCtDir():S.ctDir)==='toGrid';
     g+=plate()+T(75,16,'CT (ตัวคล้องสาย)','actitle')
       +`<path d="M0 46H98" class="a-wire" style="stroke:#8b5a2b"/>`
       +`<circle cx="58" cy="46" r="24" class="a-fill" style="stroke-width:7;stroke:#46535e"/><circle cx="58" cy="46" r="14" style="fill:var(--bg);stroke:none"/>`

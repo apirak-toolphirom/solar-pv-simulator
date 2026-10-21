@@ -149,8 +149,8 @@
         <label id="acelw" for="acel">ขายได้สูงสุด (W) 0 = ห้ามขาย<input id="acel" type="number" inputmode="numeric" min="0" step="100"></label>
       </div>
       <div class="row3" id="acctbox">
-        <label for="acctp">ตำแหน่งคล้อง CT<select id="acctp"><option value="gridL">สาย L ที่จุดต่อกริด (ถูกต้อง)</option><option value="loadL">สาย L ของโหลดบ้าน</option><option value="invL">สาย L ของอินเวอร์เตอร์</option><option value="N">สาย N</option></select></label>
-        <label for="acctd">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label>
+        <label for="acctp" id="acctpl">ตำแหน่งคล้อง CT<select id="acctp"><option value="gridL">สาย L ที่จุดต่อกริด (ถูกต้อง)</option><option value="loadL">สาย L ของโหลดบ้าน</option><option value="invL">สาย L ของอินเวอร์เตอร์</option><option value="N">สาย N</option></select></label>
+        <label for="acctd" id="acctdl">ลูกศร CT ชี้<select id="acctd"><option value="toGrid">ไปทางกริด (ตามคู่มือ Solis)</option><option value="toLoad">ไปทางบ้าน/อินเวอร์เตอร์</option></select></label>
       </div>
       <div class="row3" id="acmeterbox">
         <label for="acmad">แอดเดรสมิเตอร์<input id="acmad" type="number" min="1" max="247"></label>
@@ -158,6 +158,7 @@
         <label for="aciad">แอดเดรสที่ตั้งในอินเวอร์เตอร์<input id="aciad" type="number" min="1" max="247"></label>
         <label for="acibd">Baud ที่ตั้งในอินเวอร์เตอร์<select id="acibd"><option value="2400">2400</option><option value="4800">4800</option><option value="9600">9600</option><option value="19200">19200</option></select></label>
       </div>
+      <p class="hint tight" id="acmnote" hidden></p>
       <div class="row3">
         <label for="acbt">ชนิดแบตเตอรี่<select id="acbt"><option value="li">ลิเธียม (มี BMS)</option><option value="lead">ตะกั่วกรด</option></select></label>
         <label for="acbc">สื่อสารกับ BMS<select id="acbc"><option value="can">CAN</option><option value="rs485">RS485</option><option value="none">ไม่ใช้</option></select></label>
