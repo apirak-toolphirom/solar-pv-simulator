@@ -132,7 +132,16 @@ function niceStep(raw){
   for(const c of [1,1.5,2,2.5,5,10]){if(c*e>=raw-1e-9)return c*e}
   return 10*e;
 }
+/* legend buttons: click a series name to hide/show its line (kept per chart while the page is open) */
+const LEGOFF=new Set(),LEGDRAW={};
+function legHTML(id,series,extra,redraw){
+  if(redraw)LEGDRAW[id]=redraw;
+  return series.map(se=>{const off=LEGOFF.has(id+'|'+se.short);return`<button type="button" class="lg lgb" data-leg="${id}" data-s="${esc(se.short)}" aria-pressed="${!off}" title="กดเพื่อซ่อน/แสดงเส้นนี้"><i class="lk" style="background:${se.color}"></i>${se.short}</button>`}).join('')+(extra||'');
+}
+document.addEventListener('click',e=>{const b=e.target.closest('.lgb');if(!b)return;const k=b.dataset.leg+'|'+b.dataset.s;
+  if(LEGOFF.has(k))LEGOFF.delete(k);else LEGOFF.add(k);b.setAttribute('aria-pressed',String(!LEGOFF.has(k)));const f=LEGDRAW[b.dataset.leg];if(f)f()});
 function drawLine(host,c){
+  if(c.leg)c=Object.assign({},c,{series:c.series.filter(se=>!LEGOFF.has(c.leg+'|'+se.short))});
   const W=Math.max(280,host.clientWidth||600),H=240,ml=46,mr=16,mt=22,mb=28,iw=W-ml-mr,ih=H-mt-mb;
   const x0=c.xmin!=null?c.xmin:c.x[0],x1=c.xmax!=null?c.xmax:c.x[c.x.length-1],stp=niceStep(c.ymax/4),ymax=stp*4;
   const sx=t=>ml+(t-x0)/(x1-x0)*iw,sy=v=>mt+ih-(v/ymax)*ih;
@@ -269,8 +278,9 @@ function runSimView(){
       refs:[{y:I.start,label:`แรงดันเริ่มทำงาน ${I.start} V`}],
       series:blocks.map((bk,j)=>bk?{short:`MPPT ${j+1} (${bk.ns} แผงอนุกรม)`,color:j?'var(--s2)':'var(--s1)',vals:sl(R.vmp[j]),fmt:v=>f(v,0)}:null).filter(Boolean)}
   };
-  $('#lgA').innerHTML=chartCfg.A.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
-  $('#lgB').innerHTML=chartCfg.B.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('')+`<span class="lg"><i class="lb"></i>ช่วง MPPT</span>`;
+  chartCfg.A.leg='lgA';chartCfg.B.leg='lgB';
+  $('#lgA').innerHTML=legHTML('lgA',chartCfg.A.series,'',drawCharts);
+  $('#lgB').innerHTML=legHTML('lgB',chartCfg.B.series,`<span class="lg"><i class="lb"></i>ช่วง MPPT</span>`,drawCharts);
   drawCharts();
   const E8=DIRS.map(d=>simDay(blocks,I,SIM.tilt,d[1],15).E),eMax=Math.max(...E8,0.001);
   const selI=Math.round(SIM.az/45)%8;

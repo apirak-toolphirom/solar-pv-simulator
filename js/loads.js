@@ -80,7 +80,7 @@ function loadView(){
     refs:I.pac&&pk>I.pac*0.3?[{y:I.pac/1000,label:`พิกัด AC ${I.pac/1000} kW`}]:[],
     series:[{short:'โหลดทั้งหมด',color:'var(--s1)',vals:P.all.map(v=>v/1000),area:true,peak:true,fmt:v=>f(v,2)},
             {short:'โหลดสำคัญ',color:'var(--s2)',vals:P.crit.map(v=>v/1000),fmt:v=>f(v,2)}]};
-  $('#ldleg').innerHTML=loadChartCfg.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
+  loadChartCfg.leg='ldleg';$('#ldleg').innerHTML=legHTML('ldleg',loadChartCfg.series,'',drawLoadChart);
   drawLoadChart();
 }
 function drawLoadChart(){if(loadChartCfg&&$('#chL').clientWidth)drawLine($('#chL'),Object.assign({},loadChartCfg,{ymax:Math.max(loadChartCfg.ymax,loadChartCfg.refs.length?loadChartCfg.refs[0].y*1.08:0)}))}

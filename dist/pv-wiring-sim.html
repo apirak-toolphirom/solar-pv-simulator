@@ -146,6 +146,10 @@ input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
 .tip .tn{color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--muted)}
 .lg{display:inline-flex;align-items:center;gap:6px}
+.lgb{font:inherit;color:inherit;background:none;border:1px solid transparent;border-radius:999px;padding:2px 8px;cursor:pointer}
+.lgb:hover{border-color:var(--line)}
+.lgb[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+.lgb[aria-pressed="false"] .lk{background:var(--muted)!important}
 .lk{display:inline-block;width:16px;height:3px;border-radius:2px}
 .lb{display:inline-block;width:14px;height:10px;border-radius:2px;background:var(--band);outline:1px solid var(--line)}
 .bars{display:flex;flex-direction:column;gap:6px}
@@ -3155,7 +3159,16 @@ function niceStep(raw){
   for(const c of [1,1.5,2,2.5,5,10]){if(c*e>=raw-1e-9)return c*e}
   return 10*e;
 }
+/* legend buttons: click a series name to hide/show its line (kept per chart while the page is open) */
+const LEGOFF=new Set(),LEGDRAW={};
+function legHTML(id,series,extra,redraw){
+  if(redraw)LEGDRAW[id]=redraw;
+  return series.map(se=>{const off=LEGOFF.has(id+'|'+se.short);return`<button type="button" class="lg lgb" data-leg="${id}" data-s="${esc(se.short)}" aria-pressed="${!off}" title="กดเพื่อซ่อน/แสดงเส้นนี้"><i class="lk" style="background:${se.color}"></i>${se.short}</button>`}).join('')+(extra||'');
+}
+document.addEventListener('click',e=>{const b=e.target.closest('.lgb');if(!b)return;const k=b.dataset.leg+'|'+b.dataset.s;
+  if(LEGOFF.has(k))LEGOFF.delete(k);else LEGOFF.add(k);b.setAttribute('aria-pressed',String(!LEGOFF.has(k)));const f=LEGDRAW[b.dataset.leg];if(f)f()});
 function drawLine(host,c){
+  if(c.leg)c=Object.assign({},c,{series:c.series.filter(se=>!LEGOFF.has(c.leg+'|'+se.short))});
   const W=Math.max(280,host.clientWidth||600),H=240,ml=46,mr=16,mt=22,mb=28,iw=W-ml-mr,ih=H-mt-mb;
   const x0=c.xmin!=null?c.xmin:c.x[0],x1=c.xmax!=null?c.xmax:c.x[c.x.length-1],stp=niceStep(c.ymax/4),ymax=stp*4;
   const sx=t=>ml+(t-x0)/(x1-x0)*iw,sy=v=>mt+ih-(v/ymax)*ih;
@@ -3292,8 +3305,9 @@ function runSimView(){
       refs:[{y:I.start,label:`แรงดันเริ่มทำงาน ${I.start} V`}],
       series:blocks.map((bk,j)=>bk?{short:`MPPT ${j+1} (${bk.ns} แผงอนุกรม)`,color:j?'var(--s2)':'var(--s1)',vals:sl(R.vmp[j]),fmt:v=>f(v,0)}:null).filter(Boolean)}
   };
-  $('#lgA').innerHTML=chartCfg.A.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
-  $('#lgB').innerHTML=chartCfg.B.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('')+`<span class="lg"><i class="lb"></i>ช่วง MPPT</span>`;
+  chartCfg.A.leg='lgA';chartCfg.B.leg='lgB';
+  $('#lgA').innerHTML=legHTML('lgA',chartCfg.A.series,'',drawCharts);
+  $('#lgB').innerHTML=legHTML('lgB',chartCfg.B.series,`<span class="lg"><i class="lb"></i>ช่วง MPPT</span>`,drawCharts);
   drawCharts();
   const E8=DIRS.map(d=>simDay(blocks,I,SIM.tilt,d[1],15).E),eMax=Math.max(...E8,0.001);
   const selI=Math.round(SIM.az/45)%8;
@@ -3842,7 +3856,7 @@ function loadView(){
     refs:I.pac&&pk>I.pac*0.3?[{y:I.pac/1000,label:`พิกัด AC ${I.pac/1000} kW`}]:[],
     series:[{short:'โหลดทั้งหมด',color:'var(--s1)',vals:P.all.map(v=>v/1000),area:true,peak:true,fmt:v=>f(v,2)},
             {short:'โหลดสำคัญ',color:'var(--s2)',vals:P.crit.map(v=>v/1000),fmt:v=>f(v,2)}]};
-  $('#ldleg').innerHTML=loadChartCfg.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
+  loadChartCfg.leg='ldleg';$('#ldleg').innerHTML=legHTML('ldleg',loadChartCfg.series,'',drawLoadChart);
   drawLoadChart();
 }
 function drawLoadChart(){if(loadChartCfg&&$('#chL').clientWidth)drawLine($('#chL'),Object.assign({},loadChartCfg,{ymax:Math.max(loadChartCfg.ymax,loadChartCfg.refs.length?loadChartCfg.refs[0].y*1.08:0)}))}
@@ -4042,7 +4056,8 @@ function backupRun(){
   if(BK.mode!=='grid')bkCfg.B={x,xmin:0,xmax:24,ymax:100,unit:'%',aria:'กราฟสถานะประจุแบต SOC ตลอดวัน',vb,vbl:'ไฟดับ',
     refs:[{y:R.Emin/R.cap*100,label:`SOC ขั้นต่ำ ${f(R.Emin/R.cap*100,0)}%`}],series:[{short:'SOC แบต',color:'var(--s3)',vals:R.soc,area:true,fmt:v=>f(v,0)}]};
   else bkCfg.B=null;
-  $('#bkleg1').innerHTML=s1.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('')+(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':'');
+  bkCfg.A.leg='bkleg1';
+  $('#bkleg1').innerHTML=legHTML('bkleg1',s1,(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':''),drawBackup);
   $('#bkcard2').hidden=!bkCfg.B;
   drawBackup();
   if(typeof acRender==='function'&&typeof AC_MODE!=='undefined'&&AC_MODE&&AC_MODE!=='1')acRender();
@@ -4225,7 +4240,7 @@ function syRun(){
   const top=Math.max(Math.max(...R.pv),Math.max(...R.load),1)/1000*1.1;
   syCfg={A:{x,xmin:0,xmax:24,ymax:top,unit:'kW',aria:'กราฟกำลังตลอดวันของระบบที่เลือก',vb,vbl:'ไฟดับ',series:se},
     B:s.bat?{x,xmin:0,xmax:24,ymax:100,unit:'%',aria:'กราฟ SOC แบตของระบบที่เลือก',vb,vbl:'ไฟดับ',refs:[{y:R.Emin/R.cap*100,label:`SOC ต่ำสุดที่ใช้ได้ ${f(R.Emin/R.cap*100,0)}%`}].concat(s.grid?[{y:SY.btg,label:`กลับไปใช้กริดที่ ${SY.btg}%`}]:[]),series:[{short:'SOC แบต',color:'var(--s3)',vals:R.soc,area:true,fmt:v=>f(v,0)}]}:null};
-  document.getElementById('syleg').innerHTML=se.map(q=>`<span class="lg"><i class="lk" style="background:${q.color}"></i>${q.short}</span>`).join('')+(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':'');
+  syCfg.A.leg='syleg';document.getElementById('syleg').innerHTML=legHTML('syleg',se,vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':'',drawSys);
   document.getElementById('sycard2').hidden=!syCfg.B;
   drawSys();
 }
@@ -4534,7 +4549,7 @@ function evRun(){
     B:{x:xs,ymax:90,unit:'°',aria:'กราฟมุมเงยของดวงอาทิตย์ตลอดวัน',vb:shadeBands,vbl:shadeBands.length?'ต้นไม้บังแสง':'',
       refs:(EV.tree.on?[{y:treeLimit()*180/Math.PI,label:`ยอดต้นไม้ ${f(treeLimit()*180/Math.PI,0)}°`}]:[]).concat(EV.bld.on?[{y:bldLimit()*180/Math.PI,label:`ขอบตึก ${f(bldLimit()*180/Math.PI,0)}°`}]:[]),
       series:[{short:'มุมเงยดวงอาทิตย์',color:'var(--s2)',vals:sl(R.elev).map(e=>Math.max(0,e*180/Math.PI)),area:true,fmt:v=>f(v,0)}]}};
-  document.getElementById('evleg1').innerHTML=evCfg.A.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
+  evCfg.A.leg='evleg1';document.getElementById('evleg1').innerHTML=legHTML('evleg1',evCfg.A.series,'',drawEvCharts);
   drawEvCharts();
   /* seasons table */
   const rows=SEASONS.map(se=>{

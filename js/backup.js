@@ -157,7 +157,8 @@ function backupRun(){
   if(BK.mode!=='grid')bkCfg.B={x,xmin:0,xmax:24,ymax:100,unit:'%',aria:'กราฟสถานะประจุแบต SOC ตลอดวัน',vb,vbl:'ไฟดับ',
     refs:[{y:R.Emin/R.cap*100,label:`SOC ขั้นต่ำ ${f(R.Emin/R.cap*100,0)}%`}],series:[{short:'SOC แบต',color:'var(--s3)',vals:R.soc,area:true,fmt:v=>f(v,0)}]};
   else bkCfg.B=null;
-  $('#bkleg1').innerHTML=s1.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('')+(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':'');
+  bkCfg.A.leg='bkleg1';
+  $('#bkleg1').innerHTML=legHTML('bkleg1',s1,(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':''),drawBackup);
   $('#bkcard2').hidden=!bkCfg.B;
   drawBackup();
   if(typeof acRender==='function'&&typeof AC_MODE!=='undefined'&&AC_MODE&&AC_MODE!=='1')acRender();

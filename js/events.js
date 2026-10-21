@@ -257,7 +257,7 @@ function evRun(){
     B:{x:xs,ymax:90,unit:'°',aria:'กราฟมุมเงยของดวงอาทิตย์ตลอดวัน',vb:shadeBands,vbl:shadeBands.length?'ต้นไม้บังแสง':'',
       refs:(EV.tree.on?[{y:treeLimit()*180/Math.PI,label:`ยอดต้นไม้ ${f(treeLimit()*180/Math.PI,0)}°`}]:[]).concat(EV.bld.on?[{y:bldLimit()*180/Math.PI,label:`ขอบตึก ${f(bldLimit()*180/Math.PI,0)}°`}]:[]),
       series:[{short:'มุมเงยดวงอาทิตย์',color:'var(--s2)',vals:sl(R.elev).map(e=>Math.max(0,e*180/Math.PI)),area:true,fmt:v=>f(v,0)}]}};
-  document.getElementById('evleg1').innerHTML=evCfg.A.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
+  evCfg.A.leg='evleg1';document.getElementById('evleg1').innerHTML=legHTML('evleg1',evCfg.A.series,'',drawEvCharts);
   drawEvCharts();
   /* seasons table */
   const rows=SEASONS.map(se=>{

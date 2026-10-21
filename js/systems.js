@@ -143,7 +143,7 @@ function syRun(){
   const top=Math.max(Math.max(...R.pv),Math.max(...R.load),1)/1000*1.1;
   syCfg={A:{x,xmin:0,xmax:24,ymax:top,unit:'kW',aria:'กราฟกำลังตลอดวันของระบบที่เลือก',vb,vbl:'ไฟดับ',series:se},
     B:s.bat?{x,xmin:0,xmax:24,ymax:100,unit:'%',aria:'กราฟ SOC แบตของระบบที่เลือก',vb,vbl:'ไฟดับ',refs:[{y:R.Emin/R.cap*100,label:`SOC ต่ำสุดที่ใช้ได้ ${f(R.Emin/R.cap*100,0)}%`}].concat(s.grid?[{y:SY.btg,label:`กลับไปใช้กริดที่ ${SY.btg}%`}]:[]),series:[{short:'SOC แบต',color:'var(--s3)',vals:R.soc,area:true,fmt:v=>f(v,0)}]}:null};
-  document.getElementById('syleg').innerHTML=se.map(q=>`<span class="lg"><i class="lk" style="background:${q.color}"></i>${q.short}</span>`).join('')+(vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':'');
+  syCfg.A.leg='syleg';document.getElementById('syleg').innerHTML=legHTML('syleg',se,vb.length?'<span class="lg"><i class="lb" style="background:var(--warnbg)"></i>ช่วงไฟดับ</span>':'',drawSys);
   document.getElementById('sycard2').hidden=!syCfg.B;
   drawSys();
 }
