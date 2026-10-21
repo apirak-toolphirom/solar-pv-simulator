@@ -120,6 +120,16 @@ const BUILTIN=(()=>{
   [[695,48.3,40.3,18.28,17.25,22.4],[700,48.6,40.5,18.32,17.29,22.5],[705,48.8,40.7,18.36,17.33,22.7],[710,49.0,40.9,18.40,17.36,22.9],[715,49.2,41.1,18.44,17.40,23.0],[720,49.4,41.3,18.49,17.44,23.2]]
     .forEach(([w,voc,vmp,isc,imp,eff])=>pan.push({id:slug('trina tsm-'+w+'neg21c.20'),brand:'Trina Solar',model:`TSM-${w}NEG21C.20 Vertex N (${w} W)`,pmax:w,voc,vmp,isc,imp,kVoc:-0.24,kPmax:-0.29,kIsc:0.04,noct:43,builtin:1,
       note:`N-type TOPCon สองหน้า 132 เซลล์ · ประสิทธิภาพ ${eff}% · bifaciality 80±5% (ค่าที่ใช้เป็นด้านหน้าอย่างเดียว ด้านหลังเพิ่มได้ 5–10%) · 2384×1303×33 mm 38.3 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 35 A`}));
+  // Solis S6-GR1P(2.5-6)K-S: single-phase on-grid, datasheet V1.9 2024-10 (6K-S is in the default list). 550 V, 16 A / Isc 22 A per MPPT, 2 MPPT.
+  //   Two-column rows read as 2.5–3.6K: rated 250 V, start 60 V, MPPT 50–550 V; 4–6K: 330 V, 100 V, 90–550 V; EU eff grouped (check the datasheet)
+  [[2.5,3750,96.5],[3,4500,96.5],[3.6,5400,96.6],[4,6000,97.1],[4.6,6900,97.1],[5,7500,97.1]].forEach(([k,rec,eu])=>{const lowV=k<4;inv.push({id:slug(`solis s6-gr1p${k}k-s`),brand:'Solis',model:`S6-GR1P${k}K-S`,type:'on-grid',phase:'1',
+    pac:k*1000,vmax:550,lo:lowV?50:90,hi:550,start:lowV?60:100,imax:16,isc:22,pvRec:rec,eff:eu,builtin:1,
+    note:`On-grid 1 เฟส 220/230 V · 2 MPPT 16 A / Isc 22 A · MPPT ${lowV?'50':'90'}–550 V เริ่มทำงาน ${lowV?60:100} V · กระแสออกสูงสุด ${(k*1000/220).toFixed(1)} A · ไม่มีช่องแบต · ดาต้าชีต S6-GR1P(2.5-6)K-S 2024-10 (ค่าช่วงแรงดันและ eff แบ่งกลุ่มตามการอ่านตาราง ควรตรวจซ้ำ)`})});
+  // Solis S6-EH3P(5-10)K-H: three-phase hybrid, HV battery 120–600 V. Datasheet EU V1.8 2024-10: 1000 V, MPPT 200–850 V, start 160 V, 16 A / Isc 24 A per MPPT,
+  //   charge/discharge 25 A (5–6K) / 50 A (8–10K) read from a two-value row; MPPT 3 (5–8K) / 4 (10K) read from a two-value row (check the datasheet)
+  [[5,10000,96.77,25,3,8],[6,12000,97.10,25,3,9.6],[8,16000,97.41,50,3,12.8],[10,20000,97.51,50,4,16]].forEach(([k,rec,eu,ib,nm,pk])=>inv.push({id:slug(`solis s6-eh3p${k}k-h`),brand:'Solis',model:`S6-EH3P${k}K-H`,type:'hybrid',phase:'3',asym:'0',bph:'3',
+    pac:k*1000,nmppt:nm,vmax:1000,lo:200,hi:850,start:160,imax:16,isc:24,pvRec:rec,eff:eu,bvMin:120,bvMax:600,bchg:k,bdis:k,backupKw:k,builtin:1,
+    note:`Hybrid 3 เฟส 380/400 V แบตแรงดันสูง 120–600 V กระแสแบต ${ib} A ชาร์จ/จ่าย ${k} kW · ${nm} MPPT 16 A / Isc 24 A · MPPT 200–850 V · Backup ${k} kW (สูงสุด ${pk} kVA 60 วินาที) · แบต 48 V ใช้ไม่ได้ · ดาต้าชีต EU 2024-10 (จำนวน MPPT และกระแสแบตตีความจากตาราง ควรตรวจซ้ำ)`}));
   return{inverters:inv,batteries:bat,panels:pan};
 })();
 
@@ -157,7 +167,7 @@ function batCompat(b,I){
   if(ib==='huawei')return false;/* Huawei inverters only take LUNA2000 batteries */
   /* battery voltage: some series count of this battery must land inside the inverter's battery window */
   const lo=+I.bvMin||0,hi=+I.bvMax||0;
-  if(hi>0){const v=(isPh3(I)&&+b.v3>0)?+b.v3:+b.v||0,ms=+b.maxS>0?+b.maxS:16;
+  if(hi>0){const v=(isPh3(I)&&+b.v3>0)?+b.v3:+b.v||0,ms=+b.maxS>0?+b.maxS:1;/* series stacking only when the battery datasheet allows it */
     if(v>0){let ok=false;for(let s=1;s<=ms;s++){const V=v*s;if(V>=lo-0.5&&V<=hi+0.5){ok=true;break}}if(!ok)return false}}
   return true;
 }
