@@ -4561,7 +4561,7 @@ function bkaInvPic(I){
   const show=on=>{img.style.display=on?'':'none';body.style.display=on?'none':'';lcd.setAttribute('transform',on?'translate(0 -70)':'');
     document.getElementById('bainvl').setAttribute('y',on?316:303);document.getElementById('bainvm').setAttribute('y',on?331:319)};
   if(!k||BKA.picBad[k]){show(false);return}
-  if(img.dataset.k!==k){img.dataset.k=k;img.onerror=()=>{BKA.picBad[k]=1;show(false)};img.setAttribute('href','img/inv/'+k+'.png?v=2')}
+  if(img.dataset.k!==k){img.dataset.k=k;img.onerror=()=>{BKA.picBad[k]=1;show(false)};img.setAttribute('href','img/inv/'+k+'.png?v=3')}
   show(true);
 }
 /* time cursor on the menu 07 charts follows the animation time; click a chart to jump the animation there */
