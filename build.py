@@ -13,11 +13,16 @@ body=R('app.html')
 V=lambda p:hashlib.sha1(R(p).encode('utf-8')).hexdigest()[:8]
 for n in JS:
     assert '</script' not in R(f'js/{n}.js'),n
+BUILD=hashlib.sha1((''.join(R(f'js/{n}.js') for n in JS)+R('css/styles.css')+body).encode('utf-8')).hexdigest()[:10]
 dev=f'''<!doctype html>
 <html lang="th">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="build" content="{BUILD}">
+<script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
+addEventListener('load',()=>{{try{{fetch(location.pathname+'?nc='+Date.now(),{{cache:'no-store'}}).then(r=>r.text()).then(t=>{{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
+if(m&&m[1]!=='{BUILD}'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){{sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}}}).catch(()=>{{}})}}catch(e){{}}}});</script>
 <title>{TITLE}</title>
 <script>try{{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}}catch(e){{document.documentElement.dataset.theme='light'}}</script>
 <link rel="stylesheet" href="{FONTS}">
