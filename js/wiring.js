@@ -26,7 +26,7 @@ function rotPanel(id){
   p.rot=((p.rot||0)+1)%4;clampPanel(p);st.sel=id;render();
 }
 const typeOf=k=>k.slice(-1);
-const allKeys=()=>{const a=[];st.panels.forEach(p=>a.push(p.id+':p',p.id+':n'));return a.concat(['i1:p','i1:n','i2:p','i2:n'])};
+const allKeys=()=>{const a=[];st.panels.forEach(p=>a.push(p.id+':p',p.id+':n'));return a.concat(mpKeys())};
 function pt(e){const m=svg.getScreenCTM();if(!m)return{x:0,y:0};const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());return{x:p.x,y:p.y}}
 function nearest(p,exclude){
   let best=null,bd=tr*2.4;
@@ -50,7 +50,7 @@ function drawSvg(A){
   A.res.forEach(r=>{
     const k=r.k,B=INV[k-1],iw=ibW(k),ih=ibH(k),hz=ibHz(k),b=invBlk(k),cls=r.lvl==='idle'?'':r.lvl;
     s+=`<g class="invbox${invMove&&invMove.k===k?' moving':''}" data-inv="${k}"><title>ลากเพื่อย้าย MPPT ${k}</title>`;
-    s+=`<text class="svgt b" x="${B.x+iw/2}" y="${B.r===1?B.y+ih+20:B.y-12}" text-anchor="middle">${esc(A.I.name)}</text>`;
+    s+=`<text class="svgt b" x="${B.x+iw/2}" y="${B.r===1?B.y+ih+20:B.y-12}" text-anchor="middle">${k===1?esc(A.I.name):''}</text>`;
     s+=`<rect class="inv" x="${B.x}" y="${B.y}" width="${iw}" height="${ih}" rx="8"/>`;
     s+=`<rect class="mp ${cls}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="6"/>`;
     const lx=b.x+(hz?12:20),ly=hz?b.y+(B.r===1?62:40):b.y+48;
@@ -69,7 +69,7 @@ function drawSvg(A){
   st.panels.forEach(p=>{
     const cx=p.x+PW/2,cy=p.y+PH/2,vert=(p.rot||0)%2===1;
     let lab='';
-    if(S>=.45)lab=`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${S>=.7?cy-2:cy+fsz*.35}">#${p.id}</text>`+(S>=.7?`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${cy+13*S+2}">${PV.pmax} W</text>`:'');
+    if(S>=.45)lab=`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${S>=.7?cy-2:cy+fsz*.35}">#${p.id}</text>`+(S>=.7?`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${cy+13*S+2}">${(A.pk[p.id]?mpPV(A.pk[p.id]):PV).pmax} W</text>`:'');
     s+=`<g class="panel${st.sel===p.id?' sel':''}${A.si.cyc.has(p.id)?' shorted':''}" data-panel="${p.id}"><g transform="rotate(${(p.rot||0)*90} ${cx} ${cy})"><rect class="pbody" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3"/><rect class="cells" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3" fill="url(#cells)"/></g>${lab}</g>`;
     if(st.sel===p.id){const rx=vert?cx+PH/2+20:cx,ry=vert?cy:cy-PH/2-20;s+=`<g class="rot" data-rot="${p.id}"><circle cx="${rx}" cy="${ry}" r="13"/><text x="${rx}" y="${ry+5}">↻</text><title>หมุนแผง 90°</title></g>`}
   });
@@ -131,6 +131,7 @@ function checksHTML(list){
 function render(){
   const sc=svg.clientWidth/W||1;tr=Math.max(9,Math.min(16,8/sc))*(.55+.45*Math.min(1,st.scale));
   if(st.sel!=null&&!st.panels.some(p=>p.id===st.sel))st.sel=null;
+  syncInvN();
   const A=analyze(),I=A.I;
   drawSvg(A);
   const msg={ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${A.cnt.warn} ข้อควรระวัง`,err:`มี ${A.cnt.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'}[A.lvl];
@@ -138,11 +139,13 @@ function render(){
   const v=$('#verdict');v.className='verdict fsk '+A.lvl;
   v.innerHTML=`<span class="pill ${A.lvl}">${A.lvl==='idle'?'รอต่อสาย':LABEL[A.lvl]}</span><b>${msg}</b><span class="nums">${A.used}/${st.panels.length} แผง · ${f(A.pv/1000,2)} kWp</span>${fi?`<span class="vfirst">${fi.t}</span>`:''}`;
 
+  /* panel size per MPPT: each input can take a different module (e.g. micro: MPPT1 650 W, MPPT2 700 W) */
+  const pvSel=k=>{const cur=MP_PM[k]||'';return`<label class="mppv">แผงที่ต่อ MPPT ${k}<select data-mppv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())} (${p.pmax} W)</option>`).join('')}</select></label>`};
   $('#cards').innerHTML=A.res.map(r=>{
-    if(r.status==='idle')return`<section class="card"><div class="chead"><h3>MPPT ${r.k}</h3><span class="pill idle">ว่าง</span></div><p class="idlehint">ยังไม่ได้ต่อสาย ลากสายจากขั้ว DC${r.k}+ และ DC${r.k}− ของอินเวอร์เตอร์ไปที่แผง</p></section>`;
-    const b=r.blk;
-    const head=b?`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div><div class="meta">${b.n} แผง · ${f(b.n*PV.pmax/1000,2)} kWp</div><div class="calc"><span>Voc ${b.ns} × ${f(A.ev.vocC,1)} V = ${f(b.voc)} V</span><span>Vmp ${f(b.vmpH)}–${f(b.vmpC)} V</span><span>Imp ${b.mp} × ${f(PV.imp,2)} A = ${f(b.imp,1)} A</span></div>`
-      :`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div>`;
+    if(r.status==='idle')return`<section class="card"><div class="chead"><h3>MPPT ${r.k}</h3><span class="pill idle">ว่าง</span></div>${pvSel(r.k)}<p class="idlehint">ยังไม่ได้ต่อสาย ลากสายจากขั้ว DC${r.k}+ และ DC${r.k}− ของอินเวอร์เตอร์ไปที่แผง</p></section>`;
+    const b=r.blk,P=b?b.pv:mpPV(r.k),e=A.evOf(P);
+    const head=b?`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div>${pvSel(r.k)}<div class="meta">${b.n} แผง × ${P.pmax} W · ${f(b.n*P.pmax/1000,2)} kWp</div><div class="calc"><span>Voc ${b.ns} × ${f(e.vocC,1)} V = ${f(b.voc)} V</span><span>Vmp ${f(b.vmpH)}–${f(b.vmpC)} V</span><span>Imp ${b.mp} × ${f(P.imp,2)} A = ${f(b.imp,1)} A</span></div>`
+      :`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div>${pvSel(r.k)}`;
     return`<section class="card">${head}<ul class="checks">${checksHTML(r.ck)}</ul></section>`;
   }).join('');
 
@@ -214,6 +217,7 @@ function delPanel(){
   st.wires=st.wires.filter(w=>!w.a.startsWith(id+':')&&!w.b.startsWith(id+':'));
   st.sel=null;render();
 }
+$('#cards').addEventListener('change',e=>{const s=e.target.closest('[data-mppv]');if(!s)return;const k=+s.dataset.mppv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];render()});
 document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{PRESETS[b.dataset.preset]();render()}));
 $('#addp').addEventListener('click',()=>{const p=addPanel();if(p)st.sel=p.id;render()});
 $('#delp').addEventListener('click',delPanel);

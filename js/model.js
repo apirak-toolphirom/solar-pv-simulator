@@ -3,8 +3,19 @@ const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,IW=160,IHT=140;
 let H=680,PW=PW0,PH=PH0;
 /* each MPPT input is its own box (drag and rotate separately so wires to MPPT 1 and 2 do not cross).
    r = side the DC terminals face: 0 left, 1 top, 2 right, 3 bottom; text stays upright */
-const INV0=()=>[{x:IX0,y:90,r:0},{x:IX0,y:270,r:0}];
-let INV=INV0();
+/* number of MPPT boxes follows the inverter (nmppt, 1–4; string inverters 2, Deye micro 4) */
+const nMp=()=>{try{return Math.max(1,Math.min(4,Math.round(+curInv().nmppt||2)))}catch(e){return 2}};
+const INV_Y={1:[180],2:[90,270],3:[40,220,400],4:[28,188,348,508]};
+const INV0=n=>INV_Y[n||nMp()].map(y=>({x:IX0,y,r:0}));
+let INV=INV0(2);
+const mpKs=()=>INV.map((_,i)=>i+1);
+const mpKeys=()=>mpKs().flatMap(k=>[`i${k}:p`,`i${k}:n`]);
+/* inverter changed to one with a different MPPT count: re-lay the boxes, drop wires to inputs that no longer exist */
+function syncInvN(){const n=nMp();if(INV.length===n)return false;INV=INV0(n);st.wires=st.wires.filter(w=>[w.a,w.b].every(k=>k[0]!=='i'||+k.slice(1,k.indexOf(':'))<=n));clampInv();return true}
+/* panel model per MPPT ('' = the main panel chosen in tab 01) */
+let MP_PM={};
+function pvOf(id){const p=id&&typeof CAT!=='undefined'&&CAT.panels.find(x=>x.id===id);return p?Object.assign({},p,{name:(p.brand+' '+p.model).trim(),noct:p.noct||43}):PV}
+const mpPV=k=>pvOf(MP_PM[k]);
 const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;
 function invBlk(k){const b=INV[k-1];return{x:b.x+8,y:b.y+8,w:ibW(k)-16,h:ibH(k)-16}}
 function invTerm(k,pos){
@@ -14,11 +25,11 @@ function invTerm(k,pos){
 }
 const INV_DIR=[[-1,0],[0,-1],[1,0],[0,1]];
 function clampInv(k){
-  if(!k){clampInv(1);clampInv(2);return}
+  if(!k){mpKs().forEach(clampInv);return}
   const b=INV[k-1];b.x=Math.round(Math.max(4,Math.min(W-ibW(k)-30,b.x)));b.y=Math.round(Math.max(28,Math.min(H-ibH(k)-(b.r===1?30:8),b.y)));
 }
 function rotInv(k){
-  if(!k){rotInv(1);rotInv(2);return}
+  if(!k){mpKs().forEach(rotInv);return}
   const b=INV[k-1],cx=b.x+ibW(k)/2,cy=b.y+ibH(k)/2;b.r=(b.r+1)%4;b.x=cx-ibW(k)/2;b.y=cy-ibH(k)/2;clampInv(k);
 }
 const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null,scale:1};
@@ -60,6 +71,7 @@ const PRESETS={
   one(){resetWith(1)},
   sh(){resetWith(3);wire('i1:n','1:n');wire('1:p','2:n');wire('2:p','i1:p');wire('3:p','3:n')},
   big(){applyScale(.6);resetWith(18);wireSeries([1,2,3,4,5,6,7,8,9],1);wireSeries([10,11,12,13,14,15,16,17,18],2)},
+  m4(){applyScale(1);INV=INV0();resetWith(Math.min(4,INV.length));mpKs().forEach(k=>{const p=st.panels[k-1];if(!p)return;p.x=IX0-300;p.y=INV[k-1].y+IHT/2-PH/2;p.sx=100+k;wire(`i${k}:n`,`${k}:n`);wire(`${k}:p`,`i${k}:p`)})},
   bad(){resetWith(3);wire('i1:n','1:n');wire('1:p','2:n');wire('2:p','3:p');wire('3:n','i1:p')}
 };
 

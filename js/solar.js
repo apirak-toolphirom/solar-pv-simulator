@@ -85,7 +85,7 @@ function simDay(blocks,I,tilt,az,step,ideal,noEv){
   const b=tilt*Math.PI/180,gp=az*Math.PI/180,sky=SKY[SIM.sky],keep=1-SIM.loss/100;
   const Ics=1361*(1+0.033*Math.cos(2*Math.PI*doy/365)),dt=step/60/1000;
   const ev=(!noEv&&typeof EV!=='undefined')?EV:null;
-  const R={step,n,t:[],g:[],tc:[],sun:[],elev:[],saz:[],cov:[],shade:[],vmp:[[],[]],pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
+  const R={step,n,t:[],g:[],tc:[],sun:[],elev:[],saz:[],cov:[],shade:[],vmp:blocks.map(()=>[]),pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
   for(let i=0;i<n;i++){
     const h=(i+.5)*step/60,sp=solarPos(la,lo,doy,h,SIM.tz);
     let g=0,gb=0,gd=0;
@@ -103,15 +103,15 @@ function simDay(blocks,I,tilt,az,step,ideal,noEv){
     const ta=(SIM.amax+SIM.amin)/2+(SIM.amax-SIM.amin)/2*Math.cos(2*Math.PI*(h-15)/24);
     const tc=ta+((PV.noct||43)-20)/800*g;
     let pot=0,pdc=0,lim=0,shd=0;
-    blocks.forEach((bk,j)=>{
+    blocks.forEach((bk,j)=>{const P0=bk&&bk.pv||PV;
       if(!bk||g<20){R.vmp[j].push(null);return}
       const sf=ev&&sp.cosZ>0.001?evTreeShade(sp.az,elev,j):0;if(sf>shd)shd=sf;
       const gs=(gb*(1-sf)+gd)*soil;
       const ln=2.04*Math.log(Math.max(gs,1)/1000);
-      const vmp=Math.max(0,PV.vmp*(1+PV.kPmax/100*(tc-25))+ln)*bk.ns;
-      const voc=Math.max(0,PV.voc*(1+PV.kVoc/100*(tc-25))+ln)*bk.ns;
-      const imp=PV.imp*(gs/1000)*(1+PV.kIsc/100*(tc-25))*bk.mp;
-      const p=bk.n*PV.pmax*(gs/1000)*(1+PV.kPmax/100*(tc-25))*keep;
+      const vmp=Math.max(0,P0.vmp*(1+P0.kPmax/100*(tc-25))+ln)*bk.ns;
+      const voc=Math.max(0,P0.voc*(1+P0.kVoc/100*(tc-25))+ln)*bk.ns;
+      const imp=P0.imp*(gs/1000)*(1+P0.kIsc/100*(tc-25))*bk.mp;
+      const p=bk.n*P0.pmax*(gs/1000)*(1+P0.kPmax/100*(tc-25))*keep;
       R.vmp[j].push(vmp);
       pot+=p;
       if(ideal)pdc+=p;
@@ -214,7 +214,7 @@ function drawLine(host,c){
 let lastA=null,lastSig='',chartCfg=null;
 function maybeSim(A){
   lastA=A;
-  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n]:0),curInv(),PV]);
+  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n,r.blk.pv&&r.blk.pv.id]:0),curInv(),PV]);
   if(sig!==lastSig){lastSig=sig;runSim()}
 }
 function drawOrient(){
@@ -254,7 +254,7 @@ function runSimView(){
   const i0=Math.round(xmin*60/R.step),i1=Math.round(xmax*60/R.step);
   const sl=a=>a.slice(i0,i1);
   const xs=sl(R.t),kw=v=>v==null?null:v/1000;
-  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0),kwp=nUsed*PV.pmax/1000;
+  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0),kwp=blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000;
   const hrs=R.ops*R.step/60,idleH=R.idle*R.step/60;
   const mx=[
     ['ช่วงที่อินเวอร์เตอร์ทำงาน',R.ops?`${fmtT(R.first*R.step/60)}–${fmtT((R.last+1)*R.step/60)}`:'ไม่ทำงาน',R.ops?`${f(hrs,1)} ชม. · แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`:`แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`],
@@ -276,7 +276,7 @@ function runSimView(){
     B:{x:xs,ymax:vTop,unit:'V',aria:'กราฟแรงดันสตริงเทียบช่วง MPPT ตลอดวัน',
       band:{lo:I.lo,hi:I.hi,label:`ช่วง MPPT ${I.lo}–${I.hi} V`},
       refs:[{y:I.start,label:`แรงดันเริ่มทำงาน ${I.start} V`}],
-      series:blocks.map((bk,j)=>bk?{short:`MPPT ${j+1} (${bk.ns} แผงอนุกรม)`,color:j?'var(--s2)':'var(--s1)',vals:sl(R.vmp[j]),fmt:v=>f(v,0)}:null).filter(Boolean)}
+      series:blocks.map((bk,j)=>bk?{short:`MPPT ${j+1} (${bk.ns} แผงอนุกรม)`,color:['var(--s1)','var(--s2)','var(--s3)','var(--accent)'][j%4],vals:sl(R.vmp[j]),fmt:v=>f(v,0)}:null).filter(Boolean)}
   };
   chartCfg.A.leg='lgA';chartCfg.B.leg='lgB';
   $('#lgA').innerHTML=legHTML('lgA',chartCfg.A.series,'',drawCharts);

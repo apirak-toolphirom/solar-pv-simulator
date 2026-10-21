@@ -589,6 +589,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .bkbrand{display:inline-block;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);background:var(--surface);margin-right:4px}
 #bkexp .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .ba-brand{fill:#3b4a58;font:800 12px var(--body);letter-spacing:.14em}.ba-brand.sm{font-size:10px;letter-spacing:.1em}
+.mppv{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}.mppv select{min-height:34px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:0 6px}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -640,6 +641,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
       <button class="chip" data-preset="m22">ผสม 2S2P</button>
       <button class="chip" data-preset="two">2 MPPT แผงละ 5</button>
       <button class="chip" data-preset="big">18 แผง 2 MPPT (สเกลเล็ก)</button>
+      <button class="chip" data-preset="m4">ไมโคร 1 แผงต่อ MPPT</button>
       <button class="chip bad" data-preset="bad">ตัวอย่างต่อผิด</button>
       <button class="chip bad" data-preset="sh">ตัวอย่างชอต</button>
     </div>
@@ -1103,14 +1105,14 @@ const SCHEMA={
       ['asym','จ่ายไฟแต่ละเฟสไม่เท่ากันได้ (3 เฟส)','s','0',[['0','ไม่ได้ จ่ายเท่ากันทุกเฟส'],['1','ได้ ตามโหลดแต่ละเฟส']]],
       ['bph','พอร์ต Backup','s','',[['','เท่ากับระบบไฟ AC'],['1','1 เฟส'],['3','3 เฟส']],'hyb'],
       ['pac','กำลัง AC (W)','n',0],['vmax','Vdc สูงสุด (V)','n',0],['lo','MPPT ต่ำสุด (V)','n',0],['hi','MPPT สูงสุด (V)','n',0],['start','แรงดันเริ่มทำงาน (V)','n',0],
-      ['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
+      ['nmppt','จำนวน MPPT (1–4)','n',2],['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
       ['bvMin','แรงดันแบต ต่ำสุด (V)','n',0,null,'hyb'],['bvMax','แรงดันแบต สูงสุด (V)','n',0,null,'hyb'],
       ['bchg','ชาร์จแบตสูงสุด (kW)','n',0,null,'hyb'],['bdis','จ่ายจากแบตสูงสุด (kW)','n',0,null,'hyb'],['backupKw','กำลังขาออกโหมด Backup (kW)','n',0,null,'hyb'],
       ['note','หมายเหตุ','t','']
     ],
     req:['brand','model','pac','vmax','lo','hi','start','imax'],
     alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],type:['type','ชนิด','topology'],phase:['phase','phases','เฟส','gridphase'],asym:['asym','asymmetric','unbalanced'],bph:['bph','backupphase'],pac:['pac','acpower','ratedac','power','กำลัง','ac'],vmax:['vmax','maxdcvoltage','vdcmax','maxvoltage'],lo:['lo','mpptmin','vmppmin','mpptlow'],hi:['hi','mpptmax','vmppmax','mppthigh'],start:['start','startvoltage','vstart'],
-      imax:['imax','maxinputcurrent','impptmax','inputcurrent'],isc:['isc','maxisc','iscmax'],pvRec:['pvrec','maxpv','pvmax','maxpvpower'],eff:['eff','efficiency'],
+      nmppt:['nmppt','mppt','mppts','mpptcount'],imax:['imax','maxinputcurrent','impptmax','inputcurrent'],isc:['isc','maxisc','iscmax'],pvRec:['pvrec','maxpv','pvmax','maxpvpower'],eff:['eff','efficiency'],
       bvMin:['bvmin','batvmin','batteryvmin'],bvMax:['bvmax','batvmax','batteryvmax'],bchg:['bchg','chargekw','maxcharge'],bdis:['bdis','dischargekw','maxdischarge'],backupKw:['backupkw','epskw','backuppower'],note:['note','หมายเหตุ']}
   },
   batteries:{
@@ -1145,7 +1147,7 @@ const BUILTIN=(()=>{
     note:`Hybrid 1 เฟส On/Off-grid แบตแรงดันต่ำ 40–60 V (ลิเธียม/ตะกั่วกรด, CAN/RS485) ชาร์จ/จ่าย ${k} kW · 2 MPPT ${ns} สตริงต่อ MPPT กระแสต่ออินพุต ${k===10?21:16} A · มีพอร์ต GEN · สลับไปไฟสำรอง <10 ms · โอเวอร์โหลด 200% 10 วินาที · ขนานได้ 6 เครื่อง · eff สูงสุด 96.2%`}));
   // Deye SUN-M130/160/180/200/220G4-EU-Q0: single-phase microinverter, 4 MPPT x 1 module, 25-55 V, 18 A / Isc 27 A per input (deyeinverter.com, datasheet 2025-08)
   [[130,1300,460,5],[160,1600,560,4],[180,1800,630,3],[200,2000,700,3],[220,2200,770,3]].forEach(([m,w,mod,br])=>inv.push({id:slug(`deye sun-m${m}g4-eu-q0`),brand:'Deye',model:`SUN-M${m}G4-EU-Q0 (micro ${w} W)`,type:'on-grid',phase:'1',
-    pac:w,vmax:60,lo:25,hi:55,start:20,imax:18,isc:27,pvRec:mod*4,eff:96,builtin:1,
+    pac:w,nmppt:4,vmax:60,lo:25,hi:55,start:20,imax:18,isc:27,pvRec:mod*4,eff:96,builtin:1,
     note:`ไมโครอินเวอร์เตอร์ 1 เฟส 220/230 V · 4 MPPT ต่อแผงช่องละ 1 แผง (แผง ${210}–${mod} W) · ต่อพ่วงได้ ${br} ตัวต่อสายย่อย · WiFi ในตัว · IP67 · eff สูงสุด 96.5% · เมนู 02 จำลองได้ 2 ช่องแรก`}));
   // SUN2000-5/8/10KTL-M0: three-phase on-grid, no battery port
   [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',phase:'3',asym:'0',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
@@ -1883,8 +1885,19 @@ const W=1200,PW0=96,PH0=52,IX0=1010,MAXP=40,IW=160,IHT=140;
 let H=680,PW=PW0,PH=PH0;
 /* each MPPT input is its own box (drag and rotate separately so wires to MPPT 1 and 2 do not cross).
    r = side the DC terminals face: 0 left, 1 top, 2 right, 3 bottom; text stays upright */
-const INV0=()=>[{x:IX0,y:90,r:0},{x:IX0,y:270,r:0}];
-let INV=INV0();
+/* number of MPPT boxes follows the inverter (nmppt, 1–4; string inverters 2, Deye micro 4) */
+const nMp=()=>{try{return Math.max(1,Math.min(4,Math.round(+curInv().nmppt||2)))}catch(e){return 2}};
+const INV_Y={1:[180],2:[90,270],3:[40,220,400],4:[28,188,348,508]};
+const INV0=n=>INV_Y[n||nMp()].map(y=>({x:IX0,y,r:0}));
+let INV=INV0(2);
+const mpKs=()=>INV.map((_,i)=>i+1);
+const mpKeys=()=>mpKs().flatMap(k=>[`i${k}:p`,`i${k}:n`]);
+/* inverter changed to one with a different MPPT count: re-lay the boxes, drop wires to inputs that no longer exist */
+function syncInvN(){const n=nMp();if(INV.length===n)return false;INV=INV0(n);st.wires=st.wires.filter(w=>[w.a,w.b].every(k=>k[0]!=='i'||+k.slice(1,k.indexOf(':'))<=n));clampInv();return true}
+/* panel model per MPPT ('' = the main panel chosen in tab 01) */
+let MP_PM={};
+function pvOf(id){const p=id&&typeof CAT!=='undefined'&&CAT.panels.find(x=>x.id===id);return p?Object.assign({},p,{name:(p.brand+' '+p.model).trim(),noct:p.noct||43}):PV}
+const mpPV=k=>pvOf(MP_PM[k]);
 const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;
 function invBlk(k){const b=INV[k-1];return{x:b.x+8,y:b.y+8,w:ibW(k)-16,h:ibH(k)-16}}
 function invTerm(k,pos){
@@ -1894,11 +1907,11 @@ function invTerm(k,pos){
 }
 const INV_DIR=[[-1,0],[0,-1],[1,0],[0,1]];
 function clampInv(k){
-  if(!k){clampInv(1);clampInv(2);return}
+  if(!k){mpKs().forEach(clampInv);return}
   const b=INV[k-1];b.x=Math.round(Math.max(4,Math.min(W-ibW(k)-30,b.x)));b.y=Math.round(Math.max(28,Math.min(H-ibH(k)-(b.r===1?30:8),b.y)));
 }
 function rotInv(k){
-  if(!k){rotInv(1);rotInv(2);return}
+  if(!k){mpKs().forEach(rotInv);return}
   const b=INV[k-1],cx=b.x+ibW(k)/2,cy=b.y+ibH(k)/2;b.r=(b.r+1)%4;b.x=cx-ibW(k)/2;b.y=cy-ibH(k)/2;clampInv(k);
 }
 const st={panels:[],wires:[],nextId:1,sel:null,inv:'s',tmin:10,thot:70,armed:null,scale:1};
@@ -1940,13 +1953,14 @@ const PRESETS={
   one(){resetWith(1)},
   sh(){resetWith(3);wire('i1:n','1:n');wire('1:p','2:n');wire('2:p','i1:p');wire('3:p','3:n')},
   big(){applyScale(.6);resetWith(18);wireSeries([1,2,3,4,5,6,7,8,9],1);wireSeries([10,11,12,13,14,15,16,17,18],2)},
+  m4(){applyScale(1);INV=INV0();resetWith(Math.min(4,INV.length));mpKs().forEach(k=>{const p=st.panels[k-1];if(!p)return;p.x=IX0-300;p.y=INV[k-1].y+IHT/2-PH/2;p.sx=100+k;wire(`i${k}:n`,`${k}:n`);wire(`${k}:p`,`i${k}:p`)})},
   bad(){resetWith(3);wire('i1:n','1:n');wire('1:p','2:n');wire('2:p','3:p');wire('3:n','i1:p')}
 };
 
 
 /* ---- circuit analysis ---- */
 function shortInfo(wires){
-  const keys=[];st.panels.forEach(p=>keys.push(p.id+':p',p.id+':n'));['i1:p','i1:n','i2:p','i2:n'].forEach(k=>keys.push(k));
+  const keys=[];st.panels.forEach(p=>keys.push(p.id+':p',p.id+':n'));mpKeys().forEach(k=>keys.push(k));
   const par={};keys.forEach(k=>par[k]=k);
   const find=k=>{while(par[k]!==k){par[k]=par[par[k]];k=par[k]}return k};
   wires.forEach(w=>{if(w.a in par&&w.b in par){const ra=find(w.a),rb=find(w.b);if(ra!==rb)par[ra]=rb}});
@@ -1954,7 +1968,7 @@ function shortInfo(wires){
   const reach=(a,b)=>{const seen=new Set([a]),stack=[a];while(stack.length){const x=stack.pop();if(x===b)return true;E.forEach(e=>{if(e.u===x&&!seen.has(e.v)){seen.add(e.v);stack.push(e.v)}})}return false};
   const cyc=new Set(),self=[];
   E.forEach(e=>{if(e.u===e.v){cyc.add(e.id);self.push(e.id)}else if(reach(e.v,e.u))cyc.add(e.id)});
-  const inv=[1,2].filter(k=>find(`i${k}:p`)===find(`i${k}:n`));
+  const inv=mpKs().filter(k=>find(`i${k}:p`)===find(`i${k}:n`));
   return{cyc,self,inv};
 }
 function shortWires(si){
@@ -1970,19 +1984,23 @@ function shortWires(si){
 }
 function analyze(){
   const I=curInv(),dc=st.tmin-25,dh=st.thot-25;
-  const ev={vocC:PV.voc*(1+PV.kVoc/100*dc),vmpC:PV.vmp*(1+PV.kVoc/100*dc),vmpH:PV.vmp*(1+PV.kPmax/100*dh),iscH:PV.isc*(1+PV.kIsc/100*dh)};
-  const keys=[];st.panels.forEach(p=>keys.push(p.id+':p',p.id+':n'));['i1:p','i1:n','i2:p','i2:n'].forEach(k=>keys.push(k));
+  const evOf=P=>({vocC:P.voc*(1+P.kVoc/100*dc),vmpC:P.vmp*(1+P.kVoc/100*dc),vmpH:P.vmp*(1+P.kPmax/100*dh),iscH:P.isc*(1+P.kIsc/100*dh)}),ev=evOf(PV);
+  const keys=[];st.panels.forEach(p=>keys.push(p.id+':p',p.id+':n'));mpKeys().forEach(k=>keys.push(k));
   const par={};keys.forEach(k=>par[k]=k);
   const find=k=>{while(par[k]!==k){par[k]=par[par[k]];k=par[k]}return k};
   st.wires.forEach(w=>{if(w.a in par&&w.b in par){const ra=find(w.a),rb=find(w.b);if(ra!==rb)par[ra]=rb}});
-  const single=()=>({n:1,ns:1,mp:1,voc:ev.vocC,vmpC:ev.vmpC,vmpH:ev.vmpH,imp:PV.imp,isc:ev.iscH});
-  const all=st.panels.map(p=>({from:find(p.id+':n'),to:find(p.id+':p'),blk:single(),id:p.id}));
+  const single=(P,e)=>({n:1,ns:1,mp:1,voc:e.vocC,vmpC:e.vmpC,vmpH:e.vmpH,imp:P.imp,isc:e.iscH,pv:P});
+  const all=st.panels.map(p=>({from:find(p.id+':n'),to:find(p.id+':p'),id:p.id}));
   const shorted=all.filter(e=>e.from===e.to).map(e=>e.id);
   const edges=all.filter(e=>e.from!==e.to);
-  const res=[1,2].map(k=>evalMppt(k,edges,find,I,ev));
+  /* which MPPT each panel is wired to (same circuit as that input); its size comes from that MPPT's panel choice */
+  const grp={};const gf=k=>{while(grp[k]!==undefined&&grp[k]!==k)k=grp[k];return k};
+  keys.forEach(k=>grp[find(k)]=find(k));all.forEach(e=>{const a=gf(e.from),b=gf(e.to);if(a!==b)grp[a]=b});
+  const pk={};st.panels.forEach(p=>{const g=gf(find(p.id+':n'));const k=mpKs().find(k=>gf(find(`i${k}:p`))===g||gf(find(`i${k}:n`))===g);if(k)pk[p.id]=k});
+  const res=mpKs().map(k=>{const P=mpPV(k),e=evOf(P);return evalMppt(k,edges.map(x=>Object.assign({},x,{blk:single(P,e)})),find,I,e)});
   const si=shortInfo(st.wires),sw=shortWires(si);
   const sys=[];
-  const used=res.reduce((a,r)=>a+(r.blk?r.blk.n:0),0);
+  const used=res.reduce((a,r)=>a+(r.blk?r.blk.n:0),0),pvW=res.reduce((a,r)=>a+(r.blk?r.blk.n*r.blk.pv.pmax:0),0);
   const active=res.filter(r=>r.status!=='idle');
   si.self.forEach(id=>sys.push({lvl:'err',t:`ชอต: แผง #${id} ถูกลัดวงจร เพราะขั้ว + และ − ของแผงเดียวกันต่อถึงกัน ลบสายที่มีสัญลักษณ์ฟ้าแลบออก`}));
   const loop=[...si.cyc].filter(id=>!si.self.includes(id));
@@ -1991,7 +2009,7 @@ function analyze(){
     const loose=st.panels.length-used-si.cyc.size;
     if(loose>0&&active.every(r=>r.status==='ok'))sys.push({lvl:'warn',t:`มี ${loose} แผงที่ยังไม่ได้ต่อเข้าวงจรของอินเวอร์เตอร์`});
     if(used>0){
-      const pv=used*PV.pmax,ratio=pv/I.pac;
+      const pv=pvW,ratio=pv/I.pac;
       if(pv>I.pvRec)sys.push({lvl:'warn',t:`กำลัง DC ${f(pv/1000,2)} kWp เกินกำลังที่ผู้ผลิตแนะนำ ${I.pvRec/1000} kW`});
       else sys.push({lvl:'ok',t:`กำลัง DC ${f(pv/1000,2)} kWp ไม่เกินที่แนะนำ ${I.pvRec/1000} kW`});
       if(ratio<0.8)sys.push({lvl:'warn',t:`DC/AC ${f(ratio,2)} ต่ำ อินเวอร์เตอร์ใช้ไม่เต็มกำลัง`});
@@ -2001,7 +2019,7 @@ function analyze(){
   const items=[...res.flatMap(r=>r.ck),...sys];
   const cnt={err:0,warn:0,ok:0};items.forEach(c=>cnt[c.lvl]++);
   const lvl=!active.length&&!si.cyc.size?'idle':cnt.err?'err':cnt.warn?'warn':'ok';
-  return{I,ev,res,sys,used,cnt,lvl,shorted,si,sw,pv:used*PV.pmax,ratio:used*PV.pmax/I.pac};
+  return{I,ev,evOf,res,sys,used,cnt,lvl,shorted,si,sw,pk,pv:pvW,ratio:pvW/I.pac};
 }
 
 function evalMppt(k,edges,find,I,ev){
@@ -2022,12 +2040,12 @@ function evalMppt(k,edges,find,I,ev){
   else ck.push({lvl:'ok',t:`Voc ที่ ${st.tmin}°C = ${f(b.voc)} V ต่ำกว่า ${I.vmax} V`});
   if(b.vmpC>I.hi)ck.push({lvl:'err',t:`Vmp ตอนเย็นสุด ${f(b.vmpC)} V เกินช่วง MPPT สูงสุด ${I.hi} V`});
   else if(b.vmpH<I.lo)ck.push({lvl:'err',t:`Vmp ที่เซลล์ ${st.thot}°C = ${f(b.vmpH)} V ต่ำกว่า MPPT ต่ำสุด ${I.lo} V ต้องมีอย่างน้อย ${Math.ceil(I.lo/ev.vmpH)} แผงอนุกรม`});
-  else if(b.vmpH<I.lo+25)ck.push({lvl:'warn',t:`Vmp ตอนร้อน ${f(b.vmpH)} V ใกล้ขอบล่างของ MPPT (${I.lo} V)`});
+  else if(b.vmpH<I.lo+Math.min(25,(I.hi-I.lo)*0.1))ck.push({lvl:'warn',t:`Vmp ตอนร้อน ${f(b.vmpH)} V ใกล้ขอบล่างของ MPPT (${I.lo} V)`});
   else ck.push({lvl:'ok',t:`Vmp ${f(b.vmpH)}–${f(b.vmpC)} V อยู่ในช่วง MPPT ${I.lo}–${I.hi} V`});
   if(b.isc>I.isc)ck.push({lvl:'err',t:`Isc รวม ${f(b.isc,1)} A เกิน ${I.isc} A ของอินพุต`});
   if(b.imp>I.imax)ck.push({lvl:'warn',t:`Imp รวม ${f(b.imp,1)} A เกิน ${I.imax} A กระแสจะถูกจำกัด สูญเสียราว ${f((1-I.imax/b.imp)*100)}% ตอนแดดเต็ม`});
   else ck.push({lvl:'ok',t:`Imp รวม ${f(b.imp,1)} A ไม่เกิน ${I.imax} A`});
-  if(b.mp>1)ck.push({lvl:'warn',t:`ขนาน ${b.mp} สตริงเข้าอินพุตเดียว ต้องใช้ตัวต่อ Y หรือคอมบายเนอร์ ซึ่ง Solis 6K ระบุไว้ 1 สตริงต่ออินพุต`});
+  if(b.mp>1)ck.push({lvl:'warn',t:`ขนาน ${b.mp} สตริงเข้าอินพุตเดียว ต้องใช้ตัวต่อ Y หรือคอมบายเนอร์ ตรวจดาต้าชีตว่าอินพุตนี้รับได้กี่สตริง (หลายรุ่นรับ 1 สตริงต่ออินพุต)`});
   const lvl=ck.some(c=>c.lvl==='err')?'err':ck.some(c=>c.lvl==='warn')?'warn':'ok';
   ck.sort((a,b)=>RANK[a.lvl]-RANK[b.lvl]);
   return{k,status:'ok',lvl,short:`${b.ns}S${b.mp}P`,blk:b,ck};
@@ -2035,11 +2053,11 @@ function evalMppt(k,edges,find,I,ev){
 
 function ser(a,b,ck){
   if(a.mp!==b.mp)ck.push({lvl:'warn',t:`ต่ออนุกรมระหว่างกลุ่มที่ขนานไม่เท่ากัน (${a.mp}P กับ ${b.mp}P) กระแสถูกจำกัดตามกลุ่มที่น้อยกว่า`});
-  return{n:a.n+b.n,ns:a.ns+b.ns,mp:Math.min(a.mp,b.mp),voc:a.voc+b.voc,vmpC:a.vmpC+b.vmpC,vmpH:a.vmpH+b.vmpH,imp:Math.min(a.imp,b.imp),isc:Math.min(a.isc,b.isc)};
+  return{pv:a.pv,n:a.n+b.n,ns:a.ns+b.ns,mp:Math.min(a.mp,b.mp),voc:a.voc+b.voc,vmpC:a.vmpC+b.vmpC,vmpH:a.vmpH+b.vmpH,imp:Math.min(a.imp,b.imp),isc:Math.min(a.isc,b.isc)};
 }
 function paral(a,b,ck){
   if(a.ns!==b.ns)ck.push({lvl:'err',t:`สองสาขาที่ขนานกันมีจำนวนแผงอนุกรมไม่เท่ากัน (${a.ns} กับ ${b.ns} แผง) แรงดันไม่ตรงกัน สาขาที่แรงดันต่ำจะถูกป้อนย้อน`});
-  return{n:a.n+b.n,ns:Math.min(a.ns,b.ns),mp:a.mp+b.mp,voc:Math.max(a.voc,b.voc),vmpC:Math.max(a.vmpC,b.vmpC),vmpH:Math.min(a.vmpH,b.vmpH),imp:a.imp+b.imp,isc:a.isc+b.isc};
+  return{pv:a.pv,n:a.n+b.n,ns:Math.min(a.ns,b.ns),mp:a.mp+b.mp,voc:Math.max(a.voc,b.voc),vmpC:Math.max(a.vmpC,b.vmpC),vmpH:Math.min(a.vmpH,b.vmpH),imp:a.imp+b.imp,isc:a.isc+b.isc};
 }
 function reduce(edges0,A,B,ck){
   const seen=new Set([A]);let grow=true;
@@ -2111,7 +2129,7 @@ function rotPanel(id){
   p.rot=((p.rot||0)+1)%4;clampPanel(p);st.sel=id;render();
 }
 const typeOf=k=>k.slice(-1);
-const allKeys=()=>{const a=[];st.panels.forEach(p=>a.push(p.id+':p',p.id+':n'));return a.concat(['i1:p','i1:n','i2:p','i2:n'])};
+const allKeys=()=>{const a=[];st.panels.forEach(p=>a.push(p.id+':p',p.id+':n'));return a.concat(mpKeys())};
 function pt(e){const m=svg.getScreenCTM();if(!m)return{x:0,y:0};const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());return{x:p.x,y:p.y}}
 function nearest(p,exclude){
   let best=null,bd=tr*2.4;
@@ -2135,7 +2153,7 @@ function drawSvg(A){
   A.res.forEach(r=>{
     const k=r.k,B=INV[k-1],iw=ibW(k),ih=ibH(k),hz=ibHz(k),b=invBlk(k),cls=r.lvl==='idle'?'':r.lvl;
     s+=`<g class="invbox${invMove&&invMove.k===k?' moving':''}" data-inv="${k}"><title>ลากเพื่อย้าย MPPT ${k}</title>`;
-    s+=`<text class="svgt b" x="${B.x+iw/2}" y="${B.r===1?B.y+ih+20:B.y-12}" text-anchor="middle">${esc(A.I.name)}</text>`;
+    s+=`<text class="svgt b" x="${B.x+iw/2}" y="${B.r===1?B.y+ih+20:B.y-12}" text-anchor="middle">${k===1?esc(A.I.name):''}</text>`;
     s+=`<rect class="inv" x="${B.x}" y="${B.y}" width="${iw}" height="${ih}" rx="8"/>`;
     s+=`<rect class="mp ${cls}" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="6"/>`;
     const lx=b.x+(hz?12:20),ly=hz?b.y+(B.r===1?62:40):b.y+48;
@@ -2154,7 +2172,7 @@ function drawSvg(A){
   st.panels.forEach(p=>{
     const cx=p.x+PW/2,cy=p.y+PH/2,vert=(p.rot||0)%2===1;
     let lab='';
-    if(S>=.45)lab=`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${S>=.7?cy-2:cy+fsz*.35}">#${p.id}</text>`+(S>=.7?`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${cy+13*S+2}">${PV.pmax} W</text>`:'');
+    if(S>=.45)lab=`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${S>=.7?cy-2:cy+fsz*.35}">#${p.id}</text>`+(S>=.7?`<text class="onp" style="font-size:${fsz}px" x="${cx}" y="${cy+13*S+2}">${(A.pk[p.id]?mpPV(A.pk[p.id]):PV).pmax} W</text>`:'');
     s+=`<g class="panel${st.sel===p.id?' sel':''}${A.si.cyc.has(p.id)?' shorted':''}" data-panel="${p.id}"><g transform="rotate(${(p.rot||0)*90} ${cx} ${cy})"><rect class="pbody" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3"/><rect class="cells" x="${p.x}" y="${p.y}" width="${PW}" height="${PH}" rx="3" fill="url(#cells)"/></g>${lab}</g>`;
     if(st.sel===p.id){const rx=vert?cx+PH/2+20:cx,ry=vert?cy:cy-PH/2-20;s+=`<g class="rot" data-rot="${p.id}"><circle cx="${rx}" cy="${ry}" r="13"/><text x="${rx}" y="${ry+5}">↻</text><title>หมุนแผง 90°</title></g>`}
   });
@@ -2216,6 +2234,7 @@ function checksHTML(list){
 function render(){
   const sc=svg.clientWidth/W||1;tr=Math.max(9,Math.min(16,8/sc))*(.55+.45*Math.min(1,st.scale));
   if(st.sel!=null&&!st.panels.some(p=>p.id===st.sel))st.sel=null;
+  syncInvN();
   const A=analyze(),I=A.I;
   drawSvg(A);
   const msg={ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${A.cnt.warn} ข้อควรระวัง`,err:`มี ${A.cnt.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'}[A.lvl];
@@ -2223,11 +2242,13 @@ function render(){
   const v=$('#verdict');v.className='verdict fsk '+A.lvl;
   v.innerHTML=`<span class="pill ${A.lvl}">${A.lvl==='idle'?'รอต่อสาย':LABEL[A.lvl]}</span><b>${msg}</b><span class="nums">${A.used}/${st.panels.length} แผง · ${f(A.pv/1000,2)} kWp</span>${fi?`<span class="vfirst">${fi.t}</span>`:''}`;
 
+  /* panel size per MPPT: each input can take a different module (e.g. micro: MPPT1 650 W, MPPT2 700 W) */
+  const pvSel=k=>{const cur=MP_PM[k]||'';return`<label class="mppv">แผงที่ต่อ MPPT ${k}<select data-mppv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())} (${p.pmax} W)</option>`).join('')}</select></label>`};
   $('#cards').innerHTML=A.res.map(r=>{
-    if(r.status==='idle')return`<section class="card"><div class="chead"><h3>MPPT ${r.k}</h3><span class="pill idle">ว่าง</span></div><p class="idlehint">ยังไม่ได้ต่อสาย ลากสายจากขั้ว DC${r.k}+ และ DC${r.k}− ของอินเวอร์เตอร์ไปที่แผง</p></section>`;
-    const b=r.blk;
-    const head=b?`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div><div class="meta">${b.n} แผง · ${f(b.n*PV.pmax/1000,2)} kWp</div><div class="calc"><span>Voc ${b.ns} × ${f(A.ev.vocC,1)} V = ${f(b.voc)} V</span><span>Vmp ${f(b.vmpH)}–${f(b.vmpC)} V</span><span>Imp ${b.mp} × ${f(PV.imp,2)} A = ${f(b.imp,1)} A</span></div>`
-      :`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div>`;
+    if(r.status==='idle')return`<section class="card"><div class="chead"><h3>MPPT ${r.k}</h3><span class="pill idle">ว่าง</span></div>${pvSel(r.k)}<p class="idlehint">ยังไม่ได้ต่อสาย ลากสายจากขั้ว DC${r.k}+ และ DC${r.k}− ของอินเวอร์เตอร์ไปที่แผง</p></section>`;
+    const b=r.blk,P=b?b.pv:mpPV(r.k),e=A.evOf(P);
+    const head=b?`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div>${pvSel(r.k)}<div class="meta">${b.n} แผง × ${P.pmax} W · ${f(b.n*P.pmax/1000,2)} kWp</div><div class="calc"><span>Voc ${b.ns} × ${f(e.vocC,1)} V = ${f(b.voc)} V</span><span>Vmp ${f(b.vmpH)}–${f(b.vmpC)} V</span><span>Imp ${b.mp} × ${f(P.imp,2)} A = ${f(b.imp,1)} A</span></div>`
+      :`<div class="chead"><h3>MPPT ${r.k}</h3><span class="topo">${r.short}</span><span class="pill ${r.lvl}">${LABEL[r.lvl]}</span></div>${pvSel(r.k)}`;
     return`<section class="card">${head}<ul class="checks">${checksHTML(r.ck)}</ul></section>`;
   }).join('');
 
@@ -2299,6 +2320,7 @@ function delPanel(){
   st.wires=st.wires.filter(w=>!w.a.startsWith(id+':')&&!w.b.startsWith(id+':'));
   st.sel=null;render();
 }
+$('#cards').addEventListener('change',e=>{const s=e.target.closest('[data-mppv]');if(!s)return;const k=+s.dataset.mppv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];render()});
 document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{PRESETS[b.dataset.preset]();render()}));
 $('#addp').addEventListener('click',()=>{const p=addPanel();if(p)st.sel=p.id;render()});
 $('#delp').addEventListener('click',delPanel);
@@ -3182,7 +3204,7 @@ function simDay(blocks,I,tilt,az,step,ideal,noEv){
   const b=tilt*Math.PI/180,gp=az*Math.PI/180,sky=SKY[SIM.sky],keep=1-SIM.loss/100;
   const Ics=1361*(1+0.033*Math.cos(2*Math.PI*doy/365)),dt=step/60/1000;
   const ev=(!noEv&&typeof EV!=='undefined')?EV:null;
-  const R={step,n,t:[],g:[],tc:[],sun:[],elev:[],saz:[],cov:[],shade:[],vmp:[[],[]],pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
+  const R={step,n,t:[],g:[],tc:[],sun:[],elev:[],saz:[],cov:[],shade:[],vmp:blocks.map(()=>[]),pot:[],pac:[],E:0,Eclip:0,Elim:0,first:-1,last:-1,ops:0,idle:0,peak:0,peakI:-1};
   for(let i=0;i<n;i++){
     const h=(i+.5)*step/60,sp=solarPos(la,lo,doy,h,SIM.tz);
     let g=0,gb=0,gd=0;
@@ -3200,15 +3222,15 @@ function simDay(blocks,I,tilt,az,step,ideal,noEv){
     const ta=(SIM.amax+SIM.amin)/2+(SIM.amax-SIM.amin)/2*Math.cos(2*Math.PI*(h-15)/24);
     const tc=ta+((PV.noct||43)-20)/800*g;
     let pot=0,pdc=0,lim=0,shd=0;
-    blocks.forEach((bk,j)=>{
+    blocks.forEach((bk,j)=>{const P0=bk&&bk.pv||PV;
       if(!bk||g<20){R.vmp[j].push(null);return}
       const sf=ev&&sp.cosZ>0.001?evTreeShade(sp.az,elev,j):0;if(sf>shd)shd=sf;
       const gs=(gb*(1-sf)+gd)*soil;
       const ln=2.04*Math.log(Math.max(gs,1)/1000);
-      const vmp=Math.max(0,PV.vmp*(1+PV.kPmax/100*(tc-25))+ln)*bk.ns;
-      const voc=Math.max(0,PV.voc*(1+PV.kVoc/100*(tc-25))+ln)*bk.ns;
-      const imp=PV.imp*(gs/1000)*(1+PV.kIsc/100*(tc-25))*bk.mp;
-      const p=bk.n*PV.pmax*(gs/1000)*(1+PV.kPmax/100*(tc-25))*keep;
+      const vmp=Math.max(0,P0.vmp*(1+P0.kPmax/100*(tc-25))+ln)*bk.ns;
+      const voc=Math.max(0,P0.voc*(1+P0.kVoc/100*(tc-25))+ln)*bk.ns;
+      const imp=P0.imp*(gs/1000)*(1+P0.kIsc/100*(tc-25))*bk.mp;
+      const p=bk.n*P0.pmax*(gs/1000)*(1+P0.kPmax/100*(tc-25))*keep;
       R.vmp[j].push(vmp);
       pot+=p;
       if(ideal)pdc+=p;
@@ -3311,7 +3333,7 @@ function drawLine(host,c){
 let lastA=null,lastSig='',chartCfg=null;
 function maybeSim(A){
   lastA=A;
-  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n]:0),curInv(),PV]);
+  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n,r.blk.pv&&r.blk.pv.id]:0),curInv(),PV]);
   if(sig!==lastSig){lastSig=sig;runSim()}
 }
 function drawOrient(){
@@ -3351,7 +3373,7 @@ function runSimView(){
   const i0=Math.round(xmin*60/R.step),i1=Math.round(xmax*60/R.step);
   const sl=a=>a.slice(i0,i1);
   const xs=sl(R.t),kw=v=>v==null?null:v/1000;
-  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0),kwp=nUsed*PV.pmax/1000;
+  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0),kwp=blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000;
   const hrs=R.ops*R.step/60,idleH=R.idle*R.step/60;
   const mx=[
     ['ช่วงที่อินเวอร์เตอร์ทำงาน',R.ops?`${fmtT(R.first*R.step/60)}–${fmtT((R.last+1)*R.step/60)}`:'ไม่ทำงาน',R.ops?`${f(hrs,1)} ชม. · แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`:`แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`],
@@ -3373,7 +3395,7 @@ function runSimView(){
     B:{x:xs,ymax:vTop,unit:'V',aria:'กราฟแรงดันสตริงเทียบช่วง MPPT ตลอดวัน',
       band:{lo:I.lo,hi:I.hi,label:`ช่วง MPPT ${I.lo}–${I.hi} V`},
       refs:[{y:I.start,label:`แรงดันเริ่มทำงาน ${I.start} V`}],
-      series:blocks.map((bk,j)=>bk?{short:`MPPT ${j+1} (${bk.ns} แผงอนุกรม)`,color:j?'var(--s2)':'var(--s1)',vals:sl(R.vmp[j]),fmt:v=>f(v,0)}:null).filter(Boolean)}
+      series:blocks.map((bk,j)=>bk?{short:`MPPT ${j+1} (${bk.ns} แผงอนุกรม)`,color:['var(--s1)','var(--s2)','var(--s3)','var(--accent)'][j%4],vals:sl(R.vmp[j]),fmt:v=>f(v,0)}:null).filter(Boolean)}
   };
   chartCfg.A.leg='lgA';chartCfg.B.leg='lgB';
   $('#lgA').innerHTML=legHTML('lgA',chartCfg.A.series,'',drawCharts);
@@ -4036,7 +4058,7 @@ function bkSource(noEv){
   if(!blocks.some(Boolean))return{err:'ยังไม่ได้ต่อสายแผงเข้า MPPT ให้ถูกต้อง ไปแท็บ "ต่อสาย" หรือเลือกแหล่งไฟเป็นแผงสมมติ'};
   const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv);
   const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0);
-  return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง`,kwp:nUsed*PV.pmax/1000,E:R.E};
+  return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง`,kwp:blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000,E:R.E};
 }
 
 let bkCfg=null;
@@ -6300,7 +6322,7 @@ function quickSel(){
 /* ---- persistence ---- */
 function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
-    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV},
+    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
     loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),sy:SY,site:siSnapshot()};
 }
@@ -6345,7 +6367,8 @@ function restoreProject(p){
     st.sel=null;st.armed=null;
     st.tmin=fin(w.tmin,10);st.thot=fin(w.thot,70);
     INV=INV0();
-    if(Array.isArray(w.mp))w.mp.slice(0,2).forEach((o,i)=>{if(o&&typeof o==='object')INV[i]={x:fin(o.x,INV[i].x),y:fin(o.y,INV[i].y),r:((fin(o.r,0)|0)%4+4)%4}});
+    MP_PM={};if(w.pm&&typeof w.pm==='object')Object.keys(w.pm).forEach(k=>{if(+k>=1&&+k<=4&&typeof w.pm[k]==='string')MP_PM[k]=w.pm[k]});
+    if(Array.isArray(w.mp))w.mp.slice(0,INV.length).forEach((o,i)=>{if(o&&typeof o==='object')INV[i]={x:fin(o.x,INV[i].x),y:fin(o.y,INV[i].y),r:((fin(o.r,0)|0)%4+4)%4}});
     else if(isFinite(w.ix)&&isFinite(w.iy)){const r=((fin(w.ir,0)|0)%4+4)%4,hz=r%2===1;INV=[{x:w.ix,y:w.iy,r},{x:w.ix+(hz?150:0),y:w.iy+(hz?0:180),r}]}
     clampInv();
     $('#tmin').value=st.tmin;$('#thot').value=st.thot;

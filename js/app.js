@@ -48,7 +48,7 @@ function quickSel(){
 /* ---- persistence ---- */
 function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
-    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV},
+    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
     loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),sy:SY,site:siSnapshot()};
 }
@@ -93,7 +93,8 @@ function restoreProject(p){
     st.sel=null;st.armed=null;
     st.tmin=fin(w.tmin,10);st.thot=fin(w.thot,70);
     INV=INV0();
-    if(Array.isArray(w.mp))w.mp.slice(0,2).forEach((o,i)=>{if(o&&typeof o==='object')INV[i]={x:fin(o.x,INV[i].x),y:fin(o.y,INV[i].y),r:((fin(o.r,0)|0)%4+4)%4}});
+    MP_PM={};if(w.pm&&typeof w.pm==='object')Object.keys(w.pm).forEach(k=>{if(+k>=1&&+k<=4&&typeof w.pm[k]==='string')MP_PM[k]=w.pm[k]});
+    if(Array.isArray(w.mp))w.mp.slice(0,INV.length).forEach((o,i)=>{if(o&&typeof o==='object')INV[i]={x:fin(o.x,INV[i].x),y:fin(o.y,INV[i].y),r:((fin(o.r,0)|0)%4+4)%4}});
     else if(isFinite(w.ix)&&isFinite(w.iy)){const r=((fin(w.ir,0)|0)%4+4)%4,hz=r%2===1;INV=[{x:w.ix,y:w.iy,r},{x:w.ix+(hz?150:0),y:w.iy+(hz?0:180),r}]}
     clampInv();
     $('#tmin').value=st.tmin;$('#thot').value=st.thot;

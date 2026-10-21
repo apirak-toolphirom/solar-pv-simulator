@@ -584,3 +584,4 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .bkbrand{display:inline-block;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:11.5px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);background:var(--surface);margin-right:4px}
 #bkexp .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .ba-brand{fill:#3b4a58;font:800 12px var(--body);letter-spacing:.14em}.ba-brand.sm{font-size:10px;letter-spacing:.1em}
+.mppv{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}.mppv select{min-height:34px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:0 6px}
