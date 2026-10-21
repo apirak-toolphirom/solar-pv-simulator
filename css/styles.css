@@ -1,12 +1,12 @@
 /* Layout: sticky verdict, preset chips, one wiring canvas (panels left, inverter right), then a result card per MPPT, system checks, site settings. */
 :root{
-  /* light theme: soft pastel (sky / lavender / peach) — the default; dark is opt-in from the theme button */
-  --bg:#eef5fb; --bgimg:linear-gradient(160deg,#e6f2fb 0%,#f1edfb 55%,#fdf2e9 100%); --surface:#ffffff; --ink:#1f2d3a; --muted:#5b6d7c; --line:#d6e2ed;
-  --cell:#1d4b78; --frame:#a7b8c6; --invfill:#e4edf6;
-  --pos:#d62828; --neg:#14191e; --halo:transparent; --termring:#ffffff; --onterm:#ffffff;
-  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --bardim:#c4dcf6; --band:#e8f0f8;
-  --accent:#d98200; --accentbg:#fff1dc;
-  --ok:#1a7f46; --okbg:#e0f5e8; --warn:#99600a; --warnbg:#fdf1d2; --err:#b8302a; --errbg:#fde3e0;
+  /* light theme: muted pastel (sky / lavender / sand), off-white cards for low glare — the default; dark is opt-in from the theme button */
+  --bg:#d9e2ea; --bgimg:linear-gradient(160deg,#d5e1ea 0%,#dcdbe8 55%,#e6dccf 100%); --surface:#eef1f3; --ink:#24323e; --muted:#566676; --line:#c3ced8;
+  --cell:#1d4b78; --frame:#9fb0be; --invfill:#dbe3ea;
+  --pos:#c8302a; --neg:#14191e; --halo:transparent; --termring:#eef1f3; --onterm:#ffffff;
+  --s1:#2a6fc4; --s2:#d9622f; --s3:#1a9c6e; --bardim:#b9cfe8; --band:#e1e7ec;
+  --accent:#c47700; --accentbg:#f1e4cd;
+  --ok:#1a7442; --okbg:#d5eadc; --warn:#8c5a0c; --warnbg:#f0e3c4; --err:#a8322c; --errbg:#efd6d2;
   --body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
   --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
 }
