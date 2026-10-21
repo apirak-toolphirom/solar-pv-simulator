@@ -109,6 +109,10 @@ const BUILTIN=(()=>{
   // Huawei LUNA2000-7/14/21-S1: power module LUNA2000-10KW-C1 + 1-3 battery modules LUNA2000-7-E1 (6.9 kWh, LFP, 100% DoD). Datasheet 01-202411
   [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${7*n}-S1`,{chem:'LiFePO4',v:450,v3:600,ah:Math.round(6.9*n*1000/450*100)/100,dod:100,maxChg:Math.round(3500*n/450*100)/100,maxDis:Math.round(3500*n/450*100)/100,maxS:1,maxP:2,compat:'Huawei',
     note:`LUNA2000-10KW-C1 + LUNA2000-7-E1 × ${n} (ก้อนละ 6.9 kWh) · ใช้ได้ ${(6.9*n).toFixed(1)} kWh (DoD 100%) · ชาร์จ/จ่ายสูงสุด ${3.5*n} kW · ทำงาน 350–560 V กับอินเวอร์เตอร์ 1 เฟส / 600–980 V กับ 3 เฟส · LiFePO4 · IP66 · ใช้กับ SUN2000-KTL-M1, MAP0, LC0, MB0, L1 (ดาต้าชีต S1) และ LB0 (ดาต้าชีต LB0 01-202502) · ขนานได้สูงสุด 4 ชุดเฉพาะ MB0 · ดาต้าชีต 01-202411`}));
+  // Dyness PowerBrick SC: datasheet in Drive (file version 20260109-en(THA)): LFP 51.2 V 314 Ah 16.076 kWh, usable 15.272 kWh (DoD 95%), 44.8–57.6 V,
+  //   140 A recommended (0.45C, 7.168 kW) / 200 A max (10.24 kW) / 300 A peak 2 min, 50 in parallel, CAN/RS485, IP20, 116 kg, ≥10000 cycles, aerosol fire extinguisher
+  b('Dyness','PowerBrick SC 16 kWh',{v:51.2,ah:314,dod:95,maxChg:200,maxDis:200,maxP:50,
+    note:'16.076 kWh ใช้ได้ 15.272 kWh (DoD 95%) · 51.2 V 314 Ah · แรงดันทำงาน 44.8–57.6 V · แนะนำชาร์จ/จ่าย 140 A (7.17 kW) สูงสุด 200 A (10.24 kW) พีค 300 A 2 นาที · ขนานได้ 50 ลูก (สูงสุด 803.8 kWh) · CAN/RS485 · WiFi + แอป + LCD · ถังดับเพลิงแอโรซอลในตัว · IP20 · 116 kg · ≥10000 รอบ · ประกัน 7 ปี (เลือก 10 ปีได้) · ใช้กับ Solis, Deye, Growatt, GoodWe, Victron, SMA ฯลฯ · ดาต้าชีต 2026-01 (THA)'});
   b('Dyness','PowerBrick 14.3 kWh',{v:51.2,ah:280,dod:95,maxChg:200,maxDis:200,isc:0,note:'แนะนำชาร์จ/จ่าย 140 A (0.5C) · จ่ายพีค 300 A 2 นาที · ขนานได้ 50 ลูก · CAN/RS485 · IP20'});
   b('Solis','IntelliHome 5 kWh (OD)',{v:51.2,ah:100,dod:100,maxChg:50,maxDis:100,note:'แรงดันทำงาน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · ดาต้าชีตฉบับ Preliminary'});
   b('Solis','IntelliHome 10 kWh (OD)',{v:51.2,ah:200,dod:100,maxChg:100,maxDis:200,note:'ความจุคิดจาก 10 kWh ÷ 51.2 V (ดาต้าชีตระบุเซลล์ 100 Ah) · แรงดัน 44.8–57.6 V · ขนานได้ 8 ลูก · Preliminary'});
