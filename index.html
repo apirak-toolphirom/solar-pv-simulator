@@ -6,7 +6,7 @@
 <title>ต่อสายแผงโซลาร์</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=90b2ee4b">
+<link rel="stylesheet" href="css/styles.css?v=38862463">
 </head>
 <body>
 <div class="app">
@@ -314,7 +314,8 @@
       <section class="card bka-card"><div class="bkah"><h3>ภาพเคลื่อนไหวการไหลของไฟ</h3>
         <div class="bkactl"><button class="btn sm pri" id="bkaplay" aria-pressed="false">▶ เล่นทั้งวัน</button>
           <select id="bkasp" aria-label="ความเร็ว"><option value="1">ช้า</option><option value="3" selected>ปกติ</option><option value="8">เร็ว</option></select>
-          <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button></div></div>
+          <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button>
+          <button class="btn sm" id="bkacloud" aria-pressed="false">☁ เพิ่มเมฆ</button><select id="bkathick" aria-label="ความหนาเมฆ" hidden><option value="0.4">เมฆบาง (บัง 40%)</option><option value="0.75" selected>เมฆปานกลาง (บัง 75%)</option><option value="0.95">เมฆหนา (บัง 95%)</option></select><select id="bkasize" aria-label="ขนาดเมฆ" hidden><option value="1">ก้อนเล็ก</option><option value="1.5" selected>ก้อนกลาง</option><option value="2.8">ก้อนใหญ่ (คลุมทั้งแผง)</option></select></div></div>
         <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="144" aria-label="เวลาในวัน"><output id="bkatl">12:00</output></div>
         <div id="bkasvg" class="bkasvg"></div><p class="hint tight" id="bkanote" aria-live="polite"></p></section>
       <div class="simcards">
@@ -494,8 +495,8 @@
 <script src="js/solar.js?v=da5fc384"></script>
 <script src="js/site.js?v=3ef896c8"></script>
 <script src="js/loads.js?v=d3b46921"></script>
-<script src="js/backup.js?v=404941de"></script>
-<script src="js/bkanim.js?v=e27702f2"></script>
+<script src="js/backup.js?v=b4f6438f"></script>
+<script src="js/bkanim.js?v=f3228b77"></script>
 <script src="js/systems.js?v=3112aceb"></script>
 <script src="js/events.js?v=6ac6c563"></script>
 <script src="js/bench.js?v=ebe5032f"></script>

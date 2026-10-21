@@ -552,8 +552,12 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .bkat{display:flex;align-items:center;gap:10px}.bkat input{flex:1;accent-color:var(--accent)}.bkat output{font-family:var(--mono);font-weight:600;min-width:48px}
 .bkasvg{border-radius:10px;overflow:hidden;border:1px solid var(--line)}
 .ba{display:block;width:100%;height:auto}
-.ba-wall{fill:#e9eef2}.ba-floor{fill:#d3dbe1}.bkasvg.night .ba-wall{fill:#c9d0dc}.bkasvg.night .ba-floor{fill:#b6bfcb}
-.ba-sun{fill:#f6b73c;filter:drop-shadow(0 0 8px #f6c96a)}.ba-moon{font-size:30px;fill:#6c7a94}
+.ba-wall{fill:#e9eef2}.ba-floor{fill:#d3dbe1}.bkasvg.night .ba-wall{fill:#3a4658}.bkasvg.night .ba-floor{fill:#2e3846}.bkasvg.night .ba-lab,.bkasvg.night .ba-val text{fill:#eef2f6;stroke:#1b2330cc;stroke-width:3px;paint-order:stroke}.ba-cloud .ba-sm{fill:#6b7884;font-weight:600}.bkasvg.night .ba-sm{fill:#c4cdd6}
+.ba-sun circle{fill:#f6b73c;filter:drop-shadow(0 0 8px #f6c96a)}.ba-sun line{stroke:#f6b73c;stroke-width:4;stroke-linecap:round}
+.ba-moon path{fill:#f3f0d8;stroke:#c9c4a0;filter:drop-shadow(0 0 6px #fffbe0)}.ba-moon circle{fill:#fffbe6}
+.ba-cloud{cursor:grab;touch-action:none}.ba-cloud.drag{cursor:grabbing}.ba-cloud ellipse,.ba-cloud circle{fill:#fbfcfd;stroke:#b8c3cc;stroke-width:1.5}.ba-cloud:focus-visible{outline:none}.ba-cloud:focus-visible ellipse{stroke:var(--accent);stroke-width:3}
+.ba-shade{fill:#1b2733;transition:opacity .2s}
+.ba-polep{fill:#8d969e}.ba-arm{fill:#6f7a84}.ba-ins{fill:#5aa0c8}.ba-tr{fill:#a9b4bd;stroke:#76828c}.ba-hv{fill:none;stroke:#3d4852;stroke-width:1.6}
 .ba-rack line,.ba-pole{stroke:#7d8a95;stroke-width:4;stroke-linecap:round}
 .ba-pv{fill:#1f4f84;stroke:#c7d2dc;stroke-width:2}.ba-pvl{stroke:#6f93bd;stroke-width:1}
 .ba-w{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.28}.ba-w.dc{stroke:#2f7fd6}.ba-w.ac{stroke:#d64541}

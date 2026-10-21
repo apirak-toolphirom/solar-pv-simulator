@@ -557,8 +557,12 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .bkat{display:flex;align-items:center;gap:10px}.bkat input{flex:1;accent-color:var(--accent)}.bkat output{font-family:var(--mono);font-weight:600;min-width:48px}
 .bkasvg{border-radius:10px;overflow:hidden;border:1px solid var(--line)}
 .ba{display:block;width:100%;height:auto}
-.ba-wall{fill:#e9eef2}.ba-floor{fill:#d3dbe1}.bkasvg.night .ba-wall{fill:#c9d0dc}.bkasvg.night .ba-floor{fill:#b6bfcb}
-.ba-sun{fill:#f6b73c;filter:drop-shadow(0 0 8px #f6c96a)}.ba-moon{font-size:30px;fill:#6c7a94}
+.ba-wall{fill:#e9eef2}.ba-floor{fill:#d3dbe1}.bkasvg.night .ba-wall{fill:#3a4658}.bkasvg.night .ba-floor{fill:#2e3846}.bkasvg.night .ba-lab,.bkasvg.night .ba-val text{fill:#eef2f6;stroke:#1b2330cc;stroke-width:3px;paint-order:stroke}.ba-cloud .ba-sm{fill:#6b7884;font-weight:600}.bkasvg.night .ba-sm{fill:#c4cdd6}
+.ba-sun circle{fill:#f6b73c;filter:drop-shadow(0 0 8px #f6c96a)}.ba-sun line{stroke:#f6b73c;stroke-width:4;stroke-linecap:round}
+.ba-moon path{fill:#f3f0d8;stroke:#c9c4a0;filter:drop-shadow(0 0 6px #fffbe0)}.ba-moon circle{fill:#fffbe6}
+.ba-cloud{cursor:grab;touch-action:none}.ba-cloud.drag{cursor:grabbing}.ba-cloud ellipse,.ba-cloud circle{fill:#fbfcfd;stroke:#b8c3cc;stroke-width:1.5}.ba-cloud:focus-visible{outline:none}.ba-cloud:focus-visible ellipse{stroke:var(--accent);stroke-width:3}
+.ba-shade{fill:#1b2733;transition:opacity .2s}
+.ba-polep{fill:#8d969e}.ba-arm{fill:#6f7a84}.ba-ins{fill:#5aa0c8}.ba-tr{fill:#a9b4bd;stroke:#76828c}.ba-hv{fill:none;stroke:#3d4852;stroke-width:1.6}
 .ba-rack line,.ba-pole{stroke:#7d8a95;stroke-width:4;stroke-linecap:round}
 .ba-pv{fill:#1f4f84;stroke:#c7d2dc;stroke-width:2}.ba-pvl{stroke:#6f93bd;stroke-width:1}
 .ba-w{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.28}.ba-w.dc{stroke:#2f7fd6}.ba-w.ac{stroke:#d64541}
@@ -880,7 +884,8 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
       <section class="card bka-card"><div class="bkah"><h3>ภาพเคลื่อนไหวการไหลของไฟ</h3>
         <div class="bkactl"><button class="btn sm pri" id="bkaplay" aria-pressed="false">▶ เล่นทั้งวัน</button>
           <select id="bkasp" aria-label="ความเร็ว"><option value="1">ช้า</option><option value="3" selected>ปกติ</option><option value="8">เร็ว</option></select>
-          <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button></div></div>
+          <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button>
+          <button class="btn sm" id="bkacloud" aria-pressed="false">☁ เพิ่มเมฆ</button><select id="bkathick" aria-label="ความหนาเมฆ" hidden><option value="0.4">เมฆบาง (บัง 40%)</option><option value="0.75" selected>เมฆปานกลาง (บัง 75%)</option><option value="0.95">เมฆหนา (บัง 95%)</option></select><select id="bkasize" aria-label="ขนาดเมฆ" hidden><option value="1">ก้อนเล็ก</option><option value="1.5" selected>ก้อนกลาง</option><option value="2.8">ก้อนใหญ่ (คลุมทั้งแผง)</option></select></div></div>
         <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="144" aria-label="เวลาในวัน"><output id="bkatl">12:00</output></div>
         <div id="bkasvg" class="bkasvg"></div><p class="hint tight" id="bkanote" aria-live="polite"></p></section>
       <div class="simcards">
@@ -4038,7 +4043,7 @@ function backupRun(){
   const ax=(typeof acsCfg==='function')?acsCfg():null;
   if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
   const R=balance(src.pv,LP.all,LP.crit,cfg);
-  window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island};
+  window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island,cfg};
   const T=R.T;
 
   /* warnings */
@@ -4141,7 +4146,7 @@ function initBackup(){
 
 /* ---- menu 07: animated power-flow picture (panels → DC box → inverter ↔ battery, inverter → AC board ↔ grid, board → loads)
    Reads the 5-minute balance from backupRun (window.lastBal). Dash speed follows the power on each wire, direction follows its sign. */
-const BKA={i:144,play:false,speed:3,last:0,acc:0,off:{},raf:0};
+const BKA={i:144,play:false,speed:3,last:0,acc:0,off:{},raf:0,cloud:{on:false,x:520,y:70,thick:0.75,size:1.5}};
 const bkaHM=i=>{const m=i*5;return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const bkaKW=w=>(Math.abs(w)/1000).toFixed(Math.abs(w)<10000?2:1)+' kW';
 function bkaSVG(){
@@ -4149,9 +4154,12 @@ function bkaSVG(){
   const badge=(x,y,t,c)=>`<g class="ba-bd ${c}"><circle cx="${x}" cy="${y}" r="13"/><text x="${x}" y="${y+4}" text-anchor="middle">${t}</text></g>`;
   return `<svg viewBox="0 0 800 470" class="ba" role="img" aria-label="ภาพเคลื่อนไหวการไหลของไฟฟ้าในระบบ">
   <rect x="0" y="0" width="800" height="470" class="ba-wall"/><rect x="0" y="440" width="800" height="30" class="ba-floor"/>
-  <g id="basky"><circle id="basun" r="16" class="ba-sun"/><text id="bamoon" class="ba-moon" text-anchor="middle">☾</text></g>
+  <g id="basun" class="ba-sun">${[0,1,2,3,4,5,6,7].map(k=>{const a=k*Math.PI/4;return`<line x1="${(Math.cos(a)*23).toFixed(1)}" y1="${(Math.sin(a)*23).toFixed(1)}" x2="${(Math.cos(a)*32).toFixed(1)}" y2="${(Math.sin(a)*32).toFixed(1)}"/>`}).join('')}<circle r="17"/></g>
+  <g id="bamoon" class="ba-moon"><path d="M6 -19 A20 20 0 1 0 6 19 A15 15 0 1 1 6 -19Z"/><circle cx="-48" cy="-6" r="1.6"/><circle cx="40" cy="14" r="1.3"/><circle cx="-20" cy="22" r="1.1"/><circle cx="58" cy="-14" r="1.5"/></g>
   <g class="ba-rack"><line x1="40" y1="96" x2="380" y2="96"/><line x1="70" y1="96" x2="62" y2="122"/><line x1="350" y1="96" x2="342" y2="122"/></g>
   ${[0,1,2,3].map(k=>panel(54+k*82,46)).join('')}
+  <clipPath id="bapvclip">${[0,1,2,3].map(k=>{const x=54+k*82;return`<polygon points="${x},46 ${x+78},46 ${(x+78-14.9).toFixed(1)},92 ${(x-14.9).toFixed(1)},92"/>`}).join('')}</clipPath>
+  <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
   <!-- wires (base + animated dash) -->
   ${[['pv','M120 96 V150 H80 V190','dc'],['pv2','M80 238 V262 H262','dc'],['bat','M300 330 V372 H200','dc'],['ac','M380 262 H470','ac'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
@@ -4169,7 +4177,11 @@ function bkaSVG(){
   <!-- AC board -->
   <g><rect x="470" y="226" width="100" height="72" rx="6" class="ba-box"/>${[0,1,2,3,4].map(k=>`<rect x="${482+k*16}" y="244" width="11" height="22" rx="2" class="ba-brk"/>`).join('')}<text x="520" y="290" text-anchor="middle" class="ba-sm">ตู้ไฟ AC</text></g>
   <!-- grid -->
-  <g id="bagrid"><line x1="700" y1="40" x2="700" y2="150" class="ba-pole"/><line x1="672" y1="52" x2="728" y2="52" class="ba-pole"/><line x1="680" y1="70" x2="720" y2="70" class="ba-pole"/>
+  <g id="bagrid"><path d="M664 48 Q732 62 800 50 M700 44 Q750 56 800 44 M736 48 Q770 58 800 56" class="ba-hv"/>
+    <rect x="695" y="34" width="10" height="122" rx="2" class="ba-polep"/><rect x="660" y="44" width="80" height="7" rx="2" class="ba-arm"/>
+    ${[664,700,736].map(x=>`<rect x="${x-3}" y="36" width="6" height="9" rx="2" class="ba-ins"/>`).join('')}
+    <rect x="672" y="70" width="22" height="34" rx="6" class="ba-tr"/><line x1="683" y1="70" x2="683" y2="52" class="ba-hv"/><text x="660" y="92" text-anchor="end" class="ba-sm">หม้อแปลง</text>
+    <path d="M694 96 Q700 128 700 150" class="ba-hv"/>
     <rect x="678" y="150" width="44" height="34" rx="5" class="ba-box"/><text x="700" y="172" text-anchor="middle" class="ba-sm">kWh</text>
     <text x="700" y="30" text-anchor="middle" class="ba-lab">การไฟฟ้า (กริด)</text><g id="bagridx" class="ba-x"><line x1="684" y1="86" x2="716" y2="118"/><line x1="716" y1="86" x2="684" y2="118"/></g></g>
   <!-- loads -->
@@ -4179,6 +4191,7 @@ function bkaSVG(){
     <rect x="660" y="300" width="112" height="28" rx="6" class="ba-ap"/><line x1="668" y1="320" x2="764" y2="320" class="ba-apl"/>
     <circle cx="748" cy="374" r="13" class="ba-lamp"/><rect x="744" y="386" width="8" height="14" class="ba-ap"/>
     <text x="690" y="430" text-anchor="middle" class="ba-lab">โหลดในบ้าน</text></g>
+  <g id="bacloud" class="ba-cloud" transform="translate(520 70)" tabindex="0" role="slider" aria-label="เมฆ ลากไปบังแผง (ใช้ลูกศรซ้าย/ขวาได้)"><g class="ba-cs"><ellipse cx="0" cy="12" rx="62" ry="22"/><circle cx="-28" cy="2" r="24"/><circle cx="6" cy="-10" r="32"/><circle cx="36" cy="4" r="22"/></g><text x="0" y="12" text-anchor="middle" class="ba-sm">⇆ ลากเมฆ</text></g>
   ${badge(80,150,'DC','dc')}${badge(190,262,'DC','dc')}${badge(250,372,'DC','dc')}${badge(425,262,'AC','ac')}${badge(620,215,'AC','ac')}${badge(560,330,'AC','ac')}
   <!-- flow labels -->
   <g class="ba-val"><text id="bav-pv" x="150" y="140">—</text><text id="bav-bat" x="210" y="396">—</text><text id="bav-ac" x="425" y="250" text-anchor="middle">—</text>
@@ -4189,29 +4202,59 @@ function bkaFrame(){
   const R=window.lastBal&&window.lastBal.R,host=document.getElementById('bkasvg');
   if(!R||!host||!host.firstChild)return;
   const i=Math.max(0,Math.min(R.pv.length-1,BKA.i)),mode=window.lastBal.mode;
-  const pv=Math.max(0,R.pv[i]-R.curt[i]),bat=R.fromBat[i]-R.toBat[i],grid=R.imp[i]-R.exp[i],load=Math.max(0,R.load[i]-R.unmet[i]),inv=pv+bat,out=R.outage[i];
+  const cf=bkaCloud(),out=R.outage[i];let pv=Math.max(0,R.pv[i]-R.curt[i]),bat=R.fromBat[i]-R.toBat[i],grid=R.imp[i]-R.exp[i],load=Math.max(0,R.load[i]-R.unmet[i]),unmet=R.unmet[i];
+  if(cf>0&&R.pv[i]>1){const x=bkaInstant(i,R.pv[i]*(1-cf));pv=x.pv;bat=x.bat;grid=x.grid;load=x.load;unmet=x.unmet}
+  const inv=pv+bat;
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   BKA.v={pv,pv2:pv,bat:-bat,ac:inv,grid,load};/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
-  if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('cx',430+(h-6)/12*210);sun.setAttribute('cy',125-Math.sin(a)*95);sun.style.display=''}else sun.style.display='none';
-  moon.setAttribute('x',600);moon.setAttribute('y',60);moon.style.display=day?'none':'';
+  if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('transform',`translate(${(430+(h-6)/12*210).toFixed(1)} ${(125-Math.sin(a)*95).toFixed(1)})`);sun.style.display=''}else sun.style.display='none';
+  {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
+  bkaShade(day);
   host.classList.toggle('night',!day);
-  txt('bav-pv',pv>1?bkaKW(pv):'0 kW');txt('bav-ac',Math.abs(inv)>1?bkaKW(inv):'0 kW');txt('bav-load',(load>1?bkaKW(load):'0 kW')+(R.unmet[i]>1?' · ขาด '+bkaKW(R.unmet[i]):''));
+  txt('bav-pv',pv>1?bkaKW(pv):'0 kW');txt('bav-ac',Math.abs(inv)>1?bkaKW(inv):'0 kW');txt('bav-load',(load>1?bkaKW(load):'0 kW')+(unmet>1?' · ขาด '+bkaKW(unmet):''));
   txt('bav-bat',mode==='grid'?'':Math.abs(bat)<1?'พัก':(bat>0?'จ่าย ':'ชาร์จ ')+bkaKW(bat));
   txt('bav-grid',mode==='off'?'':out?'ไฟดับ':Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid));
   const stop=mode==='grid'&&out;
   txt('bainvt1',stop?'STOP':bkaKW(inv));txt('bainvt2',stop?'กริดดับ':out?'จ่ายเอง':mode==='off'?'Off-grid':'ต่อกริด');
   txt('bainvm',mode==='grid'?'On-grid':mode==='off'?'Off-grid':'Hybrid');
-  q('baled').setAttribute('class','ba-led '+(stop?'err':R.unmet[i]>1?'warn':'ok'));
+  q('baled').setAttribute('class','ba-led '+(stop?'err':unmet>1?'warn':'ok'));
   const soc=R.soc[i]||0,f=q('basocf');txt('basoc',mode==='grid'?'—':Math.round(soc)+'%');
   f.setAttribute('height',Math.max(0,64*soc/100));f.setAttribute('y',353+64*(1-soc/100));f.setAttribute('class','ba-socf'+(soc<25?' low':''));
   q('babat').classList.toggle('ba-off',mode==='grid');txt('babatx',mode==='grid'?'ไม่ใช้แบต (On-grid)':'');
   q('bagrid').classList.toggle('ba-off',mode==='off'||out);q('bagridx').style.display=out&&mode!=='off'?'':'none';
-  q('baload').classList.toggle('ba-dark',R.unmet[i]>1&&load<1);q('baload').classList.toggle('ba-dim',R.unmet[i]>1&&load>=1);
+  q('baload').classList.toggle('ba-dark',unmet>1&&load<1);q('baload').classList.toggle('ba-dim',unmet>1&&load>=1);
   ['pv','pv2','bat','ac','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
   q('bkat').value=i;txt('bkatl',bkaHM(i));
-  const note=q('bkanote');if(note)note.textContent=stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
-    R.unmet[i]>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':'';
+  const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
+    (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));
+}
+/* cloud: covered share of the panel row (horizontal overlap while the cloud is at panel height) × thickness */
+function bkaCover(){const c=BKA.cloud;if(!c.on)return{f:0,x1:0,x2:0};const r=64*c.size,x1=Math.max(40,c.x-r),x2=Math.min(392,c.x+r);
+  const near=c.y>=10&&c.y<=150;return near&&x2>x1?{f:(x2-x1)/352,x1,x2}:{f:0,x1:0,x2:0}}
+function bkaCloud(){return bkaCover().f*BKA.cloud.thick}
+function bkaShade(day){const s=document.getElementById('bashade'),cl=document.getElementById('bacloud');if(!s||!cl)return;const c=bkaCover();
+  cl.style.display=BKA.cloud.on?'':'none';cl.setAttribute('transform',`translate(${BKA.cloud.x.toFixed(0)} ${BKA.cloud.y.toFixed(0)})`);const g=cl.querySelector('.ba-cs');if(g)g.setAttribute('transform',`scale(${BKA.cloud.size} 1)`);
+  s.setAttribute('x',c.x1-8);s.setAttribute('width',Math.max(0,c.x2-c.x1));s.style.opacity=day?(0.25+0.5*BKA.cloud.thick):0}
+/* one-step what-if with the clouded PV: panels to loads first, then battery, then grid (same order as balance()) */
+function bkaInstant(i,pvNew){
+  const B=window.lastBal,R=B.R,cfg=B.cfg||{},mode=B.mode,out=R.outage[i],want=R.load[i],soc=R.soc[i]||0;
+  if(mode==='grid'&&out)return{pv:0,bat:0,grid:0,load:0,unmet:want};
+  const gridUp=mode!=='off'&&!out,hasBat=mode!=='grid'&&cfg.bank;
+  const minSoc=hasBat?100-((cfg.bank.b&&cfg.bank.b.dod)||90):0;
+  let direct=Math.min(pvNew,want),sur=pvNew-direct,def=want-direct,bat=0,grid=0,unmet=0,used=pvNew;
+  if(sur>0){const ch=hasBat&&soc<99.5?Math.min(sur,(cfg.chgKw||0)*1000):0;bat=-ch;sur-=ch;if(gridUp){grid=-sur;if(cfg.expLimW!=null&&-grid>cfg.expLimW){used-=(-grid-cfg.expLimW);grid=-cfg.expLimW}}else used-=sur}
+  if(def>0){const ds=hasBat&&soc>minSoc+0.5?Math.min(def,(cfg.disKw||0)*1000):0;bat=ds;def-=ds;if(gridUp)grid=def;else unmet=def}
+  return{pv:used,bat,grid,load:want-unmet,unmet};
+}
+function bkaDrag(){
+  const cl=document.getElementById('bacloud'),svg=cl&&cl.ownerSVGElement;if(!cl||cl.dataset.dr)return;cl.dataset.dr='1';
+  const pt=e=>{const m=svg.getScreenCTM().inverse(),p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(m)};
+  let d=null;
+  cl.addEventListener('pointerdown',e=>{const p=pt(e);d={dx:p.x-BKA.cloud.x,dy:p.y-BKA.cloud.y};cl.setPointerCapture(e.pointerId);cl.classList.add('drag');e.preventDefault()});
+  cl.addEventListener('pointermove',e=>{if(!d)return;const p=pt(e);BKA.cloud.x=Math.max(30,Math.min(770,p.x-d.dx));BKA.cloud.y=Math.max(46,Math.min(200,p.y-d.dy));bkaFrame()});
+  const up=()=>{d=null;cl.classList.remove('drag')};cl.addEventListener('pointerup',up);cl.addEventListener('pointercancel',up);
+  cl.addEventListener('keydown',e=>{const k={ArrowLeft:-20,ArrowRight:20}[e.key];if(k){BKA.cloud.x=Math.max(30,Math.min(770,BKA.cloud.x+k));bkaFrame();e.preventDefault()}});
 }
 function bkaTick(t){
   BKA.raf=0;
@@ -4225,7 +4268,7 @@ function bkaTick(t){
   BKA.raf=requestAnimationFrame(bkaTick);
 }
 function bkaKick(){if(!BKA.raf)BKA.raf=requestAnimationFrame(bkaTick)}
-function bkAnimUpdate(){const host=document.getElementById('bkasvg');if(!host)return;if(!host.firstChild)host.innerHTML=bkaSVG();bkaFrame();bkaKick()}
+function bkAnimUpdate(){const host=document.getElementById('bkasvg');if(!host)return;if(!host.firstChild){host.innerHTML=bkaSVG();bkaDrag()}bkaFrame();bkaKick()}
 function initBkAnim(){
   const t=document.getElementById('bkat');if(!t)return;
   t.addEventListener('input',e=>{BKA.i=+e.target.value;bkaFrame()});
@@ -4233,6 +4276,10 @@ function initBkAnim(){
   document.getElementById('bkasp').addEventListener('change',e=>{BKA.speed=+e.target.value});
   document.querySelectorAll('[data-bkat]').forEach(b=>b.addEventListener('click',()=>{const R=window.lastBal&&window.lastBal.R;let i=144;
     if(b.dataset.bkat==='out'&&R){const k=R.outage.indexOf(true);i=k>=0?Math.min(287,k+6):144}else i=+b.dataset.bkat;BKA.i=i;bkaFrame()}));
+  const cb=document.getElementById('bkacloud'),ct=document.getElementById('bkathick'),cz=document.getElementById('bkasize');
+  cb.addEventListener('click',()=>{BKA.cloud.on=!BKA.cloud.on;if(BKA.cloud.on){BKA.cloud.x=520;BKA.cloud.y=70}cb.setAttribute('aria-pressed',String(BKA.cloud.on));cb.textContent=BKA.cloud.on?'☁ เอาเมฆออก':'☁ เพิ่มเมฆ';ct.hidden=cz.hidden=!BKA.cloud.on;bkaFrame()});
+  ct.addEventListener('change',e=>{BKA.cloud.thick=+e.target.value;bkaFrame()});
+  cz.addEventListener('change',e=>{BKA.cloud.size=+e.target.value;bkaFrame()});
   document.addEventListener('visibilitychange',bkaKick);
 }
 

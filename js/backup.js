@@ -95,7 +95,7 @@ function backupRun(){
   const ax=(typeof acsCfg==='function')?acsCfg():null;
   if(ax)Object.assign(cfg,{reserve:ax.reserve,gmode:ax.gmode,noBackup:ax.noBackup,expLimW:ax.expLimW});
   const R=balance(src.pv,LP.all,LP.crit,cfg);
-  window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island};
+  window.lastBal={R,LP,step:5,mode:BK.mode,island:BK.island,cfg};
   const T=R.T;
 
   /* warnings */
