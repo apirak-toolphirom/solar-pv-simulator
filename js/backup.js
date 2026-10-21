@@ -102,6 +102,7 @@ function backupRun(){
   if(false)warns.push(['err',`อินเวอร์เตอร์ ${I.name} เป็นแบบ On-grid ต่อแบตไม่ได้ ผลด้านล่างจำลองเหมือนมีแบตเพื่อดูแนวทางเท่านั้น เลือกรุ่น Hybrid หรือ Off-grid ที่แท็บ "อุปกรณ์"`]);
   if(need&&bi&&I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warns.push(['err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงที่อินเวอร์เตอร์รับ ${I.bvMin}–${I.bvMax} V ปรับจำนวนต่ออนุกรมที่แท็บ "อุปกรณ์"`]);
   if(need&&bi&&I.type!=='on-grid'&&!batCompat(bi.b,I))warns.push(['err',batCompatMsg(bi.b,I)]);
+  if(BK_SWAP)warns.push(['warn',BK_SWAP]);
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
   const peakIsl=Math.max(...(BK.island==='crit'?LP.crit:LP.all));
   if(need&&(BK.mode==='off'||BK.outDur>0)&&peakIsl>islandW)warns.push(['warn',`โหลดช่วงจ่ายเองสูงสุด ${f(peakIsl/1000,2)} kW เกินกำลังขาออกของอินเวอร์เตอร์ ${f(islandW/1000,1)} kW ส่วนเกินจะถูกตัด`]);
@@ -169,14 +170,21 @@ function drawBackup(){
   if($('#chK1').clientWidth)drawLine($('#chK1'),bkCfg.A);
   if(bkCfg.B&&$('#chK2').clientWidth)drawLine($('#chK2'),bkCfg.B);
 }
+/* a system type the current inverter cannot run: pick the closest inverter that can (same brand and phase first, then nearest power) */
+let BK_SWAP='';
+function bkSwapInv(I,m){
+  const ok=x=>bkModes(Object.assign({},x)).includes(m);
+  const sc=x=>(String(x.brand)===String(I.brand)?0:1e6)+(String(x.phase||'1')===String(I.phase||'1')?0:1e5)+Math.abs((+x.pac||0)-(+I.pac||0));
+  return CAT.inverters.filter(ok).sort((a,b)=>sc(a)-sc(b))[0]||null;
+}
 function bkSync(){
   const ok=bkModes(curInv());
   /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
   const kb=$('#kbat'),is=$('#bkis'),g=BK.mode==='grid';
   if(kb)kb.title=g?'โหมด On-grid ไม่ใช้แบตในการคำนวณ เลือก Hybrid เพื่อจำลองแบต':'';
   if(is){is.disabled=g;is.title=g?'On-grid ไม่จ่ายไฟตอนไฟดับ':''}
-  document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=!ok.includes(b.dataset.bm);
-    b.title=b.disabled?'อินเวอร์เตอร์ที่เลือกเป็นแบบ '+(curInv().type||'')+' ใช้ระบบนี้ไม่ได้ เปลี่ยนรุ่นที่แท็บ "อุปกรณ์"':''});
+  document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=false;
+    b.title=ok.includes(b.dataset.bm)?'':'กดแล้วจะเปลี่ยนอินเวอร์เตอร์เป็นรุ่นที่ใช้ระบบนี้ได้ (ยี่ห้อเดิม ขนาดใกล้เคียง)'});
   $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal';
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
   $('#bkoutbox').hidden=BK.mode==='off';$('#bkoutbox2').hidden=BK.mode==='off';$('#bksocbox').hidden=BK.mode==='grid';
@@ -187,7 +195,10 @@ function bkSync(){
   }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
-  $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b||b.disabled)return;BK.mode=BK.want=b.dataset.bm;bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b)return;const m=b.dataset.bm;BK.mode=BK.want=m;
+    const I=curInv();BK_SWAP='';
+    if(!bkModes(I).includes(m)){const n=bkSwapInv(I,m);if(n){BK_SWAP=`เปลี่ยนอินเวอร์เตอร์จาก ${I.name} เป็น ${(n.brand+' '+n.model).trim()} เพราะระบบ ${m==='off'?'Off-grid':'Hybrid'} ต้องใช้อินเวอร์เตอร์ที่ต่อแบตได้`;ACT.inv=n.id;onCatalogChange()}}
+    bkSync();backupRun();if(typeof touch==='function')touch()});
   const num=(id,key,lo,hi)=>$('#'+id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK[key]=Math.max(lo,Math.min(hi,n));backupRun();if(typeof touch==='function')touch()});
   num('bkn','nIdeal',1,200);num('bkod','outDur',0,24);num('bksoc','soc0',0,100);
   $('#bkos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;backupRun();if(typeof touch==='function')touch()});

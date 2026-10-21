@@ -203,7 +203,7 @@ function initReset(){
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
   $('#acinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
-  $('#kinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
+  $('#kinv').addEventListener('change',e=>{if(typeof BK_SWAP!=='undefined')BK_SWAP='';ACT.inv=e.target.value;onCatalogChange()});
   $('#kbat').addEventListener('change',e=>{ACT.bat=e.target.value;onCatalogChange()});
   window.addEventListener('hashchange',()=>showTab(location.hash.slice(1),true));
   window.addEventListener('resize',()=>{setNavH();drawLoadChart();drawBackup()});
