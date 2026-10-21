@@ -612,6 +612,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .bkmicsel{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.bkmicsel label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
 .ba-pw{fill:#fff;font:700 12px var(--mono);paint-order:stroke;stroke:#1f4f84;stroke-width:3px}
 .tcur line{stroke:var(--accent);stroke-width:2;stroke-dasharray:5 3}.tcur rect{fill:var(--accent)}.tcur text{fill:#fff;font:700 11px var(--mono)}#chK1,#chK2{cursor:pointer}
+.micman summary{cursor:pointer}.micmang{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 24px;margin-top:10px;font-size:13.5px}.micmang h3{font-size:14px;margin:8px 0 4px}.micmang ol,.micmang ul{margin:0;padding-left:20px}.mictab{border-collapse:collapse;width:100%}.mictab td{border-bottom:1px solid var(--line);padding:4px 6px}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -1136,7 +1137,7 @@ const SCHEMA={
       ['asym','จ่ายไฟแต่ละเฟสไม่เท่ากันได้ (3 เฟส)','s','0',[['0','ไม่ได้ จ่ายเท่ากันทุกเฟส'],['1','ได้ ตามโหลดแต่ละเฟส']]],
       ['bph','พอร์ต Backup','s','',[['','เท่ากับระบบไฟ AC'],['1','1 เฟส'],['3','3 เฟส']],'hyb'],
       ['pac','กำลัง AC (W)','n',0],['vmax','Vdc สูงสุด (V)','n',0],['lo','MPPT ต่ำสุด (V)','n',0],['hi','MPPT สูงสุด (V)','n',0],['start','แรงดันเริ่มทำงาน (V)','n',0],
-      ['micro','ชนิดย่อย','s','',[['','สตริง / ไฮบริด'],['1','ไมโครอินเวอร์เตอร์ (ติดใต้แผง)']]],['nmppt','จำนวน MPPT (1–4)','n',2],['brMax','ไมโคร: ต่อพ่วงสูงสุดต่อสายย่อย (ตัว)','n',0],['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
+      ['micro','ชนิดย่อย','s','',[['','สตริง / ไฮบริด'],['1','ไมโครอินเวอร์เตอร์ (ติดใต้แผง)']]],['nmppt','จำนวน MPPT (1–4)','n',2],['brMax','ไมโคร: ต่อพ่วงสูงสุดต่อสายย่อย (ตัว)','n',0],['brBrk','ไมโคร: เบรกเกอร์สายย่อยสูงสุด (A)','n',0],['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
       ['bvMin','แรงดันแบต ต่ำสุด (V)','n',0,null,'hyb'],['bvMax','แรงดันแบต สูงสุด (V)','n',0,null,'hyb'],
       ['bchg','ชาร์จแบตสูงสุด (kW)','n',0,null,'hyb'],['bdis','จ่ายจากแบตสูงสุด (kW)','n',0,null,'hyb'],['backupKw','กำลังขาออกโหมด Backup (kW)','n',0,null,'hyb'],
       ['note','หมายเหตุ','t','']
@@ -1176,10 +1177,12 @@ const BUILTIN=(()=>{
   [[6,16,20,12000,1],[8,32,40,16000,2],[10,42,48,20000,2]].forEach(([k,im,sc,rec,ns])=>inv.push({id:slug(`solis s6-eh1p${k}k-l-plus`),brand:'Solis',model:`S6-EH1P${k}K-L-PLUS${k===10?' (21A)':''}`,type:'hybrid',phase:'1',
     pac:k*1000,vmax:500,lo:90,hi:435,start:90,imax:im,isc:sc,pvRec:rec,eff:96.1,bvMin:40,bvMax:60,bchg:k,bdis:k,backupKw:k,builtin:1,
     note:`Hybrid 1 เฟส On/Off-grid แบตแรงดันต่ำ 40–60 V (ลิเธียม/ตะกั่วกรด, CAN/RS485) ชาร์จ/จ่าย ${k} kW · 2 MPPT ${ns} สตริงต่อ MPPT กระแสต่ออินพุต ${k===10?21:16} A · มีพอร์ต GEN · สลับไปไฟสำรอง <10 ms · โอเวอร์โหลด 200% 10 วินาที · ขนานได้ 6 เครื่อง · eff สูงสุด 96.2%`}));
-  // Deye SUN-M130/160/180/200/220G4-EU-Q0: single-phase microinverter, 4 MPPT x 1 module, 25-55 V, 18 A / Isc 27 A per input (deyeinverter.com, datasheet 2025-08)
-  [[130,1300,460,5,6],[160,1600,560,4,7.3],[180,1800,630,3,8.2],[200,2000,700,3,9.1],[220,2200,770,3,10]].forEach(([m,w,mod,br,ia])=>inv.push({id:slug(`deye sun-m${m}g4-eu-q0`),brand:'Deye',model:`SUN-M${m}G4-EU-Q0 (micro ${w} W)`,type:'on-grid',phase:'1',
-    pac:w,iac:ia,micro:'1',brMax:br,nmppt:4,vmax:60,lo:25,hi:55,start:20,imax:18,isc:27,pvRec:mod*4,eff:96,builtin:1,
-    note:`ไมโครอินเวอร์เตอร์ 1 เฟส 220/230 V · 4 MPPT ต่อแผงช่องละ 1 แผง (แผง ${210}–${mod} W) · ต่อพ่วงได้ ${br} ตัวต่อสายย่อย · WiFi ในตัว · IP67 · eff สูงสุด 96.5% · เมนู 02 จำลองได้ 2 ช่องแรก`}));
+  // Deye SUN-M130/160/180/200G4-EU-Q0: user manual 2024-06 (instructions_sun-m130-200g4-eu-q0eu_240622): 4 MPPT x 1 module, Vmax 60 V, start 20 V,
+  //   MPPT 25-55 V, 15 A operating / 22.5 A Isc per input, 1 mm² AC lead, max units per branch for a 40 A breaker 5/4/3/3, DC cable < 3 m.
+  //   SUN-M220G4: Deye datasheet 2025-08 (18 A / Isc 27 A per input).
+  [[130,1300,460,5,6,15,22.5,'29'],[160,1600,560,4,7.3,15,22.5,'31.5'],[180,1800,630,3,8.2,15,22.5,'33'],[200,2000,700,3,9.1,15,22.5,'36.5'],[220,2200,770,3,10,18,27,'']].forEach(([m,w,mod,br,ia,im,sc,fl])=>inv.push({id:slug(`deye sun-m${m}g4-eu-q0`),brand:'Deye',model:`SUN-M${m}G4-EU-Q0 (micro ${w} W)`,type:'on-grid',phase:'1',
+    pac:w,iac:ia,micro:'1',brMax:br,brBrk:40,nmppt:4,vmax:60,lo:25,hi:55,start:20,imax:im,isc:sc,pvRec:mod*4,eff:96,builtin:1,
+    note:`ไมโครอินเวอร์เตอร์ 1 เฟส 220/230 V (L+N+PE) · 4 MPPT ช่องละ 1 แผง (แผง 210–${mod} W) · กระแสเข้า ${im} A / Isc ${sc} A ต่อช่อง${fl?` · MPPT เต็มกำลัง ${fl}–55 V`:''} · ต่อพ่วงได้ ${br} ตัวต่อสายย่อย (เบรกเกอร์ 40 A) · สาย DC แผงถึงไมโครยาวไม่เกิน 3 m · eff สูงสุด 96.5% ยุโรป 96.0% · IP67 · WiFi ในตัว · ${m===220?'ดาต้าชีต Deye 2025-08':'คู่มือ Deye 2024-06'}`}));
   // SUN2000-5/8/10KTL-M0: three-phase on-grid, no battery port
   [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',phase:'3',asym:'0',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
     note:`3 เฟส 380/400 V · 2 MPPT (1 สตริง/MPPT) · eff สูงสุด ${mx}% · PV แนะนำใช้ค่าเดียวกับรุ่น M1 (ดาต้าชีต M0 ไม่ระบุ)`}));
@@ -3161,13 +3164,14 @@ function rerunBk(){if(typeof backupRun==='function')backupRun();if(typeof evRun=
    Checks: units per branch vs datasheet limit, breaker vs branch current (×1.25 continuous), cable ampacity vs breaker,
    voltage drop on the trunk, end cap on the open trunk end, RCD 30 mA, PE to every unit/frame. Values are teaching approximations. */
 const MIC_AMP={1.5:15,2.5:21,4:28,6:36,10:50};/* copper PVC, in conduit, approx. (check the EIT/วสท. table for the real install method) */
-const MIC_BRK=[10,16,20,25,32,40];
+const MIC_BRK=[10,16,20,25,32,40,50];
 function micSplit(n,b){const a=[],q=Math.floor(n/b),r=n%b;for(let i=0;i<b;i++)a.push(q+(i<r?1:0));return a.filter(x=>x>0)}
 function micAnalyze(I){
   const M=MICRO,ia=microIac(I),br=micSplit(Math.max(1,M.n|0),Math.max(1,Math.min(M.br|0,M.n|0))),mx=Math.max(...br),ck=[];
   const Ib=mx*ia,amp=MIC_AMP[M.cab]||0,lim=+I.brMax||0,ptot=M.n*I.pac;
   if(lim>0&&mx>lim)ck.push({lvl:'err',t:`สายย่อยมีไมโคร ${mx} ตัว เกินที่ผู้ผลิตกำหนด ${lim} ตัวต่อสายย่อย เพิ่มจำนวนสายย่อย (วงจร) เป็นอย่างน้อย ${Math.ceil(M.n/lim)} สาย`});
   else if(lim>0)ck.push({lvl:'ok',t:`สายย่อยละไม่เกิน ${mx} ตัว (ผู้ผลิตกำหนดไม่เกิน ${lim} ตัว)`});
+  if(+I.brBrk>0&&M.brk>+I.brBrk)ck.push({lvl:'err',t:`เบรกเกอร์สายย่อย ${M.brk} A เกินที่คู่มือกำหนด ${I.brBrk} A (จำนวนต่อพ่วงสูงสุด ${lim} ตัวคิดที่เบรกเกอร์ ${I.brBrk} A)`});
   if(M.brk<Ib)ck.push({lvl:'err',t:`เบรกเกอร์ ${M.brk} A ต่ำกว่ากระแสสายย่อย ${f(Ib,1)} A (${mx} × ${f(ia,1)} A) จะทริปตอนแดดจัด เลือกอย่างน้อย ${MIC_BRK.find(x=>x>=Ib)||'—'} A หรือเพิ่มสายย่อย`});
   else ck.push({lvl:'ok',t:`เบรกเกอร์สายย่อย ${M.brk} A ≥ กระแสสายย่อย ${f(Ib,1)} A (${mx} × ${f(ia,1)} A)`});
   if(amp<M.brk)ck.push({lvl:'err',t:`สาย ${M.cab} mm² รับกระแสได้ราว ${amp} A น้อยกว่าเบรกเกอร์ ${M.brk} A เบรกเกอร์ป้องกันสายไม่ได้ เพิ่มขนาดสายหรือลดขนาดเบรกเกอร์`});
@@ -3175,7 +3179,7 @@ function micAnalyze(I){
   const vd=2*M.len*Ib*0.0175/M.cab/230*100;
   ck.push(vd>3?{lvl:'err',t:`แรงดันตกในสายย่อย ${f(vd,1)}% (ยาว ${M.len} m) เกิน 3% ไมโครอาจตัดเพราะแรงดันสูงเกิน ใช้สายใหญ่ขึ้นหรือย้ายตู้ให้ใกล้`}:
     vd>2?{lvl:'warn',t:`แรงดันตกในสายย่อย ${f(vd,1)}% เกิน 2% ที่แนะนำสำหรับไมโคร`}:{lvl:'ok',t:`แรงดันตกในสายย่อย ${f(vd,1)}% ไม่เกิน 2%`});
-  ck.push(M.cap?{lvl:'ok',t:'ปิดปลายสาย AC trunk ด้วย end cap แล้ว'}:{lvl:'err',t:'ปลายสาย AC trunk ที่ไม่ได้ใช้ต้องปิดด้วย end cap กันน้ำและกันไฟดูด (ขั้วยังมีไฟจากไมโครตัวอื่น)'});
+  ck.push(M.cap?{lvl:'ok',t:'ปลายสายย่อยต่อเข้ากล่องต่อสาย (junction box) และขั้ว AC ที่ไม่ได้ใช้ปิดกันน้ำแล้ว'}:{lvl:'err',t:'ปลายสายย่อยต้องต่อเข้ากล่องต่อสาย (junction box) แล้วเดินสายเข้าตู้ ขั้ว AC ของ T-connector ที่ไม่ได้ใช้ต้องปิดกันน้ำ (ยังมีไฟจากไมโครตัวอื่น)'});
   ck.push(M.rcd?{lvl:'ok',t:'มี RCD/RCBO 30 mA ที่วงจรโซลาร์'}:{lvl:'warn',t:'ควรมี RCD หรือ RCBO 30 mA (ชนิดที่ผู้ผลิตแนะนำ) ที่วงจรโซลาร์ ตามมาตรฐานการติดตั้ง'});
   ck.push(M.pe?{lvl:'ok',t:'ต่อสายดิน PE ถึงไมโครทุกตัวและโครงแผง'}:{lvl:'err',t:'ต้องต่อสายดิน PE ไปที่ไมโครทุกตัวและโครงยึดแผง'});
   if(ptot>5000)ck.push({lvl:'warn',t:`กำลังรวม ${f(ptot/1000,1)} kW บนไฟ 1 เฟส ตรวจระเบียบการไฟฟ้า (PEA/MEA) เรื่องขนาดสูงสุดของระบบ 1 เฟส`});
@@ -3192,7 +3196,7 @@ function micSVG(I,A){
     const xs=[];for(let j=0;j<Math.min(n,show);j++)xs.push(90+j*100);
     s+=`<text x="20" y="${y-6}" class="mic-sm">สายย่อย ${b+1}: ${n} ตัว · ${f(n*A.ia,1)} A</text>`;
     s+=`<path d="M40 ${ty} H${dbx+18}" class="mic-trunk${cls}"/>`;
-    s+=`<g class="mic-cap ${MICRO.cap?'ok':'bad'}"><rect x="26" y="${ty-9}" width="16" height="18" rx="4"/>${MICRO.cap?'':`<text x="34" y="${ty-14}" text-anchor="middle" class="mic-warn">!</text>`}</g><text x="34" y="${ty+26}" text-anchor="middle" class="mic-sm">end cap</text>`;
+    s+=`<g class="mic-cap ${MICRO.cap?'ok':'bad'}"><rect x="26" y="${ty-9}" width="16" height="18" rx="4"/>${MICRO.cap?'':`<text x="34" y="${ty-14}" text-anchor="middle" class="mic-warn">!</text>`}</g><text x="34" y="${ty+26}" text-anchor="middle" class="mic-sm">J-box</text>`;
     xs.forEach((x,j)=>{
       s+=`<g><rect x="${x-34}" y="${y}" width="68" height="18" rx="2" class="mic-pv"/><rect x="${x-24}" y="${y+24}" width="48" height="26" rx="4" class="mic-u"/><text x="${x}" y="${y+41}" text-anchor="middle" class="mic-ut">M${j+1}</text><circle cx="${x}" cy="${ty}" r="4" class="mic-t"/></g>`;
     });
@@ -3226,11 +3230,16 @@ function micAC(){
         <label for="mccab">ขนาดสาย AC<select id="mccab"></select></label>
         <label for="mclen">ความยาวสายย่อยถึงตู้ (m)<input id="mclen" type="number" inputmode="decimal" min="1" max="200" step="1"></label>
       </div>
-      <div class="row3 micchk"><label class="chk"><input id="mccap" type="checkbox"> ปิดปลายสายด้วย end cap</label><label class="chk"><input id="mcrcd" type="checkbox"> มี RCD/RCBO 30 mA</label><label class="chk"><input id="mcpe" type="checkbox"> ต่อสายดิน PE ครบ</label></div>
+      <div class="row3 micchk"><label class="chk"><input id="mccap" type="checkbox"> มีกล่องต่อสายปลายสายย่อย / ปิดขั้วที่ไม่ใช้</label><label class="chk"><input id="mcrcd" type="checkbox"> มี RCD/RCBO 30 mA</label><label class="chk"><input id="mcpe" type="checkbox"> ต่อสายดิน PE ครบ</label></div>
     </div>
     <div class="canvas micwrap" id="micsvgbox"></div>
     <div class="panelbox"><div id="micinfo" class="hint tight"></div></div>
-    <div><h2>ผลการตรวจ</h2><ul id="micchecks" class="checks"></ul></div>`;
+    <div><h2>ผลการตรวจ</h2><ul id="micchecks" class="checks"></ul></div>
+    <details class="panelbox micman"><summary><b>ขั้นตอนเปิด/ปิด และไฟสถานะ (จากคู่มือ Deye SUN-M G4)</b></summary>
+      <div class="micmang"><div><h3>เปิดระบบ</h3><ol><li>เปิดเบรกเกอร์ AC ของแต่ละสายย่อย</li><li>เปิดเบรกเกอร์เมนของบ้าน รอประมาณ 1 นาที ระบบเริ่มผลิตไฟ</li><li>ไฟกะพริบแดงหลังเปิด AC 1 นาที แล้วเปลี่ยนเป็นกะพริบน้ำเงิน = ผลิตไฟปกติ (กะพริบเร็ว = กำลังมาก)</li><li>ตั้งค่า WiFi ให้ไมโครส่งข้อมูลทุก 5 นาที</li></ol>
+      <h3>ปิด / เปลี่ยนตัว</h3><ol><li>ปิดเบรกเกอร์ AC ของสายย่อยก่อน</li><li>ถอดขั้ว AC ของไมโคร</li><li>คลุมแผงด้วยวัสดุทึบแสง</li><li>ถอดขั้ว DC (ห้ามถอด DC ขณะมีกระแส)</li></ol></div>
+      <div><h3>ไฟสถานะ LED</h3><table class="mictab"><tr><td>น้ำเงินกะพริบช้า</td><td>ผลิตไฟน้อย</td></tr><tr><td>น้ำเงินกะพริบเร็ว</td><td>ผลิตไฟมาก</td></tr><tr><td>แดงกะพริบ</td><td>ไม่ผลิตไฟ</td></tr><tr><td>แดง 2 ครั้ง</td><td>แรงดัน AC ต่ำหรือสูงเกิน</td></tr><tr><td>แดง 3 ครั้ง</td><td>กริดผิดปกติ</td></tr><tr><td>แดง 4 ครั้ง</td><td>GFDI ไฟรั่วลงดินฝั่ง PV</td></tr></table>
+      <h3>ข้อกำหนดติดตั้ง</h3><ul><li>สาย DC จากแผงถึงไมโครยาวไม่เกิน 3 m</li><li>ห้ามเสียบ DC ขณะถอดขั้ว AC ออก</li><li>เว้นช่องใต้ไมโครถึงหลังคาอย่างน้อย 1.5 cm และไม่ให้โดนแดด/ฝนโดยตรง</li><li>แนะนำติดตั้ง SPD ในตู้มิเตอร์</li><li>สาย AC ของไมโครเป็น TC-ER 1 mm² (16 AWG)</li></ul></div></div></details>`;
     const q=id=>document.getElementById(id),go=()=>{micAC();if(typeof render==='function')render();if(typeof backupRun==='function')backupRun();if(typeof touch==='function')touch()};
     q('mcn').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(n>=1){MICRO.n=Math.min(60,n);go()}});
     q('mcb').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(n>=1){MICRO.br=Math.min(20,n);go()}});

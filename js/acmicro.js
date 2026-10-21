@@ -2,13 +2,14 @@
    Checks: units per branch vs datasheet limit, breaker vs branch current (×1.25 continuous), cable ampacity vs breaker,
    voltage drop on the trunk, end cap on the open trunk end, RCD 30 mA, PE to every unit/frame. Values are teaching approximations. */
 const MIC_AMP={1.5:15,2.5:21,4:28,6:36,10:50};/* copper PVC, in conduit, approx. (check the EIT/วสท. table for the real install method) */
-const MIC_BRK=[10,16,20,25,32,40];
+const MIC_BRK=[10,16,20,25,32,40,50];
 function micSplit(n,b){const a=[],q=Math.floor(n/b),r=n%b;for(let i=0;i<b;i++)a.push(q+(i<r?1:0));return a.filter(x=>x>0)}
 function micAnalyze(I){
   const M=MICRO,ia=microIac(I),br=micSplit(Math.max(1,M.n|0),Math.max(1,Math.min(M.br|0,M.n|0))),mx=Math.max(...br),ck=[];
   const Ib=mx*ia,amp=MIC_AMP[M.cab]||0,lim=+I.brMax||0,ptot=M.n*I.pac;
   if(lim>0&&mx>lim)ck.push({lvl:'err',t:`สายย่อยมีไมโคร ${mx} ตัว เกินที่ผู้ผลิตกำหนด ${lim} ตัวต่อสายย่อย เพิ่มจำนวนสายย่อย (วงจร) เป็นอย่างน้อย ${Math.ceil(M.n/lim)} สาย`});
   else if(lim>0)ck.push({lvl:'ok',t:`สายย่อยละไม่เกิน ${mx} ตัว (ผู้ผลิตกำหนดไม่เกิน ${lim} ตัว)`});
+  if(+I.brBrk>0&&M.brk>+I.brBrk)ck.push({lvl:'err',t:`เบรกเกอร์สายย่อย ${M.brk} A เกินที่คู่มือกำหนด ${I.brBrk} A (จำนวนต่อพ่วงสูงสุด ${lim} ตัวคิดที่เบรกเกอร์ ${I.brBrk} A)`});
   if(M.brk<Ib)ck.push({lvl:'err',t:`เบรกเกอร์ ${M.brk} A ต่ำกว่ากระแสสายย่อย ${f(Ib,1)} A (${mx} × ${f(ia,1)} A) จะทริปตอนแดดจัด เลือกอย่างน้อย ${MIC_BRK.find(x=>x>=Ib)||'—'} A หรือเพิ่มสายย่อย`});
   else ck.push({lvl:'ok',t:`เบรกเกอร์สายย่อย ${M.brk} A ≥ กระแสสายย่อย ${f(Ib,1)} A (${mx} × ${f(ia,1)} A)`});
   if(amp<M.brk)ck.push({lvl:'err',t:`สาย ${M.cab} mm² รับกระแสได้ราว ${amp} A น้อยกว่าเบรกเกอร์ ${M.brk} A เบรกเกอร์ป้องกันสายไม่ได้ เพิ่มขนาดสายหรือลดขนาดเบรกเกอร์`});
@@ -16,7 +17,7 @@ function micAnalyze(I){
   const vd=2*M.len*Ib*0.0175/M.cab/230*100;
   ck.push(vd>3?{lvl:'err',t:`แรงดันตกในสายย่อย ${f(vd,1)}% (ยาว ${M.len} m) เกิน 3% ไมโครอาจตัดเพราะแรงดันสูงเกิน ใช้สายใหญ่ขึ้นหรือย้ายตู้ให้ใกล้`}:
     vd>2?{lvl:'warn',t:`แรงดันตกในสายย่อย ${f(vd,1)}% เกิน 2% ที่แนะนำสำหรับไมโคร`}:{lvl:'ok',t:`แรงดันตกในสายย่อย ${f(vd,1)}% ไม่เกิน 2%`});
-  ck.push(M.cap?{lvl:'ok',t:'ปิดปลายสาย AC trunk ด้วย end cap แล้ว'}:{lvl:'err',t:'ปลายสาย AC trunk ที่ไม่ได้ใช้ต้องปิดด้วย end cap กันน้ำและกันไฟดูด (ขั้วยังมีไฟจากไมโครตัวอื่น)'});
+  ck.push(M.cap?{lvl:'ok',t:'ปลายสายย่อยต่อเข้ากล่องต่อสาย (junction box) และขั้ว AC ที่ไม่ได้ใช้ปิดกันน้ำแล้ว'}:{lvl:'err',t:'ปลายสายย่อยต้องต่อเข้ากล่องต่อสาย (junction box) แล้วเดินสายเข้าตู้ ขั้ว AC ของ T-connector ที่ไม่ได้ใช้ต้องปิดกันน้ำ (ยังมีไฟจากไมโครตัวอื่น)'});
   ck.push(M.rcd?{lvl:'ok',t:'มี RCD/RCBO 30 mA ที่วงจรโซลาร์'}:{lvl:'warn',t:'ควรมี RCD หรือ RCBO 30 mA (ชนิดที่ผู้ผลิตแนะนำ) ที่วงจรโซลาร์ ตามมาตรฐานการติดตั้ง'});
   ck.push(M.pe?{lvl:'ok',t:'ต่อสายดิน PE ถึงไมโครทุกตัวและโครงแผง'}:{lvl:'err',t:'ต้องต่อสายดิน PE ไปที่ไมโครทุกตัวและโครงยึดแผง'});
   if(ptot>5000)ck.push({lvl:'warn',t:`กำลังรวม ${f(ptot/1000,1)} kW บนไฟ 1 เฟส ตรวจระเบียบการไฟฟ้า (PEA/MEA) เรื่องขนาดสูงสุดของระบบ 1 เฟส`});
@@ -33,7 +34,7 @@ function micSVG(I,A){
     const xs=[];for(let j=0;j<Math.min(n,show);j++)xs.push(90+j*100);
     s+=`<text x="20" y="${y-6}" class="mic-sm">สายย่อย ${b+1}: ${n} ตัว · ${f(n*A.ia,1)} A</text>`;
     s+=`<path d="M40 ${ty} H${dbx+18}" class="mic-trunk${cls}"/>`;
-    s+=`<g class="mic-cap ${MICRO.cap?'ok':'bad'}"><rect x="26" y="${ty-9}" width="16" height="18" rx="4"/>${MICRO.cap?'':`<text x="34" y="${ty-14}" text-anchor="middle" class="mic-warn">!</text>`}</g><text x="34" y="${ty+26}" text-anchor="middle" class="mic-sm">end cap</text>`;
+    s+=`<g class="mic-cap ${MICRO.cap?'ok':'bad'}"><rect x="26" y="${ty-9}" width="16" height="18" rx="4"/>${MICRO.cap?'':`<text x="34" y="${ty-14}" text-anchor="middle" class="mic-warn">!</text>`}</g><text x="34" y="${ty+26}" text-anchor="middle" class="mic-sm">J-box</text>`;
     xs.forEach((x,j)=>{
       s+=`<g><rect x="${x-34}" y="${y}" width="68" height="18" rx="2" class="mic-pv"/><rect x="${x-24}" y="${y+24}" width="48" height="26" rx="4" class="mic-u"/><text x="${x}" y="${y+41}" text-anchor="middle" class="mic-ut">M${j+1}</text><circle cx="${x}" cy="${ty}" r="4" class="mic-t"/></g>`;
     });
@@ -67,11 +68,16 @@ function micAC(){
         <label for="mccab">ขนาดสาย AC<select id="mccab"></select></label>
         <label for="mclen">ความยาวสายย่อยถึงตู้ (m)<input id="mclen" type="number" inputmode="decimal" min="1" max="200" step="1"></label>
       </div>
-      <div class="row3 micchk"><label class="chk"><input id="mccap" type="checkbox"> ปิดปลายสายด้วย end cap</label><label class="chk"><input id="mcrcd" type="checkbox"> มี RCD/RCBO 30 mA</label><label class="chk"><input id="mcpe" type="checkbox"> ต่อสายดิน PE ครบ</label></div>
+      <div class="row3 micchk"><label class="chk"><input id="mccap" type="checkbox"> มีกล่องต่อสายปลายสายย่อย / ปิดขั้วที่ไม่ใช้</label><label class="chk"><input id="mcrcd" type="checkbox"> มี RCD/RCBO 30 mA</label><label class="chk"><input id="mcpe" type="checkbox"> ต่อสายดิน PE ครบ</label></div>
     </div>
     <div class="canvas micwrap" id="micsvgbox"></div>
     <div class="panelbox"><div id="micinfo" class="hint tight"></div></div>
-    <div><h2>ผลการตรวจ</h2><ul id="micchecks" class="checks"></ul></div>`;
+    <div><h2>ผลการตรวจ</h2><ul id="micchecks" class="checks"></ul></div>
+    <details class="panelbox micman"><summary><b>ขั้นตอนเปิด/ปิด และไฟสถานะ (จากคู่มือ Deye SUN-M G4)</b></summary>
+      <div class="micmang"><div><h3>เปิดระบบ</h3><ol><li>เปิดเบรกเกอร์ AC ของแต่ละสายย่อย</li><li>เปิดเบรกเกอร์เมนของบ้าน รอประมาณ 1 นาที ระบบเริ่มผลิตไฟ</li><li>ไฟกะพริบแดงหลังเปิด AC 1 นาที แล้วเปลี่ยนเป็นกะพริบน้ำเงิน = ผลิตไฟปกติ (กะพริบเร็ว = กำลังมาก)</li><li>ตั้งค่า WiFi ให้ไมโครส่งข้อมูลทุก 5 นาที</li></ol>
+      <h3>ปิด / เปลี่ยนตัว</h3><ol><li>ปิดเบรกเกอร์ AC ของสายย่อยก่อน</li><li>ถอดขั้ว AC ของไมโคร</li><li>คลุมแผงด้วยวัสดุทึบแสง</li><li>ถอดขั้ว DC (ห้ามถอด DC ขณะมีกระแส)</li></ol></div>
+      <div><h3>ไฟสถานะ LED</h3><table class="mictab"><tr><td>น้ำเงินกะพริบช้า</td><td>ผลิตไฟน้อย</td></tr><tr><td>น้ำเงินกะพริบเร็ว</td><td>ผลิตไฟมาก</td></tr><tr><td>แดงกะพริบ</td><td>ไม่ผลิตไฟ</td></tr><tr><td>แดง 2 ครั้ง</td><td>แรงดัน AC ต่ำหรือสูงเกิน</td></tr><tr><td>แดง 3 ครั้ง</td><td>กริดผิดปกติ</td></tr><tr><td>แดง 4 ครั้ง</td><td>GFDI ไฟรั่วลงดินฝั่ง PV</td></tr></table>
+      <h3>ข้อกำหนดติดตั้ง</h3><ul><li>สาย DC จากแผงถึงไมโครยาวไม่เกิน 3 m</li><li>ห้ามเสียบ DC ขณะถอดขั้ว AC ออก</li><li>เว้นช่องใต้ไมโครถึงหลังคาอย่างน้อย 1.5 cm และไม่ให้โดนแดด/ฝนโดยตรง</li><li>แนะนำติดตั้ง SPD ในตู้มิเตอร์</li><li>สาย AC ของไมโครเป็น TC-ER 1 mm² (16 AWG)</li></ul></div></div></details>`;
     const q=id=>document.getElementById(id),go=()=>{micAC();if(typeof render==='function')render();if(typeof backupRun==='function')backupRun();if(typeof touch==='function')touch()};
     q('mcn').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(n>=1){MICRO.n=Math.min(60,n);go()}});
     q('mcb').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(n>=1){MICRO.br=Math.min(20,n);go()}});

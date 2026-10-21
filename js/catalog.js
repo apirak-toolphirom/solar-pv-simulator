@@ -21,7 +21,7 @@ const SCHEMA={
       ['asym','จ่ายไฟแต่ละเฟสไม่เท่ากันได้ (3 เฟส)','s','0',[['0','ไม่ได้ จ่ายเท่ากันทุกเฟส'],['1','ได้ ตามโหลดแต่ละเฟส']]],
       ['bph','พอร์ต Backup','s','',[['','เท่ากับระบบไฟ AC'],['1','1 เฟส'],['3','3 เฟส']],'hyb'],
       ['pac','กำลัง AC (W)','n',0],['vmax','Vdc สูงสุด (V)','n',0],['lo','MPPT ต่ำสุด (V)','n',0],['hi','MPPT สูงสุด (V)','n',0],['start','แรงดันเริ่มทำงาน (V)','n',0],
-      ['micro','ชนิดย่อย','s','',[['','สตริง / ไฮบริด'],['1','ไมโครอินเวอร์เตอร์ (ติดใต้แผง)']]],['nmppt','จำนวน MPPT (1–4)','n',2],['brMax','ไมโคร: ต่อพ่วงสูงสุดต่อสายย่อย (ตัว)','n',0],['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
+      ['micro','ชนิดย่อย','s','',[['','สตริง / ไฮบริด'],['1','ไมโครอินเวอร์เตอร์ (ติดใต้แผง)']]],['nmppt','จำนวน MPPT (1–4)','n',2],['brMax','ไมโคร: ต่อพ่วงสูงสุดต่อสายย่อย (ตัว)','n',0],['brBrk','ไมโคร: เบรกเกอร์สายย่อยสูงสุด (A)','n',0],['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
       ['bvMin','แรงดันแบต ต่ำสุด (V)','n',0,null,'hyb'],['bvMax','แรงดันแบต สูงสุด (V)','n',0,null,'hyb'],
       ['bchg','ชาร์จแบตสูงสุด (kW)','n',0,null,'hyb'],['bdis','จ่ายจากแบตสูงสุด (kW)','n',0,null,'hyb'],['backupKw','กำลังขาออกโหมด Backup (kW)','n',0,null,'hyb'],
       ['note','หมายเหตุ','t','']
@@ -61,10 +61,12 @@ const BUILTIN=(()=>{
   [[6,16,20,12000,1],[8,32,40,16000,2],[10,42,48,20000,2]].forEach(([k,im,sc,rec,ns])=>inv.push({id:slug(`solis s6-eh1p${k}k-l-plus`),brand:'Solis',model:`S6-EH1P${k}K-L-PLUS${k===10?' (21A)':''}`,type:'hybrid',phase:'1',
     pac:k*1000,vmax:500,lo:90,hi:435,start:90,imax:im,isc:sc,pvRec:rec,eff:96.1,bvMin:40,bvMax:60,bchg:k,bdis:k,backupKw:k,builtin:1,
     note:`Hybrid 1 เฟส On/Off-grid แบตแรงดันต่ำ 40–60 V (ลิเธียม/ตะกั่วกรด, CAN/RS485) ชาร์จ/จ่าย ${k} kW · 2 MPPT ${ns} สตริงต่อ MPPT กระแสต่ออินพุต ${k===10?21:16} A · มีพอร์ต GEN · สลับไปไฟสำรอง <10 ms · โอเวอร์โหลด 200% 10 วินาที · ขนานได้ 6 เครื่อง · eff สูงสุด 96.2%`}));
-  // Deye SUN-M130/160/180/200/220G4-EU-Q0: single-phase microinverter, 4 MPPT x 1 module, 25-55 V, 18 A / Isc 27 A per input (deyeinverter.com, datasheet 2025-08)
-  [[130,1300,460,5,6],[160,1600,560,4,7.3],[180,1800,630,3,8.2],[200,2000,700,3,9.1],[220,2200,770,3,10]].forEach(([m,w,mod,br,ia])=>inv.push({id:slug(`deye sun-m${m}g4-eu-q0`),brand:'Deye',model:`SUN-M${m}G4-EU-Q0 (micro ${w} W)`,type:'on-grid',phase:'1',
-    pac:w,iac:ia,micro:'1',brMax:br,nmppt:4,vmax:60,lo:25,hi:55,start:20,imax:18,isc:27,pvRec:mod*4,eff:96,builtin:1,
-    note:`ไมโครอินเวอร์เตอร์ 1 เฟส 220/230 V · 4 MPPT ต่อแผงช่องละ 1 แผง (แผง ${210}–${mod} W) · ต่อพ่วงได้ ${br} ตัวต่อสายย่อย · WiFi ในตัว · IP67 · eff สูงสุด 96.5% · เมนู 02 จำลองได้ 2 ช่องแรก`}));
+  // Deye SUN-M130/160/180/200G4-EU-Q0: user manual 2024-06 (instructions_sun-m130-200g4-eu-q0eu_240622): 4 MPPT x 1 module, Vmax 60 V, start 20 V,
+  //   MPPT 25-55 V, 15 A operating / 22.5 A Isc per input, 1 mm² AC lead, max units per branch for a 40 A breaker 5/4/3/3, DC cable < 3 m.
+  //   SUN-M220G4: Deye datasheet 2025-08 (18 A / Isc 27 A per input).
+  [[130,1300,460,5,6,15,22.5,'29'],[160,1600,560,4,7.3,15,22.5,'31.5'],[180,1800,630,3,8.2,15,22.5,'33'],[200,2000,700,3,9.1,15,22.5,'36.5'],[220,2200,770,3,10,18,27,'']].forEach(([m,w,mod,br,ia,im,sc,fl])=>inv.push({id:slug(`deye sun-m${m}g4-eu-q0`),brand:'Deye',model:`SUN-M${m}G4-EU-Q0 (micro ${w} W)`,type:'on-grid',phase:'1',
+    pac:w,iac:ia,micro:'1',brMax:br,brBrk:40,nmppt:4,vmax:60,lo:25,hi:55,start:20,imax:im,isc:sc,pvRec:mod*4,eff:96,builtin:1,
+    note:`ไมโครอินเวอร์เตอร์ 1 เฟส 220/230 V (L+N+PE) · 4 MPPT ช่องละ 1 แผง (แผง 210–${mod} W) · กระแสเข้า ${im} A / Isc ${sc} A ต่อช่อง${fl?` · MPPT เต็มกำลัง ${fl}–55 V`:''} · ต่อพ่วงได้ ${br} ตัวต่อสายย่อย (เบรกเกอร์ 40 A) · สาย DC แผงถึงไมโครยาวไม่เกิน 3 m · eff สูงสุด 96.5% ยุโรป 96.0% · IP67 · WiFi ในตัว · ${m===220?'ดาต้าชีต Deye 2025-08':'คู่มือ Deye 2024-06'}`}));
   // SUN2000-5/8/10KTL-M0: three-phase on-grid, no battery port
   [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',phase:'3',asym:'0',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
     note:`3 เฟส 380/400 V · 2 MPPT (1 สตริง/MPPT) · eff สูงสุด ${mx}% · PV แนะนำใช้ค่าเดียวกับรุ่น M1 (ดาต้าชีต M0 ไม่ระบุ)`}));
