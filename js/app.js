@@ -36,8 +36,7 @@ function quickSel(){
     const cur=(pick(kind)||{}).id;
     el.innerHTML=CAT[kind].filter(x=>kind!=='batteries'||x.id===cur||batCompat(x)).map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
-  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');
-  const kb=$('#kbat');if(!(kb&&kb.dataset.ng))mk('batteries','kbat');
+  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
 }
 
 /* ---- persistence ---- */

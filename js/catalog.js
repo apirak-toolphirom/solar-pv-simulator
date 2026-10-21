@@ -132,6 +132,10 @@ function batCompat(b,I){
   const ib=String(I.brand||'').toLowerCase();
   if(b.compat)return ib===String(b.compat).toLowerCase();
   if(ib==='huawei')return false;/* Huawei inverters only take LUNA2000 batteries */
+  /* battery voltage: some series count of this battery must land inside the inverter's battery window */
+  const lo=+I.bvMin||0,hi=+I.bvMax||0;
+  if(hi>0){const v=(isPh3(I)&&+b.v3>0)?+b.v3:+b.v||0,ms=+b.maxS>0?+b.maxS:16;
+    if(v>0){let ok=false;for(let s=1;s<=ms;s++){const V=v*s;if(V>=lo-0.5&&V<=hi+0.5){ok=true;break}}if(!ok)return false}}
   return true;
 }
 const batCompatMsg=(b,I)=>{I=I||curInv();return b.compat?`แบต ${b.brand} ${b.model} ใช้ได้กับอินเวอร์เตอร์ ${b.compat} เท่านั้น (สื่อสารและควบคุมผ่าน power module ของแบต)`:`อินเวอร์เตอร์ ${I.brand} ${I.model} รับเฉพาะแบต Huawei LUNA2000 (แรงดันสูง สื่อสาร RS485 กับอินเวอร์เตอร์) เลือกแบต LUNA2000 ที่หัวข้อแบตเตอรี่`};

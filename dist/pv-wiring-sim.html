@@ -1152,6 +1152,10 @@ function batCompat(b,I){
   const ib=String(I.brand||'').toLowerCase();
   if(b.compat)return ib===String(b.compat).toLowerCase();
   if(ib==='huawei')return false;/* Huawei inverters only take LUNA2000 batteries */
+  /* battery voltage: some series count of this battery must land inside the inverter's battery window */
+  const lo=+I.bvMin||0,hi=+I.bvMax||0;
+  if(hi>0){const v=(isPh3(I)&&+b.v3>0)?+b.v3:+b.v||0,ms=+b.maxS>0?+b.maxS:16;
+    if(v>0){let ok=false;for(let s=1;s<=ms;s++){const V=v*s;if(V>=lo-0.5&&V<=hi+0.5){ok=true;break}}if(!ok)return false}}
   return true;
 }
 const batCompatMsg=(b,I)=>{I=I||curInv();return b.compat?`แบต ${b.brand} ${b.model} ใช้ได้กับอินเวอร์เตอร์ ${b.compat} เท่านั้น (สื่อสารและควบคุมผ่าน power module ของแบต)`:`อินเวอร์เตอร์ ${I.brand} ${I.model} รับเฉพาะแบต Huawei LUNA2000 (แรงดันสูง สื่อสาร RS485 กับอินเวอร์เตอร์) เลือกแบต LUNA2000 ที่หัวข้อแบตเตอรี่`};
@@ -4037,7 +4041,7 @@ function backupRun(){
   mx.push(['ไฟขาด (ไม่มีไฟใช้)',f(T.unmet,2)+' kWh',`${f(T.unmetH,1)} ชม.`+(T.curt>0.01?` · ไฟแผงเหลือทิ้ง ${f(T.curt,1)} kWh`:'')]);
   if(autonomy!=null&&(BK.mode!=='grid'))mx.push(['แบตเต็มอยู่ได้ (ไม่มีแดด)',f(autonomy,1)+' ชม.',`โหลดเฉลี่ย ${f(avgIsl,2)} kW · ${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'โหลดทั้งหมด'}`]);
   $('#bkmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
-  $('#bklim').textContent=need&&bi?`ขีดจำกัดที่ใช้คำนวณ: ชาร์จสูงสุด ${f(chgKw,1)} kW · จ่ายสูงสุด ${f(disKw,1)} kW · ประสิทธิภาพรอบ ${f(bi.rt*100,0)} % · กำลังขาออกช่วงจ่ายเอง ${f(islandW/1000,1)} kW`:'';
+  $('#bklim').textContent=!need?'โหมด On-grid ไม่ใช้แบตในการคำนวณ (รายการแบตแสดงเฉพาะรุ่นที่ต่อกับอินเวอร์เตอร์นี้ได้: ยี่ห้อและแรงดันตรงกัน)':need&&bi?`ขีดจำกัดที่ใช้คำนวณ: ชาร์จสูงสุด ${f(chgKw,1)} kW · จ่ายสูงสุด ${f(disKw,1)} kW · ประสิทธิภาพรอบ ${f(bi.rt*100,0)} % · กำลังขาออกช่วงจ่ายเอง ${f(islandW/1000,1)} kW`:'';
 
   /* charts */
   const x=R.pv.map((_,i)=>(i+.5)*5/60),kw=a=>a.map(v=>v/1000);
@@ -4071,8 +4075,7 @@ function bkSync(){
   const ok=bkModes(curInv());
   /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
   const kb=$('#kbat'),is=$('#bkis'),g=BK.mode==='grid';
-  if(kb){if(g){kb.dataset.ng='1';kb.innerHTML='<option>ไม่ใช้แบต (ระบบ On-grid ไม่มีแบต)</option>';kb.disabled=true}
-    else if(kb.dataset.ng){delete kb.dataset.ng;kb.disabled=false;if(typeof quickSel==='function')quickSel()}}
+  if(kb)kb.title=g?'โหมด On-grid ไม่ใช้แบตในการคำนวณ เลือก Hybrid เพื่อจำลองแบต':'';
   if(is){is.disabled=g;is.title=g?'On-grid ไม่จ่ายไฟตอนไฟดับ':''}
   document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=!ok.includes(b.dataset.bm);
     b.title=b.disabled?'อินเวอร์เตอร์ที่เลือกเป็นแบบ '+(curInv().type||'')+' ใช้ระบบนี้ไม่ได้ เปลี่ยนรุ่นที่แท็บ "อุปกรณ์"':''});
@@ -6027,8 +6030,7 @@ function quickSel(){
     const cur=(pick(kind)||{}).id;
     el.innerHTML=CAT[kind].filter(x=>kind!=='batteries'||x.id===cur||batCompat(x)).map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
-  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');
-  const kb=$('#kbat');if(!(kb&&kb.dataset.ng))mk('batteries','kbat');
+  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
 }
 
 /* ---- persistence ---- */

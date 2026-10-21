@@ -138,7 +138,7 @@ function backupRun(){
   mx.push(['ไฟขาด (ไม่มีไฟใช้)',f(T.unmet,2)+' kWh',`${f(T.unmetH,1)} ชม.`+(T.curt>0.01?` · ไฟแผงเหลือทิ้ง ${f(T.curt,1)} kWh`:'')]);
   if(autonomy!=null&&(BK.mode!=='grid'))mx.push(['แบตเต็มอยู่ได้ (ไม่มีแดด)',f(autonomy,1)+' ชม.',`โหลดเฉลี่ย ${f(avgIsl,2)} kW · ${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'โหลดทั้งหมด'}`]);
   $('#bkmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
-  $('#bklim').textContent=need&&bi?`ขีดจำกัดที่ใช้คำนวณ: ชาร์จสูงสุด ${f(chgKw,1)} kW · จ่ายสูงสุด ${f(disKw,1)} kW · ประสิทธิภาพรอบ ${f(bi.rt*100,0)} % · กำลังขาออกช่วงจ่ายเอง ${f(islandW/1000,1)} kW`:'';
+  $('#bklim').textContent=!need?'โหมด On-grid ไม่ใช้แบตในการคำนวณ (รายการแบตแสดงเฉพาะรุ่นที่ต่อกับอินเวอร์เตอร์นี้ได้: ยี่ห้อและแรงดันตรงกัน)':need&&bi?`ขีดจำกัดที่ใช้คำนวณ: ชาร์จสูงสุด ${f(chgKw,1)} kW · จ่ายสูงสุด ${f(disKw,1)} kW · ประสิทธิภาพรอบ ${f(bi.rt*100,0)} % · กำลังขาออกช่วงจ่ายเอง ${f(islandW/1000,1)} kW`:'';
 
   /* charts */
   const x=R.pv.map((_,i)=>(i+.5)*5/60),kw=a=>a.map(v=>v/1000);
@@ -172,8 +172,7 @@ function bkSync(){
   const ok=bkModes(curInv());
   /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
   const kb=$('#kbat'),is=$('#bkis'),g=BK.mode==='grid';
-  if(kb){if(g){kb.dataset.ng='1';kb.innerHTML='<option>ไม่ใช้แบต (ระบบ On-grid ไม่มีแบต)</option>';kb.disabled=true}
-    else if(kb.dataset.ng){delete kb.dataset.ng;kb.disabled=false;if(typeof quickSel==='function')quickSel()}}
+  if(kb)kb.title=g?'โหมด On-grid ไม่ใช้แบตในการคำนวณ เลือก Hybrid เพื่อจำลองแบต':'';
   if(is){is.disabled=g;is.title=g?'On-grid ไม่จ่ายไฟตอนไฟดับ':''}
   document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=!ok.includes(b.dataset.bm);
     b.title=b.disabled?'อินเวอร์เตอร์ที่เลือกเป็นแบบ '+(curInv().type||'')+' ใช้ระบบนี้ไม่ได้ เปลี่ยนรุ่นที่แท็บ "อุปกรณ์"':''});

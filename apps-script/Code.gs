@@ -21,14 +21,14 @@ var HEADERS = ['เวลาที่รับ', 'รหัสใบส่งง
 var WS_SHEET = 'ใบงาน';
 var WS_HEAD = ['รหัส', 'ชื่อใบงาน', 'เมนู', 'เปิดวันที่', 'ปิดวันที่', 'สถานะ', 'เกณฑ์', 'คำถาม', 'ภาพ'];
 var WS_DEF = [
-  ['W1', 'อุปกรณ์และต่อสาย DC', 'equip,wiring', '', '', 'auto', 'dc_pass;panels>=8;dcac=0.9-1.5', 'ทำไมต่ออนุกรมเกินจำนวนที่ระบบแนะนำไม่ได้|ต่อขนานกับต่ออนุกรมให้แรงดันและกระแสต่างกันอย่างไร', 'dc'],
-  ['W2', 'ต่อสาย AC และพอร์ตอินเวอร์เตอร์', 'ac', '', '', 'auto', 'ac_pass', 'ทำไมห้ามต่อพอร์ต BACKUP เข้าตู้เมนที่มีไฟกริด', 'ac'],
-  ['W3', 'กำลังผลิตและเงา', 'pv,site', '', '', 'auto', 'pv_sim;site_pv;site_on;shade<=15', 'แผงของคุณถูกบังช่วงเวลาไหน เพราะอะไร และจะแก้อย่างไร', 'site'],
-  ['W4', 'โหลดและ Backup', 'load,backup', '', '', 'auto', 'loads>=5;bk_outage>=6;bk_ok', 'โหลดสำคัญที่เลือกมีอะไรบ้าง ทำไมเลือก', 'none'],
-  ['W5', 'เลือกระบบ On-grid / Off-grid / Hybrid', 'systems', '', '', 'auto', 'sys_seen', 'บ้านตัวอย่างควรใช้ระบบแบบไหน เพราะอะไร', 'none'],
-  ['W6', 'จำลองเหตุการณ์', 'events', '', '', 'auto', 'ev_any', 'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร', 'none'],
-  ['W7', 'วงจร DC 12 / 24 / 48 V', 'bench', '', '', 'auto', 'bench_pass', 'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์', 'bench'],
-  ['W0', 'ส่งรวม (ทุกเมนู)', '', '', '', 'auto', '', '', 'dc']
+  ['W1', 'อุปกรณ์และต่อสาย DC', 'equip,wiring', '', '', 'ปิด', 'dc_pass;panels>=8;dcac=0.9-1.5', 'ทำไมต่ออนุกรมเกินจำนวนที่ระบบแนะนำไม่ได้|ต่อขนานกับต่ออนุกรมให้แรงดันและกระแสต่างกันอย่างไร', 'dc'],
+  ['W2', 'ต่อสาย AC และพอร์ตอินเวอร์เตอร์', 'ac', '', '', 'ปิด', 'ac_pass', 'ทำไมห้ามต่อพอร์ต BACKUP เข้าตู้เมนที่มีไฟกริด', 'ac'],
+  ['W3', 'กำลังผลิตและเงา', 'pv,site', '', '', 'ปิด', 'pv_sim;site_pv;site_on;shade<=15', 'แผงของคุณถูกบังช่วงเวลาไหน เพราะอะไร และจะแก้อย่างไร', 'site'],
+  ['W4', 'โหลดและ Backup', 'load,backup', '', '', 'ปิด', 'loads>=5;bk_outage>=6;bk_ok', 'โหลดสำคัญที่เลือกมีอะไรบ้าง ทำไมเลือก', 'none'],
+  ['W5', 'เลือกระบบ On-grid / Off-grid / Hybrid', 'systems', '', '', 'ปิด', 'sys_seen', 'บ้านตัวอย่างควรใช้ระบบแบบไหน เพราะอะไร', 'none'],
+  ['W6', 'จำลองเหตุการณ์', 'events', '', '', 'ปิด', 'ev_any', 'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร', 'none'],
+  ['W7', 'วงจร DC 12 / 24 / 48 V', 'bench', '', '', 'ปิด', 'bench_pass', 'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์', 'bench'],
+  ['W0', 'ส่งรวม (ทุกเมนู)', '', '', '', 'ปิด', '', '', 'dc']
 ];
 function wsSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(WS_SHEET);
@@ -65,12 +65,12 @@ function wsSet_(d, props) {
   return json_({ ok: false, error: 'ไม่พบใบงาน' });
 }
 // ---- เมนู: แผ่น "เมนู" กำหนดว่าแต่ละเมนูเปิดให้ผู้เรียนแบบไหน และผู้เยี่ยมชม (ไม่มีรหัส) เห็นเมนูไหน ----
-// สถานะ: auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ดูอย่างเดียว) · เปิด · ดูอย่างเดียว · ปิด
+// สถานะ: auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ซ่อน ยกเว้นเมนูที่ผู้เยี่ยมชมเห็น) · ส่งงาน auto = เปิดเมื่อมีใบงานเปิดอยู่ · เปิด · ดูอย่างเดียว · ปิด
 var MENU_SHEET = 'เมนู';
 var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
 var MENU_DEF = [['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
   ['load', '06 จำลองโหลด'], ['backup', '07 จำลอง Backup'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน']]
-  .map(function (m) { return [m[0], m[1], m[0] === 'submit' ? 'เปิด' : 'auto', m[0] === 'backup' ? 'ใช่' : 'ไม่']; });
+  .map(function (m) { return [m[0], m[1], 'auto', m[0] === 'backup' ? 'ใช่' : 'ไม่']; });
 function menuSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MENU_SHEET);
   if (!sh) {
@@ -86,12 +86,12 @@ function menuSheet_() {
 // สิทธิ์ของแต่ละเมนู: student = ผู้เรียนที่ปลดล็อกแล้ว · visitor = ผู้ไม่มีรหัส ('open' | 'view' | 'closed')
 function menus_() {
   var sh = menuSheet_(), n = sh.getLastRow() - 1, rows = n > 0 ? sh.getRange(2, 1, n, MENU_HEAD.length).getValues() : [];
-  var used = {}; wsList_().forEach(function (w) { if (w.open && w.id !== 'W0') String(w.tabs).split(',').forEach(function (t) { used[t.trim()] = 1; }); });
+  var used = {}, anyOpen = false; wsList_().forEach(function (w) { if (w.open) anyOpen = true; if (w.open && w.id !== 'W0') String(w.tabs).split(',').forEach(function (t) { used[t.trim()] = 1; }); });
   var conv = function (st) { return st === 'เปิด' ? 'open' : st === 'ดูอย่างเดียว' ? 'view' : st === 'ปิด' ? 'closed' : ''; };
   return rows.filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
     var k = String(r[0]).trim(), st = String(r[2] || 'auto').trim(), c = conv(st);
     return { tab: k, name: String(r[1]), status: st, visitorOn: String(r[3]).trim() === 'ใช่',
-      student: c || (used[k] || k === 'submit' ? 'open' : 'view'), visitor: String(r[3]).trim() === 'ใช่' ? (c === 'closed' ? 'closed' : c === 'view' ? 'view' : 'open') : 'closed' };
+      student: c || (used[k] || (k === 'submit' && anyOpen) || String(r[3]).trim() === 'ใช่' ? 'open' : 'closed'), visitor: String(r[3]).trim() === 'ใช่' ? (c === 'closed' ? 'closed' : c === 'view' ? 'view' : 'open') : 'closed' };
   });
 }
 function menuSet_(d, props) {
