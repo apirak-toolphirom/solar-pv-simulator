@@ -102,6 +102,10 @@ const BUILTIN=(()=>{
   // Huawei LUNA2000-(5-30)-S0: power control module LUNA2000-5KW-C0 (5 kW, DC/DC) + 1-3 battery modules LUNA2000-5-E0 (5 kWh each)
   [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${5*n}-S0`,{chem:'Li-ion',v:450,v3:600,ah:Math.round(5*n*1000/450*100)/100,dod:95,maxChg:11.11,maxDis:11.11,maxS:1,maxP:2,compat:'Huawei',
     note:`LUNA2000-5KW-C0 (power module ชาร์จ/จ่าย 5 kW) + LUNA2000-5-E0 × ${n} (ก้อนละ 5 kWh) · ทำงาน 450 V กับอินเวอร์เตอร์ 1 เฟส (350–560 V) / 600 V กับ 3 เฟส (600–980 V) · ขนานได้ 2 ชุด รวมสูงสุด 30 kWh · ตัดจ่ายที่ SOC 5% (ค่าเริ่มต้น) · ใช้กับอินเวอร์เตอร์ Huawei เท่านั้น`}));
+  // Deye SE-G5.1 Pro-B: 51.2 V 100 Ah LFP rack battery (5.12 kWh), 100 A charge/discharge, 6000 cycles @ 90% DoD, CAN/RS485, IP20, 45 kg (ENF datasheet listing);
+  //   on Deye approved battery list DY-LV48-0109 (2025-07) for SG01/03/04/05LP1 and SG04/05LP3
+  b('Deye','SE-G5.1 Pro-B (5.12 kWh)',{v:51.2,ah:100,dod:90,maxChg:100,maxDis:100,maxP:64,
+    note:'แบต 48 V แบบแร็ค LiFePO4 51.2 V 100 Ah 5.12 kWh · ชาร์จ/จ่ายสูงสุด 100 A · 6000 รอบที่ DoD 90% · CAN/RS485 · IP20 ใช้ในอาคาร · 45 kg · อยู่ในรายชื่อแบตที่ Deye รับรอง (DY-LV48-0109)'});
   // Huawei LUNA2000-7/14/21-S1: power module LUNA2000-10KW-C1 + 1-3 battery modules LUNA2000-7-E1 (6.9 kWh, LFP, 100% DoD). Datasheet 01-202411
   [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${7*n}-S1`,{chem:'LiFePO4',v:450,v3:600,ah:Math.round(6.9*n*1000/450*100)/100,dod:100,maxChg:Math.round(3500*n/450*100)/100,maxDis:Math.round(3500*n/450*100)/100,maxS:1,maxP:2,compat:'Huawei',
     note:`LUNA2000-10KW-C1 + LUNA2000-7-E1 × ${n} (ก้อนละ 6.9 kWh) · ใช้ได้ ${(6.9*n).toFixed(1)} kWh (DoD 100%) · ชาร์จ/จ่ายสูงสุด ${3.5*n} kW · ทำงาน 350–560 V กับอินเวอร์เตอร์ 1 เฟส / 600–980 V กับ 3 เฟส · LiFePO4 · IP66 · ใช้กับ SUN2000-KTL-M1, MAP0, LC0, MB0, L1 (ดาต้าชีต S1) และ LB0 (ดาต้าชีต LB0 01-202502) · ขนานได้สูงสุด 4 ชุดเฉพาะ MB0 · ดาต้าชีต 01-202411`}));
@@ -171,6 +175,9 @@ function batCompat(b,I){
     if(v>0){let ok=false;for(let s=1;s<=ms;s++){const V=v*s;if(V>=lo-0.5&&V<=hi+0.5){ok=true;break}}if(!ok)return false}}
   return true;
 }
+/* Deye low-voltage hybrids: battery brands on Deye's approved list DY-LV48-0109 (2025-07); others may run only in lead-acid / voltage mode */
+const DEYE_OK=['deye','byd','lg','findreams','dyness','uz energy','aoboet','alpha ess','kodak','topband','shoto','dowell','giter','cf energy','weco','pylon','pylontech','sunark','batali','batterich','greenrich','hubble','solarmd','pytes','bst','highstart','rosen','gsl','gsl energy','zrgp','balancell','ufo','gospower','dmegc','robuste','fox ess','soluna','revov','pand','clis','narada','enerhi','lbsa','freedomwon','gso','sunketess','vestwoods','green solutions','nruit','cooli','far east','volta','lemax','evo','yoshopo','gen2','bnp','sunwoda','apium','lasertec','meterboost','ampace','livoltek','kon-tec','renon','steltec','delong','delongtop','jinko','sunova','fm-solar','lithium valley','legacy','moura','orbit','huafon','eenovance','ace','tab','greensun','tcsn','megatank','gs_hub','lvtopsun','ohisama','bslbatt','yilink','sunpal','yuyang','galaxy energy','cse','menred','meri energy','voltsmile','vremt','asgoft','gsok','heckman','zyc','v-tac','setl','vinfast','zetara','raystech','duracell','pcenersys','vision','torchn','pacocasa','turbo energy','ok solar','phylion','eitai','lvfu','ledxpress','topak','lemeon','magneto','bettenergy','genix','dawnice','cegasa','vami','hailei','beta','wattsonic','sacred sun','genixgreen','zte','prima','for-e','tianneng','unipower','ld','micromall'];
+const deyeApproved=b=>DEYE_OK.includes(String(b.brand||'').trim().toLowerCase());
 const batCompatMsg=(b,I)=>{I=I||curInv();return b.compat?`แบต ${b.brand} ${b.model} ใช้ได้กับอินเวอร์เตอร์ ${b.compat} เท่านั้น (สื่อสารและควบคุมผ่าน power module ของแบต)`:`อินเวอร์เตอร์ ${I.brand} ${I.model} รับเฉพาะแบต Huawei LUNA2000 (แรงดันสูง สื่อสาร RS485 กับอินเวอร์เตอร์) เลือกแบต LUNA2000 ที่หัวข้อแบตเตอรี่`};
 /* when the inverter changes, keep a battery that works with it (remembered per group) */
 let LAST_INV=null;const BAT_MEM={};
