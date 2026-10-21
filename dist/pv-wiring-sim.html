@@ -3956,8 +3956,12 @@ function bkSource(noEv){
 }
 
 let bkCfg=null;
+/* the system type follows the chosen inverter: an on-grid inverter has no battery port and stops when the grid is down */
+function bkModes(I){const t=I&&I.type;return t==='on-grid'?['grid']:t==='off-grid'?['off']:['grid','hybrid','off']}
+function bkFit(){const ok=bkModes(curInv());if(!ok.includes(BK.mode))BK.mode=ok[0];return ok}
 function backupRun(){
   if(!$('#bkmx'))return;
+  bkFit();bkSync();
   const msg=$('#bkmsg'),body=$('#bkbody'),I=curInv(),bi=bankInfo();
   $('#bkverdict').hidden=true;window.lastBK=null;window.lastBal=null;
   const src=bkSource();
@@ -3979,7 +3983,7 @@ function backupRun(){
   const T=R.T;
 
   /* warnings */
-  if(need&&I.type==='on-grid')warns.push(['err',`อินเวอร์เตอร์ ${I.name} เป็นแบบ On-grid ต่อแบตไม่ได้ ผลด้านล่างจำลองเหมือนมีแบตเพื่อดูแนวทางเท่านั้น เลือกรุ่น Hybrid หรือ Off-grid ที่แท็บ "อุปกรณ์"`]);
+  if(false)warns.push(['err',`อินเวอร์เตอร์ ${I.name} เป็นแบบ On-grid ต่อแบตไม่ได้ ผลด้านล่างจำลองเหมือนมีแบตเพื่อดูแนวทางเท่านั้น เลือกรุ่น Hybrid หรือ Off-grid ที่แท็บ "อุปกรณ์"`]);
   if(need&&bi&&I.type!=='on-grid'&&I.bvMax&&(bi.V<I.bvMin||bi.V>I.bvMax))warns.push(['err',`แรงดันชุดแบต ${f(bi.V,1)} V อยู่นอกช่วงที่อินเวอร์เตอร์รับ ${I.bvMin}–${I.bvMax} V ปรับจำนวนต่ออนุกรมที่แท็บ "อุปกรณ์"`]);
   if(need&&bi&&I.type!=='on-grid'&&!batCompat(bi.b,I))warns.push(['err',batCompatMsg(bi.b,I)]);
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
@@ -4028,8 +4032,10 @@ function backupRun(){
     if(e<=24)vb.push([s,e]);else vb.push([s,24],[0,e-24]);
   }
   const yTop=Math.max(Math.max(...R.pv),Math.max(...R.load),1)/1000*1.1;
-  const s1=[{short:'กำลังจากแผง',color:'var(--s1)',vals:kw(R.pv),area:true,fmt:v=>f(v,2)},{short:'โหลดที่ต้องการ',color:'var(--s2)',vals:kw(R.load),fmt:v=>f(v,2)}];
+  const used=R.pv.map((v,i)=>Math.max(0,v-R.curt[i]));
+  const s1=[{short:T.curt>0.005?'กำลังจากแผงที่ใช้ได้':'กำลังจากแผง',color:'var(--s1)',vals:kw(used),area:true,fmt:v=>f(v,2)},{short:'โหลดที่ต้องการ',color:'var(--s2)',vals:kw(R.load),fmt:v=>f(v,2)}];
   if(BK.mode!=='off')s1.push({short:'ซื้อจากกริด',color:'var(--s3)',vals:kw(R.imp),fmt:v=>f(v,2)});
+  if(T.curt>0.005)s1.push({short:BK.mode==='grid'?'แดดมีแต่ไม่ได้จ่าย (หยุด/จำกัดขาย)':'ไฟแผงเหลือทิ้ง',color:'var(--muted)',vals:kw(R.curt),fmt:v=>f(v,2)});
   if(T.unmet>0.005)s1.push({short:'ส่วนที่ไฟไม่พอ',color:'var(--err)',vals:kw(R.unmet),fmt:v=>f(v,2)});
   bkCfg={A:{x,xmin:0,xmax:24,ymax:yTop,unit:'kW',aria:'กราฟกำลังจากแผง โหลด และไฟจากกริดตลอดวัน',vb,vbl:'ไฟดับ',series:s1}};
   if(BK.mode!=='grid')bkCfg.B={x,xmin:0,xmax:24,ymax:100,unit:'%',aria:'กราฟสถานะประจุแบต SOC ตลอดวัน',vb,vbl:'ไฟดับ',
@@ -4046,7 +4052,9 @@ function drawBackup(){
   if(bkCfg.B&&$('#chK2').clientWidth)drawLine($('#chK2'),bkCfg.B);
 }
 function bkSync(){
-  document.querySelectorAll('#bkmode [data-bm]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode)));
+  const ok=bkModes(curInv());
+  document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=!ok.includes(b.dataset.bm);
+    b.title=b.disabled?'อินเวอร์เตอร์ที่เลือกเป็นแบบ '+(curInv().type||'')+' ใช้ระบบนี้ไม่ได้ เปลี่ยนรุ่นที่แท็บ "อุปกรณ์"':''});
   $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal';
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
   $('#bkoutbox').hidden=BK.mode==='off';$('#bkoutbox2').hidden=BK.mode==='off';$('#bksocbox').hidden=BK.mode==='grid';
@@ -4054,10 +4062,10 @@ function bkSync(){
     grid:'ใช้แผงจ่ายโหลดและขายส่วนเกินคืนกริด ไม่มีแบต เมื่อกริดดับอินเวอร์เตอร์ต้องหยุดจ่ายไฟ',
     hybrid:'แผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบต แล้วค่อยขายคืนกริด ตอนไฟดับแบตและแผงจ่ายโหลดที่เลือกต่อเอง',
     off:'ไม่ต่อกริด แผงและแบตต้องจ่ายโหลดทั้งหมดเอง ไฟส่วนที่ขาดคือโหลดที่ไม่มีไฟใช้'
-  }[BK.mode];
+  }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
-  $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b)return;BK.mode=b.dataset.bm;bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b||b.disabled)return;BK.mode=b.dataset.bm;bkSync();backupRun();if(typeof touch==='function')touch()});
   const num=(id,key,lo,hi)=>$('#'+id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK[key]=Math.max(lo,Math.min(hi,n));backupRun();if(typeof touch==='function')touch()});
   num('bkn','nIdeal',1,200);num('bkod','outDur',0,24);num('bksoc','soc0',0,100);
   $('#bkos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;backupRun();if(typeof touch==='function')touch()});
