@@ -19,6 +19,7 @@ dev=f'''<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>{TITLE}</title>
+<script>try{{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}}catch(e){{document.documentElement.dataset.theme='light'}}</script>
 <link rel="stylesheet" href="{FONTS}">
 <link rel="stylesheet" href="css/styles.css?v={V('css/styles.css')}">
 </head>
@@ -29,6 +30,7 @@ dev=f'''<!doctype html>
 '''
 open(os.path.join(here,'index.html'),'w',encoding='utf-8').write(dev)
 bundle=f'''<title>{TITLE}</title>
+<script>try{{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}}catch(e){{document.documentElement.dataset.theme='light'}}</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="{FONTS}">
 <style>

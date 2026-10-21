@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ต่อสายแผงโซลาร์</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=e96cafe3">
+<link rel="stylesheet" href="css/styles.css?v=1cf806f2">
 </head>
 <body>
 <div class="app">
@@ -22,6 +23,7 @@
     <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
+    <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
   <main class="main"><div class="wrap">
@@ -495,6 +497,6 @@
 <script src="js/worksheets.js?v=b0a4dc21"></script>
 <script src="js/access.js?v=759a8de2"></script>
 <script src="js/ctx.js?v=309b3aac"></script>
-<script src="js/app.js?v=9e75dfd9"></script>
+<script src="js/app.js?v=772fe016"></script>
 </body>
 </html>

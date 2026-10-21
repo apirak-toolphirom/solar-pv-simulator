@@ -30,6 +30,12 @@ function showTab(t,fromHash){
   });
   touch();
 }
+/* theme: pastel light by default, dark on request (remembered per browser) */
+function themeSet(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('pvsim:theme',t)}catch(e){}
+  const b=$('#themebtn');if(b)b.textContent=t==='dark'?'☀ โทนสว่าง':'☾ โทนมืด';
+  if(typeof drawBackup==='function')try{drawBackup()}catch(e){}}
+document.addEventListener('DOMContentLoaded',()=>{const b=$('#themebtn');if(!b)return;themeSet(document.documentElement.dataset.theme==='dark'?'dark':'light');
+  b.addEventListener('click',()=>themeSet(document.documentElement.dataset.theme==='dark'?'light':'dark'))});
 function quickSel(){
   const mk=(kind,id)=>{
     const el=$('#'+id);if(!el)return;
