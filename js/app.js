@@ -119,6 +119,7 @@ function restoreExtra(p){
     const c=p.ev.cloud||{},u=p.ev.dust||{},t=p.ev.tree||{};
     Object.assign(EV.cloud,{on:!!c.on,start:num(c.start,11,0,24),dur:num(c.dur,2,0,12),depth:num(c.depth,70,10,100)});
     Object.assign(EV.dust,{on:!!u.on,pct:num(u.pct,15,1,60)});
+    {const b=p.ev.bld||{};Object.assign(EV.bld,{on:!!b.on,h:num(b.h,15,1,200),d:num(b.d,12,1,200),az:num(b.az,270,0,359),w:num(b.w,20,1,200)})}
     Object.assign(EV.tree,{on:!!t.on,h:num(t.h,12,1,40),d:num(t.d,7,1,60),az:num(t.az,180,0,359),w:num(t.w,90,5,160),pct:num(t.pct,60,10,100),mppt:[0,1,2].includes(t.mppt)?t.mppt:0,ph:num(t.ph,3,0,20)});
   }
   if(p.ac&&typeof p.ac==='object'){

@@ -475,6 +475,10 @@ button.ctxc{cursor:pointer}button.ctxc:hover{border-color:var(--accent)}
 .sytbl{table-layout:fixed;width:100%;min-width:640px}.sytbl th:first-child{width:22%}.sytbl td,.sytbl th{white-space:normal;vertical-align:top}.sytbl td.n{font-family:var(--mono);text-align:right}.sytbl tr.q td{font-size:12.5px}.sytbl th{text-align:left}.sytbl thead th{text-align:right}.sytbl thead th:first-child{text-align:left}
 .synode.inv text{fill:var(--ink)}.syn{font-size:13px}.sys,.syv{font-size:11.5px}
 table.t.sytbl td,table.t.sytbl th{white-space:normal;overflow-wrap:anywhere}table.t.sytbl tr.q td{font-family:var(--body);text-align:left;font-size:12.5px}
+.bld{fill:#7d8b96;stroke:#4c5963;stroke-width:1.5}
+.syeh{margin:14px 0 6px;font-size:14px}.syenv{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.syenv .evb{border:1px solid var(--line);border-radius:10px;padding:10px}.syenv .evb.on{border-color:var(--accent);background:var(--accentbg)}
+.syloss{margin:0 0 12px;padding:8px 12px;border-radius:8px;background:var(--warnbg);color:var(--warn);font-size:13px}.syloss[hidden]{display:none}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -783,11 +787,22 @@ table.t.sytbl td,table.t.sytbl th{white-space:normal;overflow-wrap:anywhere}tabl
         <label for="sybuy">ค่าไฟซื้อ (บาท/kWh)<input id="sybuy" type="number" inputmode="decimal" min="0" step="0.1"></label>
         <label for="sysell">ราคาขายคืน (บาท/kWh)<input id="sysell" type="number" inputmode="decimal" min="0" step="0.1"></label>
       </div>
+      <h3 class="syeh">เมฆ / เงาบังแผง</h3>
+      <div class="syenv">
+        <section class="evb" id="syecbox"><h3><label class="chk"><input id="syecl" type="checkbox"> เมฆบัง</label></h3>
+          <div class="row3"><label>เริ่ม<input id="syecs" type="time"></label><label>นาน (ชม.)<input id="syecd" type="number" min="0" max="12" step="0.5"></label><label>ความหนา (%)<input id="syecp" type="number" min="10" max="100" step="5"></label></div></section>
+        <section class="evb" id="syetbox"><h3><label class="chk"><input id="syetr" type="checkbox"> เงาต้นไม้</label></h3>
+          <div class="row3"><label>ทิศ<select id="syeta"></select></label><label>สูง (ม.)<input id="syeth" type="number" min="1" max="40" step="0.5"></label><label>ห่าง (ม.)<input id="syetd" type="number" min="1" max="60" step="0.5"></label></div></section>
+        <section class="evb" id="syebbox"><h3><label class="chk"><input id="syebl" type="checkbox"> เงาตึก / อาคาร</label></h3>
+          <div class="row3"><label>ทิศ<select id="syeba"></select></label><label>สูง (ม.)<input id="syebh" type="number" min="1" max="200" step="0.5"></label><label>ห่าง (ม.)<input id="syebd" type="number" min="1" max="200" step="0.5"></label><label>กว้าง (ม.)<input id="syebw" type="number" min="1" max="200" step="1"></label></div></section>
+      </div>
+      <p class="hint tight">เมฆ ต้นไม้ และตึกใช้ค่าร่วมกับแท็บ "จำลองเหตุการณ์" (ตั้งความกว้างต้นไม้ ความหนาเงา ฝุ่น และดูภาพมุมบน/ด้านข้างได้ที่แท็บนั้น)</p>
       <p class="hint tight">ค่าแผง ไฟดับ และ SOC เริ่มต้นใช้ร่วมกับแท็บ "จำลอง Backup" แก้ที่แท็บไหนก็เปลี่ยนทั้งสองแท็บ ค่าไฟและราคาขายเป็นค่าตัวอย่าง แก้ให้ตรงอัตราจริงได้</p>
     </div>
     <p id="symsg" class="simmsg" hidden></p>
     <div id="sybody">
       <div class="panelbox syhbar"><label for="syh">ดูการไหลของไฟเวลา <b id="syhv">13:00</b></label><input id="syh" type="range" min="0" max="23.75" step="0.25" aria-label="เวลา"><span id="systate" class="pill idle"></span></div>
+      <p id="syloss" class="syloss" hidden></p>
       <div id="sycards" class="sycards"></div>
       <section class="card"><h3>กราฟทั้งวัน: <span id="sysel"></span></h3><p id="synote" class="hint tight"></p><div id="syleg" class="legend"></div><div id="chS1" class="chart"></div></section>
       <section class="card" id="sycard2" style="margin-top:12px"><h3>สถานะประจุแบต (SOC)</h3><div id="chS2" class="chart"></div></section>
@@ -831,6 +846,16 @@ table.t.sytbl td,table.t.sytbl th{white-space:normal;overflow-wrap:anywhere}tabl
         </div>
         <label>เงาตกบนแผง <b id="evtpv"></b><input id="evtp" type="range" min="10" max="100" step="5"></label>
         <label>เงาตกบน<select id="evtm"><option value="0">ทุก MPPT</option><option value="1">MPPT 1</option><option value="2">MPPT 2</option></select></label>
+      </section>
+      <section class="panelbox evb" id="evbbox"><h3><label class="chk"><input id="evbl" type="checkbox"> ตึก / อาคารบังแสง</label></h3>
+        <div class="chips" id="evbdir"></div>
+        <label>ทิศของตึก <b id="evbav"></b><input id="evba" type="range" min="0" max="359" step="5"></label>
+        <div class="row3">
+          <label>สูง (ม.)<input id="evbh" type="number" min="1" max="200" step="0.5"></label>
+          <label>ห่างจากแผง (ม.)<input id="evbd" type="number" min="1" max="200" step="0.5"></label>
+          <label>กว้าง (ม.)<input id="evbw" type="number" min="1" max="200" step="1"></label>
+        </div>
+        <p class="hint tight">ตึกทึบแสง บังแสงตรงทุก MPPT เต็มที่ ใช้ความสูงแผงจากพื้นเดียวกับต้นไม้</p>
       </section>
     </div>
     <div><button class="btn" id="evreset">ปิดเหตุการณ์ทั้งหมด</button></div>
@@ -3381,18 +3406,18 @@ function balance(pv,loadAll,loadCrit,cfg){
   return R;
 }
 
-function bkSource(){
+function bkSource(noEv){
   /* returns {pv:[W per 5-min], label, kwp, err} using the same site/orientation as the panel tab */
   const I=curInv();
   if(BK.src==='ideal'){
     const N=Math.max(1,BK.nIdeal|0);
-    const R=simDay([{n:N,ns:N,mp:1}],I,SIM.tilt,SIM.az,5,true);
+    const R=simDay([{n:N,ns:N,mp:1}],I,SIM.tilt,SIM.az,5,true,noEv);
     return{pv:R.pac,label:`แผงสมมติ ${N} แผง`,kwp:N*PV.pmax/1000,E:R.E};
   }
   if(!lastA)return{err:'ยังไม่มีผลการต่อสาย'};
   const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
   if(!blocks.some(Boolean))return{err:'ยังไม่ได้ต่อสายแผงเข้า MPPT ให้ถูกต้อง ไปแท็บ "ต่อสาย" หรือเลือกแหล่งไฟเป็นแผงสมมติ'};
-  const R=simDay(blocks,I,SIM.tilt,SIM.az,5);
+  const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv);
   const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0);
   return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง`,kwp:nUsed*PV.pmax/1000,E:R.E};
 }
@@ -3525,12 +3550,29 @@ const SYS=[
    note:'แผงจ่ายโหลดก่อน ส่วนเกินชาร์จแบตแล้วขายคืนกริด ตอนไฟดับตัดจากกริดแล้วจ่ายโหลดจากแผงและแบตต่อ',
    rows:{exp:'ขายได้ (ตั้ง Export limit ได้)',out:'แบตจ่ายโหลดต่อ',bat:'จำเป็น',gen:'แล้วแต่รุ่น (เช่น Solis มีพอร์ต GEN)',sw:'< 10 ms ตามรุ่น',inv:'Hybrid',perm:'ต้องขออนุญาตขนานกับการไฟฟ้า'},types:['hybrid']}
 ];
+/* what is shading the panels at step i (for the diagram label) */
+function syCause(i){
+  const h=(i+.5)*5/60,sn=typeof sunAt==='function'?sunAt(h):null,c=[];
+  if(EV.cloud.on&&evCloud(h)>0.05)c.push('เมฆ');
+  if(sn&&sn.up){if(EV.tree.on&&treeShade(sn.az,sn.el,EV.tree.mppt?EV.tree.mppt-1:0)>0)c.push('ต้นไม้');if(EV.bld.on&&bldShade(sn.az,sn.el)>0)c.push('ตึก')}
+  if(EV.dust.on&&!c.length)c.push('ฝุ่น');
+  return(c.join('+')||'เงา')+'บัง';
+}
+function syEnvSync(){
+  const q=id=>document.getElementById(id);if(!q('syecl'))return;
+  const C=EV.cloud,T=EV.tree,B=EV.bld;
+  q('syecl').checked=C.on;q('syecs').value=hhmm(C.start);q('syecd').value=C.dur;q('syecp').value=C.depth;
+  q('syetr').checked=T.on;q('syeth').value=T.h;q('syetd').value=T.d;q('syeta').value=T.az;
+  q('syebl').checked=B.on;q('syebh').value=B.h;q('syebd').value=B.d;q('syeba').value=B.az;q('syebw').value=B.w;
+  [['syecbox',C.on],['syetbox',T.on],['syebbox',B.on]].forEach(([id,on])=>q(id).classList.toggle('on',on));
+}
 const SY_ROWS=[['exp','ขายไฟคืนกริด'],['out','ตอนไฟดับ'],['bat','แบตเตอรี่'],['gen','เครื่องปั่นไฟ'],['sw','เวลาสลับไปไฟสำรอง'],['inv','ชนิดอินเวอร์เตอร์'],['perm','การเชื่อมต่อการไฟฟ้า']];
 let SYR=null,syCfg=null;
 
 function syRunAll(){
   const I=curInv(),bi=bankInfo(),src=bkSource(),LP=loadProfile(5);
   if(src.err)return{err:src.err};
+  const ev=typeof evActive==='function'&&evActive(),pv0=ev?bkSource(true).pv:src.pv,lossE=pv0.reduce((a,v,j)=>a+Math.max(0,v-src.pv[j]),0)*5/60/1000;
   if(!LOADS.length||Math.max(...LP.all)<=0)return{err:'ยังไม่มีโหลด ไปแท็บ "จำลองโหลด" เพื่อใส่รายการ'};
   const chgKw=bi?Math.min(I.bchg>0?I.bchg:I.pac/1000,bi.chgKw):0,disKw=bi?Math.min(I.bdis>0?I.bdis:I.pac/1000,bi.disKw):0;
   const islandW=Math.min(I.pac,(I.backupKw>0?I.backupKw:I.pac/1000)*1000);
@@ -3547,14 +3589,14 @@ function syRunAll(){
     const bill=T.imp*SY.buy-T.exp*SY.sell,noSolar=LP.all.reduce((a,b)=>a+b,0)*5/60/1000*SY.buy;
     out[s.k]={R,T,cfg,bill,noSolar,self:T.load>0?(T.direct+T.fromBat)/T.load*100:0};
   });
-  return{out,src,LP,I,bi};
+  return{out,src,LP,I,bi,pv0,lossE,ev};
 }
 function syFit(s,I){
   if(s.types.includes(I.type))return{ok:true,t:`อินเวอร์เตอร์ที่เลือก (${I.type}) ใช้กับระบบนี้ได้`};
   return{ok:false,t:`อินเวอร์เตอร์ที่เลือกเป็น ${I.type} ระบบนี้ต้องใช้ ${s.types.join(' หรือ ')} ผลด้านล่างจำลองตามหลักการทำงานของระบบ`};
 }
 /* small flow diagram for one system at the chosen time; values in kW, arrows show direction */
-function syDiagram(s,r,i){
+function syDiagram(s,r,i,pv0){
   const R=r.R,kw=v=>f(Math.abs(v)/1000,2),out=s.k!=='off'&&R.outage[i];
   const pv=R.pv[i],ld=R.load[i]-R.unmet[i],bat=(R.fromBat[i]-R.toBat[i]),grid=R.imp[i]-R.exp[i],waste=R.curt[i];
   const C={pv:[52,28],grid:[248,28],inv:[150,92],bat:[52,156],load:[248,156]};
@@ -3567,7 +3609,7 @@ function syDiagram(s,r,i){
           return`<path d="M${(px+ux*s).toFixed(1)} ${(py+uy*s).toFixed(1)}L${(px-ux*s-uy*s).toFixed(1)} ${(py-uy*s+ux*s).toFixed(1)}L${(px-ux*s+uy*s).toFixed(1)} ${(py-uy*s-ux*s).toFixed(1)}Z" class="syarr ${cls}"/>`})():'')
       +`<text x="${mx+(x<cx?-6:6)}" y="${my-6}" text-anchor="${x<cx?'end':'start'}" class="syv">${off?'':live?kw(val)+' kW':'0'}</text>`;
   };
-  let g=`<svg viewBox="0 0 300 186" role="img" aria-label="ภาพการไหลของไฟ ${s.name}">`;
+  let g=`<svg viewBox="0 -18 300 204" role="img" aria-label="ภาพการไหลของไฟ ${s.name}">`;
   g+=link('pv',pv,true,'pv',false);
   g+=link('grid',grid,grid>0,'gr',!s.grid||out);
   g+=link('bat',bat,bat>0,'bt',!s.bat);
@@ -3575,6 +3617,7 @@ function syDiagram(s,r,i){
   g+=node('pv','แผง',kw(pv)+' kW')+node('grid','กริด',!s.grid?'ไม่ต่อ':out?'ไฟดับ':grid>5?'ซื้อ':grid<-5?'ขาย':'—',!s.grid||out)
     +node('bat','แบต',s.bat?f(R.soc[i],0)+' %':'ไม่มี',!s.bat)+node('load','โหลด',kw(ld)+' kW',false);
   g+=`<g class="synode inv"><rect x="${C.inv[0]-34}" y="${C.inv[1]-15}" width="68" height="30" rx="8"/><text x="${C.inv[0]}" y="${C.inv[1]+4}" text-anchor="middle" class="syn">INV</text></g>`;
+  {const lost=pv0?pv0[i]-R.pv[i]:0;if(lost>20)g+=`<text x="12" y="-5" text-anchor="start" class="syv bad">${syCause(i)} −${kw(lost)} kW</text>`}
   if(R.unmet[i]>5)g+=`<text x="248" y="182" text-anchor="middle" class="syv bad">ขาด ${kw(R.unmet[i])} kW</text>`;
   if(waste>5)g+=`<text x="52" y="182" text-anchor="middle" class="syv mut">ไฟแผงทิ้ง ${kw(waste)} kW</text>`;
   return g+'</svg>';
@@ -3591,6 +3634,8 @@ function syRun(){
   const outNow=BK.outDur>0&&inWin(SY.h,BK.outStart%24,(BK.outStart+BK.outDur)%24);
   document.getElementById('systate').textContent=outNow?`เวลา ${hhmm(SY.h)}: ไฟดับ`:`เวลา ${hhmm(SY.h)}: กริดปกติ`;
   document.getElementById('systate').className='pill '+(outNow?'warn':'idle');
+  {const L=document.getElementById('syloss');L.hidden=!A.ev;
+   if(A.ev){const E0=A.pv0.reduce((a,b)=>a+b,0)*5/60/1000;L.innerHTML=`<b>เมฆ / เงาบังทำให้ไฟจากแผงหาย ${f(A.lossE,1)} kWh</b> จาก ${f(E0,1)} kWh (${f(E0>0?A.lossE/E0*100:0,0)}%) ทุกระบบได้รับผลเท่ากัน แต่ผลต่อค่าไฟและไฟดับต่างกัน`}}
   document.getElementById('sycards').innerHTML=SYS.map(s=>{
     const r=A.out[s.k],fit=syFit(s,A.I);
     if(r.err)return`<section class="card sycard"><h3>${s.name}</h3><p class="hint">${r.err}</p></section>`;
@@ -3599,7 +3644,7 @@ function syRun(){
     const vt=s.k==='off'?(unm>0.005?`ไฟไม่พอ ขาด ${f(unm,2)} kWh`:'ไฟพอใช้ทั้งวัน'):BK.outDur>0?(unm>0.005?`ไฟดับ: ขาด ${f(unm,2)} kWh`:'ไฟดับ: ไฟพอใช้'):'ไม่มีไฟดับ';
     return`<section class="card sycard${SY.sel===s.k?' on':''}" data-sy="${s.k}" tabindex="0" role="button" aria-pressed="${SY.sel===s.k}">
       <div class="syhead"><h3>${s.name}</h3><span class="pill ${lv}">${LABEL[lv]}</span></div><p class="syth">${s.th}</p>
-      ${syDiagram(s,r,i)}
+      ${syDiagram(s,r,i,A.ev?A.pv0:null)}
       <dl class="sydl"><div><dt>ใช้ไฟจากแผงและแบต</dt><dd>${f(r.self,0)} %</dd></div><div><dt>ซื้อ / ขาย</dt><dd>${s.grid?f(T.imp,1)+' / '+f(T.exp,1):'—'} kWh</dd></div>
       <div><dt>ไฟแผงที่ทิ้ง</dt><dd>${f(T.curt,1)} kWh</dd></div><div><dt>ค่าไฟวันนี้</dt><dd>${s.grid?(r.bill<0?'ได้คืน '+f(-r.bill,1):f(r.bill,1))+' บาท':'0 บาท'}</dd></div></dl>
       <p class="syv2 ${lv}">${vt}</p><p class="syfit${fit.ok?'':' no'}">${fit.ok?'✓':'!'} ${esc(fit.t)}</p></section>`;
@@ -3623,6 +3668,7 @@ function syRun(){
   const se=[{short:'กำลังจากแผง',color:'var(--s1)',vals:kw(R.pv),area:true,fmt:v=>f(v,2)},{short:'โหลด',color:'var(--s2)',vals:kw(R.load),fmt:v=>f(v,2)}];
   if(s.grid)se.push({short:'ซื้อจากกริด',color:'var(--s3)',vals:kw(R.imp),fmt:v=>f(v,2)});
   if(s.exp)se.push({short:'ขายคืนกริด',color:'var(--accent)',vals:kw(R.exp),fmt:v=>f(v,2)});
+  if(A.ev)se.push({short:'แผงถ้าไม่มีเมฆ/เงา',color:'var(--muted)',vals:kw(A.pv0),fmt:v=>f(v,2)});
   if(r.T.curt>0.01)se.push({short:'ไฟแผงที่ทิ้ง',color:'var(--muted)',vals:kw(R.curt),fmt:v=>f(v,2)});
   if(r.T.unmet>0.005)se.push({short:'ไฟขาด',color:'var(--err)',vals:kw(R.unmet),fmt:v=>f(v,2)});
   const top=Math.max(Math.max(...R.pv),Math.max(...R.load),1)/1000*1.1;
@@ -3656,7 +3702,18 @@ function initSystems(){
   const pick=e=>{const c=e.target.closest('[data-sy]');if(!c)return;if(e.type==='keydown'&&e.key!=='Enter'&&e.key!==' ')return;e.preventDefault();SY.sel=c.dataset.sy;syRun();if(typeof touch==='function')touch()};
   q('sycards').addEventListener('click',pick);q('sycards').addEventListener('keydown',pick);
   let rz=0;window.addEventListener('resize',()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(drawSys)});
-  sySync();
+  /* shading and cloud controls: same settings as tab "จำลองเหตุการณ์" */
+  const env=()=>{syEnvSync();if(typeof runSim==='function')runSim();else go();syRun();if(typeof touch==='function')touch()};
+  const ck=(id,obj)=>q(id).addEventListener('change',e=>{obj.on=e.target.checked;env()});
+  const en=(id,obj,key,lo,hi)=>q(id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;obj[key]=Math.max(lo,Math.min(hi,n));env()});
+  ck('syecl',EV.cloud);ck('syetr',EV.tree);ck('syebl',EV.bld);
+  q('syecs').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;EV.cloud.start=h;env()});
+  en('syecd',EV.cloud,'dur',0,12);en('syecp',EV.cloud,'depth',10,100);
+  en('syeth',EV.tree,'h',1,40);en('syetd',EV.tree,'d',1,60);
+  en('syebh',EV.bld,'h',1,200);en('syebd',EV.bld,'d',1,200);en('syebw',EV.bld,'w',1,200);
+  q('syeta').addEventListener('change',e=>{EV.tree.az=+e.target.value;env()});q('syeba').addEventListener('change',e=>{EV.bld.az=+e.target.value;env()});
+  const dirs=DIRS.map(d=>`<option value="${d[1]}">${d[0]} (${d[1]}°)</option>`).join('');q('syeta').innerHTML=dirs;q('syeba').innerHTML=dirs;
+  sySync();syEnvSync();
 }
 function syRestore(o){
   if(!o||typeof o!=='object')return;
@@ -3667,7 +3724,8 @@ function syRestore(o){
 
 /* ---- events: cloud, dust, tree shade, seasons, grid outage, plus top/side site views ---- */
 const EV={cloud:{on:false,start:11,dur:2,depth:70},dust:{on:false,pct:15},
-  tree:{on:false,h:12,d:7,az:180,w:90,pct:60,mppt:0,ph:3}};
+  tree:{on:false,h:12,d:7,az:180,w:90,pct:60,mppt:0,ph:3},
+  bld:{on:false,h:15,d:12,az:270,w:20}};
 const SEASONS=[['ฤดูร้อน (กลาง เม.ย.)',4,15],['ฤดูฝน (กลาง ก.ค.)',7,15],['ฤดูหนาว (กลาง ธ.ค.)',12,15],
   ['วิษุวัต (ฤดูใบไม้ผลิ)',3,21],['ครีษมายัน (กลางวันยาวสุดทางเหนือ)',6,21],['เหมายัน (กลางวันสั้นสุดทางเหนือ)',12,21]];
 const SC={view:'top',h:12,timer:0};
@@ -3683,13 +3741,23 @@ function evCloud(h){
 const angDiff=(a,b)=>{let d=((a-b)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI;return Math.abs(d)};
 /* tree blocks the beam if the sun is inside its angular width and below the top of the tree seen from the array */
 function treeLimit(){const t=EV.tree;return Math.atan2(Math.max(0,t.h-t.ph),Math.max(0.5,t.d))}
-function evTreeShade(azR,elR,j){
+function treeShade(azR,elR,j){
   const t=EV.tree;if(!t.on)return 0;
   if(t.mppt&&t.mppt!==j+1)return 0;
   if(angDiff(azR,t.az*Math.PI/180)>t.w/2*Math.PI/180)return 0;
   return elR<treeLimit()?t.pct/100:0;
 }
-const evActive=()=>EV.cloud.on||EV.dust.on||EV.tree.on;
+/* building: an opaque block (height h, width w, distance d from the array) blocks the direct beam on every MPPT.
+   Panel height above ground is the same setting as for the tree (EV.tree.ph) */
+function bldLimit(){const b=EV.bld;return Math.atan2(Math.max(0,b.h-EV.tree.ph),Math.max(0.5,b.d))}
+function bldHalfW(){const b=EV.bld;return Math.atan2(b.w/2,Math.max(0.5,b.d))}
+function bldShade(azR,elR){
+  const b=EV.bld;if(!b.on)return 0;
+  if(angDiff(azR,b.az*Math.PI/180)>bldHalfW())return 0;
+  return elR<bldLimit()?1:0;
+}
+function evTreeShade(azR,elR,j){return Math.max(treeShade(azR,elR,j),bldShade(azR,elR))}
+const evActive=()=>EV.cloud.on||EV.dust.on||EV.tree.on||EV.bld.on;
 
 function evSource(){
   const I=curInv();
@@ -3701,12 +3769,12 @@ function evSource(){
   return{blocks:[{n:N,ns:N,mp:1}],I,ideal:true,label:`แผงสมมติ ${N} แผง (ยังไม่ได้ต่อสายที่ถูกต้อง)`,n:N};
 }
 function simWith(S,only,date){
-  const keep=JSON.stringify([EV.cloud.on,EV.dust.on,EV.tree.on]),od=SIM.date;
-  if(only==='none'){EV.cloud.on=EV.dust.on=EV.tree.on=false}
-  else if(only){const o={cloud:EV.cloud.on,dust:EV.dust.on,tree:EV.tree.on};EV.cloud.on=only==='cloud'&&o.cloud;EV.dust.on=only==='dust'&&o.dust;EV.tree.on=only==='tree'&&o.tree}
+  const keep=JSON.stringify([EV.cloud.on,EV.dust.on,EV.tree.on,EV.bld.on]),od=SIM.date;
+  if(only==='none'){EV.cloud.on=EV.dust.on=EV.tree.on=EV.bld.on=false}
+  else if(only){const o={cloud:EV.cloud.on,dust:EV.dust.on,tree:EV.tree.on,bld:EV.bld.on};EV.cloud.on=only==='cloud'&&o.cloud;EV.dust.on=only==='dust'&&o.dust;EV.tree.on=only==='tree'&&o.tree;EV.bld.on=only==='bld'&&o.bld}
   if(date)SIM.date=date;
   let R;try{R=simDay(S.blocks,S.I,SIM.tilt,SIM.az,5,S.ideal)}finally{
-    const k=JSON.parse(keep);EV.cloud.on=k[0];EV.dust.on=k[1];EV.tree.on=k[2];SIM.date=od}
+    const k=JSON.parse(keep);EV.cloud.on=k[0];EV.dust.on=k[1];EV.tree.on=k[2];EV.bld.on=k[3];SIM.date=od}
   return R;
 }
 function sunTimes(R){
@@ -3745,6 +3813,19 @@ function siteTop(S){
     s+=`<path d="M${cx} ${cy}L${a1[0]} ${a1[1]}A${R} ${R} 0 0 1 ${a2[0]} ${a2[1]}Z" class="wedge"/>`;
     s+=`<circle cx="${tp[0]}" cy="${tp[1]}" r="${Math.max(7,2*m)}" class="tree"/><text x="${tp[0]}" y="${tp[1]+4}" class="ax" text-anchor="middle">ต้นไม้</text>`;
   }
+  /* building and its shadow */
+  const B=EV.bld;
+  if(B.on){
+    const ba=B.az*Math.PI/180,bp=P(ba,Math.min(R-12,B.d*m)),hw=Math.min(R*.9,B.w/2*m),dp=Math.max(10,Math.min(40,6*m));
+    if(sn.up&&sn.el>0.02){
+      const L=Math.min(R*1.4,B.h/Math.tan(sn.el)*m),a=sn.az+Math.PI,tx=-Math.cos(ba)*hw,ty=-Math.sin(ba)*hw;
+      const c1=[bp[0]+tx,bp[1]+ty],c2=[bp[0]-tx,bp[1]-ty],ox=L*Math.sin(a),oy=-L*Math.cos(a);
+      s+=`<polygon points="${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${c2[0]+ox},${c2[1]+oy} ${c1[0]+ox},${c1[1]+oy}" class="shd"/>`;
+    }
+    const hb=bldHalfW(),b1=P(ba-hb,R),b2=P(ba+hb,R);
+    s+=`<path d="M${cx} ${cy}L${b1[0]} ${b1[1]}A${R} ${R} 0 0 1 ${b2[0]} ${b2[1]}Z" class="wedge"/>`;
+    s+=`<g transform="translate(${bp[0]} ${bp[1]}) rotate(${B.az})"><rect x="${-hw}" y="${-dp}" width="${2*hw}" height="${dp}" class="bld"/></g><text x="${bp[0]}" y="${bp[1]+4}" class="ax" text-anchor="middle">ตึก</text>`;
+  }
   /* array */
   const n=Math.max(1,S.n),cols=Math.min(n,Math.max(1,Math.round(Math.sqrt(n*1.4)))),rows=Math.ceil(n/cols);
   const aw2=cols*1.13*m,ah=rows*2.38*m*Math.cos(SIM.tilt*Math.PI/180*0.9);
@@ -3778,6 +3859,12 @@ function siteSide(S){
     s+=`<text x="${tx}" y="${gy+16}" class="ax" text-anchor="middle">ต้นไม้ สูง ${t.h} ม. ห่าง ${t.d} ม.</text>`;
     blocked=sn.up&&evTreeShade(sn.az,sn.el,t.mppt?t.mppt-1:0)>0&&Math.cos(dT)>-0.2;
   }
+  const B=EV.bld;
+  if(B.on){
+    const dB=B.az*Math.PI/180-SIM.az*Math.PI/180,dist=B.d*Math.cos(dB),bx=px+Math.max(-230,Math.min(230,dist*sc)),hh=Math.min(gy-20,B.h*sc),ww=Math.max(24,Math.min(80,6*sc));
+    s+=`<rect x="${bx-ww/2}" y="${gy-hh}" width="${ww}" height="${hh}" class="bld"/><text x="${bx}" y="${gy+30}" class="ax" text-anchor="middle">ตึก สูง ${B.h} ม. ห่าง ${B.d} ม.</text>`;
+    if(sn.up&&bldShade(sn.az,sn.el)>0&&Math.cos(dB)>-0.2)blocked=true;
+  }
   /* panel */
   const ex=px+L*Math.cos(tilt),ey=py-L*Math.sin(tilt);
   s+=`<line x1="${px}" y1="${py}" x2="${px}" y2="${gy}" class="post"/><line x1="${ex}" y1="${ey}" x2="${ex}" y2="${gy}" class="post"/>`;
@@ -3793,7 +3880,7 @@ function siteSide(S){
     const inc=Math.acos(Math.max(-1,Math.min(1,Math.sin(apparent+tilt)*1)))*180/Math.PI;
     s+=`<text x="${W-12}" y="22" class="ax" text-anchor="end">มุมเงยดวงอาทิตย์ ${(sn.el*180/Math.PI).toFixed(0)}° · ทิศ ${(sn.az*180/Math.PI).toFixed(0)}°</text>`;
     s+=`<text x="${W-12}" y="40" class="ax" text-anchor="end">มุมตกกระทบบนแผงประมาณ ${inc.toFixed(0)}°${sn.az!==undefined&&u<0?' (ดวงอาทิตย์อยู่หลังแผง)':''}</text>`;
-    if(blocked)s+=`<text x="${W-12}" y="58" class="ax" text-anchor="end" style="fill:var(--err)">เงาต้นไม้บังแผง</text>`;
+    if(blocked)s+=`<text x="${W-12}" y="58" class="ax" text-anchor="end" style="fill:var(--err)">${bldShade(sn.az,sn.el)>0?'เงาตึกบังแผง':'เงาต้นไม้บังแผง'}</text>`;
   }else s+=`<text x="${W-12}" y="22" class="ax" text-anchor="end">กลางคืน ยังไม่มีแสงอาทิตย์</text>`;
   if(cov>0.02)s+=cloudSvg(140,70,1.5,Math.min(.9,cov))+cloudSvg(380,100,1.2,Math.min(.9,cov));
   s+=`<text x="12" y="20" class="ax">มองจากด้านข้าง ตามแนวหน้าแผง (หันหน้าไปทางขวา)</text>`;
@@ -3839,8 +3926,9 @@ function evSync(){
   q('evos').value=hhmm(BK.outStart);q('evod').value=BK.outDur;q('evmode').value=BK.mode;
   q('evout-note').textContent=BK.mode==='off'?'โหมด Off-grid ไม่ต่อกริด จึงไม่มีเหตุการณ์ไฟดับ เลือก On-grid หรือ Hybrid เพื่อทดลองไฟดับ':'';
   const ds=SIM.date;q('evday').value=dayOfYear(ds);q('evdayv').textContent=ds;
-  ['evcbox','evdbox','evtbox'].forEach((id,i)=>q(id).classList.toggle('on',[EV.cloud.on,EV.dust.on,EV.tree.on][i]));
-  const act=[];if(EV.cloud.on)act.push('เมฆบัง');if(EV.dust.on)act.push('ฝุ่นบังแผง');if(EV.tree.on)act.push('ต้นไม้บัง');
+  const B=EV.bld;if(q('evbl')){q('evbl').checked=B.on;q('evbh').value=B.h;q('evbd').value=B.d;q('evbw').value=B.w;q('evba').value=B.az;q('evbav').textContent=`${B.az}° (${dirName(B.az)})`}
+  ['evcbox','evdbox','evtbox','evbbox'].forEach((id,i)=>{const e=q(id);if(e)e.classList.toggle('on',[EV.cloud.on,EV.dust.on,EV.tree.on,EV.bld.on][i])});
+  const act=[];if(EV.cloud.on)act.push('เมฆบัง');if(EV.dust.on)act.push('ฝุ่นบังแผง');if(EV.tree.on)act.push('ต้นไม้บัง');if(EV.bld.on)act.push('ตึกบัง');
   const n=document.getElementById('evnote');if(n)n.textContent=act.length?'เหตุการณ์ที่เปิดอยู่ในกราฟด้านล่าง: '+act.join(', ')+' (ตั้งค่าที่แท็บ "จำลองเหตุการณ์")':'';
 }
 function evRun(){
@@ -3852,9 +3940,9 @@ function evRun(){
   msg.textContent=`แหล่งผลิต: ${S.label} · ${f(S.n*PV.pmax/1000,2)} kWp · ${SIM.date} · มุมเอียง ${SIM.tilt}° หันไป ${SIM.az}° (${dirName(SIM.az)})`;
   if(!st){document.getElementById('evmx').innerHTML='<div class="metric"><div class="k">วันนี้ไม่มีแสงอาทิตย์</div></div>';return}
   const loss=R0.E-R.E,pc=R0.E>0?loss/R0.E*100:0;
-  const cause=['cloud','dust','tree'].map(k=>{
+  const cause=['cloud','dust','tree','bld'].map(k=>{
     const on=EV[k].on;if(!on)return null;
-    const Rk=simWith(S,k);return{k,name:{cloud:'เมฆบัง',dust:'ฝุ่นบังแผง',tree:'ต้นไม้บัง'}[k],d:R0.E-Rk.E};
+    const Rk=simWith(S,k);return{k,name:{cloud:'เมฆบัง',dust:'ฝุ่นบังแผง',tree:'ต้นไม้บัง',bld:'ตึกบัง'}[k],d:R0.E-Rk.E};
   }).filter(Boolean);
   const bk=window.lastBK;
   const mx=[
@@ -3875,7 +3963,7 @@ function evRun(){
   evCfg={A:{x:xs,ymax:Math.max(Math.max(...R0.pac),1)/1000*1.1,unit:'kW',aria:'กราฟกำลัง AC เทียบวันปกติกับวันที่มีเหตุการณ์',vb,vbl:vb.length?'ไฟดับ':'',
       series:[{short:'ไม่มีเหตุการณ์',color:'var(--muted)',vals:sl(R0.pac).map(kw),fmt:v=>f(v,2)},{short:'มีเหตุการณ์',color:'var(--s1)',vals:sl(R.pac).map(kw),area:true,fmt:v=>f(v,2)}]},
     B:{x:xs,ymax:90,unit:'°',aria:'กราฟมุมเงยของดวงอาทิตย์ตลอดวัน',vb:shadeBands,vbl:shadeBands.length?'ต้นไม้บังแสง':'',
-      refs:EV.tree.on?[{y:treeLimit()*180/Math.PI,label:`ยอดต้นไม้ ${f(treeLimit()*180/Math.PI,0)}°`}]:[],
+      refs:(EV.tree.on?[{y:treeLimit()*180/Math.PI,label:`ยอดต้นไม้ ${f(treeLimit()*180/Math.PI,0)}°`}]:[]).concat(EV.bld.on?[{y:bldLimit()*180/Math.PI,label:`ขอบตึก ${f(bldLimit()*180/Math.PI,0)}°`}]:[]),
       series:[{short:'มุมเงยดวงอาทิตย์',color:'var(--s2)',vals:sl(R.elev).map(e=>Math.max(0,e*180/Math.PI)),area:true,fmt:v=>f(v,0)}]}};
   document.getElementById('evleg1').innerHTML=evCfg.A.series.map(se=>`<span class="lg"><i class="lk" style="background:${se.color}"></i>${se.short}</span>`).join('');
   drawEvCharts();
@@ -3903,8 +3991,11 @@ function initEvents(){
   q('evtr').addEventListener('change',e=>{EV.tree.on=e.target.checked;evChanged()});
   num('evth',EV.tree,'h',1,40);num('evtd',EV.tree,'d',1,60);num('evta',EV.tree,'az',0,359);num('evtw',EV.tree,'w',5,160);num('evtp',EV.tree,'pct',10,100);num('evtph',EV.tree,'ph',0,20);
   q('evtm').addEventListener('change',e=>{EV.tree.mppt=+e.target.value;evChanged()});
+  if(q('evbl')){q('evbl').addEventListener('change',e=>{EV.bld.on=e.target.checked;evChanged()});num('evbh',EV.bld,'h',1,200);num('evbd',EV.bld,'d',1,200);num('evbw',EV.bld,'w',1,200);num('evba',EV.bld,'az',0,359);
+    q('evbdir').addEventListener('click',e=>{const b=e.target.closest('[data-az]');if(!b)return;EV.bld.az=+b.dataset.az;evChanged()})}
   q('evtdir').addEventListener('click',e=>{const b=e.target.closest('[data-az]');if(!b)return;EV.tree.az=+b.dataset.az;evChanged()});
   q('evtdir').innerHTML=DIRS.map(d=>`<button class="chip" data-az="${d[1]}">${d[0]}</button>`).join('');
+  if(q('evbdir'))q('evbdir').innerHTML=q('evtdir').innerHTML;
   q('evos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;bkSync();runSim();evSync();touch()});
   q('evod').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.outDur=Math.max(0,Math.min(24,n));bkSync();runSim();evSync();touch()});
   q('evmode').addEventListener('change',e=>{BK.mode=e.target.value;bkSync();runSim();evSync();touch()});
@@ -3913,7 +4004,7 @@ function initEvents(){
   const pick=ds=>{setDate(ds);runSim();evSync();touch()};
   q('evseaschips').addEventListener('click',e=>{const b=e.target.closest('[data-si]');if(!b)return;const se=SEASONS[+b.dataset.si];pick(seasonDate(se[1],se[2]))});
   q('evseas').addEventListener('click',e=>{const b=e.target.closest('[data-sd]');if(b)pick(b.dataset.sd)});
-  q('evreset').addEventListener('click',()=>{EV.cloud.on=EV.dust.on=EV.tree.on=false;evChanged()});
+  q('evreset').addEventListener('click',()=>{EV.cloud.on=EV.dust.on=EV.tree.on=EV.bld.on=false;evChanged()});
   let rz2=0;window.addEventListener('resize',()=>{cancelAnimationFrame(rz2);rz2=requestAnimationFrame(drawEvCharts)});
   evSync();
 }
@@ -4723,7 +4814,7 @@ function buildReport(){
   if(typeof backupRun==='function')backupRun();
   if(window.lastBK)r.bk=window.lastBK;
   if(typeof acAnalyze==='function'){if(typeof acRender==='function')acRender();r.ac=window.lastAC||null}
-  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:''].filter(Boolean).join(', ')+' · '+SIM.date:'';
+  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:'',EV.bld.on?`ตึก ${EV.bld.h} ม.`:''].filter(Boolean).join(', ')+' · '+SIM.date:'';
   return r;
 }
 const wLabel=w=>!w?'ยังไม่มีผลการต่อสาย':({ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${w.warn} ข้อควรระวัง`,err:`มี ${w.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'})[w.lvl];
@@ -5191,6 +5282,7 @@ function restoreExtra(p){
     const c=p.ev.cloud||{},u=p.ev.dust||{},t=p.ev.tree||{};
     Object.assign(EV.cloud,{on:!!c.on,start:num(c.start,11,0,24),dur:num(c.dur,2,0,12),depth:num(c.depth,70,10,100)});
     Object.assign(EV.dust,{on:!!u.on,pct:num(u.pct,15,1,60)});
+    {const b=p.ev.bld||{};Object.assign(EV.bld,{on:!!b.on,h:num(b.h,15,1,200),d:num(b.d,12,1,200),az:num(b.az,270,0,359),w:num(b.w,20,1,200)})}
     Object.assign(EV.tree,{on:!!t.on,h:num(t.h,12,1,40),d:num(t.d,7,1,60),az:num(t.az,180,0,359),w:num(t.w,90,5,160),pct:num(t.pct,60,10,100),mppt:[0,1,2].includes(t.mppt)?t.mppt:0,ph:num(t.ph,3,0,20)});
   }
   if(p.ac&&typeof p.ac==='object'){

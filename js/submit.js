@@ -26,7 +26,7 @@ function buildReport(){
   if(typeof backupRun==='function')backupRun();
   if(window.lastBK)r.bk=window.lastBK;
   if(typeof acAnalyze==='function'){if(typeof acRender==='function')acRender();r.ac=window.lastAC||null}
-  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:''].filter(Boolean).join(', ')+' · '+SIM.date:'';
+  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:'',EV.bld.on?`ตึก ${EV.bld.h} ม.`:''].filter(Boolean).join(', ')+' · '+SIM.date:'';
   return r;
 }
 const wLabel=w=>!w?'ยังไม่มีผลการต่อสาย':({ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${w.warn} ข้อควรระวัง`,err:`มี ${w.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'})[w.lvl];

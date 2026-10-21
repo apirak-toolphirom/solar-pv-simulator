@@ -305,11 +305,22 @@
         <label for="sybuy">ค่าไฟซื้อ (บาท/kWh)<input id="sybuy" type="number" inputmode="decimal" min="0" step="0.1"></label>
         <label for="sysell">ราคาขายคืน (บาท/kWh)<input id="sysell" type="number" inputmode="decimal" min="0" step="0.1"></label>
       </div>
+      <h3 class="syeh">เมฆ / เงาบังแผง</h3>
+      <div class="syenv">
+        <section class="evb" id="syecbox"><h3><label class="chk"><input id="syecl" type="checkbox"> เมฆบัง</label></h3>
+          <div class="row3"><label>เริ่ม<input id="syecs" type="time"></label><label>นาน (ชม.)<input id="syecd" type="number" min="0" max="12" step="0.5"></label><label>ความหนา (%)<input id="syecp" type="number" min="10" max="100" step="5"></label></div></section>
+        <section class="evb" id="syetbox"><h3><label class="chk"><input id="syetr" type="checkbox"> เงาต้นไม้</label></h3>
+          <div class="row3"><label>ทิศ<select id="syeta"></select></label><label>สูง (ม.)<input id="syeth" type="number" min="1" max="40" step="0.5"></label><label>ห่าง (ม.)<input id="syetd" type="number" min="1" max="60" step="0.5"></label></div></section>
+        <section class="evb" id="syebbox"><h3><label class="chk"><input id="syebl" type="checkbox"> เงาตึก / อาคาร</label></h3>
+          <div class="row3"><label>ทิศ<select id="syeba"></select></label><label>สูง (ม.)<input id="syebh" type="number" min="1" max="200" step="0.5"></label><label>ห่าง (ม.)<input id="syebd" type="number" min="1" max="200" step="0.5"></label><label>กว้าง (ม.)<input id="syebw" type="number" min="1" max="200" step="1"></label></div></section>
+      </div>
+      <p class="hint tight">เมฆ ต้นไม้ และตึกใช้ค่าร่วมกับแท็บ "จำลองเหตุการณ์" (ตั้งความกว้างต้นไม้ ความหนาเงา ฝุ่น และดูภาพมุมบน/ด้านข้างได้ที่แท็บนั้น)</p>
       <p class="hint tight">ค่าแผง ไฟดับ และ SOC เริ่มต้นใช้ร่วมกับแท็บ "จำลอง Backup" แก้ที่แท็บไหนก็เปลี่ยนทั้งสองแท็บ ค่าไฟและราคาขายเป็นค่าตัวอย่าง แก้ให้ตรงอัตราจริงได้</p>
     </div>
     <p id="symsg" class="simmsg" hidden></p>
     <div id="sybody">
       <div class="panelbox syhbar"><label for="syh">ดูการไหลของไฟเวลา <b id="syhv">13:00</b></label><input id="syh" type="range" min="0" max="23.75" step="0.25" aria-label="เวลา"><span id="systate" class="pill idle"></span></div>
+      <p id="syloss" class="syloss" hidden></p>
       <div id="sycards" class="sycards"></div>
       <section class="card"><h3>กราฟทั้งวัน: <span id="sysel"></span></h3><p id="synote" class="hint tight"></p><div id="syleg" class="legend"></div><div id="chS1" class="chart"></div></section>
       <section class="card" id="sycard2" style="margin-top:12px"><h3>สถานะประจุแบต (SOC)</h3><div id="chS2" class="chart"></div></section>
@@ -353,6 +364,16 @@
         </div>
         <label>เงาตกบนแผง <b id="evtpv"></b><input id="evtp" type="range" min="10" max="100" step="5"></label>
         <label>เงาตกบน<select id="evtm"><option value="0">ทุก MPPT</option><option value="1">MPPT 1</option><option value="2">MPPT 2</option></select></label>
+      </section>
+      <section class="panelbox evb" id="evbbox"><h3><label class="chk"><input id="evbl" type="checkbox"> ตึก / อาคารบังแสง</label></h3>
+        <div class="chips" id="evbdir"></div>
+        <label>ทิศของตึก <b id="evbav"></b><input id="evba" type="range" min="0" max="359" step="5"></label>
+        <div class="row3">
+          <label>สูง (ม.)<input id="evbh" type="number" min="1" max="200" step="0.5"></label>
+          <label>ห่างจากแผง (ม.)<input id="evbd" type="number" min="1" max="200" step="0.5"></label>
+          <label>กว้าง (ม.)<input id="evbw" type="number" min="1" max="200" step="1"></label>
+        </div>
+        <p class="hint tight">ตึกทึบแสง บังแสงตรงทุก MPPT เต็มที่ ใช้ความสูงแผงจากพื้นเดียวกับต้นไม้</p>
       </section>
     </div>
     <div><button class="btn" id="evreset">ปิดเหตุการณ์ทั้งหมด</button></div>

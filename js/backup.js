@@ -54,18 +54,18 @@ function balance(pv,loadAll,loadCrit,cfg){
   return R;
 }
 
-function bkSource(){
+function bkSource(noEv){
   /* returns {pv:[W per 5-min], label, kwp, err} using the same site/orientation as the panel tab */
   const I=curInv();
   if(BK.src==='ideal'){
     const N=Math.max(1,BK.nIdeal|0);
-    const R=simDay([{n:N,ns:N,mp:1}],I,SIM.tilt,SIM.az,5,true);
+    const R=simDay([{n:N,ns:N,mp:1}],I,SIM.tilt,SIM.az,5,true,noEv);
     return{pv:R.pac,label:`แผงสมมติ ${N} แผง`,kwp:N*PV.pmax/1000,E:R.E};
   }
   if(!lastA)return{err:'ยังไม่มีผลการต่อสาย'};
   const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
   if(!blocks.some(Boolean))return{err:'ยังไม่ได้ต่อสายแผงเข้า MPPT ให้ถูกต้อง ไปแท็บ "ต่อสาย" หรือเลือกแหล่งไฟเป็นแผงสมมติ'};
-  const R=simDay(blocks,I,SIM.tilt,SIM.az,5);
+  const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv);
   const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0);
   return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง`,kwp:nUsed*PV.pmax/1000,E:R.E};
 }

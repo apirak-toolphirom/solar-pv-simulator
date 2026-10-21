@@ -471,3 +471,7 @@ button.ctxc{cursor:pointer}button.ctxc:hover{border-color:var(--accent)}
 .sytbl{table-layout:fixed;width:100%;min-width:640px}.sytbl th:first-child{width:22%}.sytbl td,.sytbl th{white-space:normal;vertical-align:top}.sytbl td.n{font-family:var(--mono);text-align:right}.sytbl tr.q td{font-size:12.5px}.sytbl th{text-align:left}.sytbl thead th{text-align:right}.sytbl thead th:first-child{text-align:left}
 .synode.inv text{fill:var(--ink)}.syn{font-size:13px}.sys,.syv{font-size:11.5px}
 table.t.sytbl td,table.t.sytbl th{white-space:normal;overflow-wrap:anywhere}table.t.sytbl tr.q td{font-family:var(--body);text-align:left;font-size:12.5px}
+.bld{fill:#7d8b96;stroke:#4c5963;stroke-width:1.5}
+.syeh{margin:14px 0 6px;font-size:14px}.syenv{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.syenv .evb{border:1px solid var(--line);border-radius:10px;padding:10px}.syenv .evb.on{border-color:var(--accent);background:var(--accentbg)}
+.syloss{margin:0 0 12px;padding:8px 12px;border-radius:8px;background:var(--warnbg);color:var(--warn);font-size:13px}.syloss[hidden]{display:none}
