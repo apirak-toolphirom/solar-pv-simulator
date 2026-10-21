@@ -12,7 +12,7 @@ const WS_DEFAULT=[
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
-const TAB_NAME={equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC',ac:'03 ต่อสาย AC',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 Backup',systems:'08 ระบบ 4 แบบ',events:'09 เหตุการณ์',bench:'10 วงจร DC'};
+const TAB_NAME={equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC',ac:'03 ต่อสาย AC',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 การไหลของไฟ',systems:'08 ระบบ 4 แบบ',events:'09 เหตุการณ์',bench:'10 วงจร DC'};
 let WS=WS_DEFAULT.slice(),WSSEL=null,WSSRC='default',WS_MINE=null;
 window.SY_SEEN=false;
 

@@ -61,7 +61,7 @@ function ctxChips(t){
       const lv=x=>x==='ok'?'ok':x==='err'||x==='warn'?'warn':'idle',lab=x=>x==='ok'?'ผ่าน':x==='warn'?'มีข้อควรระวัง':x==='err'?'ไม่ผ่าน':'ยังไม่ได้ทำ';
       const ac=window.lastAC,bk=window.lastBK;
       return[C(lv(A&&A.used?A.lvl:'idle'),'ต่อสาย DC',lab(A&&A.used?A.lvl:'idle'),'wiring'),C(lv(ac?ac.lvl:'idle'),'ต่อสาย AC',lab(ac?ac.lvl:'idle'),'ac'),
-        C(dcOk?'ok':'idle','จำลองแผง',dcOk?'มีผล':'ยังไม่ได้ทำ','pv'),C(loads.length?'ok':'idle','โหลด',loads.length?`${loads.length} รายการ`:'ยังไม่ได้ทำ','load'),C(bk?lv(bk.lvl):'idle','Backup',bk?lab(bk.lvl):'ยังไม่ได้ทำ','backup')];
+        C(dcOk?'ok':'idle','จำลองแผง',dcOk?'มีผล':'ยังไม่ได้ทำ','pv'),C(loads.length?'ok':'idle','โหลด',loads.length?`${loads.length} รายการ`:'ยังไม่ได้ทำ','load'),C(bk?lv(bk.lvl):'idle','การไหลของไฟ',bk?lab(bk.lvl):'ยังไม่ได้ทำ','backup')];
     }
   }
   return[];
