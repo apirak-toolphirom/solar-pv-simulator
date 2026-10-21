@@ -131,7 +131,7 @@ function batCompat(b,I){
   I=I||curInv();if(!b)return true;
   const ib=String(I.brand||'').toLowerCase();
   if(b.compat)return ib===String(b.compat).toLowerCase();
-  if(ib==='huawei'&&I.type!=='on-grid')return false;
+  if(ib==='huawei')return false;/* Huawei inverters only take LUNA2000 batteries */
   return true;
 }
 const batCompatMsg=(b,I)=>{I=I||curInv();return b.compat?`แบต ${b.brand} ${b.model} ใช้ได้กับอินเวอร์เตอร์ ${b.compat} เท่านั้น (สื่อสารและควบคุมผ่าน power module ของแบต)`:`อินเวอร์เตอร์ ${I.brand} ${I.model} รับเฉพาะแบต Huawei LUNA2000 (แรงดันสูง สื่อสาร RS485 กับอินเวอร์เตอร์) เลือกแบต LUNA2000 ที่หัวข้อแบตเตอรี่`};
@@ -140,7 +140,7 @@ let LAST_INV=null;const BAT_MEM={};
 function autoBat(){
   const I=curInv();
   if(LAST_INV===I.id)return;LAST_INV=I.id;
-  const b=curBat(),grp=String(I.brand).toLowerCase()==='huawei'&&I.type!=='on-grid'?'hw':'x';
+  const b=curBat(),grp=String(I.brand).toLowerCase()==='huawei'?'hw':'x';
   if(b&&batCompat(b,I)){BAT_MEM[grp]=b.id;return}
   const m=CAT.batteries.find(x=>x.id===BAT_MEM[grp]&&batCompat(x,I))||CAT.batteries.find(x=>x.id==='huawei-luna2000-10-s0'&&batCompat(x,I))||CAT.batteries.find(x=>batCompat(x,I));
   if(m){ACT.bat=m.id;BAT_MEM[grp]=m.id;if(m.maxS>0)BANK.s=Math.min(BANK.s,m.maxS);if(m.maxP>0)BANK.p=Math.min(BANK.p,m.maxP)}

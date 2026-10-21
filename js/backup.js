@@ -73,7 +73,8 @@ function bkSource(noEv){
 let bkCfg=null;
 /* the system type follows the chosen inverter: an on-grid inverter has no battery port and stops when the grid is down */
 function bkModes(I){const t=I&&I.type;return t==='on-grid'?['grid']:t==='off-grid'?['off']:['grid','hybrid','off']}
-function bkFit(){const ok=bkModes(curInv());if(!ok.includes(BK.mode))BK.mode=ok[0];return ok}
+/* BK.want = the type the student picked; a hybrid inverter brings it back after an on-grid one forced 'grid' */
+function bkFit(){const ok=bkModes(curInv());if(!BK.want)BK.want=BK.mode;BK.mode=ok.includes(BK.want)?BK.want:ok.includes('hybrid')?'hybrid':ok[0];return ok}
 function backupRun(){
   if(!$('#bkmx'))return;
   bkFit();bkSync();
@@ -168,6 +169,11 @@ function drawBackup(){
 }
 function bkSync(){
   const ok=bkModes(curInv());
+  /* on-grid: no battery and no islanded loads, so those inputs are shown as not used */
+  const kb=$('#kbat'),is=$('#bkis'),g=BK.mode==='grid';
+  if(kb){if(g){kb.dataset.ng='1';kb.innerHTML='<option>ไม่ใช้แบต (ระบบ On-grid ไม่มีแบต)</option>';kb.disabled=true}
+    else if(kb.dataset.ng){delete kb.dataset.ng;kb.disabled=false;if(typeof quickSel==='function')quickSel()}}
+  if(is){is.disabled=g;is.title=g?'On-grid ไม่จ่ายไฟตอนไฟดับ':''}
   document.querySelectorAll('#bkmode [data-bm]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.bm===BK.mode));b.disabled=!ok.includes(b.dataset.bm);
     b.title=b.disabled?'อินเวอร์เตอร์ที่เลือกเป็นแบบ '+(curInv().type||'')+' ใช้ระบบนี้ไม่ได้ เปลี่ยนรุ่นที่แท็บ "อุปกรณ์"':''});
   $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal';
@@ -180,7 +186,7 @@ function bkSync(){
   }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
-  $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b||b.disabled)return;BK.mode=b.dataset.bm;bkSync();backupRun();if(typeof touch==='function')touch()});
+  $('#bkmode').addEventListener('click',e=>{const b=e.target.closest('[data-bm]');if(!b||b.disabled)return;BK.mode=BK.want=b.dataset.bm;bkSync();backupRun();if(typeof touch==='function')touch()});
   const num=(id,key,lo,hi)=>$('#'+id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK[key]=Math.max(lo,Math.min(hi,n));backupRun();if(typeof touch==='function')touch()});
   num('bkn','nIdeal',1,200);num('bkod','outDur',0,24);num('bksoc','soc0',0,100);
   $('#bkos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;backupRun();if(typeof touch==='function')touch()});

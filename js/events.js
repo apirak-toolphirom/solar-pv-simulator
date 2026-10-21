@@ -290,7 +290,7 @@ function initEvents(){
   if(q('evbdir'))q('evbdir').innerHTML=q('evtdir').innerHTML;
   q('evos').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;BK.outStart=h;bkSync();runSim();evSync();touch()});
   q('evod').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.outDur=Math.max(0,Math.min(24,n));bkSync();runSim();evSync();touch()});
-  q('evmode').addEventListener('change',e=>{BK.mode=e.target.value;bkSync();runSim();evSync();touch()});
+  q('evmode').addEventListener('change',e=>{BK.mode=BK.want=e.target.value;bkSync();runSim();evSync();touch()});
   q('evday').addEventListener('input',e=>{const d=+e.target.value,y=+(SIM.date||'2026').slice(0,4);const dt=new Date(Date.UTC(y,0,d));setDate(`${y}-${pad2(dt.getUTCMonth()+1)}-${pad2(dt.getUTCDate())}`);runSim();evSync();touch()});
   q('evseaschips').innerHTML=SEASONS.map((se,i)=>`<button class="chip" data-si="${i}">${se[0].replace(/ \(.*/,'')}</button>`).join('');
   const pick=ds=>{setDate(ds);runSim();evSync();touch()};

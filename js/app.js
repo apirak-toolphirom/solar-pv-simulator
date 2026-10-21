@@ -36,7 +36,8 @@ function quickSel(){
     const cur=(pick(kind)||{}).id;
     el.innerHTML=CAT[kind].filter(x=>kind!=='batteries'||x.id===cur||batCompat(x)).map(x=>`<option value="${esc(x.id)}" ${x.id===cur?'selected':''}>${esc(x.brand+' '+x.model)}</option>`).join('');
   };
-  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');mk('batteries','kbat');
+  mk('panels','qpanel');mk('inverters','qinv');mk('inverters','kinv');mk('inverters','acinv');
+  const kb=$('#kbat');if(!(kb&&kb.dataset.ng))mk('batteries','kbat');
 }
 
 /* ---- persistence ---- */
@@ -109,7 +110,7 @@ function restoreProject(p){
     LOADS.forEach((l,i)=>l.id=i+1);nextLoad=LOADS.length+1;
   }
   if(p.bk&&typeof p.bk==='object'){
-    if(['grid','hybrid','off'].includes(p.bk.mode))BK.mode=p.bk.mode;
+    if(['grid','hybrid','off'].includes(p.bk.mode))BK.mode=BK.want=p.bk.mode;
     if(['wiring','ideal'].includes(p.bk.src))BK.src=p.bk.src;
     if(['crit','all'].includes(p.bk.island))BK.island=p.bk.island;
     BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
