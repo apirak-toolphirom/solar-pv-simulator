@@ -64,6 +64,77 @@ function wsSet_(d, props) {
   for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === s_(d.id, 20)) { sh.getRange(i + 2, 6).setValue(st); return json_({ ok: true, ws: wsList_() }); }
   return json_({ ok: false, error: 'ไม่พบใบงาน' });
 }
+// ---- เมนู: แผ่น "เมนู" กำหนดว่าแต่ละเมนูเปิดให้ผู้เรียนแบบไหน และผู้เยี่ยมชม (ไม่มีรหัส) เห็นเมนูไหน ----
+// สถานะ: auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ดูอย่างเดียว) · เปิด · ดูอย่างเดียว · ปิด
+var MENU_SHEET = 'เมนู';
+var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
+var MENU_DEF = [['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
+  ['load', '06 จำลองโหลด'], ['backup', '07 จำลอง Backup'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน']]
+  .map(function (m) { return [m[0], m[1], m[0] === 'submit' ? 'เปิด' : 'auto', m[0] === 'backup' ? 'ใช่' : 'ไม่']; });
+function menuSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MENU_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(MENU_SHEET);
+    sh.getRange(1, 1, 1, MENU_HEAD.length).setValues([MENU_HEAD]).setFontWeight('bold');
+    sh.getRange(2, 1, MENU_DEF.length, MENU_HEAD.length).setValues(MENU_DEF);
+    sh.setFrozenRows(1);
+    sh.getRange(2, 3, 20, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['auto', 'เปิด', 'ดูอย่างเดียว', 'ปิด'], true).build());
+    sh.getRange(2, 4, 20, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['ใช่', 'ไม่'], true).build());
+  }
+  return sh;
+}
+// สิทธิ์ของแต่ละเมนู: student = ผู้เรียนที่ปลดล็อกแล้ว · visitor = ผู้ไม่มีรหัส ('open' | 'view' | 'closed')
+function menus_() {
+  var sh = menuSheet_(), n = sh.getLastRow() - 1, rows = n > 0 ? sh.getRange(2, 1, n, MENU_HEAD.length).getValues() : [];
+  var used = {}; wsList_().forEach(function (w) { if (w.open && w.id !== 'W0') String(w.tabs).split(',').forEach(function (t) { used[t.trim()] = 1; }); });
+  var conv = function (st) { return st === 'เปิด' ? 'open' : st === 'ดูอย่างเดียว' ? 'view' : st === 'ปิด' ? 'closed' : ''; };
+  return rows.filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
+    var k = String(r[0]).trim(), st = String(r[2] || 'auto').trim(), c = conv(st);
+    return { tab: k, name: String(r[1]), status: st, visitorOn: String(r[3]).trim() === 'ใช่',
+      student: c || (used[k] || k === 'submit' ? 'open' : 'view'), visitor: String(r[3]).trim() === 'ใช่' ? (c === 'closed' ? 'closed' : c === 'view' ? 'view' : 'open') : 'closed' };
+  });
+}
+function menuSet_(d, props) {
+  var tc = props.getProperty('TEACHER_CODE');
+  if (!tc || s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+  var sh = menuSheet_(), n = sh.getLastRow() - 1, ids = n > 0 ? sh.getRange(2, 1, n, 1).getValues() : [];
+  for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === s_(d.tab, 20)) {
+    if (d.status != null) { var st = s_(d.status, 20); if (['auto', 'เปิด', 'ดูอย่างเดียว', 'ปิด'].indexOf(st) < 0) return json_({ ok: false, error: 'สถานะไม่ถูกต้อง' }); sh.getRange(i + 2, 3).setValue(st); }
+    if (d.visitor != null) sh.getRange(i + 2, 4).setValue(d.visitor ? 'ใช่' : 'ไม่');
+    return json_({ ok: true, menus: menus_() });
+  }
+  return json_({ ok: false, error: 'ไม่พบเมนู' });
+}
+
+// ---- รายชื่อลงทะเบียน: แผ่น "รายชื่อ" (หรือชีตอื่นที่ตั้ง ROSTER_SHEET_ID / ROSTER_SHEET_NAME) ----
+// ถ้ารายชื่อว่าง จะไม่ตรวจ (ผู้ที่รู้รหัสห้องใช้งานได้ทุกคน)
+var ROSTER_SHEET = 'รายชื่อ';
+var ROSTER_HEAD = ['รหัสผู้เรียน', 'ชื่อ-นามสกุล', 'อีเมล Google', 'สถานะ'];
+function roster_(props) {
+  var id = props.getProperty('ROSTER_SHEET_ID'), sh;
+  if (id) { var ext = SpreadsheetApp.openById(id), nm = props.getProperty('ROSTER_SHEET_NAME'); sh = nm ? ext.getSheetByName(nm) : ext.getSheets()[0]; }
+  else {
+    var ss = SpreadsheetApp.getActiveSpreadsheet(); sh = ss.getSheetByName(ROSTER_SHEET);
+    if (!sh) { sh = ss.insertSheet(ROSTER_SHEET); sh.getRange(1, 1, 1, ROSTER_HEAD.length).setValues([ROSTER_HEAD]).setFontWeight('bold'); sh.setFrozenRows(1); }
+  }
+  if (!sh || sh.getLastRow() < 2) return null;
+  var v = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues(), h = v[0].map(function (x) { return String(x); });
+  var find = function (re) { for (var i = 0; i < h.length; i++) if (re.test(h[i])) return i; return -1; };
+  var iS = find(/รหัส|student|id/i), iE = find(/อีเมล|email/i), iA = find(/สถานะ|status/i);
+  if (iS < 0) iS = 0;
+  var list = [];
+  for (var r = 1; r < v.length; r++) {
+    var sid = String(v[r][iS] || '').trim(), em = iE >= 0 ? String(v[r][iE] || '').trim().toLowerCase() : '', st = iA >= 0 ? String(v[r][iA] || '').trim() : '';
+    if ((sid || em) && st !== 'ระงับ') list.push({ sid: sid, email: em });
+  }
+  return list.length ? list : null;
+}
+function inRoster_(d, verified, props) {
+  var L = roster_(props); if (!L) return true;
+  var sid = s_(d.sid, 30).trim(), em = String(verified || '').toLowerCase();
+  return L.some(function (x) { return (sid && x.sid === sid) || (em && x.email === em); });
+}
+
 // ภาพรายงานของใบงาน เก็บในโฟลเดอร์ "ภาพงานส่ง" ใต้ DRIVE_FOLDER_ID (ถ้าตั้งไว้)
 function saveImg_(d, props, receipt) {
   var fid = props.getProperty('DRIVE_FOLDER_ID'), m = /^data:image\/(png|jpeg);base64,(.+)$/.exec(String(d.img || ''));
@@ -90,6 +161,13 @@ function doPost(e) {
     var props = PropertiesService.getScriptProperties();
 
     if (d.action === 'ws') return json_({ ok: true, ws: wsList_() });
+    if (d.action === 'menus') return json_({ ok: true, menus: menus_() });
+    if (d.action === 'menuset') return menuSet_(d, props);
+    if (d.action === 'access' && d.tcode) {
+      var tc0 = props.getProperty('TEACHER_CODE');
+      if (tc0 && s_(d.tcode, 80) === tc0) return json_({ ok: true, role: 'teacher', menus: menus_() });
+      Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' });
+    }
     if (d.action === 'wsset') return wsSet_(d, props);
     if (d.action === 'dash') return dash_(d, props);
     if (d.action === 'tcheck') {
@@ -114,6 +192,8 @@ function doPost(e) {
       }
     }
 
+    if (!inRoster_(d, verified, props)) return json_({ ok: false, error: 'ไม่พบรหัสผู้เรียนนี้ในรายชื่อลงทะเบียน ติดต่อผู้สอน' });
+    if (d.action === 'access') return json_({ ok: true, role: 'student', menus: menus_() });
     if (d.action === 'save' || d.action === 'load') return cloud_(d, verified, props);
     if (d.action === 'mine') return mine_(d, verified);
 
@@ -194,12 +274,12 @@ function dash_(d, props) {
   if (!tcode) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
   if (s_(d.tcode, 80) !== tcode) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, headers: HEADERS, rows: [], ws: wsList_() });
+  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, headers: HEADERS, rows: [], ws: wsList_(), menus: menus_(), roster: (roster_(props) || []).length });
   var n = sh.getLastRow() - 1, start = Math.max(2, sh.getLastRow() - 4999);
   var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   var vals = sh.getRange(start, 1, sh.getLastRow() - start + 1, sh.getLastColumn()).getValues();
   var rows = vals.map(function (r) { return r.map(function (v) { return v instanceof Date ? v.toISOString() : v; }); });
-  return json_({ ok: true, dash: true, headers: head, rows: rows, total: n, at: new Date().toISOString(), ws: wsList_() });
+  return json_({ ok: true, dash: true, headers: head, rows: rows, total: n, at: new Date().toISOString(), ws: wsList_(), menus: menus_(), roster: (roster_(props) || []).length });
 }
 
 // ---- ประวัติใบงานของผู้เรียนเอง (ตามอีเมล Google ที่ยืนยันแล้ว หรือรหัสผู้เรียน) ----

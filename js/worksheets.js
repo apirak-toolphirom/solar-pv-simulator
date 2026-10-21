@@ -63,7 +63,7 @@ async function wsLoad(){
 }
 async function wsMine(){
   WS_MINE=null;
-  if(!CFG.SUBMIT_URL||!MEMBER.name||!(MEMBER.sid||(MEMBER.gemail&&gToken)))return;
+  if(!CFG.SUBMIT_URL||WSSRC!=='sheet'||!MEMBER.name||!(MEMBER.sid||(MEMBER.gemail&&gToken)))return;/* older Code.gs would store 'mine' as a submission */
   try{
     const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'mine',name:MEMBER.name,sid:MEMBER.sid,cls:MEMBER.cls,idToken:gToken}),redirect:'follow'}),j=await r.json();
     if(j&&j.ok&&Array.isArray(j.mine))WS_MINE=j.mine;

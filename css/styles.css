@@ -524,3 +524,12 @@ table.t.sitbl td:first-child{font-family:var(--body)}table.t.sitbl .empty{text-a
 .wsq textarea{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--ink);font:inherit;resize:vertical}
 table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-space:normal}
 .checks .b.idle{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+
+/* access bar and read-only menus */
+.accbar{display:flex;flex-direction:column;gap:8px;margin:0 0 14px;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.accbar[hidden]{display:none}.accbar.visitor{border-color:var(--accent);background:var(--accentbg)}.accbar.teacher{border-color:var(--ok)}
+.accrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.accform input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-height:38px;color:var(--ink);flex:1;min-width:130px}
+.accsep{margin-left:10px;color:var(--muted);font-size:12.5px}
+.tab.ro [inert]{opacity:.72}
+.robanner{margin:0 0 12px;padding:8px 12px;border-radius:8px;background:var(--warnbg);color:var(--warn);font-weight:600;font-size:13px}.robanner[hidden]{display:none}

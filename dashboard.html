@@ -102,6 +102,8 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
       <div class="lg"><span><span class="pill ok">✓</span> ผ่านเกณฑ์</span><span><span class="pill warn">!</span> ส่งแล้ว ยังไม่ครบเกณฑ์</span><span><span class="pill idle">–</span> ยังไม่ส่ง</span></div></div>
     <div class="card" style="margin-bottom:12px"><h2>ตั้งค่าใบงาน (เปิด / ปิดรับ)</h2><div class="tblwrap"><table class="wst" id="wst"></table></div>
       <p class="foot">auto = เปิดตามวันที่เปิด–ปิดในแผ่น "ใบงาน" ของ Google Sheets (ว่าง = ไม่จำกัด) · แก้ชื่อ วันที่ เกณฑ์ และคำถามได้ในแผ่นนั้น · เปลี่ยนสถานะที่นี่มีผลทันที</p><p class="msg" id="wsmsg" hidden></p></div>
+    <div class="card" style="margin-bottom:12px"><h2>ตั้งค่าเมนู (สิทธิ์ผู้เรียน / ผู้เยี่ยมชม)</h2><div class="tblwrap"><table class="wst" id="mnt"></table></div>
+      <p class="foot">auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ดูอย่างเดียว) · ผู้เยี่ยมชม = คนที่มีลิงก์แต่ไม่มีรหัส · ผู้สอนเห็นทุกเมนูเสมอ · <span id="rostinfo"></span></p><p class="msg" id="mnmsg" hidden></p></div>
 
     <div class="grid2">
       <div class="card"><h2>จำนวนงานส่งรายวัน</h2><div id="chDay"></div></div>
@@ -131,7 +133,7 @@ const dayTh=k=>{const [y,m,d]=k.split('-').map(Number);return `${d}/${m}/${(y+54
 const LV={ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน',idle:'ยังไม่ได้ทำ'},GL={ok:'✓',warn:'!',err:'×',idle:'–'};
 const lvOf=v=>{v=String(v||'').toLowerCase();return v==='ok'||v==='warn'||v==='err'?v:'idle'};
 if(CFG.COURSE)$('#course').textContent=CFG.COURSE;
-let WSL=[],ROWS=[],SORT={k:'t',dir:-1},OPEN=new Set(),timer=0;
+let MNL=[],ROST=null,WSL=[],ROWS=[],SORT={k:'t',dir:-1},OPEN=new Set(),timer=0;
 const ss={get:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}};
 if(ss.get('pvdash.tcode'))$('#tcode').value=ss.get('pvdash.tcode');
 function msg(t,cls){const m=$('#msg');m.textContent=t;m.className='msg '+(cls||'info');m.hidden=!t}
@@ -162,7 +164,7 @@ async function load(){
     if(!j||!j.ok){msg((j&&j.error)||'โหลดไม่สำเร็จ','err');return}
     if(!j.dash){msg('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → Manage deployments → Edit → New version','err');return}
     ss.set('pvdash.tcode',code);
-    ROWS=parse(j.headers,j.rows);WSL=Array.isArray(j.ws)?j.ws:[];
+    ROWS=parse(j.headers,j.rows);WSL=Array.isArray(j.ws)?j.ws:[];MNL=Array.isArray(j.menus)?j.menus:[];ROST=j.roster;
     msg(`โหลดแล้ว ${ROWS.length} รายการ · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`+(j.total>j.rows.length?` (แสดง ${j.rows.length} รายการล่าสุดจาก ${j.total})`:''),'ok');
     show();
   }catch(e){msg('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ตและ SUBMIT_URL','err')}
@@ -180,7 +182,7 @@ function demo(){
       inv:pick(['Solis S6-GR1P6K-S','Huawei SUN2000-5KTL-L1','Solis S6-EH1P6K-L-PLUS'],i),bat:i%3?'Dyness PowerBrick 14.3 kWh × 1S1P':'-',pv:(used*.65*4.4).toFixed(1),load:11.2,bkMode:'hybrid',
       ws:pick(['W1','W2','W3','W1','W4'],i+j),wsPass:rnd()<.6,wsFail:'',ans:'1. ทำไมต่ออนุกรมเกิน… → เพราะ Voc ตอนเช้าที่อากาศเย็นจะสูงเกินแรงดันสูงสุดของอินเวอร์เตอร์',img:'',
       bk:rnd()<.7?'ok':'warn',bkText:'ช่วงไฟดับ 18:00–00:00: ไฟพอใช้ตามโหลดที่เลือก',unmet:0,issues:dc==='ok'?[]:[pick(iss,i+j),dc==='err'?pick(iss,i+2):''].filter(Boolean),ac:rnd()<.5?'ok':rnd()<.5?'err':'idle',acErr:0,ev:''})}});
-  ROWS=out;WSL=[['W1','อุปกรณ์และต่อสาย DC'],['W2','ต่อสาย AC และพอร์ตอินเวอร์เตอร์'],['W3','กำลังผลิตและเงา'],['W4','โหลดและ Backup'],['W5','เลือกระบบ'],['W6','จำลองเหตุการณ์'],['W7','วงจร DC']].map(([id,name],k)=>({id,name,tabs:'',start:'',end:'',status:k<4?'auto':'ปิด',open:k<4}));msg('ข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริง) · กด "โหลดข้อมูล" เพื่อดูงานส่งจริง','info');show();
+  ROWS=out;WSL=[['W1','อุปกรณ์และต่อสาย DC'],['W2','ต่อสาย AC และพอร์ตอินเวอร์เตอร์'],['W3','กำลังผลิตและเงา'],['W4','โหลดและ Backup'],['W5','เลือกระบบ'],['W6','จำลองเหตุการณ์'],['W7','วงจร DC']].map(([id,name],k)=>({id,name,tabs:'',start:'',end:'',status:k<4?'auto':'ปิด',open:k<4}));MNL=[['equip','01 อุปกรณ์'],['wiring','02 ต่อสาย DC แผง'],['ac','03 ต่อสาย AC ระบบ'],['pv','04 จำลองแผง'],['site','05 ไซต์และเงา'],['load','06 จำลองโหลด'],['backup','07 จำลอง Backup'],['systems','08 จำลองระบบ 4 แบบ'],['events','09 จำลองเหตุการณ์'],['bench','10 ชุดทดลองวงจร DC'],['submit','11 ส่งงาน']].map(([tab,name])=>({tab,name,status:'auto',visitorOn:tab==='backup',student:['equip','wiring','ac','pv','site','load','backup','submit'].includes(tab)?'open':'view',visitor:tab==='backup'?'open':'closed'}));ROST=0;msg('ข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริง) · กด "โหลดข้อมูล" เพื่อดูงานส่งจริง','info');show();
 }
 
 function filtered(){
@@ -216,7 +218,7 @@ function render(){
     ['ขนาดระบบเฉลี่ย',last.length?f(last.reduce((a,r)=>a+r.kwp,0)/last.length,2)+' kWp':'–',last.length?`${f(last.reduce((a,r)=>a+r.used,0)/last.length,1)} แผงต่อคน`:''],
     ['ส่งวันนี้',ROWS.filter(r=>dayKey(r.t)===today).length+' ครั้ง',dayTh(today)]];
   $('#kpis').innerHTML=kp.map(k=>`<div class="card kpi"><div class="k">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${esc(k[2])}</div></div>`).join('');
-  drawDays();drawRes(last);drawIssues(last);drawMatrix();drawWsTable();drawTable(L);
+  drawDays();drawRes(last);drawIssues(last);drawMatrix();drawWsTable();drawMenus();drawTable(L);
 }
 
 /* submissions per day: one series, bars from a zero baseline, hover tooltip */
@@ -301,6 +303,24 @@ async function wsSet(id,status){
     if(j&&j.ok){WSL=j.ws||WSL;m.className='msg ok';m.textContent=`ตั้ง ${id} เป็น "${status}" แล้ว`;drawWsTable();drawMatrix()}else{m.className='msg err';m.textContent=(j&&j.error)||'บันทึกไม่สำเร็จ'}}
   catch(e){m.className='msg err';m.textContent='เชื่อมต่อ Apps Script ไม่ได้'}
 }
+const MPERM={open:['ok','ใช้งานได้'],view:['warn','ดูอย่างเดียว'],closed:['idle','ซ่อน']};
+function drawMenus(){
+  const host=$('#mnt');
+  $('#rostinfo').textContent=ROST==null?'':ROST?`รายชื่อลงทะเบียน ${ROST} คน (ตรวจรหัสผู้เรียนก่อนเข้าใช้และส่งงาน)`:'แผ่น "รายชื่อ" ยังว่าง: ทุกคนที่รู้รหัสห้องเข้าใช้ได้';
+  if(!MNL.length){host.innerHTML='<tbody><tr><td class="empty">ยังไม่มีรายการเมนู (วาง Code.gs ล่าสุดแล้ว Deploy → New version ระบบจะสร้างแผ่น "เมนู" ให้)</td></tr></tbody>';return}
+  const pill=v=>`<span class="pill ${MPERM[v][0]}">${MPERM[v][1]}</span>`;
+  host.innerHTML=`<thead><tr><th>เมนู</th><th>สถานะ</th><th>ผู้เรียนตอนนี้</th><th>ผู้เยี่ยมชมเห็น</th><th>ผู้เยี่ยมชมตอนนี้</th></tr></thead><tbody>`+MNL.map(m=>`<tr><td>${esc(m.name)}</td>
+    <td><select data-mn="${esc(m.tab)}" aria-label="สถานะ ${esc(m.name)}">${['auto','เปิด','ดูอย่างเดียว','ปิด'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+    <td>${pill(m.student)}</td><td><input type="checkbox" data-mv="${esc(m.tab)}" ${m.visitorOn?'checked':''} aria-label="ผู้เยี่ยมชมเห็น ${esc(m.name)}"></td><td>${pill(m.visitor)}</td></tr>`).join('')+'</tbody>';
+}
+async function menuSet(tab,o){
+  const m=$('#mnmsg'),code=$('#tcode').value.trim();
+  if(!CFG.SUBMIT_URL||!code){m.hidden=false;m.className='msg err';m.textContent='กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อนเปลี่ยนสิทธิ์เมนู';return}
+  m.hidden=false;m.className='msg info';m.textContent='กำลังบันทึก…';
+  try{const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'menuset',tcode:code,tab},o)),redirect:'follow'}),j=await r.json();
+    if(j&&j.ok){MNL=j.menus||MNL;m.className='msg ok';m.textContent='บันทึกแล้ว มีผลเมื่อผู้เรียนโหลดหน้าใหม่';drawMenus()}else{m.className='msg err';m.textContent=(j&&j.error)||'บันทึกไม่สำเร็จ'}}
+  catch(e){m.className='msg err';m.textContent='เชื่อมต่อ Apps Script ไม่ได้'}
+}
 function csv(){
   const L=filtered(),q=v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`;
   const head=['ชื่อ','รหัส','ใบงาน','ผ่านเกณฑ์ใบงาน','เวลาที่ส่ง','ต่อสาย DC','ไม่ผ่าน','ควรระวัง','แผงที่ใช้','แผงทั้งหมด','kWp','อินเวอร์เตอร์','แบต','ต่อสาย AC','Backup','ส่ง (ครั้ง)','ข้อที่ต้องตรวจ'];
@@ -315,6 +335,7 @@ $('#demo').addEventListener('click',demo);
 ['#fday','#fws','#fres','#flast'].forEach(s=>$(s).addEventListener('change',render));
 $('#fq').addEventListener('input',render);
 $('#csv').addEventListener('click',csv);
+$('#mnt').addEventListener('change',e=>{const s=e.target.closest('[data-mn]');if(s){menuSet(s.dataset.mn,{status:s.value});return}const v=e.target.closest('[data-mv]');if(v)menuSet(v.dataset.mv,{visitor:v.checked})});
 $('#wst').addEventListener('change',e=>{const t=e.target.closest('[data-ws]');if(t)wsSet(t.dataset.ws,t.value)});
 $('#auto').addEventListener('change',e=>{clearInterval(timer);if(e.target.checked)timer=setInterval(()=>{if($('#tcode').value.trim())load()},60000)});
 $('#thead').addEventListener('click',e=>{const th=e.target.closest('[data-sort]');if(!th)return;const k=th.dataset.sort;SORT=SORT.k===k?{k,dir:-SORT.dir}:{k,dir:k==='t'||k==='n'||k==='kwp'||k==='used'?-1:1};render()});

@@ -8,6 +8,7 @@ function setNavH(){
 }
 function showTab(t,fromHash){
   if(!TABS.includes(t))t='equip';
+  if(typeof accAllowed==='function'&&!accAllowed(t))t=accFirst();
   curTab=t;document.body.dataset.tab=t;if(typeof ctxSchedule==='function')ctxSchedule();
   if(typeof fsOn!=='undefined'&&fsOn&&t!=='wiring')setFs(false);
   TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t});
@@ -191,7 +192,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
-  initLoads();initSite();initBackup();initSystems();initAC();initBench();initEvents();initSubmit();initWorksheets();initReset();initFile();initCloud();initConfirm();
+  initLoads();initSite();initBackup();initSystems();initAC();initBench();initEvents();initSubmit();initWorksheets();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

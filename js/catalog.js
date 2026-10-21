@@ -250,7 +250,7 @@ async function teachVerify(code,quiet){
     const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'tcheck',tcode:code}),redirect:'follow'}),j=await r.json();
     if(!j||!j.tcheck){m('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → New version');return false}
     if(!j.ok){m(j.error||'รหัสผู้สอนไม่ถูกต้อง');tss.set('pv.tcode',null);return false}
-    TEACH.on=true;tss.set('pv.tcode',code);m('');teachSync();return true;
+    TEACH.on=true;tss.set('pv.tcode',code);m('');teachSync();if(typeof accTeacher==='function')accTeacher(true);return true;
   }catch(e){m('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ต');return false}
 }
 function teachSync(){
@@ -266,7 +266,7 @@ function initTeach(){
   if(!document.getElementById('teachbar')){const d=document.createElement('div');d.id='teachbar';d.className='panelbox teachbar';const c=document.getElementById('cur-equip');(c||sec.querySelector('header')).after(d)}
   sec.addEventListener('click',e=>{
     if(e.target.id==='teachon')teachVerify(document.getElementById('teachcode').value.trim());
-    else if(e.target.id==='teachoff'){TEACH.on=false;tss.set('pv.tcode',null);EQ.edit={panels:null,inverters:null,batteries:null};teachSync()}
+    else if(e.target.id==='teachoff'){TEACH.on=false;tss.set('pv.tcode',null);EQ.edit={panels:null,inverters:null,batteries:null};teachSync();if(typeof accTeacher==='function')accTeacher(false)}
   });
   sec.addEventListener('keydown',e=>{if(e.target.id==='teachcode'&&e.key==='Enter')teachVerify(e.target.value.trim())});
   teachSync();
