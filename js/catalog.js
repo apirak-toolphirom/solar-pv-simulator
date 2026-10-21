@@ -113,6 +113,10 @@ const BUILTIN=(()=>{
   b('Solis','IntelliHome 5 kWh (OD)',{v:51.2,ah:100,dod:100,maxChg:50,maxDis:100,note:'แรงดันทำงาน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · ดาต้าชีตฉบับ Preliminary'});
   b('Solis','IntelliHome 10 kWh (OD)',{v:51.2,ah:200,dod:100,maxChg:100,maxDis:200,note:'ความจุคิดจาก 10 kWh ÷ 51.2 V (ดาต้าชีตระบุเซลล์ 100 Ah) · แรงดัน 44.8–57.6 V · ขนานได้ 8 ลูก · Preliminary'});
   b('Solis','IntelliHome 16 kWh (OD)',{v:51.2,ah:314,dod:100,maxChg:157,maxDis:157,note:'แรงดัน 44.8–57.6 V · แนะนำ 0.5C · ขนานได้ 8 ลูก · IP66 · Preliminary'});
+  // LVTOPSUN LVTS-512314-G5: product page lvtopsun.com (no PDF): 51.2 V 314 Ah 16.07 kWh, 150 A / 7.68 kW charge, 200 A / 10.24 kW discharge, Isc 540 A,
+  //   8000 cycles @ 90% DoD, 63 in parallel, RS232/RS485/CAN + BT/WiFi, IP65, 480×243×870 mm, 120 kg, charge 0–45 °C, CE/UN38.3, 10-year warranty
+  b('LVTOPSUN','LVTS-512314-G5 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,maxP:63,
+    note:'16.07 kWh LiFePO4 ตั้งพื้น · ชาร์จ 150 A (7.68 kW) / จ่าย 200 A (10.24 kW) · 8000 รอบที่ DoD 90% · ขนานได้ 63 ลูก · RS232/RS485/CAN + Bluetooth/WiFi · IP65 · ชาร์จที่ 0–45°C · 120 kg · CE, UN38.3 · ประกัน 10 ปี · ข้อมูลจากหน้าเว็บผู้ผลิต (ไม่มีดาต้าชีต PDF ไม่ระบุช่วงแรงดันและ DoD ใช้งาน ใช้ 90% ตามเงื่อนไขอายุรอบ)'});
   b('LVTOPSUN','LVTS-512314-G4 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,note:'16.07 kWh · ชาร์จ 7.68 kW / จ่าย 10.24 kW · ขนานได้ 63 ลูก · ตั้งพื้นมีล้อ · IP65 · ประกัน 10 ปี'});
   b('LVTOPSUN','LVTS-512314-G3 16 kWh',{v:51.2,ah:314,dod:90,maxChg:150,maxDis:200,isc:540,note:'16.08 kWh · แรงดันชาร์จ 55.68–56.16 V จ่าย 45.6–56.16 V · ขนานได้ 63 ลูก · จอสัมผัส · IP20 · ประกัน 5 ปี'});
   // AIKO Stellar 3N+72 (AIKO-A-MDE72Dw), N-type ABC, dual glass. NOCT temperature derived from the datasheet's NOCT Pmax (493 W of 650 W at 800 W/m², 20 °C ambient)
