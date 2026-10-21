@@ -27,6 +27,7 @@ function buildReport(){
   if(window.lastBK)r.bk=window.lastBK;
   if(typeof acAnalyze==='function'){if(typeof acRender==='function')acRender();r.ac=window.lastAC||null}
   r.site=typeof siSummary==='function'?siSummary():'';
+  {const w=typeof wsCur==='function'?wsCur():null;if(w){const E=wsEval(w);r.ws={id:w.id,name:w.name,img:w.img,pass:E.pass,fail:E.fail,items:E.items,qs:wsQs(w),ans:wsAnswers(w)}}}
   r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:'',EV.bld.on?`ตึก ${EV.bld.h} ม.`:'',typeof evSiteActive==='function'&&evSiteActive()?'เงาจากผังไซต์':''].filter(Boolean).join(', ')+' · '+SIM.date:'';
   return r;
 }
@@ -34,6 +35,7 @@ const wLabel=w=>!w?'ยังไม่มีผลการต่อสาย':(
 function reportLines(r){
   const w=r.wiring;
   return[
+    ...(r.ws?[['ใบงาน',`${r.ws.id} ${r.ws.name} · ${r.ws.pass?'ครบเกณฑ์':'ยังไม่ครบ '+r.ws.fail.length+' ข้อ'}`]]:[]),
     ['ผลการต่อสาย',wLabel(w)],
     ['แผง / กำลังรวม',w?`${w.used}/${w.panels} แผง · ${f(w.kwp,2)} kWp · DC/AC ${f(w.ratio,2)}`:'-'],
     ['รูปแบบการต่อ',w?w.topo:'-'],
@@ -48,9 +50,11 @@ function reportLines(r){
 }
 
 /* ---- report image (canvas, no external libs) ---- */
-function svgToImage(){
+function svgToImage(id){
   return new Promise((res,rej)=>{
-    const src=document.getElementById('svg'),clone=src.cloneNode(true),a=src.querySelectorAll('*'),b=clone.querySelectorAll('*'),rm=[];
+    const src=document.getElementById(id||'svg');if(!src){rej(new Error('nosvg'));return}
+    const vb=src.viewBox&&src.viewBox.baseVal,IW=1520,IH=vb&&vb.width?Math.round(IW*vb.height/vb.width):880;
+    constclone=src.cloneNode(true),a=src.querySelectorAll('*'),b=clone.querySelectorAll('*'),rm=[];
     const props=['fill','stroke','stroke-width','stroke-dasharray','stroke-linecap','stroke-linejoin','opacity','fill-opacity','stroke-opacity','font-size','font-weight','text-anchor','paint-order','stop-color'];
     a.forEach((el,i)=>{
       const t=b[i],tag=el.tagName.toLowerCase();
@@ -61,7 +65,7 @@ function svgToImage(){
       t.setAttribute('style',s);t.removeAttribute('class');
     });
     rm.forEach(n=>n.remove());
-    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');clone.setAttribute('width',1520);clone.setAttribute('height',880);clone.removeAttribute('style');clone.removeAttribute('class');
+    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');clone.setAttribute('width',IW);clone.setAttribute('height',IH);clone.removeAttribute('style');clone.removeAttribute('class');
     const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'}));
     const im=new Image();im.onload=()=>{URL.revokeObjectURL(url);res(im)};im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('svg'))};im.src=url;
   });
@@ -78,7 +82,7 @@ function wrapLines(ctx,text,maxW){
 async function renderReportImage(r,mem,receipt){
   const cs=getComputedStyle(document.documentElement),v=n=>cs.getPropertyValue(n).trim()||'#000';
   const W=1200,pad=40,iw=W-pad*2;
-  let img=null;try{img=await svgToImage()}catch(e){}
+  let img=null;const sid=r.ws?WS_IMG[r.ws.img||'none']:'svg';if(sid){try{img=await svgToImage(sid)}catch(e){}}
   const cv=document.createElement('canvas');cv.width=W;cv.height=3200;
   const c=cv.getContext('2d');
   c.fillStyle=v('--bg');c.fillRect(0,0,W,3200);
@@ -109,6 +113,15 @@ async function renderReportImage(r,mem,receipt){
     y=y0+(ls.length-1)*30+18;
   });
   y+=22;
+  /* worksheet checklist and answers */
+  if(r.ws&&(r.ws.items.length||r.ws.qs.length)){
+    text(`ใบงาน ${r.ws.id}: เกณฑ์และคำตอบ`,pad,y+4,`600 22px ${SANS}`,v('--muted'));y+=34;
+    r.ws.items.forEach(it=>{const cc=it.ok?v('--ok'):it.ok===null?v('--muted'):v('--warn');c.fillStyle=cc;c.beginPath();c.arc(pad+14,y-7,9,0,7);c.fill();
+      text(it.ok?'✓':it.ok===null?'?':'!',pad+14,y-1,`700 14px ${MONO}`,'#fff','center');c.font=`400 20px ${SANS}`;const ls=wrapLines(c,it.l,iw-50);ls.forEach((l,i)=>text(l,pad+40,y+i*28,`400 20px ${SANS}`,v('--ink')));y+=(ls.length-1)*28+34});
+    r.ws.qs.forEach((q,i)=>{c.font=`600 20px ${SANS}`;wrapLines(c,`${i+1}. ${q}`,iw-20).forEach(l=>{text(l,pad+4,y,`600 20px ${SANS}`,v('--ink'));y+=28});
+      c.font=`400 20px ${SANS}`;wrapLines(c,(r.ws.ans[i]||'').trim()||'(ยังไม่ได้ตอบ)',iw-40).forEach(l=>{text(l,pad+24,y,`400 20px ${SANS}`,v('--muted'));y+=28});y+=8});
+    y+=12;
+  }
   /* issues */
   if(r.issues.length){
     text('ข้อที่ต้องตรวจ',pad,y+4,`600 22px ${SANS}`,v('--muted'));y+=34;
@@ -141,6 +154,7 @@ function whoUpdate(){
 }
 function setMsg(t,cls){const m=$('#smmsg');m.textContent=t;m.className='simmsg'+(cls?' '+cls:'');m.hidden=!t}
 function submitRefresh(){
+  if(typeof wsRender==='function')wsRender();
   const r=buildReport(),w=r.wiring;
   $('#smmx').innerHTML=[
     ['ผลการต่อสาย',w?(w.lvl==='idle'?'รอต่อสาย':LABEL[w.lvl]):'-',wLabel(w)],
@@ -174,6 +188,7 @@ function payload(r,receipt){
     panel:r.panel,inverter:r.inverter,battery:r.battery,
     pvKwh:r.pv?+r.pv.E.toFixed(2):'',loadKwh:+r.load.E.toFixed(2),
     bkMode:r.bk?r.bk.mode:'',bkLvl:r.bk?r.bk.lvl:'',bkText:r.bk?r.bk.vt:'',bkUnmet:r.bk?+(r.bk.unmet||0).toFixed(2):'',
+    ws:r.ws?r.ws.id:'',wsName:r.ws?r.ws.name:'',wsPass:r.ws?r.ws.pass:'',wsFail:r.ws?r.ws.fail.slice(0,10).map(x=>clip(x,120)):[],answers:r.ws?r.ws.qs.map((q,i)=>`${i+1}. ${clip(q,120)} → ${clip(r.ws.ans[i]||'',600)}`):[],
     acLvl:r.ac?r.ac.lvl:'',acErr:r.ac?r.ac.nE:0,evText:r.ev||'',siteText:clip(r.site||'',480),
     issues:r.issues.slice(0,15).map(i=>`[${i.lvl}] ${clip(i.t,200)}`)};
 }
@@ -181,9 +196,13 @@ async function doSubmit(){
   if(sending)return;
   readMember();
   if(!MEMBER.name){setMsg('กรอกชื่อ-นามสกุลก่อนส่งงาน','err');$('#mname').focus();return}
-  if(!lastA){setMsg('ยังไม่มีผลการต่อสาย ไปแท็บ "ต่อสาย" ก่อน','err');return}
-  sending=true;$('#smsend').disabled=true;setMsg('กำลังส่งงาน…');
-  const r=buildReport(),receipt=newReceipt(),body=JSON.stringify(payload(r,receipt));
+  const wsel=typeof wsCur==='function'?wsCur():null;
+  if(!wsel){setMsg('เลือกใบงานที่จะส่งก่อน','err');return}
+  if((wsel.id==='W0'||wsTabs(wsel).includes('wiring'))&&!lastA){setMsg('ยังไม่มีผลการต่อสาย ไปแท็บ "ต่อสาย DC" ก่อน','err');return}
+  sending=true;$('#smsend').disabled=true;setMsg('กำลังสร้างภาพและส่งงาน…');
+  const r=buildReport(),receipt=newReceipt(),pl=payload(r,receipt);
+  if(WS_IMG[wsel.img||'none']){try{const cv=await renderReportImage(r,MEMBER,receipt);pl.img=cv.toDataURL('image/jpeg',0.82)}catch(e){}}
+  const body=JSON.stringify(pl);
   let status='unknown',errText='';
   try{
     const res=await fetch(CFG.SUBMIT_URL,{method:'POST',body,redirect:'follow'});
@@ -197,9 +216,10 @@ async function doSubmit(){
   if(status==='rejected'||status==='fail'){
     setMsg(status==='rejected'?`ส่งไม่สำเร็จ: ${errText} (ตรวจรหัสห้องอบรมกับผู้สอน)`:'ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่','err');
   }else{
-    const subs=lsGet(SUBS_KEY)||[];subs.unshift({receipt,when,text:wLabel(r.wiring),sent:status==='ok'});lsSet(SUBS_KEY,subs.slice(0,20));
+    const subs=lsGet(SUBS_KEY)||[];subs.unshift({receipt,when,text:(r.ws?r.ws.id+' '+r.ws.name+' · ':'')+wLabel(r.wiring),sent:status==='ok',ws:r.ws?r.ws.id:'',pass:r.ws?r.ws.pass:false});lsSet(SUBS_KEY,subs.slice(0,20));
     setMsg(status==='ok'?`ส่งงานแล้ว รหัสใบส่งงาน ${receipt}`:`ส่งแล้วแต่ยังไม่ได้รับการยืนยันจากเซิร์ฟเวอร์ รหัส ${receipt} บันทึกภาพไว้เป็นหลักฐานได้`,status==='ok'?'ok':'');
     try{await makeImage(receipt,r)}catch(e){}
+    if(typeof wsMine==='function'){await wsMine()}
   }
   submitRefresh();
 }
@@ -289,7 +309,7 @@ function guardButtons(container,map){
 function initConfirm(){
   const who=()=>{readMember();return `<b>${esc(MEMBER.name||'(ยังไม่ได้กรอกชื่อ)')}</b>${MEMBER.sid?' · รหัส '+esc(MEMBER.sid):''}`};
   guardButtons($('#smsend').parentElement,{
-    smsend:()=>['ยืนยันการส่งงาน?',`จะส่งผลสรุปของ ${who()} ไปให้ผู้สอน ส่งซ้ำได้ ระบบใช้ผลที่ส่งล่าสุด`,'ยืนยันส่งงาน'],
+    smsend:()=>{const w=wsCur(),E=wsEval(w);return['ยืนยันการส่งงาน?',`ส่ง <b>${esc(w?w.id+' '+w.name:'(ยังไม่เลือกใบงาน)')}</b> ของ ${who()} ไปให้ผู้สอน`+(w&&!E.pass?`<br><br>ยังไม่ครบเกณฑ์ ${E.fail.length} ข้อ: ${E.fail.map(esc).join(' · ')}<br>ส่งได้ แต่ผู้สอนจะเห็นว่ายังไม่ครบ`:'')+'<br><br>ส่งซ้ำได้ ระบบใช้ผลที่ส่งล่าสุดของแต่ละใบงาน','ยืนยันส่งงาน']},
     smshot:()=>['สร้างภาพรายงาน?','สร้างภาพรายงานจากผลปัจจุบัน ภาพอยู่ในเครื่องนี้เท่านั้น ไม่ได้ส่งให้ผู้สอน','ยืนยัน สร้างภาพ'],
     smcopy:()=>['คัดลอกสรุป?','คัดลอกข้อความสรุปผลปัจจุบันไปที่คลิปบอร์ด','ยืนยัน คัดลอก']
   });

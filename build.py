@@ -5,7 +5,7 @@ Open index.html in a browser to run the project from this folder."""
 import os,re,hashlib
 here=os.path.dirname(os.path.abspath(__file__))
 R=lambda p:open(os.path.join(here,p),encoding='utf-8').read()
-JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','solar','site','loads','backup','systems','events','bench','benchui','submit','ctx','app']
+JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','solar','site','loads','backup','systems','events','bench','benchui','submit','worksheets','ctx','app']
 TITLE='ต่อสายแผงโซลาร์'
 FONTS='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap'
 body=R('app.html')

@@ -431,7 +431,7 @@
   </section>
 
   <section class="tab" id="tab-submit" hidden>
-    <header><h1>ส่งงาน</h1><p class="sub">กรอกชื่อแล้วกด "ส่งงาน" ระบบจะบันทึกเฉพาะผลสรุปของครั้งนั้นให้ผู้สอน (ไม่บันทึกทุกการลากสาย) และสร้างภาพรายงานให้เก็บหรือส่งต่อได้</p></header>
+    <header><h1>ส่งงาน</h1><p class="sub">เลือกใบงานของวันนั้น ทำตามเมนูที่ใบงานกำหนด ดูเช็กลิสต์ว่าครบเกณฑ์หรือยัง ตอบคำถามท้ายใบงาน แล้วกด "ส่งงาน" ระบบบันทึกผลสรุป คำตอบ และภาพผังของใบงานนั้นให้ผู้สอน</p></header>
     <p class="hint">ผู้สอนดูสรุปงานส่งของทุกคนได้ที่ <a href="dashboard.html" target="_blank" rel="noopener">หน้าสรุปงานส่ง</a> (ต้องใช้รหัสผู้สอน)</p>
     <div class="panelbox smb">
       <div class="row3">
@@ -441,6 +441,7 @@
       </div>
       <div id="gsi" class="gsi" hidden><span class="lab">หรือ</span><div id="gbtn"></div><span id="gwho" class="locmsg"></span><button class="btn sm" id="gout" hidden>ออกจาก Google</button></div>
     </div>
+    <section class="panelbox wsbox"><div class="wsbar"><label for="wssel">ใบงานที่จะส่ง<select id="wssel"></select></label><button class="btn sm" id="wsreload">โหลดใบงานใหม่</button><span class="hint tight" id="wssrc"></span></div><div id="wsbody"></div></section>
     <div><h2>สรุปที่จะส่ง</h2><div id="smmx" class="metrics"></div><ul id="smiss" class="checks"></ul></div>
     <div class="grp smbar">
       <button class="btn pri" id="smsend">ส่งงาน</button>
@@ -455,8 +456,9 @@
       <div class="actions"><button class="btn" id="savefile">บันทึกเป็นไฟล์</button><button class="btn" id="openfile">เปิดไฟล์โปรเจ็ค</button><input type="file" id="openfilein" accept=".json,application/json" hidden><button class="btn" id="cloudsave" hidden>บันทึกขึ้น Drive</button><button class="btn" id="cloudload" hidden>โหลดจาก Drive</button></div>
       <p id="cloudmsg" class="simmsg" role="status" hidden></p>
     </section>
+    <section class="card tbl"><h3>ใบงานของฉัน</h3><div class="tblwrap"><table class="t wsh" id="wshist"></table></div><p class="hint tight" id="wshsrc"></p></section>
     <section class="card"><h3>ประวัติการส่งงานในเครื่องนี้</h3><ul id="smhist" class="checks"></ul></section>
-    <p class="hint">ข้อมูลที่ส่งคือ ชื่อ รหัส รหัสห้อง เวลา ผลตรวจการต่อสาย รุ่นอุปกรณ์ และตัวเลขสรุปของแท็บจำลอง ไม่ส่งรูปวงจรเอง ภาพรายงานสร้างในเครื่องของคุณ</p>
+    <p class="hint">ข้อมูลที่ส่งคือ ชื่อ รหัส รหัสห้อง เวลา ใบงาน ผลตามเกณฑ์ คำตอบ ผลตรวจการต่อสาย รุ่นอุปกรณ์ ตัวเลขสรุปของแท็บจำลอง และภาพรายงานของใบงานที่กำหนดให้แนบภาพ (เก็บใน Drive ของผู้สอน)</p>
   </section>
 
   </div></main>

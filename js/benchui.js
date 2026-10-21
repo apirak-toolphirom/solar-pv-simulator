@@ -173,6 +173,7 @@ function bPanels(r,rv){
   const q=id=>document.getElementById(id),S=BN,B=r.B;
   const nE=r.checks.filter(c=>c[0]==='err').length+(r.fault?r.fault.items.filter(c=>c[0]==='err').length:0),nW=r.checks.filter(c=>c[0]==='warn').length+(r.fault?r.fault.items.filter(c=>c[0]==='warn').length:0);
   const lvl=nE?'err':nW?'warn':'ok',noW=!(S.wires||[]).length;
+  window.lastBN={lvl:noW?'idle':lvl,nE,nW};
   q('bnverdict').className='verdict '+(noW?'':lvl);q('bnverdict').innerHTML=noW?`<span class="pill idle">ยังไม่เริ่ม</span><b>ยังไม่ได้ต่อสาย</b>`:`<span class="pill ${lvl}">${LABEL[lvl]}</span><b>${nE?`พบปัญหาร้ายแรง ${nE} จุด`:nW?`ใช้งานได้ แต่มี ${nW} ข้อควรระวัง`:'วงจรและอุปกรณ์ป้องกันเหมาะสม'}</b>`;
   const P=r.st.ic*r.st.vb,net=r.st.Inet,use=B.Ah*(Math.max(0,S.soc-(100-B.dod))/100);
   const rt=net<-.05?`ใช้ได้อีก ≈ ${f(use/(-net),1)} ชม.`:net>.05?`เต็มใน ≈ ${f(B.Ah*(100-S.soc)/100/net,1)} ชม.`:'สมดุล';

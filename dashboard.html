@@ -68,6 +68,10 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
 .empty{padding:28px;text-align:center;color:var(--muted)}
 .foot{margin-top:10px;color:var(--muted);font-size:12px}
 @media (max-width:600px){.kpi .v{font-size:22px}h1{font-size:20px}}
+.mtx{border-collapse:collapse;font-size:13px}.mtx th,.mtx td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.mtx th:first-child,.mtx td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}.mtx small,.wst small{display:block;color:var(--muted);font-size:11px;font-weight:400}
+.wst{border-collapse:collapse;width:100%;font-size:13px}.wst th,.wst td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}.wst select{min-height:34px}
+.lg .pill{margin-right:4px}
 </style>
 </head>
 <body>
@@ -86,6 +90,7 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
   <div id="body" hidden>
     <div class="card bar" style="margin-top:12px">
       <select id="fday" aria-label="วันที่"></select>
+      <select id="fws" aria-label="ใบงาน"><option value="">ใบงาน: ทั้งหมด</option></select>
       <select id="fres" aria-label="ผลการต่อสาย DC"><option value="">ผลต่อสาย DC: ทั้งหมด</option><option value="ok">ผ่าน</option><option value="warn">มีข้อควรระวัง</option><option value="err">ไม่ผ่าน</option></select>
       <input id="fq" type="search" placeholder="ค้นหาชื่อ / รหัส / รุ่นอุปกรณ์" aria-label="ค้นหา" style="flex:1;min-width:180px">
       <label class="chk"><input type="checkbox" id="flast" checked> เฉพาะครั้งล่าสุดของแต่ละคน</label>
@@ -93,6 +98,10 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
     </div>
 
     <div class="kpis" id="kpis"></div>
+    <div class="card" style="margin-bottom:12px"><h2>ความคืบหน้าใบงาน (ครั้งล่าสุดของแต่ละคนในแต่ละใบงาน)</h2><div class="tblwrap"><table class="mtx" id="mtx"></table></div>
+      <div class="lg"><span><span class="pill ok">✓</span> ผ่านเกณฑ์</span><span><span class="pill warn">!</span> ส่งแล้ว ยังไม่ครบเกณฑ์</span><span><span class="pill idle">–</span> ยังไม่ส่ง</span></div></div>
+    <div class="card" style="margin-bottom:12px"><h2>ตั้งค่าใบงาน (เปิด / ปิดรับ)</h2><div class="tblwrap"><table class="wst" id="wst"></table></div>
+      <p class="foot">auto = เปิดตามวันที่เปิด–ปิดในแผ่น "ใบงาน" ของ Google Sheets (ว่าง = ไม่จำกัด) · แก้ชื่อ วันที่ เกณฑ์ และคำถามได้ในแผ่นนั้น · เปลี่ยนสถานะที่นี่มีผลทันที</p><p class="msg" id="wsmsg" hidden></p></div>
 
     <div class="grid2">
       <div class="card"><h2>จำนวนงานส่งรายวัน</h2><div id="chDay"></div></div>
@@ -122,7 +131,7 @@ const dayTh=k=>{const [y,m,d]=k.split('-').map(Number);return `${d}/${m}/${(y+54
 const LV={ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน',idle:'ยังไม่ได้ทำ'},GL={ok:'✓',warn:'!',err:'×',idle:'–'};
 const lvOf=v=>{v=String(v||'').toLowerCase();return v==='ok'||v==='warn'||v==='err'?v:'idle'};
 if(CFG.COURSE)$('#course').textContent=CFG.COURSE;
-let ROWS=[],SORT={k:'t',dir:-1},OPEN=new Set(),timer=0;
+let WSL=[],ROWS=[],SORT={k:'t',dir:-1},OPEN=new Set(),timer=0;
 const ss={get:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}};
 if(ss.get('pvdash.tcode'))$('#tcode').value=ss.get('pvdash.tcode');
 function msg(t,cls){const m=$('#msg');m.textContent=t;m.className='msg '+(cls||'info');m.hidden=!t}
@@ -136,7 +145,8 @@ function parse(headers,rows){
       dc:lvOf(g(r,'ผลต่อสาย')),err:+g(r,'ไม่ผ่าน')||0,warn:+g(r,'ควรระวัง')||0,used:+g(r,'แผงที่ใช้')||0,panels:+g(r,'แผงทั้งหมด')||0,kwp:+g(r,'kWp')||0,ratio:+g(r,'DC/AC')||0,
       topo:String(g(r,'รูปแบบการต่อ')||''),panel:String(g(r,'แผง')||''),inv:String(g(r,'อินเวอร์เตอร์')||''),bat:String(g(r,'แบตเตอรี่')||''),
       pv:g(r,'ผลิตต่อวัน kWh'),load:g(r,'โหลดต่อวัน kWh'),bkMode:String(g(r,'โหมด Backup')||''),bk:lvOf(g(r,'ผล Backup')),bkText:String(g(r,'สรุป Backup')||''),unmet:+g(r,'ไฟขาด kWh')||0,
-      issues:String(g(r,'ข้อที่ต้องตรวจ')||'').split('\n').map(s=>s.trim()).filter(Boolean),ac:lvOf(g(r,'ผลต่อสาย AC')),acErr:+g(r,'ข้อผิดพลาด AC')||0,ev:String(g(r,'เหตุการณ์ที่จำลอง')||''),site:String(g(r,'ไซต์และเงา')||'')};
+      issues:String(g(r,'ข้อที่ต้องตรวจ')||'').split('\n').map(s=>s.trim()).filter(Boolean),ac:lvOf(g(r,'ผลต่อสาย AC')),acErr:+g(r,'ข้อผิดพลาด AC')||0,ev:String(g(r,'เหตุการณ์ที่จำลอง')||''),site:String(g(r,'ไซต์และเงา')||''),
+      ws:String(g(r,'ใบงาน')||''),wsName:String(g(r,'ชื่อใบงาน')||''),wsPass:g(r,'ผ่านเกณฑ์ใบงาน')==='ผ่าน',wsFail:String(g(r,'เกณฑ์ที่ยังไม่ผ่าน')||''),ans:String(g(r,'คำตอบ')||''),img:String(g(r,'ภาพ')||'')};
   }).filter(r=>r.name||r.sid);
 }
 const who=r=>(r.sid||r.gmail||r.name).toLowerCase();
@@ -152,7 +162,7 @@ async function load(){
     if(!j||!j.ok){msg((j&&j.error)||'โหลดไม่สำเร็จ','err');return}
     if(!j.dash){msg('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → Manage deployments → Edit → New version','err');return}
     ss.set('pvdash.tcode',code);
-    ROWS=parse(j.headers,j.rows);
+    ROWS=parse(j.headers,j.rows);WSL=Array.isArray(j.ws)?j.ws:[];
     msg(`โหลดแล้ว ${ROWS.length} รายการ · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`+(j.total>j.rows.length?` (แสดง ${j.rows.length} รายการล่าสุดจาก ${j.total})`:''),'ok');
     show();
   }catch(e){msg('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ตและ SUBMIT_URL','err')}
@@ -168,17 +178,19 @@ function demo(){
     const dc=rnd()<.55?'ok':rnd()<.6?'warn':'err',e=dc==='err'?1+Math.floor(rnd()*2):0,w=dc==='warn'?1:0,used=8+Math.floor(rnd()*5);
     out.push({t,receipt:'R'+i+j,name:n,sid:'6900'+pad(i+1),gmail:'',dc,err:e,warn:w,used,panels:used+(rnd()<.2?2:0),kwp:used*.65,ratio:used*.65/6,topo:used+'S1P',panel:'LONGi Hi-MO X10 650 W',
       inv:pick(['Solis S6-GR1P6K-S','Huawei SUN2000-5KTL-L1','Solis S6-EH1P6K-L-PLUS'],i),bat:i%3?'Dyness PowerBrick 14.3 kWh × 1S1P':'-',pv:(used*.65*4.4).toFixed(1),load:11.2,bkMode:'hybrid',
+      ws:pick(['W1','W2','W3','W1','W4'],i+j),wsPass:rnd()<.6,wsFail:'',ans:'1. ทำไมต่ออนุกรมเกิน… → เพราะ Voc ตอนเช้าที่อากาศเย็นจะสูงเกินแรงดันสูงสุดของอินเวอร์เตอร์',img:'',
       bk:rnd()<.7?'ok':'warn',bkText:'ช่วงไฟดับ 18:00–00:00: ไฟพอใช้ตามโหลดที่เลือก',unmet:0,issues:dc==='ok'?[]:[pick(iss,i+j),dc==='err'?pick(iss,i+2):''].filter(Boolean),ac:rnd()<.5?'ok':rnd()<.5?'err':'idle',acErr:0,ev:''})}});
-  ROWS=out;msg('ข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริง) · กด "โหลดข้อมูล" เพื่อดูงานส่งจริง','info');show();
+  ROWS=out;WSL=[['W1','อุปกรณ์และต่อสาย DC'],['W2','ต่อสาย AC และพอร์ตอินเวอร์เตอร์'],['W3','กำลังผลิตและเงา'],['W4','โหลดและ Backup'],['W5','เลือกระบบ'],['W6','จำลองเหตุการณ์'],['W7','วงจร DC']].map(([id,name],k)=>({id,name,tabs:'',start:'',end:'',status:k<4?'auto':'ปิด',open:k<4}));msg('ข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริง) · กด "โหลดข้อมูล" เพื่อดูงานส่งจริง','info');show();
 }
 
 function filtered(){
   const day=$('#fday').value,res=$('#fres').value,q=$('#fq').value.trim().toLowerCase();
-  let L=ROWS.filter(r=>(!day||dayKey(r.t)===day));
-  const cnt={};L.forEach(r=>{cnt[who(r)]=(cnt[who(r)]||0)+1});
-  if($('#flast').checked){const m={};L.forEach(r=>{const k=who(r);if(!m[k]||r.t>m[k].t)m[k]=r});L=Object.values(m)}
+  const wsf=$('#fws').value;
+  let L=ROWS.filter(r=>(!day||dayKey(r.t)===day)&&(!wsf||r.ws===wsf));
+  const cnt={},kk=r=>who(r)+(wsf?'':'|'+r.ws);L.forEach(r=>{cnt[kk(r)]=(cnt[kk(r)]||0)+1});
+  if($('#flast').checked){const m={};L.forEach(r=>{const k=kk(r);if(!m[k]||r.t>m[k].t)m[k]=r});L=Object.values(m)}
   L=L.filter(r=>(!res||r.dc===res)&&(!q||[r.name,r.sid,r.gmail,r.inv,r.panel,r.bat].join(' ').toLowerCase().includes(q)));
-  L.forEach(r=>r.n=cnt[who(r)]||1);
+  L.forEach(r=>r.n=cnt[kk(r)]||1);
   return L;
 }
 function latestPerStudent(L){const m={};L.forEach(r=>{const k=who(r);if(!m[k]||r.t>m[k].t)m[k]=r});return Object.values(m)}
@@ -189,6 +201,9 @@ function show(){
   const days=[...new Set(ROWS.map(r=>dayKey(r.t)))].sort().reverse(),cur=$('#fday').value;
   $('#fday').innerHTML='<option value="">ทุกวัน</option>'+days.map(d=>`<option value="${d}">${dayTh(d)}</option>`).join('');
   if(days.includes(cur))$('#fday').value=cur;
+  const wc=$('#fws').value,ids=[...new Set(WSL.map(w=>w.id).concat(ROWS.map(r=>r.ws).filter(Boolean)))];
+  $('#fws').innerHTML='<option value="">ใบงาน: ทั้งหมด</option>'+ids.map(id=>{const w=WSL.find(x=>x.id===id);return`<option value="${esc(id)}">${esc(id)}${w?' '+esc(w.name):''}</option>`}).join('');
+  if(ids.includes(wc))$('#fws').value=wc;
   render();
 }
 function render(){
@@ -201,7 +216,7 @@ function render(){
     ['ขนาดระบบเฉลี่ย',last.length?f(last.reduce((a,r)=>a+r.kwp,0)/last.length,2)+' kWp':'–',last.length?`${f(last.reduce((a,r)=>a+r.used,0)/last.length,1)} แผงต่อคน`:''],
     ['ส่งวันนี้',ROWS.filter(r=>dayKey(r.t)===today).length+' ครั้ง',dayTh(today)]];
   $('#kpis').innerHTML=kp.map(k=>`<div class="card kpi"><div class="k">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${esc(k[2])}</div></div>`).join('');
-  drawDays();drawRes(last);drawIssues(last);drawTable(L);
+  drawDays();drawRes(last);drawIssues(last);drawMatrix();drawWsTable();drawTable(L);
 }
 
 /* submissions per day: one series, bars from a zero baseline, hover tooltip */
@@ -239,7 +254,7 @@ function drawIssues(last){
   $('#chIss').innerHTML=top.length?top.map(([k,v])=>`<div class="row" data-tip="${esc(v.ex)}"><div><div class="t">${esc(v.ex)}</div><div class="b" style="width:${v.n/mx*100}%"></div></div><div class="n">${v.n} คน</div></div>`).join('')
     :'<p class="empty">ไม่มีข้อผิดพลาดในงานส่งล่าสุด</p>';
 }
-const COLS=[['name','ชื่อ'],['sid','รหัส'],['t','เวลาที่ส่ง'],['dc','ต่อสาย DC'],['used','แผง'],['kwp','kWp'],['inv','อินเวอร์เตอร์'],['ac','ต่อสาย AC'],['bk','Backup'],['n','ส่ง (ครั้ง)']];
+const COLS=[['name','ชื่อ'],['sid','รหัส'],['ws','ใบงาน'],['t','เวลาที่ส่ง'],['dc','ต่อสาย DC'],['used','แผง'],['kwp','kWp'],['inv','อินเวอร์เตอร์'],['ac','ต่อสาย AC'],['bk','Backup'],['n','ส่ง (ครั้ง)']];
 const ORD={ok:0,warn:1,err:2,idle:3};
 function drawTable(L){
   $('#thead').innerHTML=COLS.map(([k,h])=>`<th data-sort="${k}" class="${SORT.k===k?(SORT.dir>0?'asc':'desc'):''}">${h}</th>`).join('');
@@ -249,19 +264,47 @@ function drawTable(L){
   const tm=d=>`${dayTh(dayKey(d))} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   $('#tbody').innerHTML=L.length?L.map(r=>{
     const id=r.receipt||(who(r)+(+r.t)),open=OPEN.has(id);
-    return`<tr class="main" data-id="${esc(id)}" aria-expanded="${open}"><td>${esc(r.name)}</td><td>${esc(r.sid||r.gmail)}</td><td>${tm(r.t)}</td><td>${pill(r.dc)}${r.err?` <small>${r.err} ผิด</small>`:''}${r.warn?` <small>${r.warn} ระวัง</small>`:''}</td>
+    return`<tr class="main" data-id="${esc(id)}" aria-expanded="${open}"><td>${esc(r.name)}</td><td>${esc(r.sid||r.gmail)}</td><td>${r.ws?`<span class="pill ${r.wsPass?'ok':'warn'}">${esc(r.ws)}</span>`:'<span class="pill idle">–</span>'}</td><td>${tm(r.t)}</td><td>${pill(r.dc)}${r.err?` <small>${r.err} ผิด</small>`:''}${r.warn?` <small>${r.warn} ระวัง</small>`:''}</td>
       <td class="num">${r.used}/${r.panels}</td><td class="num">${f(r.kwp,2)}</td><td>${esc(r.inv)}</td><td>${pill(r.ac)}</td><td>${pill(r.bk)}</td><td class="num">${r.n||1}</td></tr>`
       +(open?`<tr class="det"><td colspan="${COLS.length}"><b>การต่อ</b> ${esc(r.topo||'-')} · DC/AC ${f(r.ratio,2)} · แผง ${esc(r.panel)} · แบต ${esc(r.bat||'-')}
 <b>พลังงาน</b> ผลิต ${esc(r.pv===''?'-':r.pv)} kWh/วัน · โหลด ${esc(r.load)} kWh/วัน${r.bkText?' · '+esc(r.bkText):''}${r.ev?'\n<b>เหตุการณ์</b> '+esc(r.ev):''}${r.site?'\n<b>ไซต์และเงา</b> '+esc(r.site).split(' | ').join('\n  · '):''}
-<b>ข้อที่ต้องตรวจ</b>${r.issues.length?'\n• '+r.issues.map(esc).join('\n• '):' ไม่มี'}</td></tr>`:'');
+${r.ws?`<b>ใบงาน</b> ${esc(r.ws)} ${esc(r.wsName)} · ${r.wsPass?'ผ่านเกณฑ์':'ยังไม่ครบ'}${r.wsFail?'\n  · '+esc(r.wsFail).split('\n').join('\n  · '):''}\n`:''}${r.ans?`<b>คำตอบ</b>\n${esc(r.ans)}\n`:''}${r.img?`<a href="${esc(r.img)}" target="_blank" rel="noopener">เปิดภาพรายงาน</a>\n`:''}<b>ข้อที่ต้องตรวจ</b>${r.issues.length?'\n• '+r.issues.map(esc).join('\n• '):' ไม่มี'}</td></tr>`:'');
   }).join(''):`<tr><td colspan="${COLS.length}" class="empty">ไม่มีรายการตามตัวกรอง</td></tr>`;
   $('#tblh').textContent=`รายชื่อผู้ส่งงาน (${L.length})`;
   $('#foot').textContent='แตะแถวเพื่อดูรายละเอียด · แตะหัวคอลัมน์เพื่อเรียง · ข้อมูลมาจากแผ่น Submissions ใน Google Sheets ของผู้สอน';
 }
+/* students x worksheets: latest submission per cell */
+function drawMatrix(){
+  const ids=WSL.length?WSL.map(w=>w.id).filter(id=>id!=='W0'):[...new Set(ROWS.map(r=>r.ws).filter(Boolean))].sort();
+  const host=$('#mtx');
+  if(!ids.length){host.innerHTML='<tbody><tr><td class="empty">ยังไม่มีงานส่งที่ระบุใบงาน</td></tr></tbody>';return}
+  const st={},names={};
+  ROWS.forEach(r=>{const k=who(r);names[k]=names[k]||{name:r.name,sid:r.sid||r.gmail};if(!r.ws)return;const c=k+'|'+r.ws;if(!st[c]||r.t>st[c].t)st[c]=r});
+  const people=Object.keys(names).sort((a,b)=>names[a].name.localeCompare(names[b].name,'th'));
+  const cnt=ids.map(id=>people.filter(p=>st[p+'|'+id]&&st[p+'|'+id].wsPass).length);
+  host.innerHTML=`<thead><tr><th>ผู้เรียน</th>${ids.map((id,i)=>{const w=WSL.find(x=>x.id===id);return`<th title="${esc(w?w.name:'')}">${esc(id)}<small>${cnt[i]}/${people.length} ผ่าน</small></th>`}).join('')}</tr></thead><tbody>`
+    +people.map(p=>`<tr><td>${esc(names[p].name)}<small>${esc(names[p].sid)}</small></td>${ids.map(id=>{const r=st[p+'|'+id];
+      return r?`<td><span class="pill ${r.wsPass?'ok':'warn'}" data-tip="${esc(id)} · ${r.wsPass?'ผ่านเกณฑ์':'ยังไม่ครบ'} · ${dayTh(dayKey(r.t))} ${pad(r.t.getHours())}:${pad(r.t.getMinutes())}">${r.wsPass?'✓':'!'}</span></td>`:'<td><span class="pill idle">–</span></td>'}).join('')}</tr>`).join('')+'</tbody>';
+}
+/* worksheet open / close (teacher) */
+function drawWsTable(){
+  const host=$('#wst');
+  if(!WSL.length){host.innerHTML='<tbody><tr><td class="empty">ยังไม่มีรายการใบงาน (วาง Code.gs ล่าสุดแล้ว Deploy → New version ระบบจะสร้างแผ่น "ใบงาน" ให้)</td></tr></tbody>';return}
+  host.innerHTML=`<thead><tr><th>ใบงาน</th><th>เมนู</th><th>เปิด – ปิด</th><th>สถานะ</th><th>ตอนนี้</th></tr></thead><tbody>`+WSL.map(w=>`<tr><td><b>${esc(w.id)}</b> ${esc(w.name)}</td><td>${esc(w.tabs||'')}</td><td>${esc(w.start||'—')} – ${esc(w.end||'—')}</td>
+    <td><select data-ws="${esc(w.id)}" aria-label="สถานะ ${esc(w.id)}">${['auto','เปิด','ปิด'].map(s=>`<option ${w.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${w.open?'<span class="pill ok">เปิดรับ</span>':'<span class="pill idle">ปิดรับ</span>'}</td></tr>`).join('')+'</tbody>';
+}
+async function wsSet(id,status){
+  const m=$('#wsmsg'),code=$('#tcode').value.trim();
+  if(!CFG.SUBMIT_URL||!code){m.hidden=false;m.className='msg err';m.textContent='โหมดข้อมูลตัวอย่าง: กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อนเปลี่ยนสถานะ';const w=WSL.find(x=>x.id===id);if(w){w.status=status;w.open=status!=='ปิด'}drawWsTable();return}
+  m.hidden=false;m.className='msg info';m.textContent='กำลังบันทึก…';
+  try{const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'wsset',tcode:code,id,status}),redirect:'follow'}),j=await r.json();
+    if(j&&j.ok){WSL=j.ws||WSL;m.className='msg ok';m.textContent=`ตั้ง ${id} เป็น "${status}" แล้ว`;drawWsTable();drawMatrix()}else{m.className='msg err';m.textContent=(j&&j.error)||'บันทึกไม่สำเร็จ'}}
+  catch(e){m.className='msg err';m.textContent='เชื่อมต่อ Apps Script ไม่ได้'}
+}
 function csv(){
   const L=filtered(),q=v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`;
-  const head=['ชื่อ','รหัส','เวลาที่ส่ง','ต่อสาย DC','ไม่ผ่าน','ควรระวัง','แผงที่ใช้','แผงทั้งหมด','kWp','อินเวอร์เตอร์','แบต','ต่อสาย AC','Backup','ส่ง (ครั้ง)','ข้อที่ต้องตรวจ'];
-  const body=L.map(r=>[r.name,r.sid||r.gmail,r.t.toLocaleString('th-TH'),LV[r.dc],r.err,r.warn,r.used,r.panels,f(r.kwp,2),r.inv,r.bat,LV[r.ac],LV[r.bk],r.n||1,r.issues.join(' | ')].map(q).join(','));
+  const head=['ชื่อ','รหัส','ใบงาน','ผ่านเกณฑ์ใบงาน','เวลาที่ส่ง','ต่อสาย DC','ไม่ผ่าน','ควรระวัง','แผงที่ใช้','แผงทั้งหมด','kWp','อินเวอร์เตอร์','แบต','ต่อสาย AC','Backup','ส่ง (ครั้ง)','ข้อที่ต้องตรวจ'];
+  const body=L.map(r=>[r.name,r.sid||r.gmail,r.ws,r.ws?(r.wsPass?'ผ่าน':'ยังไม่ครบ'):'',r.t.toLocaleString('th-TH'),LV[r.dc],r.err,r.warn,r.used,r.panels,f(r.kwp,2),r.inv,r.bat,LV[r.ac],LV[r.bk],r.n||1,r.issues.join(' | ')].map(q).join(','));
   const blob=new Blob(['﻿'+[head.map(q).join(','),...body].join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`งานส่ง-${dayKey(new Date())}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
@@ -269,9 +312,10 @@ function csv(){
 $('#load').addEventListener('click',load);
 $('#tcode').addEventListener('keydown',e=>{if(e.key==='Enter')load()});
 $('#demo').addEventListener('click',demo);
-['#fday','#fres','#flast'].forEach(s=>$(s).addEventListener('change',render));
+['#fday','#fws','#fres','#flast'].forEach(s=>$(s).addEventListener('change',render));
 $('#fq').addEventListener('input',render);
 $('#csv').addEventListener('click',csv);
+$('#wst').addEventListener('change',e=>{const t=e.target.closest('[data-ws]');if(t)wsSet(t.dataset.ws,t.value)});
 $('#auto').addEventListener('change',e=>{clearInterval(timer);if(e.target.checked)timer=setInterval(()=>{if($('#tcode').value.trim())load()},60000)});
 $('#thead').addEventListener('click',e=>{const th=e.target.closest('[data-sort]');if(!th)return;const k=th.dataset.sort;SORT=SORT.k===k?{k,dir:-SORT.dir}:{k,dir:k==='t'||k==='n'||k==='kwp'||k==='used'?-1:1};render()});
 $('#tbody').addEventListener('click',e=>{const tr=e.target.closest('tr.main');if(!tr)return;const id=tr.dataset.id;OPEN.has(id)?OPEN.delete(id):OPEN.add(id);render()});

@@ -92,7 +92,7 @@ function syDiagram(s,r,i,pv0){
 }
 function syRun(){
   if(!document.getElementById('sycards'))return;
-  syEnvSync();
+  syEnvSync();window.SY_SEEN=true;
   const A=syRunAll(),msg=document.getElementById('symsg'),body=document.getElementById('sybody');
   SYR=A;
   if(A.err){msg.hidden=false;msg.textContent=A.err;body.hidden=true;return}

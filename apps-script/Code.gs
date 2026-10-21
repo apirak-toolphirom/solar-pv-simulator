@@ -12,14 +12,73 @@ var SHEET_NAME = 'Submissions';
 var HEADERS = ['เวลาที่รับ', 'รหัสใบส่งงาน', 'ชื่อ', 'รหัสผู้เรียน', 'Google (ยืนยันแล้ว)', 'Google (แจ้งเอง)',
   'ผลต่อสาย', 'ไม่ผ่าน', 'ควรระวัง', 'แผงที่ใช้', 'แผงทั้งหมด', 'kWp', 'DC/AC', 'รูปแบบการต่อ',
   'แผง', 'อินเวอร์เตอร์', 'แบตเตอรี่', 'ผลิตต่อวัน kWh', 'โหลดต่อวัน kWh',
-  'โหมด Backup', 'ผล Backup', 'สรุป Backup', 'ไฟขาด kWh', 'ข้อที่ต้องตรวจ', 'เวลาที่ส่งจากเครื่อง', 'ผลต่อสาย AC', 'ข้อผิดพลาด AC', 'เหตุการณ์ที่จำลอง', 'ไซต์และเงา'];
+  'โหมด Backup', 'ผล Backup', 'สรุป Backup', 'ไฟขาด kWh', 'ข้อที่ต้องตรวจ', 'เวลาที่ส่งจากเครื่อง', 'ผลต่อสาย AC', 'ข้อผิดพลาด AC', 'เหตุการณ์ที่จำลอง', 'ไซต์และเงา',
+  'ใบงาน', 'ชื่อใบงาน', 'ผ่านเกณฑ์ใบงาน', 'เกณฑ์ที่ยังไม่ผ่าน', 'คำตอบ', 'ภาพ'];
+
+// ---- ใบงาน: แผ่น "ใบงาน" ผู้สอนแก้ได้ในชีตหรือในหน้า dashboard.html ----
+// สถานะ: auto = เปิดตามวันที่ (ว่าง = ไม่จำกัด) · เปิด · ปิด
+// เกณฑ์คั่นด้วย ; เช่น dc_pass;panels>=8;dcac=0.9-1.5 · คำถามคั่นด้วย | · ภาพ: dc / ac / site / bench / none
+var WS_SHEET = 'ใบงาน';
+var WS_HEAD = ['รหัส', 'ชื่อใบงาน', 'เมนู', 'เปิดวันที่', 'ปิดวันที่', 'สถานะ', 'เกณฑ์', 'คำถาม', 'ภาพ'];
+var WS_DEF = [
+  ['W1', 'อุปกรณ์และต่อสาย DC', 'equip,wiring', '', '', 'auto', 'dc_pass;panels>=8;dcac=0.9-1.5', 'ทำไมต่ออนุกรมเกินจำนวนที่ระบบแนะนำไม่ได้|ต่อขนานกับต่ออนุกรมให้แรงดันและกระแสต่างกันอย่างไร', 'dc'],
+  ['W2', 'ต่อสาย AC และพอร์ตอินเวอร์เตอร์', 'ac', '', '', 'auto', 'ac_pass', 'ทำไมห้ามต่อพอร์ต BACKUP เข้าตู้เมนที่มีไฟกริด', 'ac'],
+  ['W3', 'กำลังผลิตและเงา', 'pv,site', '', '', 'auto', 'pv_sim;site_pv;site_on;shade<=15', 'แผงของคุณถูกบังช่วงเวลาไหน เพราะอะไร และจะแก้อย่างไร', 'site'],
+  ['W4', 'โหลดและ Backup', 'load,backup', '', '', 'auto', 'loads>=5;bk_outage>=6;bk_ok', 'โหลดสำคัญที่เลือกมีอะไรบ้าง ทำไมเลือก', 'none'],
+  ['W5', 'เลือกระบบ On-grid / Off-grid / Hybrid', 'systems', '', '', 'auto', 'sys_seen', 'บ้านตัวอย่างควรใช้ระบบแบบไหน เพราะอะไร', 'none'],
+  ['W6', 'จำลองเหตุการณ์', 'events', '', '', 'auto', 'ev_any', 'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร', 'none'],
+  ['W7', 'วงจร DC 12 / 24 / 48 V', 'bench', '', '', 'auto', 'bench_pass', 'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์', 'bench'],
+  ['W0', 'ส่งรวม (ทุกเมนู)', '', '', '', 'auto', '', '', 'dc']
+];
+function wsSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(WS_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(WS_SHEET);
+    sh.getRange(1, 1, 1, WS_HEAD.length).setValues([WS_HEAD]).setFontWeight('bold');
+    sh.getRange(2, 1, WS_DEF.length, WS_HEAD.length).setValues(WS_DEF);
+    sh.setFrozenRows(1);
+    sh.getRange(2, 4, WS_DEF.length, 2).setNumberFormat('yyyy-mm-dd');
+    sh.getRange(2, 6, 50, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['auto', 'เปิด', 'ปิด'], true).build());
+  }
+  return sh;
+}
+function ymd_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'Asia/Bangkok', 'yyyy-MM-dd');
+  v = String(v || '').trim(); var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(v);
+  return m ? m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2) : '';
+}
+function wsList_() {
+  var sh = wsSheet_(), n = sh.getLastRow() - 1; if (n < 1) return [];
+  var today = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd');
+  return sh.getRange(2, 1, n, WS_HEAD.length).getValues().filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
+    var st = String(r[5] || 'auto').trim(), a = ymd_(r[3]), b = ymd_(r[4]);
+    var open = st === 'เปิด' ? true : st === 'ปิด' ? false : (!a || today >= a) && (!b || today <= b);
+    return { id: String(r[0]).trim(), name: String(r[1]), tabs: String(r[2]), start: a, end: b, status: st, crit: String(r[6]), q: String(r[7]), img: String(r[8] || 'none'), open: open };
+  });
+}
+function wsSet_(d, props) {
+  var tc = props.getProperty('TEACHER_CODE');
+  if (!tc || s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+  var st = s_(d.status, 10); if (['auto', 'เปิด', 'ปิด'].indexOf(st) < 0) return json_({ ok: false, error: 'สถานะไม่ถูกต้อง' });
+  var sh = wsSheet_(), n = sh.getLastRow() - 1, ids = n > 0 ? sh.getRange(2, 1, n, 1).getValues() : [];
+  for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === s_(d.id, 20)) { sh.getRange(i + 2, 6).setValue(st); return json_({ ok: true, ws: wsList_() }); }
+  return json_({ ok: false, error: 'ไม่พบใบงาน' });
+}
+// ภาพรายงานของใบงาน เก็บในโฟลเดอร์ "ภาพงานส่ง" ใต้ DRIVE_FOLDER_ID (ถ้าตั้งไว้)
+function saveImg_(d, props, receipt) {
+  var fid = props.getProperty('DRIVE_FOLDER_ID'), m = /^data:image\/(png|jpeg);base64,(.+)$/.exec(String(d.img || ''));
+  if (!fid || !m || m[2].length > 6000000) return '';
+  var root = DriveApp.getFolderById(fid), it = root.getFoldersByName('ภาพงานส่ง'), f = it.hasNext() ? it.next() : root.createFolder('ภาพงานส่ง');
+  var name = [s_(d.ws, 10), s_(d.sid || d.name, 40).replace(/[^A-Za-z0-9ก-๙@._-]+/g, '_'), receipt].join('_') + (m[1] === 'png' ? '.png' : '.jpg');
+  return f.createFile(Utilities.newBlob(Utilities.base64Decode(m[2]), 'image/' + m[1], name)).getUrl();
+}
 
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
 }
 function s_(v, n) { return String(v == null ? '' : v).slice(0, n || 200); }
 // กันสูตรใน Sheets (ค่าที่ขึ้นต้นด้วย = + - @ จะถูกนำหน้าด้วย ')
-function safe_(v) { v = s_(v, 500); return /^[=+\-@]/.test(v) ? "'" + v : v; }
+function safe_(v) { v = s_(v, 2000); return /^[=+\-@]/.test(v) ? "'" + v : v; }
 
 function doGet() { return json_({ ok: true, service: 'solar-pv-simulator' }); }
 
@@ -30,6 +89,8 @@ function doPost(e) {
     var d = JSON.parse(e.postData.contents);
     var props = PropertiesService.getScriptProperties();
 
+    if (d.action === 'ws') return json_({ ok: true, ws: wsList_() });
+    if (d.action === 'wsset') return wsSet_(d, props);
     if (d.action === 'dash') return dash_(d, props);
     if (d.action === 'tcheck') {
       var tc = props.getProperty('TEACHER_CODE');
@@ -54,6 +115,15 @@ function doPost(e) {
     }
 
     if (d.action === 'save' || d.action === 'load') return cloud_(d, verified, props);
+    if (d.action === 'mine') return mine_(d, verified);
+
+    // ใบงานต้องเปิดรับอยู่
+    var wsInfo = null;
+    if (d.ws) {
+      wsInfo = wsList_().filter(function (w) { return w.id === s_(d.ws, 20); })[0];
+      if (!wsInfo) return json_({ ok: false, error: 'ไม่พบใบงาน ' + s_(d.ws, 20) });
+      if (!wsInfo.open) return json_({ ok: false, error: 'ใบงาน ' + wsInfo.id + ' ปิดรับแล้ว' });
+    }
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
@@ -77,7 +147,9 @@ function doPost(e) {
       safe_(d.panel), safe_(d.inverter), safe_(d.battery), d.pvKwh === '' ? '' : Number(d.pvKwh) || 0, Number(d.loadKwh) || 0,
       s_(d.bkMode, 10), s_(d.bkLvl, 10), safe_(d.bkText), Number(d.bkUnmet) || 0,
       safe_((d.issues || []).slice(0, 15).join('\n')), safe_(d.t),
-      s_(d.acLvl, 10), Number(d.acErr) || 0, safe_(d.evText), safe_(d.siteText)
+      s_(d.acLvl, 10), Number(d.acErr) || 0, safe_(d.evText), safe_(d.siteText),
+      s_(d.ws, 20), safe_(d.wsName), d.ws ? (d.wsPass === true ? 'ผ่าน' : 'ยังไม่ครบ') : '', safe_((d.wsFail || []).slice(0, 10).join('\n')),
+      safe_((d.answers || []).slice(0, 5).join('\n')), d.ws ? saveImg_(d, props, receipt) : ''
     ]);
     return json_({ ok: true });
   } catch (err) {
@@ -122,10 +194,27 @@ function dash_(d, props) {
   if (!tcode) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
   if (s_(d.tcode, 80) !== tcode) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, headers: HEADERS, rows: [] });
+  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, headers: HEADERS, rows: [], ws: wsList_() });
   var n = sh.getLastRow() - 1, start = Math.max(2, sh.getLastRow() - 4999);
   var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   var vals = sh.getRange(start, 1, sh.getLastRow() - start + 1, sh.getLastColumn()).getValues();
   var rows = vals.map(function (r) { return r.map(function (v) { return v instanceof Date ? v.toISOString() : v; }); });
-  return json_({ ok: true, dash: true, headers: head, rows: rows, total: n, at: new Date().toISOString() });
+  return json_({ ok: true, dash: true, headers: head, rows: rows, total: n, at: new Date().toISOString(), ws: wsList_() });
+}
+
+// ---- ประวัติใบงานของผู้เรียนเอง (ตามอีเมล Google ที่ยืนยันแล้ว หรือรหัสผู้เรียน) ----
+function mine_(d, verified) {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, mine: [] });
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], ix = function (n) { return head.indexOf(n); };
+  var iT = ix('เวลาที่รับ'), iS = ix('รหัสผู้เรียน'), iG = ix('Google (ยืนยันแล้ว)'), iW = ix('ใบงาน'), iP = ix('ผ่านเกณฑ์ใบงาน');
+  if (iW < 0) return json_({ ok: true, mine: [] });
+  var key = verified || s_(d.sid, 30); if (!key) return json_({ ok: true, mine: [] });
+  var vals = sh.getRange(2, 1, sh.getLastRow() - 1, sh.getLastColumn()).getValues(), out = [];
+  for (var i = vals.length - 1; i >= 0 && out.length < 100; i--) {
+    var r = vals[i]; if (!r[iW]) continue;
+    if ((verified && r[iG] === verified) || (!verified && String(r[iS]) === key))
+      out.push({ ws: String(r[iW]), pass: r[iP] === 'ผ่าน', t: r[iT] instanceof Date ? Utilities.formatDate(r[iT], 'Asia/Bangkok', 'dd/MM HH:mm') : '' });
+  }
+  return json_({ ok: true, mine: out });
 }
