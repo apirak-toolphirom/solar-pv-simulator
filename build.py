@@ -6,7 +6,7 @@ import os,re,hashlib
 here=os.path.dirname(os.path.abspath(__file__))
 R=lambda p:open(os.path.join(here,p),encoding='utf-8').read()
 JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','acmicro','solar','site','loads','backup','bkanim','systems','events','bench','benchui','submit','worksheets','access','ctx','app']
-TITLE='ต่อสายแผงโซลาร์'
+TITLE='solar sim@1'
 FONTS='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap'
 body=R('app.html')
 # cache-busting: each css/js link carries a hash of its content, so a browser never mixes a new page with old cached scripts

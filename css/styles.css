@@ -610,3 +610,5 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .micman summary{cursor:pointer}.micmang{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 24px;margin-top:10px;font-size:13.5px}.micmang h3{font-size:14px;margin:8px 0 4px}.micmang ol,.micmang ul{margin:0;padding-left:20px}.mictab{border-collapse:collapse;width:100%}.mictab td{border-bottom:1px solid var(--line);padding:4px 6px}
 
 .bkmeter{display:flex;flex-direction:column;gap:4px;font-size:13px}.bkmrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}.bkmrow select{width:auto;max-width:100%;height:auto}.bkmeter .bad{color:var(--bad,#c0392b)}
+.sio.s3 polygon{stroke:rgba(0,0,0,.28);stroke-width:.8;stroke-linejoin:round}.sio.s3.sel polygon{stroke-width:2!important}.s3l{paint-order:stroke;stroke:var(--surface);stroke-width:3px}.si3gnd{stroke:var(--ink);stroke-width:2}.si3n{stroke:var(--ink);stroke-width:2}.sio.house .ridge.hp{stroke-width:1.2}.sio.house .ridge.hi{stroke-width:4}
+#siv3 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}

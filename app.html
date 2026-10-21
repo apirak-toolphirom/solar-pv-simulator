@@ -246,6 +246,7 @@
         <label for="siwin" id="siwinbox">ช่วงเวลา (แผนที่สี)<select id="siwin"><option value="all">ทั้งวัน</option><option value="am">เช้า (ก่อนเที่ยง)</option><option value="pm">บ่าย (หลังเที่ยง)</option><option value="pm2">บ่ายแรง 13:00–17:00</option></select></label>
         <label for="siview">ขนาดผัง <b id="siviewv">50 ม.</b><input id="siview" type="range" min="20" max="150" step="5"></label>
       </div>
+      <div class="sitime" id="siv3"><span class="lab">มุมมอง</span><div class="chips" role="group" aria-label="มุมมองผัง"><button class="chip" data-v3="top">ด้านบน (Top)</button><button class="chip" data-v3="side">ด้านข้าง (Side)</button><button class="chip" data-v3="iso">3 มิติ (Isometric)</button></div><span id="sirotbox" hidden><button class="chip" data-rot="-1" aria-label="หมุนกล้องทวนเข็ม">⟲</button><button class="chip" data-rot="1" aria-label="หมุนกล้องตามเข็ม">⟳</button> <span id="sicamv" class="hint tight"></span></span></div>
       <p class="hint tight" id="siloc"></p>
     </div>
     <div class="sigridmain">
@@ -260,7 +261,7 @@
     <section class="card tbl"><h3>โซน: ชั่วโมงแดดตรงเฉลี่ยต่อวัน · <span id="siper"></span></h3><div class="tblwrap"><table class="t sitbl" id="sizones"></table></div><p class="hint tight" id="sinote"></p></section>
     <section class="card tbl" style="margin-top:12px"><h3>ผนังบ้านแต่ละทิศ (ชม./วัน)</h3><div class="tblwrap"><table class="t sitbl" id="siwalls"></table></div></section>
     <section class="card tbl" style="margin-top:12px"><h3>เงาบังข้างบ้าน / ข้างบ้านบังเรา</h3><div class="tblwrap"><table class="t sitbl" id="sinbr"></table></div><p class="hint tight">วัตถุที่จุดกลางอยู่ในกรอบที่ดินถือเป็นของเรา วัตถุนอกกรอบถือเป็นของข้างเคียง แนวตรวจห่างเขตที่ดิน 1.5 ม.</p></section>
-    <p class="hint">แบบจำลองอย่างง่าย: บ้านและตึกเป็นกล่อง หลังคาจั่วหรือแบน ต้นไม้เป็นพุ่มทรงกระบอก พื้นราบ คิดเฉพาะแสงอาทิตย์ตรง (ไม่รวมเมฆและแสงกระจาย) ที่ดวงอาทิตย์เงยเกิน 3° ใช้เพื่อการเรียนรู้และออกแบบเบื้องต้น</p>
+    <p class="hint">แบบจำลองอย่างง่าย: บ้านและตึกเป็นกล่อง หลังคาจั่ว ปั้นหยา โมเดิร์น (เพิงแหงน) หรือแบน ต้นไม้เป็นพุ่มทรงกระบอก พื้นราบ คิดเฉพาะแสงอาทิตย์ตรง (ไม่รวมเมฆและแสงกระจาย) ที่ดวงอาทิตย์เงยเกิน 3° ใช้เพื่อการเรียนรู้และออกแบบเบื้องต้น</p>
   </section>
 
   <section class="tab" id="tab-load" hidden>
