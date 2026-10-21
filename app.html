@@ -77,6 +77,8 @@
 
   <section>
     <h2>ผลการต่อ</h2>
+    <div id="micbox" class="panelbox micbox" hidden><label for="micn">จำนวนไมโครอินเวอร์เตอร์ในระบบ <input id="micn" type="number" inputmode="numeric" min="1" max="60" step="1" value="4"> ตัว</label>
+      <span class="hint tight">ผังด้านบนคือไมโคร 1 ตัว ทุกตัวต่อแผงแบบเดียวกัน · <b id="micsum"></b> · วางแผนสาย AC (สายย่อย เบรกเกอร์ ฝาปิดปลายสาย) ที่เมนู 03</span></div>
     <div id="cards" class="cards"></div>
   </section>
 
@@ -104,6 +106,8 @@
   <section class="tab" id="tab-ac" hidden>
     <header><h1>ต่อสาย AC และพอร์ตอินเวอร์เตอร์</h1><p class="sub">ต่อสายตามจุดต่อจริงของอินเวอร์เตอร์ ได้แก่ GRID, BACKUP, GEN, CT, สมาร์ทมิเตอร์ RS485, แบตเตอรี่ และ BMS แล้วตั้งค่าการทำงาน ระบบจะตรวจว่าต่อถูกหรือผิดอย่างไร ลากจากขั้วหนึ่งไปอีกขั้ว หรือแตะขั้วแรกแล้วแตะขั้วที่สอง แตะสายเพื่อลบ</p></header>
     <div id="acverdict" class="verdict"></div>
+    <div id="acmicro" class="acmicro" hidden></div>
+    <div id="acstdwrap">
     <section class="bar">
       <div class="grp" id="acpre"><span class="lab">ตัวอย่าง</span>
         <button class="chip" data-acp="ct">Hybrid ต่อถูก (ใช้ CT)</button>
@@ -169,6 +173,7 @@
     <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
     <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
+    </div>
   </section>
 
   <section class="tab" id="tab-pv" hidden>

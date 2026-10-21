@@ -66,8 +66,8 @@ function bkSource(noEv){
   const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
   if(!blocks.some(Boolean))return{err:'ยังไม่ได้ต่อสายแผงเข้า MPPT ให้ถูกต้อง ไปแท็บ "ต่อสาย" หรือเลือกแหล่งไฟเป็นแผงสมมติ'};
   const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv);
-  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0);
-  return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง`,kwp:blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000,E:R.E};
+  const U=microU(I),nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0)*U;
+  return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง${U>1?` (ไมโคร ${U} ตัว)`:''}`,kwp:blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000*U,E:R.E};
 }
 
 let bkCfg=null;

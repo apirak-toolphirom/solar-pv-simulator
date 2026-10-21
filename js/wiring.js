@@ -154,6 +154,7 @@ function render(){
     ['แผง',`${PV.pmax} W`],['Voc / Isc',`${PV.voc} V / ${PV.isc} A`],['Vmp / Imp',`${PV.vmp} V / ${PV.imp} A`],['สัมประสิทธิ์ Voc / Pmax',`${PV.kVoc} / ${PV.kPmax} %/°C`],
     ['Vdc สูงสุด',`${I.vmax} V`],['ช่วง MPPT',`${I.lo}–${I.hi} V`],['กระแสอินพุต / Isc สูงสุด',`${I.imax} A / ${I.isc} A`],['กำลัง AC',`${I.pac/1000} kW`]
   ].map(r=>`<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join('');
+  {const mb=$('#micbox'),mi=isMicro(I);mb.hidden=!mi;if(mi){const U=microU(I);if(document.activeElement!==$('#micn'))$('#micn').value=MICRO.n;$('#micsum').textContent=`รวม ${U*A.used} แผง · ${f(U*A.pv/1000,2)} kWp · AC ${f(U*I.pac/1000,2)} kW`}}
   $('#delp').disabled=st.sel==null;
   $('#rotp').disabled=st.sel==null;
   $('#addp').disabled=st.panels.length>=MAXP;
@@ -217,6 +218,7 @@ function delPanel(){
   st.wires=st.wires.filter(w=>!w.a.startsWith(id+':')&&!w.b.startsWith(id+':'));
   st.sel=null;render();
 }
+$('#micn').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(!(n>=1))return;MICRO.n=Math.min(60,n);render();if(typeof backupRun==='function')backupRun();if(typeof acRender==='function')acRender()});
 $('#cards').addEventListener('change',e=>{const s=e.target.closest('[data-mppv]');if(!s)return;const k=+s.dataset.mppv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];render()});
 document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{PRESETS[b.dataset.preset]();render()}));
 $('#addp').addEventListener('click',()=>{const p=addPanel();if(p)st.sel=p.id;render()});

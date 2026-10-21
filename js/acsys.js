@@ -460,7 +460,7 @@ function acReadout(I){
 }
 /* config handed to the backup energy balance */
 function acsCfg(){
-  if(!ACS.apply)return null;
+  if(!ACS.apply||isMicro())return null;
   const a=acAnalyze(),S=ACS.set,I=curInv(),c={reserve:S.reserve,gmode:S.mode,notes:[]};
   if(I.type!=='on-grid'){
     c.noBackup=!(a.d.backupOk&&S.backupEn);
@@ -476,6 +476,7 @@ function acsCfg(){
 
 /* drawing */
 function acRender(){
+  if(typeof micAC==='function'&&micAC())return;
   const svg=document.getElementById('acsvg');if(!svg)return;
   const I=curInv(),A=acAnalyze();
   acLayout();if(typeof acReadout==='function')acReadout(I);svg.setAttribute('viewBox',`0 0 ${AC_VB.w} ${AC_VB.h}`);acApplyZoom();

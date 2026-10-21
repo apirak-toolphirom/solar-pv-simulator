@@ -590,6 +590,23 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 #bkexp .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .ba-brand{fill:#3b4a58;font:800 12px var(--body);letter-spacing:.14em}.ba-brand.sm{font-size:10px;letter-spacing:.1em}
 .mppv{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}.mppv select{min-height:34px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:0 6px}
+.micbox{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}.micbox label{display:inline-flex;align-items:center;gap:8px;font-weight:600}.micbox input{width:80px}
+
+/* menu 03 micro planner */
+.acmicro{display:flex;flex-direction:column;gap:14px}
+.micchk{display:flex;flex-wrap:wrap;gap:8px 18px}
+.micwrap{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;overflow-x:auto}
+.micsvg{display:block;width:100%;min-width:640px;height:auto}
+.mic-lab{fill:var(--ink);font:600 14px var(--body)}.mic-sm{fill:var(--muted);font:12px var(--body)}.mic-ut{fill:#fff;font:700 11px var(--body)}.mic-warn{fill:var(--err);font:800 16px var(--body)}
+.mic-db{fill:var(--band);stroke:var(--line);stroke-width:1.5}
+.mic-trunk{fill:none;stroke:#8b5a2b;stroke-width:5;stroke-linecap:round}.mic-trunk.err{stroke:var(--err);stroke-dasharray:10 6}
+.mic-bus{fill:none;stroke:#8b5a2b;stroke-width:3}
+.mic-pv{fill:#1f4f84;stroke:#c7d2dc}.mic-u{fill:#6f7b86;stroke:#4a5560}.mic-t{fill:#8b5a2b}
+.mic-cap rect{fill:#1baf7a;stroke:#137a55}.mic-cap.bad rect{fill:none;stroke:var(--err);stroke-width:2;stroke-dasharray:3 2}
+.mic-brk{fill:#4a5866;stroke:#2c353e}.mic-brk.err{fill:var(--err)}
+.mic-rcd{fill:#2a78d6;stroke:#1d5aa3}.mic-rcd.off{fill:none;stroke:var(--err);stroke-dasharray:4 3}
+.mic-pe path{fill:none;stroke:#1baf7a;stroke-width:3}.mic-pe.off path{stroke:var(--err);stroke-dasharray:8 6}
+.bkasvg:not(.micro) .ba-mic{display:none}.bkasvg.micro .ba-str{display:none}.ba-mu{fill:#6f7b86;stroke:#3f4a54}.ba-mut{fill:#fff;font:700 9px var(--body)}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -670,6 +687,8 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 
   <section>
     <h2>ผลการต่อ</h2>
+    <div id="micbox" class="panelbox micbox" hidden><label for="micn">จำนวนไมโครอินเวอร์เตอร์ในระบบ <input id="micn" type="number" inputmode="numeric" min="1" max="60" step="1" value="4"> ตัว</label>
+      <span class="hint tight">ผังด้านบนคือไมโคร 1 ตัว ทุกตัวต่อแผงแบบเดียวกัน · <b id="micsum"></b> · วางแผนสาย AC (สายย่อย เบรกเกอร์ ฝาปิดปลายสาย) ที่เมนู 03</span></div>
     <div id="cards" class="cards"></div>
   </section>
 
@@ -697,6 +716,8 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
   <section class="tab" id="tab-ac" hidden>
     <header><h1>ต่อสาย AC และพอร์ตอินเวอร์เตอร์</h1><p class="sub">ต่อสายตามจุดต่อจริงของอินเวอร์เตอร์ ได้แก่ GRID, BACKUP, GEN, CT, สมาร์ทมิเตอร์ RS485, แบตเตอรี่ และ BMS แล้วตั้งค่าการทำงาน ระบบจะตรวจว่าต่อถูกหรือผิดอย่างไร ลากจากขั้วหนึ่งไปอีกขั้ว หรือแตะขั้วแรกแล้วแตะขั้วที่สอง แตะสายเพื่อลบ</p></header>
     <div id="acverdict" class="verdict"></div>
+    <div id="acmicro" class="acmicro" hidden></div>
+    <div id="acstdwrap">
     <section class="bar">
       <div class="grp" id="acpre"><span class="lab">ตัวอย่าง</span>
         <button class="chip" data-acp="ct">Hybrid ต่อถูก (ใช้ CT)</button>
@@ -762,6 +783,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
     <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
     <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
+    </div>
   </section>
 
   <section class="tab" id="tab-pv" hidden>
@@ -1105,14 +1127,14 @@ const SCHEMA={
       ['asym','จ่ายไฟแต่ละเฟสไม่เท่ากันได้ (3 เฟส)','s','0',[['0','ไม่ได้ จ่ายเท่ากันทุกเฟส'],['1','ได้ ตามโหลดแต่ละเฟส']]],
       ['bph','พอร์ต Backup','s','',[['','เท่ากับระบบไฟ AC'],['1','1 เฟส'],['3','3 เฟส']],'hyb'],
       ['pac','กำลัง AC (W)','n',0],['vmax','Vdc สูงสุด (V)','n',0],['lo','MPPT ต่ำสุด (V)','n',0],['hi','MPPT สูงสุด (V)','n',0],['start','แรงดันเริ่มทำงาน (V)','n',0],
-      ['nmppt','จำนวน MPPT (1–4)','n',2],['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
+      ['micro','ชนิดย่อย','s','',[['','สตริง / ไฮบริด'],['1','ไมโครอินเวอร์เตอร์ (ติดใต้แผง)']]],['nmppt','จำนวน MPPT (1–4)','n',2],['brMax','ไมโคร: ต่อพ่วงสูงสุดต่อสายย่อย (ตัว)','n',0],['imax','กระแสอินพุตต่อ MPPT (A)','n',0],['isc','Isc สูงสุดต่อ MPPT (A)','n',0],['pvRec','PV สูงสุดที่แนะนำ (W)','n',0],['eff','ประสิทธิภาพ (%)','n',97],
       ['bvMin','แรงดันแบต ต่ำสุด (V)','n',0,null,'hyb'],['bvMax','แรงดันแบต สูงสุด (V)','n',0,null,'hyb'],
       ['bchg','ชาร์จแบตสูงสุด (kW)','n',0,null,'hyb'],['bdis','จ่ายจากแบตสูงสุด (kW)','n',0,null,'hyb'],['backupKw','กำลังขาออกโหมด Backup (kW)','n',0,null,'hyb'],
       ['note','หมายเหตุ','t','']
     ],
     req:['brand','model','pac','vmax','lo','hi','start','imax'],
     alias:{brand:['brand','ยี่ห้อ'],model:['model','รุ่น'],type:['type','ชนิด','topology'],phase:['phase','phases','เฟส','gridphase'],asym:['asym','asymmetric','unbalanced'],bph:['bph','backupphase'],pac:['pac','acpower','ratedac','power','กำลัง','ac'],vmax:['vmax','maxdcvoltage','vdcmax','maxvoltage'],lo:['lo','mpptmin','vmppmin','mpptlow'],hi:['hi','mpptmax','vmppmax','mppthigh'],start:['start','startvoltage','vstart'],
-      nmppt:['nmppt','mppt','mppts','mpptcount'],imax:['imax','maxinputcurrent','impptmax','inputcurrent'],isc:['isc','maxisc','iscmax'],pvRec:['pvrec','maxpv','pvmax','maxpvpower'],eff:['eff','efficiency'],
+      micro:['micro','microinverter'],brMax:['brmax','maxunitsperbranch','unitsperbranch'],nmppt:['nmppt','mppt','mppts','mpptcount'],imax:['imax','maxinputcurrent','impptmax','inputcurrent'],isc:['isc','maxisc','iscmax'],pvRec:['pvrec','maxpv','pvmax','maxpvpower'],eff:['eff','efficiency'],
       bvMin:['bvmin','batvmin','batteryvmin'],bvMax:['bvmax','batvmax','batteryvmax'],bchg:['bchg','chargekw','maxcharge'],bdis:['bdis','dischargekw','maxdischarge'],backupKw:['backupkw','epskw','backuppower'],note:['note','หมายเหตุ']}
   },
   batteries:{
@@ -1146,8 +1168,8 @@ const BUILTIN=(()=>{
     pac:k*1000,vmax:500,lo:90,hi:435,start:90,imax:im,isc:sc,pvRec:rec,eff:96.1,bvMin:40,bvMax:60,bchg:k,bdis:k,backupKw:k,builtin:1,
     note:`Hybrid 1 เฟส On/Off-grid แบตแรงดันต่ำ 40–60 V (ลิเธียม/ตะกั่วกรด, CAN/RS485) ชาร์จ/จ่าย ${k} kW · 2 MPPT ${ns} สตริงต่อ MPPT กระแสต่ออินพุต ${k===10?21:16} A · มีพอร์ต GEN · สลับไปไฟสำรอง <10 ms · โอเวอร์โหลด 200% 10 วินาที · ขนานได้ 6 เครื่อง · eff สูงสุด 96.2%`}));
   // Deye SUN-M130/160/180/200/220G4-EU-Q0: single-phase microinverter, 4 MPPT x 1 module, 25-55 V, 18 A / Isc 27 A per input (deyeinverter.com, datasheet 2025-08)
-  [[130,1300,460,5],[160,1600,560,4],[180,1800,630,3],[200,2000,700,3],[220,2200,770,3]].forEach(([m,w,mod,br])=>inv.push({id:slug(`deye sun-m${m}g4-eu-q0`),brand:'Deye',model:`SUN-M${m}G4-EU-Q0 (micro ${w} W)`,type:'on-grid',phase:'1',
-    pac:w,nmppt:4,vmax:60,lo:25,hi:55,start:20,imax:18,isc:27,pvRec:mod*4,eff:96,builtin:1,
+  [[130,1300,460,5,6],[160,1600,560,4,7.3],[180,1800,630,3,8.2],[200,2000,700,3,9.1],[220,2200,770,3,10]].forEach(([m,w,mod,br,ia])=>inv.push({id:slug(`deye sun-m${m}g4-eu-q0`),brand:'Deye',model:`SUN-M${m}G4-EU-Q0 (micro ${w} W)`,type:'on-grid',phase:'1',
+    pac:w,iac:ia,micro:'1',brMax:br,nmppt:4,vmax:60,lo:25,hi:55,start:20,imax:18,isc:27,pvRec:mod*4,eff:96,builtin:1,
     note:`ไมโครอินเวอร์เตอร์ 1 เฟส 220/230 V · 4 MPPT ต่อแผงช่องละ 1 แผง (แผง ${210}–${mod} W) · ต่อพ่วงได้ ${br} ตัวต่อสายย่อย · WiFi ในตัว · IP67 · eff สูงสุด 96.5% · เมนู 02 จำลองได้ 2 ช่องแรก`}));
   // SUN2000-5/8/10KTL-M0: three-phase on-grid, no battery port
   [[5,98.4,97.5,7500],[8,98.6,98.0,12000],[10,98.6,98.1,15000]].forEach(([k,mx,eu,rec])=>hw(`SUN2000-${k}KTL-M0`,{type:'on-grid',phase:'3',asym:'0',pac:k*1000,vmax:1100,lo:140,hi:980,start:200,imax:11,isc:15,pvRec:rec,eff:eu,
@@ -1898,6 +1920,11 @@ function syncInvN(){const n=nMp();if(INV.length===n)return false;INV=INV0(n);st.
 let MP_PM={};
 function pvOf(id){const p=id&&typeof CAT!=='undefined'&&CAT.panels.find(x=>x.id===id);return p?Object.assign({},p,{name:(p.brand+' '+p.model).trim(),noct:p.noct||43}):PV}
 const mpPV=k=>pvOf(MP_PM[k]);
+/* microinverters: menu 02 wires ONE unit; MICRO.n identical units make the system (AC side planned in menu 03) */
+const isMicro=I=>{try{return String((I||curInv()).micro||'')==='1'}catch(e){return false}};
+const MICRO={n:4,br:2,brk:20,cab:4,len:15,cap:true,rcd:true,pe:true};
+const microU=I=>isMicro(I)?Math.max(1,MICRO.n|0):1;
+const microIac=I=>+I.iac>0?+I.iac:(+I.pac||0)/220;
 const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;
 function invBlk(k){const b=INV[k-1];return{x:b.x+8,y:b.y+8,w:ibW(k)-16,h:ibH(k)-16}}
 function invTerm(k,pos){
@@ -2016,6 +2043,7 @@ function analyze(){
       else sys.push({lvl:'ok',t:`DC/AC ${f(ratio,2)} เทียบกับ AC ${I.pac/1000} kW`});
     }
   }
+  if(isMicro(I)&&used>0){const U=microU(I);sys.push({lvl:'ok',t:`ระบบไมโคร ${U} ตัว (ผังนี้คือ 1 ตัว ทุกตัวต่อแผงแบบเดียวกัน): ${U*used} แผง · ${f(U*pvW/1000,2)} kWp · AC รวม ${f(U*I.pac/1000,2)} kW · วางแผนสาย AC ที่เมนู 03`})}
   const items=[...res.flatMap(r=>r.ck),...sys];
   const cnt={err:0,warn:0,ok:0};items.forEach(c=>cnt[c.lvl]++);
   const lvl=!active.length&&!si.cyc.size?'idle':cnt.err?'err':cnt.warn?'warn':'ok';
@@ -2257,6 +2285,7 @@ function render(){
     ['แผง',`${PV.pmax} W`],['Voc / Isc',`${PV.voc} V / ${PV.isc} A`],['Vmp / Imp',`${PV.vmp} V / ${PV.imp} A`],['สัมประสิทธิ์ Voc / Pmax',`${PV.kVoc} / ${PV.kPmax} %/°C`],
     ['Vdc สูงสุด',`${I.vmax} V`],['ช่วง MPPT',`${I.lo}–${I.hi} V`],['กระแสอินพุต / Isc สูงสุด',`${I.imax} A / ${I.isc} A`],['กำลัง AC',`${I.pac/1000} kW`]
   ].map(r=>`<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join('');
+  {const mb=$('#micbox'),mi=isMicro(I);mb.hidden=!mi;if(mi){const U=microU(I);if(document.activeElement!==$('#micn'))$('#micn').value=MICRO.n;$('#micsum').textContent=`รวม ${U*A.used} แผง · ${f(U*A.pv/1000,2)} kWp · AC ${f(U*I.pac/1000,2)} kW`}}
   $('#delp').disabled=st.sel==null;
   $('#rotp').disabled=st.sel==null;
   $('#addp').disabled=st.panels.length>=MAXP;
@@ -2320,6 +2349,7 @@ function delPanel(){
   st.wires=st.wires.filter(w=>!w.a.startsWith(id+':')&&!w.b.startsWith(id+':'));
   st.sel=null;render();
 }
+$('#micn').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(!(n>=1))return;MICRO.n=Math.min(60,n);render();if(typeof backupRun==='function')backupRun();if(typeof acRender==='function')acRender()});
 $('#cards').addEventListener('change',e=>{const s=e.target.closest('[data-mppv]');if(!s)return;const k=+s.dataset.mppv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];render()});
 document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{PRESETS[b.dataset.preset]();render()}));
 $('#addp').addEventListener('click',()=>{const p=addPanel();if(p)st.sel=p.id;render()});
@@ -2903,7 +2933,7 @@ function acReadout(I){
 }
 /* config handed to the backup energy balance */
 function acsCfg(){
-  if(!ACS.apply)return null;
+  if(!ACS.apply||isMicro())return null;
   const a=acAnalyze(),S=ACS.set,I=curInv(),c={reserve:S.reserve,gmode:S.mode,notes:[]};
   if(I.type!=='on-grid'){
     c.noBackup=!(a.d.backupOk&&S.backupEn);
@@ -2919,6 +2949,7 @@ function acsCfg(){
 
 /* drawing */
 function acRender(){
+  if(typeof micAC==='function'&&micAC())return;
   const svg=document.getElementById('acsvg');if(!svg)return;
   const I=curInv(),A=acAnalyze();
   acLayout();if(typeof acReadout==='function')acReadout(I);svg.setAttribute('viewBox',`0 0 ${AC_VB.w} ${AC_VB.h}`);acApplyZoom();
@@ -3117,6 +3148,97 @@ function initAC(){
 }
 function rerunBk(){if(typeof backupRun==='function')backupRun();if(typeof evRun==='function')evRun()}
 
+/* ---- menu 03 for microinverters: units share an AC trunk cable per branch → branch breaker in the board → RCD → meter → grid.
+   Checks: units per branch vs datasheet limit, breaker vs branch current (×1.25 continuous), cable ampacity vs breaker,
+   voltage drop on the trunk, end cap on the open trunk end, RCD 30 mA, PE to every unit/frame. Values are teaching approximations. */
+const MIC_AMP={1.5:15,2.5:21,4:28,6:36,10:50};/* copper PVC, in conduit, approx. (check the EIT/วสท. table for the real install method) */
+const MIC_BRK=[10,16,20,25,32,40];
+function micSplit(n,b){const a=[],q=Math.floor(n/b),r=n%b;for(let i=0;i<b;i++)a.push(q+(i<r?1:0));return a.filter(x=>x>0)}
+function micAnalyze(I){
+  const M=MICRO,ia=microIac(I),br=micSplit(Math.max(1,M.n|0),Math.max(1,Math.min(M.br|0,M.n|0))),mx=Math.max(...br),ck=[];
+  const Ib=mx*ia,amp=MIC_AMP[M.cab]||0,lim=+I.brMax||0,ptot=M.n*I.pac;
+  if(lim>0&&mx>lim)ck.push({lvl:'err',t:`สายย่อยมีไมโคร ${mx} ตัว เกินที่ผู้ผลิตกำหนด ${lim} ตัวต่อสายย่อย เพิ่มจำนวนสายย่อย (วงจร) เป็นอย่างน้อย ${Math.ceil(M.n/lim)} สาย`});
+  else if(lim>0)ck.push({lvl:'ok',t:`สายย่อยละไม่เกิน ${mx} ตัว (ผู้ผลิตกำหนดไม่เกิน ${lim} ตัว)`});
+  if(M.brk<Ib)ck.push({lvl:'err',t:`เบรกเกอร์ ${M.brk} A ต่ำกว่ากระแสสายย่อย ${f(Ib,1)} A (${mx} × ${f(ia,1)} A) จะทริปตอนแดดจัด เลือกอย่างน้อย ${MIC_BRK.find(x=>x>=Ib)||'—'} A หรือเพิ่มสายย่อย`});
+  else ck.push({lvl:'ok',t:`เบรกเกอร์สายย่อย ${M.brk} A ≥ กระแสสายย่อย ${f(Ib,1)} A (${mx} × ${f(ia,1)} A)`});
+  if(amp<M.brk)ck.push({lvl:'err',t:`สาย ${M.cab} mm² รับกระแสได้ราว ${amp} A น้อยกว่าเบรกเกอร์ ${M.brk} A เบรกเกอร์ป้องกันสายไม่ได้ เพิ่มขนาดสายหรือลดขนาดเบรกเกอร์`});
+  else ck.push({lvl:'ok',t:`สาย ${M.cab} mm² (รับได้ราว ${amp} A) ≥ เบรกเกอร์ ${M.brk} A`});
+  const vd=2*M.len*Ib*0.0175/M.cab/230*100;
+  ck.push(vd>3?{lvl:'err',t:`แรงดันตกในสายย่อย ${f(vd,1)}% (ยาว ${M.len} m) เกิน 3% ไมโครอาจตัดเพราะแรงดันสูงเกิน ใช้สายใหญ่ขึ้นหรือย้ายตู้ให้ใกล้`}:
+    vd>2?{lvl:'warn',t:`แรงดันตกในสายย่อย ${f(vd,1)}% เกิน 2% ที่แนะนำสำหรับไมโคร`}:{lvl:'ok',t:`แรงดันตกในสายย่อย ${f(vd,1)}% ไม่เกิน 2%`});
+  ck.push(M.cap?{lvl:'ok',t:'ปิดปลายสาย AC trunk ด้วย end cap แล้ว'}:{lvl:'err',t:'ปลายสาย AC trunk ที่ไม่ได้ใช้ต้องปิดด้วย end cap กันน้ำและกันไฟดูด (ขั้วยังมีไฟจากไมโครตัวอื่น)'});
+  ck.push(M.rcd?{lvl:'ok',t:'มี RCD/RCBO 30 mA ที่วงจรโซลาร์'}:{lvl:'warn',t:'ควรมี RCD หรือ RCBO 30 mA (ชนิดที่ผู้ผลิตแนะนำ) ที่วงจรโซลาร์ ตามมาตรฐานการติดตั้ง'});
+  ck.push(M.pe?{lvl:'ok',t:'ต่อสายดิน PE ถึงไมโครทุกตัวและโครงแผง'}:{lvl:'err',t:'ต้องต่อสายดิน PE ไปที่ไมโครทุกตัวและโครงยึดแผง'});
+  if(ptot>5000)ck.push({lvl:'warn',t:`กำลังรวม ${f(ptot/1000,1)} kW บนไฟ 1 เฟส ตรวจระเบียบการไฟฟ้า (PEA/MEA) เรื่องขนาดสูงสุดของระบบ 1 เฟส`});
+  ck.sort((a,b)=>RANK[a.lvl]-RANK[b.lvl]);
+  const lvl=ck.some(c=>c.lvl==='err')?'err':ck.some(c=>c.lvl==='warn')?'warn':'ok';
+  return{br,mx,Ib,ia,vd,amp,ck,lvl,ptot,lim};
+}
+function micSVG(I,A){
+  const B=A.br.length,rowH=110,top=50,H=top+B*rowH+40,W=1040,dbx=740,show=6;
+  let s=`<svg viewBox="0 0 ${W} ${H}" class="micsvg" role="img" aria-label="ผังสาย AC ไมโครอินเวอร์เตอร์">`;
+  s+=`<rect x="${dbx}" y="${top-24}" width="120" height="${B*rowH+8}" rx="8" class="mic-db"/><text x="${dbx+60}" y="${top-32}" text-anchor="middle" class="mic-lab">ตู้ไฟ AC</text>`;
+  A.br.forEach((n,b)=>{
+    const y=top+b*rowH,ty=y+44,over=A.lim>0&&n>A.lim,cls=over?' err':'';
+    const xs=[];for(let j=0;j<Math.min(n,show);j++)xs.push(90+j*100);
+    s+=`<text x="20" y="${y-6}" class="mic-sm">สายย่อย ${b+1}: ${n} ตัว · ${f(n*A.ia,1)} A</text>`;
+    s+=`<path d="M40 ${ty} H${dbx+18}" class="mic-trunk${cls}"/>`;
+    s+=`<g class="mic-cap ${MICRO.cap?'ok':'bad'}"><rect x="26" y="${ty-9}" width="16" height="18" rx="4"/>${MICRO.cap?'':`<text x="34" y="${ty-14}" text-anchor="middle" class="mic-warn">!</text>`}</g><text x="34" y="${ty+26}" text-anchor="middle" class="mic-sm">end cap</text>`;
+    xs.forEach((x,j)=>{
+      s+=`<g><rect x="${x-34}" y="${y}" width="68" height="18" rx="2" class="mic-pv"/><rect x="${x-24}" y="${y+24}" width="48" height="26" rx="4" class="mic-u"/><text x="${x}" y="${y+41}" text-anchor="middle" class="mic-ut">M${j+1}</text><circle cx="${x}" cy="${ty}" r="4" class="mic-t"/></g>`;
+    });
+    if(n>show)s+=`<text x="${90+show*100-30}" y="${y+42}" class="mic-lab">… +${n-show}</text>`;
+    s+=`<g><rect x="${dbx+18}" y="${ty-16}" width="26" height="32" rx="3" class="mic-brk${n*A.ia>MICRO.brk?' err':''}"/><text x="${dbx+31}" y="${ty+30}" text-anchor="middle" class="mic-sm">${MICRO.brk} A</text></g>`;
+    s+=`<path d="M${dbx+44} ${ty} H${dbx+70} V${top+B*rowH/2-8}" class="mic-bus"/>`;
+  });
+  const cy=top+B*rowH/2-8;
+  s+=`<g><rect x="${dbx+70}" y="${cy-18}" width="32" height="36" rx="3" class="mic-rcd ${MICRO.rcd?'':'off'}"/><text x="${dbx+86}" y="${cy+4}" text-anchor="middle" class="mic-ut">RCD</text></g>`;
+  s+=`<path d="M${dbx+102} ${cy} H${dbx+150}" class="mic-bus"/><rect x="${dbx+150}" y="${cy-20}" width="48" height="40" rx="5" class="mic-db"/><text x="${dbx+174}" y="${cy+5}" text-anchor="middle" class="mic-sm">kWh</text>`;
+  s+=`<path d="M${dbx+198} ${cy} H${W-26}" class="mic-bus"/><text x="${W-20}" y="${cy-12}" text-anchor="end" class="mic-lab">กริด</text>`;
+  s+=`<g class="mic-pe ${MICRO.pe?'':'off'}"><path d="M60 ${H-18} H${dbx+60}"/><text x="64" y="${H-24}" class="mic-sm">PE สายดิน ${MICRO.pe?'ต่อครบ':'ยังไม่ต่อ'}</text></g>`;
+  return s+'</svg>';
+}
+function micAC(){
+  const I=curInv(),on=isMicro(I),box=document.getElementById('acmicro'),std=document.getElementById('acstdwrap');
+  if(!box||!std)return false;
+  box.hidden=!on;std.hidden=on;if(!on)return false;
+  const A=micAnalyze(I),M=MICRO;
+  const v=document.getElementById('acverdict');v.className='verdict '+A.lvl;
+  const first=A.ck.find(c=>c.lvl!=='ok');
+  v.innerHTML=`<span class="pill ${A.lvl}">${LABEL[A.lvl]}</span><b>ไมโคร ${M.n} ตัว · ${A.br.length} สายย่อย · ${f(A.ptot/1000,2)} kW</b>${first?`<span class="vfirst">${first.t}</span>`:''}`;
+  const opt=(arr,cur,suf)=>arr.map(x=>`<option value="${x}" ${+cur===+x?'selected':''}>${x}${suf}</option>`).join('');
+  if(!box.dataset.built){box.dataset.built='1';box.innerHTML=`
+    <div class="panelbox"><h2>ไมโครอินเวอร์เตอร์: วางแผนสาย AC</h2>
+      <p class="hint tight">ไมโครติดใต้แผงและจ่ายไฟ AC ออกมาเลย ไม่มีสาย DC ยาวและไม่ต่อแบต ไมโครหลายตัวต่อพ่วงบนสาย AC trunk เส้นเดียวกันเป็นสายย่อย แต่ละสายย่อยมีเบรกเกอร์ของตัวเองในตู้</p>
+      <div class="row3">
+        <label for="mcn">จำนวนไมโคร (ตัว)<input id="mcn" type="number" inputmode="numeric" min="1" max="60" step="1"></label>
+        <label for="mcb">จำนวนสายย่อย (วงจร)<input id="mcb" type="number" inputmode="numeric" min="1" max="20" step="1"></label>
+        <label for="mcbrk">เบรกเกอร์ต่อสายย่อย<select id="mcbrk"></select></label>
+        <label for="mccab">ขนาดสาย AC<select id="mccab"></select></label>
+        <label for="mclen">ความยาวสายย่อยถึงตู้ (m)<input id="mclen" type="number" inputmode="decimal" min="1" max="200" step="1"></label>
+      </div>
+      <div class="row3 micchk"><label class="chk"><input id="mccap" type="checkbox"> ปิดปลายสายด้วย end cap</label><label class="chk"><input id="mcrcd" type="checkbox"> มี RCD/RCBO 30 mA</label><label class="chk"><input id="mcpe" type="checkbox"> ต่อสายดิน PE ครบ</label></div>
+    </div>
+    <div class="canvas micwrap" id="micsvgbox"></div>
+    <div class="panelbox"><div id="micinfo" class="hint tight"></div></div>
+    <div><h2>ผลการตรวจ</h2><ul id="micchecks" class="checks"></ul></div>`;
+    const q=id=>document.getElementById(id),go=()=>{micAC();if(typeof render==='function')render();if(typeof backupRun==='function')backupRun();if(typeof touch==='function')touch()};
+    q('mcn').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(n>=1){MICRO.n=Math.min(60,n);go()}});
+    q('mcb').addEventListener('input',e=>{const n=parseInt(e.target.value,10);if(n>=1){MICRO.br=Math.min(20,n);go()}});
+    q('mclen').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(n>0){MICRO.len=Math.min(200,n);go()}});
+    q('mcbrk').addEventListener('change',e=>{MICRO.brk=+e.target.value;go()});q('mccab').addEventListener('change',e=>{MICRO.cab=+e.target.value;go()});
+    ['cap','rcd','pe'].forEach(k=>q('mc'+k).addEventListener('change',e=>{MICRO[k]=e.target.checked;go()}));
+  }
+  const q=id=>document.getElementById(id),act=document.activeElement;
+  if(act!==q('mcn'))q('mcn').value=M.n;if(act!==q('mcb'))q('mcb').value=M.br;if(act!==q('mclen'))q('mclen').value=M.len;
+  q('mcbrk').innerHTML=opt(MIC_BRK,M.brk,' A');q('mccab').innerHTML=Object.keys(MIC_AMP).map(c=>`<option value="${c}" ${+c===+M.cab?'selected':''}>${c} mm² (~${MIC_AMP[c]} A)</option>`).join('');
+  q('mccap').checked=M.cap;q('mcrcd').checked=M.rcd;q('mcpe').checked=M.pe;
+  q('micsvgbox').innerHTML=micSVG(I,A);
+  q('micinfo').innerHTML=`${esc(I.name)} · AC ${f(I.pac/1000,2)} kW · กระแส AC ${f(A.ia,1)} A ต่อตัว · ผู้ผลิตกำหนดไม่เกิน ${A.lim||'—'} ตัวต่อสายย่อย · สายย่อยที่ยาวที่สุดมี ${A.mx} ตัว = ${f(A.Ib,1)} A<br>ขนาดสายที่รับกระแสเป็นค่าประมาณสำหรับสายทองแดงร้อยท่อ ตรวจกับตารางของ วสท. ตามวิธีติดตั้งจริง`;
+  q('micchecks').innerHTML=checksHTML(A.ck);
+  return true;
+}
+
 /* ---- Plus Code (Open Location Code) ---- */
 const OLC='23456789CFGHJMPQRVWX';
 function olcEncode(lat,lng){
@@ -3200,6 +3322,8 @@ function solarPos(lat,lon,doy,h,tz){
 }
 
 function simDay(blocks,I,tilt,az,step,ideal,noEv){
+  let U=1;
+  if(isMicro(I)){const nm=Math.max(1,Math.round(+I.nmppt||4));if(ideal){const N=blocks.reduce((a,b)=>a+(b?b.n:0),0);U=N/nm;blocks=[{n:nm,ns:1,mp:1}]}else U=microU(I)}
   const n=Math.round(1440/step),doy=dayOfYear(SIM.date),la=SIM.lat,lo=SIM.lon;
   const b=tilt*Math.PI/180,gp=az*Math.PI/180,sky=SKY[SIM.sky],keep=1-SIM.loss/100;
   const Ics=1361*(1+0.033*Math.cos(2*Math.PI*doy/365)),dt=step/60/1000;
@@ -3236,7 +3360,7 @@ function simDay(blocks,I,tilt,az,step,ideal,noEv){
       if(ideal)pdc+=p;
       else if(voc>=I.start&&voc<=I.vmax&&vmp>=I.lo&&vmp<=I.hi){const k=imp>I.imax?I.imax/imp:1;pdc+=p*k;lim+=p*(1-k)}
     });
-    const pre=pdc*(I.eff||97)/100,pac=Math.min(pre,I.pac);
+    pot*=U;lim*=U;const pre=pdc*(I.eff||97)/100*U,pac=Math.min(pre,I.pac*U);
     R.elev.push(elev);R.saz.push(sp.az);R.cov.push(cov);R.shade.push(shd);R.t.push(h);R.g.push(g);R.tc.push(tc);R.sun.push(sp.cosZ>0);R.pot.push(pot);R.pac.push(pac);
     R.E+=pac*dt;R.Eclip+=(pre-pac)*dt;R.Elim+=lim*dt;
     if(pac>0){if(R.first<0)R.first=i;R.last=i;R.ops++;if(pac>R.peak){R.peak=pac;R.peakI=i}}
@@ -3333,7 +3457,7 @@ function drawLine(host,c){
 let lastA=null,lastSig='',chartCfg=null;
 function maybeSim(A){
   lastA=A;
-  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n,r.blk.pv&&r.blk.pv.id]:0),curInv(),PV]);
+  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n,r.blk.pv&&r.blk.pv.id]:0),curInv(),PV,microU(curInv())]);
   if(sig!==lastSig){lastSig=sig;runSim()}
 }
 function drawOrient(){
@@ -3373,11 +3497,11 @@ function runSimView(){
   const i0=Math.round(xmin*60/R.step),i1=Math.round(xmax*60/R.step);
   const sl=a=>a.slice(i0,i1);
   const xs=sl(R.t),kw=v=>v==null?null:v/1000;
-  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0),kwp=blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000;
+  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0)*microU(I),kwp=blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000*microU(I);
   const hrs=R.ops*R.step/60,idleH=R.idle*R.step/60;
   const mx=[
     ['ช่วงที่อินเวอร์เตอร์ทำงาน',R.ops?`${fmtT(R.first*R.step/60)}–${fmtT((R.last+1)*R.step/60)}`:'ไม่ทำงาน',R.ops?`${f(hrs,1)} ชม. · แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`:`แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`],
-    ['กำลัง AC สูงสุด',R.ops?f(R.peak/1000,2)+' kW':'0 kW',R.ops?`เวลา ${fmtT(R.t[R.peakI])} · พิกัด ${I.pac/1000} kW`:''],
+    ['กำลัง AC สูงสุด',R.ops?f(R.peak/1000,2)+' kW':'0 kW',R.ops?`เวลา ${fmtT(R.t[R.peakI])} · พิกัด ${f(I.pac*microU(I)/1000,2)} kW${isMicro(I)?` (ไมโคร ${microU(I)} ตัว)`:''}`:''],
     ['พลังงานต่อวัน',f(R.E,1)+' kWh',`${f(R.E/kwp,2)} kWh ต่อ kWp · ${nUsed} แผง`],
     ['สูญเสียจากเพดาน AC',f(R.Eclip,2)+' kWh',`จำกัดกระแส MPPT ${f(R.Elim*(I.eff||97)/100,2)} kWh`],
     ['มีแสงแต่ยังไม่ทำงาน',f(idleH,1)+' ชม.','แรงดันต่ำกว่าช่วง MPPT หรือยังไม่ถึงแรงดันเริ่มทำงาน']
@@ -3388,8 +3512,8 @@ function runSimView(){
   $('#mx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   const potMax=Math.max(...R.pot)/1000,vTop=Math.max(I.hi,...R.vmp.flatMap(a=>a.filter(v=>v!=null)))*1.05;
   chartCfg={
-    A:{x:xs,ymax:Math.max(potMax,I.pac/1000)*1.08,unit:'kW',aria:'กราฟกำลังไฟฟ้า AC และ DC ตลอดวัน',
-      refs:[{y:I.pac/1000,label:`พิกัด AC ${I.pac/1000} kW`}],
+    A:{x:xs,ymax:Math.max(potMax,I.pac*microU(I)/1000)*1.08,unit:'kW',aria:'กราฟกำลังไฟฟ้า AC และ DC ตลอดวัน',
+      refs:[{y:I.pac*microU(I)/1000,label:`พิกัด AC ${f(I.pac*microU(I)/1000,2)} kW`}],
       series:[{short:'กำลัง AC ที่จ่ายจริง',color:'var(--s1)',vals:sl(R.pac).map(kw),area:true,peak:true,fmt:v=>f(v,2)},
               {short:'กำลัง DC จากแผง',color:'var(--s2)',vals:sl(R.pot).map(kw),fmt:v=>f(v,2)}]},
     B:{x:xs,ymax:vTop,unit:'V',aria:'กราฟแรงดันสตริงเทียบช่วง MPPT ตลอดวัน',
@@ -4057,8 +4181,8 @@ function bkSource(noEv){
   const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
   if(!blocks.some(Boolean))return{err:'ยังไม่ได้ต่อสายแผงเข้า MPPT ให้ถูกต้อง ไปแท็บ "ต่อสาย" หรือเลือกแหล่งไฟเป็นแผงสมมติ'};
   const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv);
-  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0);
-  return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง`,kwp:blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000,E:R.E};
+  const U=microU(I),nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0)*U;
+  return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง${U>1?` (ไมโคร ${U} ตัว)`:''}`,kwp:blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000*U,E:R.E};
 }
 
 let bkCfg=null;
@@ -4228,7 +4352,7 @@ const bkaHM=i=>{const m=i*5;return String(Math.floor(m/60)%24).padStart(2,'0')+'
 const bkaKW=w=>(Math.abs(w)/1000).toFixed(Math.abs(w)<10000?2:1)+' kW';
 function bkaSVG(){
   const panel=(x,y)=>`<g transform="translate(${x} ${y}) skewX(-18)"><rect width="78" height="46" rx="2" class="ba-pv"/>${[1,2,3].map(k=>`<line x1="${k*19.5}" y1="0" x2="${k*19.5}" y2="46" class="ba-pvl"/>`).join('')}<line x1="0" y1="23" x2="78" y2="23" class="ba-pvl"/></g>`;
-  const badge=(x,y,t,c)=>`<g class="ba-bd ${c}"><circle cx="${x}" cy="${y}" r="13"/><text x="${x}" y="${y+4}" text-anchor="middle">${t}</text></g>`;
+  const badge=(x,y,t,c,m)=>`<g class="ba-bd ${c} ${m||''}"><circle cx="${x}" cy="${y}" r="13"/><text x="${x}" y="${y+4}" text-anchor="middle">${t}</text></g>`;
   return `<svg viewBox="0 0 800 470" class="ba" role="img" aria-label="ภาพเคลื่อนไหวการไหลของไฟฟ้าในระบบ">
   <rect x="0" y="0" width="800" height="470" class="ba-wall"/><rect x="0" y="440" width="800" height="30" class="ba-floor"/>
   <g id="basun" class="ba-sun">${[0,1,2,3,4,5,6,7].map(k=>{const a=k*Math.PI/4;return`<line x1="${(Math.cos(a)*23).toFixed(1)}" y1="${(Math.sin(a)*23).toFixed(1)}" x2="${(Math.cos(a)*32).toFixed(1)}" y2="${(Math.sin(a)*32).toFixed(1)}"/>`}).join('')}<circle r="17"/></g>
@@ -4239,17 +4363,20 @@ function bkaSVG(){
   <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
   <!-- wires (base + animated dash) -->
-  ${[['pv','M120 96 V150 H80 V190','dc'],['pv2','M80 238 V262 H262','dc'],['bat','M300 330 V372 H200','dc'],['ac','M380 262 H470','ac'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
+  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M44 116 H440 V262 H470','ac ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
     .map(([id,d,c])=>`<path d="${d}" class="ba-w ${c}"/><path id="baw-${id}" d="${d}" class="ba-f ${c}"/>`).join('')}
+  <!-- microinverters: one under each panel, AC trunk straight to the board -->
+  <g class="ba-mic">${[0,1,2,3].map(k=>`<rect x="${44+k*82}" y="100" width="44" height="14" rx="3" class="ba-mu"/><text x="${66+k*82}" y="111" text-anchor="middle" class="ba-mut">micro</text>`).join('')}
+    <text id="bamicn" x="210" y="146" text-anchor="middle" class="ba-lab">ไมโครอินเวอร์เตอร์</text><text x="210" y="164" text-anchor="middle" class="ba-sm">ติดใต้แผง แปลง DC เป็น AC ที่แผงเลย ไม่มีสาย DC ยาวและไม่มีแบต</text></g>
   <!-- DC isolator -->
-  <g><rect x="52" y="190" width="56" height="48" rx="5" class="ba-box"/><rect x="66" y="203" width="28" height="18" rx="3" class="ba-sw"/><text x="80" y="252" text-anchor="middle" class="ba-sm">DC isolator</text></g>
+  <g class="ba-str"><rect x="52" y="190" width="56" height="48" rx="5" class="ba-box"/><rect x="66" y="203" width="28" height="18" rx="3" class="ba-sw"/><text x="80" y="252" text-anchor="middle" class="ba-sm">DC isolator</text></g>
   <!-- inverter -->
-  <g id="bainv"><g id="bainvbody"><rect x="262" y="180" width="118" height="150" rx="10" class="ba-inv"/><circle id="baled" cx="321" cy="258" r="6" class="ba-led"/><text id="bainvb" x="321" y="284" text-anchor="middle" class="ba-brand"></text></g>
+  <g id="bainv" class="ba-str"><g id="bainvbody"><rect x="262" y="180" width="118" height="150" rx="10" class="ba-inv"/><circle id="baled" cx="321" cy="258" r="6" class="ba-led"/><text id="bainvb" x="321" y="284" text-anchor="middle" class="ba-brand"></text></g>
     <image id="bainvimg" x="250" y="168" width="142" height="128" preserveAspectRatio="xMidYMid meet" style="display:none"/>
     <g id="bainvlcd"><rect x="282" y="196" width="78" height="44" rx="6" class="ba-lcd"/><text id="bainvt1" x="321" y="214" text-anchor="middle" class="ba-lcdt">—</text><text id="bainvt2" x="321" y="231" text-anchor="middle" class="ba-lcdt sm">—</text></g>
     <text id="bainvl" x="321" y="303" text-anchor="middle" class="ba-lab">อินเวอร์เตอร์</text><text id="bainvm" x="321" y="319" text-anchor="middle" class="ba-sm">—</text></g>
   <!-- battery -->
-  <g id="babat"><rect x="96" y="300" width="104" height="138" rx="10" class="ba-bat"/><rect x="112" y="314" width="72" height="22" rx="4" class="ba-lcd"/><text id="basoc" x="148" y="330" text-anchor="middle" class="ba-lcdt">—</text>
+  <g id="babat" class="ba-str"><rect x="96" y="300" width="104" height="138" rx="10" class="ba-bat"/><rect x="112" y="314" width="72" height="22" rx="4" class="ba-lcd"/><text id="basoc" x="148" y="330" text-anchor="middle" class="ba-lcdt">—</text>
     <rect x="132" y="350" width="32" height="70" rx="4" class="ba-cell"/><rect id="basocf" x="135" y="353" width="26" height="64" rx="2" class="ba-socf"/>
     <text id="babatb" x="148" y="432" text-anchor="middle" class="ba-brand sm"></text><text x="148" y="455" text-anchor="middle" class="ba-lab">แบตเตอรี่</text><text id="babatx" x="148" y="300" dy="-8" text-anchor="middle" class="ba-sm"></text></g>
   <!-- AC board -->
@@ -4270,9 +4397,9 @@ function bkaSVG(){
     <circle cx="748" cy="374" r="13" class="ba-lamp"/><rect x="744" y="386" width="8" height="14" class="ba-ap"/>
     <text x="690" y="430" text-anchor="middle" class="ba-lab">โหลดในบ้าน</text></g>
   <g id="bacloud" class="ba-cloud" transform="translate(520 70)" tabindex="0" role="slider" aria-label="เมฆ ลากไปบังแผง (ใช้ลูกศรซ้าย/ขวาได้)"><g class="ba-cs"><ellipse cx="0" cy="12" rx="62" ry="22"/><circle cx="-28" cy="2" r="24"/><circle cx="6" cy="-10" r="32"/><circle cx="36" cy="4" r="22"/></g><text x="0" y="12" text-anchor="middle" class="ba-sm">⇆ ลากเมฆ</text></g>
-  ${badge(80,150,'DC','dc')}${badge(190,262,'DC','dc')}${badge(250,372,'DC','dc')}${badge(425,262,'AC','ac')}${badge(620,215,'AC','ac')}${badge(560,330,'AC','ac')}
+  ${badge(80,150,'DC','dc','ba-str')}${badge(190,262,'DC','dc','ba-str')}${badge(250,372,'DC','dc','ba-str')}${badge(425,262,'AC','ac','ba-str')}${badge(440,190,'AC','ac','ba-mic')}${badge(620,215,'AC','ac')}${badge(560,330,'AC','ac')}
   <!-- flow labels -->
-  <g class="ba-val"><text id="bav-pv" x="150" y="140">—</text><text id="bav-bat" x="210" y="396">—</text><text id="bav-ac" x="425" y="250" text-anchor="middle">—</text>
+  <g class="ba-val"><text id="bav-pv" x="150" y="140" class="ba-str">—</text><text id="bav-bat" x="210" y="396" class="ba-str">—</text><text id="bav-ac" x="425" y="250" text-anchor="middle" class="ba-str">—</text><text id="bav-mtr" x="458" y="195" class="ba-mic">—</text>
     <text id="bav-grid" x="640" y="240">—</text><text id="bav-load" x="690" y="292" text-anchor="middle">—</text></g>
 </svg>`;
 }
@@ -4284,7 +4411,9 @@ function bkaFrame(){
   if(cf>0&&R.pv[i]>1){const x=bkaInstant(i,R.pv[i]*(1-cf));pv=x.pv;bat=x.bat;grid=x.grid;load=x.load;unmet=x.unmet}
   const inv=pv+bat;
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
-  BKA.v={pv,pv2:pv,bat:-bat,ac:inv,grid,load};/* positive = along the path as drawn */
+  const mic=isMicro(curInv());host.classList.toggle('micro',mic);
+  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,grid,load};
+  if(mic){txt('bav-mtr',bkaKW(inv));txt('bamicn',`ไมโครอินเวอร์เตอร์ × ${microU(curInv())} ตัว`)}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
   if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('transform',`translate(${(430+(h-6)/12*210).toFixed(1)} ${(125-Math.sin(a)*95).toFixed(1)})`);sun.style.display=''}else sun.style.display='none';
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
@@ -4304,7 +4433,7 @@ function bkaFrame(){
   q('babat').classList.toggle('ba-off',mode==='grid');txt('babatx',mode==='grid'?'ไม่ใช้แบต (On-grid)':'');
   q('bagrid').classList.toggle('ba-off',mode==='off'||out);q('bagridx').style.display=out&&mode!=='off'?'':'none';
   q('baload').classList.toggle('ba-dark',unmet>1&&load<1);q('baload').classList.toggle('ba-dim',unmet>1&&load>=1);
-  ['pv','pv2','bat','ac','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
+  ['pv','pv2','bat','ac','mtr','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
   q('bkat').value=i;txt('bkatl',bkaHM(i));
   const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
     (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));
@@ -4629,7 +4758,7 @@ function evSource(){
   const I=curInv();
   if(lastA){
     const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
-    if(blocks.some(Boolean))return{blocks,I:lastA.I||I,ideal:false,label:'ตามที่ต่อสายไว้ในแท็บ "ต่อสาย"',n:blocks.reduce((a,b)=>a+(b?b.n:0),0)};
+    if(blocks.some(Boolean))return{blocks,I:lastA.I||I,ideal:false,label:'ตามที่ต่อสายไว้ในแท็บ "ต่อสาย"'+(isMicro(I)?` (ไมโคร ${microU(I)} ตัว)`:''),n:blocks.reduce((a,b)=>a+(b?b.n:0),0)*microU(I)};
   }
   const N=Math.max(1,BK.nIdeal|0);
   return{blocks:[{n:N,ns:N,mp:1}],I,ideal:true,label:`แผงสมมติ ${N} แผง (ยังไม่ได้ต่อสายที่ถูกต้อง)`,n:N};
@@ -6322,7 +6451,7 @@ function quickSel(){
 /* ---- persistence ---- */
 function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
-    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM},
+    wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM,micro:MICRO},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
     loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),sy:SY,site:siSnapshot()};
 }
@@ -6367,6 +6496,7 @@ function restoreProject(p){
     st.sel=null;st.armed=null;
     st.tmin=fin(w.tmin,10);st.thot=fin(w.thot,70);
     INV=INV0();
+    if(w.micro&&typeof w.micro==='object'){const m=w.micro;MICRO.n=clamp(fin(m.n,4)|0,1,60);MICRO.br=clamp(fin(m.br,2)|0,1,20);MICRO.brk=clamp(fin(m.brk,20),6,63);MICRO.cab=clamp(fin(m.cab,2.5),1,16);MICRO.len=clamp(fin(m.len,15),1,200);['cap','rcd','pe'].forEach(k=>MICRO[k]=m[k]!==false)}
     MP_PM={};if(w.pm&&typeof w.pm==='object')Object.keys(w.pm).forEach(k=>{if(+k>=1&&+k<=4&&typeof w.pm[k]==='string')MP_PM[k]=w.pm[k]});
     if(Array.isArray(w.mp))w.mp.slice(0,INV.length).forEach((o,i)=>{if(o&&typeof o==='object')INV[i]={x:fin(o.x,INV[i].x),y:fin(o.y,INV[i].y),r:((fin(o.r,0)|0)%4+4)%4}});
     else if(isFinite(w.ix)&&isFinite(w.iy)){const r=((fin(w.ir,0)|0)%4+4)%4,hz=r%2===1;INV=[{x:w.ix,y:w.iy,r},{x:w.ix+(hz?150:0),y:w.iy+(hz?0:180),r}]}

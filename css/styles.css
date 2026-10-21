@@ -585,3 +585,20 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 #bkexp .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .ba-brand{fill:#3b4a58;font:800 12px var(--body);letter-spacing:.14em}.ba-brand.sm{font-size:10px;letter-spacing:.1em}
 .mppv{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}.mppv select{min-height:34px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:0 6px}
+.micbox{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}.micbox label{display:inline-flex;align-items:center;gap:8px;font-weight:600}.micbox input{width:80px}
+
+/* menu 03 micro planner */
+.acmicro{display:flex;flex-direction:column;gap:14px}
+.micchk{display:flex;flex-wrap:wrap;gap:8px 18px}
+.micwrap{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;overflow-x:auto}
+.micsvg{display:block;width:100%;min-width:640px;height:auto}
+.mic-lab{fill:var(--ink);font:600 14px var(--body)}.mic-sm{fill:var(--muted);font:12px var(--body)}.mic-ut{fill:#fff;font:700 11px var(--body)}.mic-warn{fill:var(--err);font:800 16px var(--body)}
+.mic-db{fill:var(--band);stroke:var(--line);stroke-width:1.5}
+.mic-trunk{fill:none;stroke:#8b5a2b;stroke-width:5;stroke-linecap:round}.mic-trunk.err{stroke:var(--err);stroke-dasharray:10 6}
+.mic-bus{fill:none;stroke:#8b5a2b;stroke-width:3}
+.mic-pv{fill:#1f4f84;stroke:#c7d2dc}.mic-u{fill:#6f7b86;stroke:#4a5560}.mic-t{fill:#8b5a2b}
+.mic-cap rect{fill:#1baf7a;stroke:#137a55}.mic-cap.bad rect{fill:none;stroke:var(--err);stroke-width:2;stroke-dasharray:3 2}
+.mic-brk{fill:#4a5866;stroke:#2c353e}.mic-brk.err{fill:var(--err)}
+.mic-rcd{fill:#2a78d6;stroke:#1d5aa3}.mic-rcd.off{fill:none;stroke:var(--err);stroke-dasharray:4 3}
+.mic-pe path{fill:none;stroke:#1baf7a;stroke-width:3}.mic-pe.off path{stroke:var(--err);stroke-dasharray:8 6}
+.bkasvg:not(.micro) .ba-mic{display:none}.bkasvg.micro .ba-str{display:none}.ba-mu{fill:#6f7b86;stroke:#3f4a54}.ba-mut{fill:#fff;font:700 9px var(--body)}

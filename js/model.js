@@ -16,6 +16,11 @@ function syncInvN(){const n=nMp();if(INV.length===n)return false;INV=INV0(n);st.
 let MP_PM={};
 function pvOf(id){const p=id&&typeof CAT!=='undefined'&&CAT.panels.find(x=>x.id===id);return p?Object.assign({},p,{name:(p.brand+' '+p.model).trim(),noct:p.noct||43}):PV}
 const mpPV=k=>pvOf(MP_PM[k]);
+/* microinverters: menu 02 wires ONE unit; MICRO.n identical units make the system (AC side planned in menu 03) */
+const isMicro=I=>{try{return String((I||curInv()).micro||'')==='1'}catch(e){return false}};
+const MICRO={n:4,br:2,brk:20,cab:4,len:15,cap:true,rcd:true,pe:true};
+const microU=I=>isMicro(I)?Math.max(1,MICRO.n|0):1;
+const microIac=I=>+I.iac>0?+I.iac:(+I.pac||0)/220;
 const ibHz=k=>INV[k-1].r%2===1,ibW=k=>ibHz(k)?IHT:IW,ibH=k=>ibHz(k)?IW:IHT;
 function invBlk(k){const b=INV[k-1];return{x:b.x+8,y:b.y+8,w:ibW(k)-16,h:ibH(k)-16}}
 function invTerm(k,pos){

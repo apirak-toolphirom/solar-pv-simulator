@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="05885b8709">
+<meta name="build" content="a039124ba1">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='05885b8709'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='a039124ba1'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>ต่อสายแผงโซลาร์</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=62f4d0e2">
+<link rel="stylesheet" href="css/styles.css?v=3a8d50fe">
 </head>
 <body>
 <div class="app">
@@ -92,6 +92,8 @@ if(m&&m[1]!=='05885b8709'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 
   <section>
     <h2>ผลการต่อ</h2>
+    <div id="micbox" class="panelbox micbox" hidden><label for="micn">จำนวนไมโครอินเวอร์เตอร์ในระบบ <input id="micn" type="number" inputmode="numeric" min="1" max="60" step="1" value="4"> ตัว</label>
+      <span class="hint tight">ผังด้านบนคือไมโคร 1 ตัว ทุกตัวต่อแผงแบบเดียวกัน · <b id="micsum"></b> · วางแผนสาย AC (สายย่อย เบรกเกอร์ ฝาปิดปลายสาย) ที่เมนู 03</span></div>
     <div id="cards" class="cards"></div>
   </section>
 
@@ -119,6 +121,8 @@ if(m&&m[1]!=='05885b8709'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   <section class="tab" id="tab-ac" hidden>
     <header><h1>ต่อสาย AC และพอร์ตอินเวอร์เตอร์</h1><p class="sub">ต่อสายตามจุดต่อจริงของอินเวอร์เตอร์ ได้แก่ GRID, BACKUP, GEN, CT, สมาร์ทมิเตอร์ RS485, แบตเตอรี่ และ BMS แล้วตั้งค่าการทำงาน ระบบจะตรวจว่าต่อถูกหรือผิดอย่างไร ลากจากขั้วหนึ่งไปอีกขั้ว หรือแตะขั้วแรกแล้วแตะขั้วที่สอง แตะสายเพื่อลบ</p></header>
     <div id="acverdict" class="verdict"></div>
+    <div id="acmicro" class="acmicro" hidden></div>
+    <div id="acstdwrap">
     <section class="bar">
       <div class="grp" id="acpre"><span class="lab">ตัวอย่าง</span>
         <button class="chip" data-acp="ct">Hybrid ต่อถูก (ใช้ CT)</button>
@@ -184,6 +188,7 @@ if(m&&m[1]!=='05885b8709'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
     <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
+    </div>
   </section>
 
   <section class="tab" id="tab-pv" hidden>
@@ -496,26 +501,27 @@ if(m&&m[1]!=='05885b8709'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 </div>
 
 <script src="js/config.js?v=396a084b"></script>
-<script src="js/catalog.js?v=09cc98ae"></script>
+<script src="js/catalog.js?v=c8df3b9a"></script>
 <script src="js/pdfimport.js?v=e4c2f177"></script>
-<script src="js/model.js?v=cc52fc70"></script>
-<script src="js/engine.js?v=234acf0c"></script>
-<script src="js/wiring.js?v=7e3b4b52"></script>
+<script src="js/model.js?v=917c235f"></script>
+<script src="js/engine.js?v=33e40fe0"></script>
+<script src="js/wiring.js?v=96256e6b"></script>
 <script src="js/acart.js?v=f733ded9"></script>
-<script src="js/acsys.js?v=77c15cda"></script>
-<script src="js/solar.js?v=9ed496c0"></script>
+<script src="js/acsys.js?v=142656c7"></script>
+<script src="js/acmicro.js?v=afd5e570"></script>
+<script src="js/solar.js?v=9ae9c675"></script>
 <script src="js/site.js?v=3ef896c8"></script>
 <script src="js/loads.js?v=d3b46921"></script>
-<script src="js/backup.js?v=e5a612c2"></script>
-<script src="js/bkanim.js?v=661b8c26"></script>
+<script src="js/backup.js?v=a2d4c069"></script>
+<script src="js/bkanim.js?v=4d5c4225"></script>
 <script src="js/systems.js?v=a0f2fb7f"></script>
-<script src="js/events.js?v=25b18749"></script>
+<script src="js/events.js?v=6b408fef"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
 <script src="js/benchui.js?v=266c0de5"></script>
 <script src="js/submit.js?v=c9dabcd4"></script>
 <script src="js/worksheets.js?v=f8ef6079"></script>
 <script src="js/access.js?v=a90bc0d5"></script>
 <script src="js/ctx.js?v=c2d1f26b"></script>
-<script src="js/app.js?v=5adeaff1"></script>
+<script src="js/app.js?v=a492da3e"></script>
 </body>
 </html>

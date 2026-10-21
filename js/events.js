@@ -54,7 +54,7 @@ function evSource(){
   const I=curInv();
   if(lastA){
     const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
-    if(blocks.some(Boolean))return{blocks,I:lastA.I||I,ideal:false,label:'ตามที่ต่อสายไว้ในแท็บ "ต่อสาย"',n:blocks.reduce((a,b)=>a+(b?b.n:0),0)};
+    if(blocks.some(Boolean))return{blocks,I:lastA.I||I,ideal:false,label:'ตามที่ต่อสายไว้ในแท็บ "ต่อสาย"'+(isMicro(I)?` (ไมโคร ${microU(I)} ตัว)`:''),n:blocks.reduce((a,b)=>a+(b?b.n:0),0)*microU(I)};
   }
   const N=Math.max(1,BK.nIdeal|0);
   return{blocks:[{n:N,ns:N,mp:1}],I,ideal:true,label:`แผงสมมติ ${N} แผง (ยังไม่ได้ต่อสายที่ถูกต้อง)`,n:N};

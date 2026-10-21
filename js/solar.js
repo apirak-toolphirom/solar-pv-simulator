@@ -81,6 +81,8 @@ function solarPos(lat,lon,doy,h,tz){
 }
 
 function simDay(blocks,I,tilt,az,step,ideal,noEv){
+  let U=1;
+  if(isMicro(I)){const nm=Math.max(1,Math.round(+I.nmppt||4));if(ideal){const N=blocks.reduce((a,b)=>a+(b?b.n:0),0);U=N/nm;blocks=[{n:nm,ns:1,mp:1}]}else U=microU(I)}
   const n=Math.round(1440/step),doy=dayOfYear(SIM.date),la=SIM.lat,lo=SIM.lon;
   const b=tilt*Math.PI/180,gp=az*Math.PI/180,sky=SKY[SIM.sky],keep=1-SIM.loss/100;
   const Ics=1361*(1+0.033*Math.cos(2*Math.PI*doy/365)),dt=step/60/1000;
@@ -117,7 +119,7 @@ function simDay(blocks,I,tilt,az,step,ideal,noEv){
       if(ideal)pdc+=p;
       else if(voc>=I.start&&voc<=I.vmax&&vmp>=I.lo&&vmp<=I.hi){const k=imp>I.imax?I.imax/imp:1;pdc+=p*k;lim+=p*(1-k)}
     });
-    const pre=pdc*(I.eff||97)/100,pac=Math.min(pre,I.pac);
+    pot*=U;lim*=U;const pre=pdc*(I.eff||97)/100*U,pac=Math.min(pre,I.pac*U);
     R.elev.push(elev);R.saz.push(sp.az);R.cov.push(cov);R.shade.push(shd);R.t.push(h);R.g.push(g);R.tc.push(tc);R.sun.push(sp.cosZ>0);R.pot.push(pot);R.pac.push(pac);
     R.E+=pac*dt;R.Eclip+=(pre-pac)*dt;R.Elim+=lim*dt;
     if(pac>0){if(R.first<0)R.first=i;R.last=i;R.ops++;if(pac>R.peak){R.peak=pac;R.peakI=i}}
@@ -214,7 +216,7 @@ function drawLine(host,c){
 let lastA=null,lastSig='',chartCfg=null;
 function maybeSim(A){
   lastA=A;
-  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n,r.blk.pv&&r.blk.pv.id]:0),curInv(),PV]);
+  const sig=JSON.stringify([A.res.map(r=>r.status==='ok'?[r.blk.ns,r.blk.mp,r.blk.n,r.blk.pv&&r.blk.pv.id]:0),curInv(),PV,microU(curInv())]);
   if(sig!==lastSig){lastSig=sig;runSim()}
 }
 function drawOrient(){
@@ -254,11 +256,11 @@ function runSimView(){
   const i0=Math.round(xmin*60/R.step),i1=Math.round(xmax*60/R.step);
   const sl=a=>a.slice(i0,i1);
   const xs=sl(R.t),kw=v=>v==null?null:v/1000;
-  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0),kwp=blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000;
+  const nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0)*microU(I),kwp=blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000*microU(I);
   const hrs=R.ops*R.step/60,idleH=R.idle*R.step/60;
   const mx=[
     ['ช่วงที่อินเวอร์เตอร์ทำงาน',R.ops?`${fmtT(R.first*R.step/60)}–${fmtT((R.last+1)*R.step/60)}`:'ไม่ทำงาน',R.ops?`${f(hrs,1)} ชม. · แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`:`แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`],
-    ['กำลัง AC สูงสุด',R.ops?f(R.peak/1000,2)+' kW':'0 kW',R.ops?`เวลา ${fmtT(R.t[R.peakI])} · พิกัด ${I.pac/1000} kW`:''],
+    ['กำลัง AC สูงสุด',R.ops?f(R.peak/1000,2)+' kW':'0 kW',R.ops?`เวลา ${fmtT(R.t[R.peakI])} · พิกัด ${f(I.pac*microU(I)/1000,2)} kW${isMicro(I)?` (ไมโคร ${microU(I)} ตัว)`:''}`:''],
     ['พลังงานต่อวัน',f(R.E,1)+' kWh',`${f(R.E/kwp,2)} kWh ต่อ kWp · ${nUsed} แผง`],
     ['สูญเสียจากเพดาน AC',f(R.Eclip,2)+' kWh',`จำกัดกระแส MPPT ${f(R.Elim*(I.eff||97)/100,2)} kWh`],
     ['มีแสงแต่ยังไม่ทำงาน',f(idleH,1)+' ชม.','แรงดันต่ำกว่าช่วง MPPT หรือยังไม่ถึงแรงดันเริ่มทำงาน']
@@ -269,8 +271,8 @@ function runSimView(){
   $('#mx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   const potMax=Math.max(...R.pot)/1000,vTop=Math.max(I.hi,...R.vmp.flatMap(a=>a.filter(v=>v!=null)))*1.05;
   chartCfg={
-    A:{x:xs,ymax:Math.max(potMax,I.pac/1000)*1.08,unit:'kW',aria:'กราฟกำลังไฟฟ้า AC และ DC ตลอดวัน',
-      refs:[{y:I.pac/1000,label:`พิกัด AC ${I.pac/1000} kW`}],
+    A:{x:xs,ymax:Math.max(potMax,I.pac*microU(I)/1000)*1.08,unit:'kW',aria:'กราฟกำลังไฟฟ้า AC และ DC ตลอดวัน',
+      refs:[{y:I.pac*microU(I)/1000,label:`พิกัด AC ${f(I.pac*microU(I)/1000,2)} kW`}],
       series:[{short:'กำลัง AC ที่จ่ายจริง',color:'var(--s1)',vals:sl(R.pac).map(kw),area:true,peak:true,fmt:v=>f(v,2)},
               {short:'กำลัง DC จากแผง',color:'var(--s2)',vals:sl(R.pot).map(kw),fmt:v=>f(v,2)}]},
     B:{x:xs,ymax:vTop,unit:'V',aria:'กราฟแรงดันสตริงเทียบช่วง MPPT ตลอดวัน',
