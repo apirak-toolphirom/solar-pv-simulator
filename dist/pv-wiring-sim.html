@@ -4364,13 +4364,13 @@ function bkaSVG(){
   <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
   <!-- wires (base + animated dash) -->
-  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M318 206 H440 V262 H470','ac ba-mic'],['md0','M82 94 V108 H186 V158','dc ba-mic'],['md1','M164 94 V117 H222 V158','dc ba-mic'],['md2','M246 94 V126 H258 V158','dc ba-mic'],['md3','M328 94 V135 H294 V158','dc ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
+  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M340 229 H440 V262 H470','ac ba-mic'],['md0','M82 94 V222 H140','dc ba-mic'],['md1','M164 94 V130 H120 V172 H140','dc ba-mic'],['md2','M246 94 V130 H298 V173 H276','dc ba-mic'],['md3','M328 94 V216 H276','dc ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
     .map(([id,d,c])=>`<path d="${d}" class="ba-w ${c}"/><path id="baw-${id}" d="${d}" class="ba-f ${c}"/>`).join('')}
   <!-- microinverters: one under each panel, AC trunk straight to the board -->
-  <g class="ba-mic"><image href="img/inv/deye-micro.png" x="150" y="150" width="184" height="108" preserveAspectRatio="xMidYMid meet"/>
-    ${[0,1,2,3].map(k=>`<text x="${186+k*36+12}" y="152" class="ba-pin">PV${k+1}</text>`).join('')}
+  <g class="ba-mic"><image href="img/inv/deye-micro.png?v=2" x="140" y="150" width="200" height="109" preserveAspectRatio="xMidYMid meet"/>
+    <text x="100" y="236" class="ba-pin">PV1</text><text x="96" y="168" class="ba-pin">PV2</text><text x="300" y="168" class="ba-pin">PV3</text><text x="300" y="211" class="ba-pin">PV4</text>
     <text id="bamicn" x="242" y="278" text-anchor="middle" class="ba-lab">ไมโครอินเวอร์เตอร์</text><text x="242" y="296" text-anchor="middle" class="ba-sm">แผงละ 1 ช่อง (4 แผงต่อ 1 ตัว) แปลง DC เป็น AC ที่หลังแผง</text>
-    <text id="bav-md" x="40" y="146" class="ba-sm"></text></g>
+    <text id="bav-md" x="242" y="314" text-anchor="middle" class="ba-sm"></text></g>
   <!-- DC isolator -->
   <g class="ba-str"><rect x="52" y="190" width="56" height="48" rx="5" class="ba-box"/><rect x="66" y="203" width="28" height="18" rx="3" class="ba-sw"/><text x="80" y="252" text-anchor="middle" class="ba-sm">DC isolator</text></g>
   <!-- inverter -->
@@ -4400,9 +4400,9 @@ function bkaSVG(){
     <circle cx="748" cy="374" r="13" class="ba-lamp"/><rect x="744" y="386" width="8" height="14" class="ba-ap"/>
     <text x="690" y="430" text-anchor="middle" class="ba-lab">โหลดในบ้าน</text></g>
   <g id="bacloud" class="ba-cloud" transform="translate(520 70)" tabindex="0" role="slider" aria-label="เมฆ ลากไปบังแผง (ใช้ลูกศรซ้าย/ขวาได้)"><g class="ba-cs"><ellipse cx="0" cy="12" rx="62" ry="22"/><circle cx="-28" cy="2" r="24"/><circle cx="6" cy="-10" r="32"/><circle cx="36" cy="4" r="22"/></g><text x="0" y="12" text-anchor="middle" class="ba-sm">⇆ ลากเมฆ</text></g>
-  ${badge(80,150,'DC','dc','ba-str')}${badge(190,262,'DC','dc','ba-str')}${badge(250,372,'DC','dc','ba-str')}${badge(425,262,'AC','ac','ba-str')}${badge(440,190,'AC','ac','ba-mic')}${badge(620,215,'AC','ac')}${badge(560,330,'AC','ac')}
+  ${badge(80,150,'DC','dc','ba-str')}${badge(190,262,'DC','dc','ba-str')}${badge(250,372,'DC','dc','ba-str')}${badge(425,262,'AC','ac','ba-str')}${badge(400,229,'AC','ac','ba-mic')}${badge(620,215,'AC','ac')}${badge(560,330,'AC','ac')}
   <!-- flow labels -->
-  <g class="ba-val"><text id="bav-pv" x="150" y="140" class="ba-str">—</text><text id="bav-bat" x="210" y="396" class="ba-str">—</text><text id="bav-ac" x="425" y="250" text-anchor="middle" class="ba-str">—</text><text id="bav-mtr" x="458" y="195" class="ba-mic">—</text>
+  <g class="ba-val"><text id="bav-pv" x="150" y="140" class="ba-str">—</text><text id="bav-bat" x="210" y="396" class="ba-str">—</text><text id="bav-ac" x="425" y="250" text-anchor="middle" class="ba-str">—</text><text id="bav-mtr" x="360" y="212" class="ba-mic">—</text>
     <text id="bav-grid" x="640" y="240">—</text><text id="bav-load" x="690" y="292" text-anchor="middle">—</text></g>
 </svg>`;
 }
@@ -4480,7 +4480,7 @@ function bkaInvPic(I){
   const show=on=>{img.style.display=on?'':'none';body.style.display=on?'none':'';lcd.setAttribute('transform',on?'translate(0 -70)':'');
     document.getElementById('bainvl').setAttribute('y',on?316:303);document.getElementById('bainvm').setAttribute('y',on?331:319)};
   if(!k||BKA.picBad[k]){show(false);return}
-  if(img.dataset.k!==k){img.dataset.k=k;img.onerror=()=>{BKA.picBad[k]=1;show(false)};img.setAttribute('href','img/inv/'+k+'.png')}
+  if(img.dataset.k!==k){img.dataset.k=k;img.onerror=()=>{BKA.picBad[k]=1;show(false)};img.setAttribute('href','img/inv/'+k+'.png?v=2')}
   show(true);
 }
 function bkaTick(t){
