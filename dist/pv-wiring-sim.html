@@ -623,6 +623,9 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 #bkout .chip[aria-pressed="true"],#bkodq .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .bkper{margin-top:10px}.bkper td:first-child{color:var(--muted)}.bkper th.out,.bkper td:nth-child(3){background:var(--warnbg)}.bkper .bad{color:var(--err)}
 .bkper{width:auto;min-width:min(100%,520px);max-width:820px}.bkper td,.bkper th{text-align:left}#bkoutset .inl{display:inline-flex;flex-direction:row;align-items:center;gap:6px;white-space:nowrap}#bkoutset .inl input{width:auto;max-width:110px}
+
+.bkmicoff select{border-style:dashed;color:var(--muted,#6b7280)}
+#bkasvg .ba-off{opacity:.22}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -4374,7 +4377,9 @@ function loadChanged(){
 }
 
 /* ---- backup simulation: on-grid / hybrid / off-grid, 5-minute energy balance ---- */
-const BK={exp:'full',expW:1000,meter:'auto',mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,outKeep:6,island:'crit',soc0:50};
+const BK={exp:'full',expW:1000,meter:'auto',mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,outKeep:6,island:'crit',soc0:50,micOff:[]};
+/* micro channels used in this menu: ideal source = not marked 'ไม่ต่อแผง'; wiring source = channel wired OK in menu 02 */
+function bkMicOn(k){if(BK.src!=='ideal')return!!(typeof lastA!=='undefined'&&lastA&&lastA.res&&lastA.res[k-1]&&lastA.res[k-1].status==='ok');return!(BK.micOff||[]).includes(k)}
 const MODE_NAME={grid:'On-grid (ไม่มีแบต)',hybrid:'Hybrid (กริด + แบต)',off:'Off-grid (ไม่ต่อกริด)'};
 
 /* pure energy balance. inputs: pv[], load[], crit[] in W (same length), cfg. returns arrays and totals */
@@ -4434,9 +4439,10 @@ function bkSource(noEv){
   const I=curInv();
   if(BK.src==='ideal'&&isMicro(I)){
     /* micro: one panel per input, each input its own module (shared with menu 02), × number of units */
-    const nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4))),blocks=[...Array(nm)].map((_,j)=>({n:1,ns:1,mp:1,pv:mpPV(j+1)}));
-    const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv),U=microU(I),kw=blocks.reduce((a,b)=>a+b.pv.pmax,0)*U/1000;
-    return{pv:R.pac,label:`ไมโคร 1 ตัว · ${nm} แผง (${blocks.map(b=>b.pv.pmax).join('/')} W)`,kwp:kw,E:R.E};
+    const nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4))),blocks=[...Array(nm)].map((_,j)=>bkMicOn(j+1)?{n:1,ns:1,mp:1,pv:mpPV(j+1)}:null),nOn=blocks.filter(Boolean).length;
+    if(!nOn)return{err:'ไมโครอินเวอร์เตอร์ยังไม่ได้ต่อแผงเลย เลือกแผงอย่างน้อย 1 ช่อง'};
+    const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv),U=microU(I),kw=blocks.reduce((a,b)=>a+(b?b.pv.pmax:0),0)*U/1000;
+    return{pv:R.pac,label:`ไมโคร 1 ตัว · ต่อแผง ${nOn}/${nm} ช่อง (${blocks.map(b=>b?b.pv.pmax+' W':'ว่าง').join(' / ')})`,kwp:kw,E:R.E};
   }
   if(BK.src==='ideal'){
     const N=Math.max(1,BK.nIdeal|0);
@@ -4641,9 +4647,10 @@ function bkSync(){
   $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal'||mic;
   $('#bkmicbox').hidden=!(mic&&BK.src==='ideal');
   if(mic&&BK.src==='ideal'){const I=curInv(),nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4)));
-    $('#bkmicsel').innerHTML=[...Array(nm)].map((_,j)=>{const k=j+1,cur=MP_PM[k]||'';return`<label>PV${k}<select data-bkpv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`}).join('');
-    const W=[...Array(nm)].map((_,j)=>mpPV(j+1).pmax),sum=W.reduce((a,b)=>a+b,0);
-    $('#bkmicinfo').textContent=`ไมโคร 1 ตัว ต่อแผง ${nm} แผง (ช่องละ 1 แผง) รวม ${f(sum/1000,2)} kWp · AC ${f(I.pac/1000,2)} kW · ใช้ค่าเดียวกับเมนู 02`+(I.pvRec&&sum>I.pvRec?` · เกินกำลังแผงที่แนะนำ ${I.pvRec} W ต่อตัว`:'');}
+    $('#bkmicsel').innerHTML=[...Array(nm)].map((_,j)=>{const k=j+1,off=!bkMicOn(k),cur=off?'none':MP_PM[k]||'';return`<label${off?' class="bkmicoff"':''}>PV${k}<select data-bkpv="${k}"><option value="none" ${off?'selected':''}>— ไม่ต่อแผง (ช่องว่าง) —</option><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`}).join('');
+    const W=[...Array(nm)].map((_,j)=>bkMicOn(j+1)?mpPV(j+1).pmax:0),sum=W.reduce((a,b)=>a+b,0),nOn=W.filter(w=>w>0).length,emp=[...Array(nm)].map((_,j)=>j+1).filter(k=>!bkMicOn(k));
+    $('#bkmicinfo').textContent=(nOn?`ไมโคร 1 ตัว ต่อแผง ${nOn} จาก ${nm} ช่อง (ช่องละ 1 แผง) รวม ${f(sum/1000,2)} kWp · AC ${f(I.pac/1000,2)} kW · รุ่นแผงใช้ค่าเดียวกับเมนู 02`:'ยังไม่ได้ต่อแผงเลย เลือกแผงอย่างน้อย 1 ช่อง')
+      +(emp.length&&nOn?` · ช่องว่าง PV${emp.join(', PV')}: ไม่ผลิตไฟ ช่องอื่นทำงานแยกกันตามปกติ (เก็บขั้ว DC ช่องว่างด้วยฝาปิดกันน้ำ)`:'')+(I.pvRec&&sum>I.pvRec?` · เกินกำลังแผงที่แนะนำ ${I.pvRec} W ต่อตัว`:'');}
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
   document.querySelectorAll('#bkexp [data-be]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.be===BK.exp)));
   $('#bkexpbox').hidden=BK.mode==='off';$('#bkexpwbox').hidden=BK.exp!=='limit';$('#bkexpw').value=BK.expW;
@@ -4668,7 +4675,7 @@ function bkSync(){
   }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
-  $('#bkmicsel').addEventListener('change',e=>{const s=e.target.closest('[data-bkpv]');if(!s)return;const k=+s.dataset.bkpv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];bkSync();backupRun();if(typeof render==='function')render();if(typeof touch==='function')touch()});
+  $('#bkmicsel').addEventListener('change',e=>{const s=e.target.closest('[data-bkpv]');if(!s)return;const k=+s.dataset.bkpv;BK.micOff=(BK.micOff||[]).filter(x=>x!==k);if(s.value==='none')BK.micOff.push(k);else if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];bkSync();backupRun();if(typeof render==='function')render();if(typeof touch==='function')touch()});
   $('#bkexp').addEventListener('click',e=>{const b=e.target.closest('[data-be]');if(!b)return;BK.exp=b.dataset.be;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bkmeter').addEventListener('change',e=>{BK.meter=e.target.value;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bkexpw').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.expW=Math.max(0,Math.min(20000,n));backupRun();if(typeof touch==='function')touch()});
@@ -4693,14 +4700,14 @@ const BKA={picBad:{},i:144,play:false,speed:3,last:0,acc:0,off:{},raf:0,cloud:{o
 const bkaHM=i=>{const m=i*5;return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const bkaKW=w=>(Math.abs(w)/1000).toFixed(Math.abs(w)<10000?2:1)+' kW';
 function bkaSVG(){
-  const panel=(x,y)=>`<g transform="translate(${x} ${y}) skewX(-18)"><rect width="78" height="46" rx="2" class="ba-pv"/>${[1,2,3].map(k=>`<line x1="${k*19.5}" y1="0" x2="${k*19.5}" y2="46" class="ba-pvl"/>`).join('')}<line x1="0" y1="23" x2="78" y2="23" class="ba-pvl"/></g>`;
+  const panel=(x,y,k)=>`<g id="bapnl${k}" transform="translate(${x} ${y}) skewX(-18)"><rect width="78" height="46" rx="2" class="ba-pv"/>${[1,2,3].map(k=>`<line x1="${k*19.5}" y1="0" x2="${k*19.5}" y2="46" class="ba-pvl"/>`).join('')}<line x1="0" y1="23" x2="78" y2="23" class="ba-pvl"/></g>`;
   const badge=(x,y,t,c,m)=>`<g class="ba-bd ${c} ${m||''}"><circle cx="${x}" cy="${y}" r="13"/><text x="${x}" y="${y+4}" text-anchor="middle">${t}</text></g>`;
   return `<svg viewBox="0 0 800 470" class="ba" role="img" aria-label="ภาพเคลื่อนไหวการไหลของไฟฟ้าในระบบ">
   <rect x="0" y="0" width="800" height="470" class="ba-wall"/><rect x="0" y="440" width="800" height="30" class="ba-floor"/>
   <g id="basun" class="ba-sun">${[0,1,2,3,4,5,6,7].map(k=>{const a=k*Math.PI/4;return`<line x1="${(Math.cos(a)*23).toFixed(1)}" y1="${(Math.sin(a)*23).toFixed(1)}" x2="${(Math.cos(a)*32).toFixed(1)}" y2="${(Math.sin(a)*32).toFixed(1)}"/>`}).join('')}<circle r="17"/></g>
   <g id="bamoon" class="ba-moon"><path d="M6 -19 A20 20 0 1 0 6 19 A15 15 0 1 1 6 -19Z"/><circle cx="-48" cy="-6" r="1.6"/><circle cx="40" cy="14" r="1.3"/><circle cx="-20" cy="22" r="1.1"/><circle cx="58" cy="-14" r="1.5"/></g>
   <g class="ba-rack"><line x1="40" y1="96" x2="380" y2="96"/><line x1="70" y1="96" x2="62" y2="122"/><line x1="350" y1="96" x2="342" y2="122"/></g>
-  ${[0,1,2,3].map(k=>panel(54+k*82,46)).join('')}
+  ${[0,1,2,3].map(k=>panel(54+k*82,46,k)).join('')}
   <clipPath id="bapvclip">${[0,1,2,3].map(k=>{const x=54+k*82;return`<polygon points="${x},46 ${x+78},46 ${(x+78-14.9).toFixed(1)},92 ${(x-14.9).toFixed(1)},92"/>`}).join('')}</clipPath>
   <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
@@ -4756,10 +4763,10 @@ function bkaFrame(){
   const inv=pv+bat;
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   const mic=isMicro(curInv());host.classList.toggle('micro',mic);
-  const Wp=[1,2,3,4].map(k=>mpPV(k).pmax),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
+  const On=[1,2,3,4].map(k=>!mic||bkMicOn(k)),Wp=[1,2,3,4].map((k,j)=>On[j]?mpPV(k).pmax:0),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
   BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load};
-  if(mic)Wp.forEach((w,k)=>txt('bapw'+k,w+' W'));
-  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง 4 แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
+  if(mic)Wp.forEach((w,k)=>txt('bapw'+k,On[k]?w+' W':'ไม่ต่อแผง'));[0,1,2,3].forEach(k=>{const g=q('bapnl'+k);if(g)g.classList.toggle('ba-off',!On[k])});
+  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง ${On.filter(Boolean).length} แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
   if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('transform',`translate(${(430+(h-6)/12*210).toFixed(1)} ${(125-Math.sin(a)*95).toFixed(1)})`);sun.style.display=''}else sun.style.display='none';
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
@@ -6885,7 +6892,7 @@ function restoreProject(p){
     if(['wiring','ideal'].includes(p.bk.src))BK.src=p.bk.src;
     if(['crit','all'].includes(p.bk.island))BK.island=p.bk.island;
     if(['full','zero','limit'].includes(p.bk.exp))BK.exp=p.bk.exp;if(['auto','ddsu','dtsu','dtsu250','none'].includes(p.bk.meter))BK.meter=p.bk.meter;BK.expW=clamp(fin(p.bk.expW,1000),0,20000);
-    BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.outKeep=clamp(fin(p.bk.outKeep,BK.outDur||6),.5,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);
+    BK.nIdeal=clamp(fin(p.bk.nIdeal,9),1,200);BK.outStart=clamp(fin(p.bk.outStart,18),0,24);BK.outDur=clamp(fin(p.bk.outDur,6),0,24);BK.outKeep=clamp(fin(p.bk.outKeep,BK.outDur||6),.5,24);BK.soc0=clamp(fin(p.bk.soc0,50),0,100);BK.micOff=Array.isArray(p.bk.micOff)?p.bk.micOff.map(Number).filter(k=>k>=1&&k<=4):[];
   }
 }
 function restoreExtra(p){

@@ -4,14 +4,14 @@ const BKA={picBad:{},i:144,play:false,speed:3,last:0,acc:0,off:{},raf:0,cloud:{o
 const bkaHM=i=>{const m=i*5;return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const bkaKW=w=>(Math.abs(w)/1000).toFixed(Math.abs(w)<10000?2:1)+' kW';
 function bkaSVG(){
-  const panel=(x,y)=>`<g transform="translate(${x} ${y}) skewX(-18)"><rect width="78" height="46" rx="2" class="ba-pv"/>${[1,2,3].map(k=>`<line x1="${k*19.5}" y1="0" x2="${k*19.5}" y2="46" class="ba-pvl"/>`).join('')}<line x1="0" y1="23" x2="78" y2="23" class="ba-pvl"/></g>`;
+  const panel=(x,y,k)=>`<g id="bapnl${k}" transform="translate(${x} ${y}) skewX(-18)"><rect width="78" height="46" rx="2" class="ba-pv"/>${[1,2,3].map(k=>`<line x1="${k*19.5}" y1="0" x2="${k*19.5}" y2="46" class="ba-pvl"/>`).join('')}<line x1="0" y1="23" x2="78" y2="23" class="ba-pvl"/></g>`;
   const badge=(x,y,t,c,m)=>`<g class="ba-bd ${c} ${m||''}"><circle cx="${x}" cy="${y}" r="13"/><text x="${x}" y="${y+4}" text-anchor="middle">${t}</text></g>`;
   return `<svg viewBox="0 0 800 470" class="ba" role="img" aria-label="ภาพเคลื่อนไหวการไหลของไฟฟ้าในระบบ">
   <rect x="0" y="0" width="800" height="470" class="ba-wall"/><rect x="0" y="440" width="800" height="30" class="ba-floor"/>
   <g id="basun" class="ba-sun">${[0,1,2,3,4,5,6,7].map(k=>{const a=k*Math.PI/4;return`<line x1="${(Math.cos(a)*23).toFixed(1)}" y1="${(Math.sin(a)*23).toFixed(1)}" x2="${(Math.cos(a)*32).toFixed(1)}" y2="${(Math.sin(a)*32).toFixed(1)}"/>`}).join('')}<circle r="17"/></g>
   <g id="bamoon" class="ba-moon"><path d="M6 -19 A20 20 0 1 0 6 19 A15 15 0 1 1 6 -19Z"/><circle cx="-48" cy="-6" r="1.6"/><circle cx="40" cy="14" r="1.3"/><circle cx="-20" cy="22" r="1.1"/><circle cx="58" cy="-14" r="1.5"/></g>
   <g class="ba-rack"><line x1="40" y1="96" x2="380" y2="96"/><line x1="70" y1="96" x2="62" y2="122"/><line x1="350" y1="96" x2="342" y2="122"/></g>
-  ${[0,1,2,3].map(k=>panel(54+k*82,46)).join('')}
+  ${[0,1,2,3].map(k=>panel(54+k*82,46,k)).join('')}
   <clipPath id="bapvclip">${[0,1,2,3].map(k=>{const x=54+k*82;return`<polygon points="${x},46 ${x+78},46 ${(x+78-14.9).toFixed(1)},92 ${(x-14.9).toFixed(1)},92"/>`}).join('')}</clipPath>
   <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
@@ -67,10 +67,10 @@ function bkaFrame(){
   const inv=pv+bat;
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   const mic=isMicro(curInv());host.classList.toggle('micro',mic);
-  const Wp=[1,2,3,4].map(k=>mpPV(k).pmax),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
+  const On=[1,2,3,4].map(k=>!mic||bkMicOn(k)),Wp=[1,2,3,4].map((k,j)=>On[j]?mpPV(k).pmax:0),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
   BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load};
-  if(mic)Wp.forEach((w,k)=>txt('bapw'+k,w+' W'));
-  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง 4 แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
+  if(mic)Wp.forEach((w,k)=>txt('bapw'+k,On[k]?w+' W':'ไม่ต่อแผง'));[0,1,2,3].forEach(k=>{const g=q('bapnl'+k);if(g)g.classList.toggle('ba-off',!On[k])});
+  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง ${On.filter(Boolean).length} แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
   if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('transform',`translate(${(430+(h-6)/12*210).toFixed(1)} ${(125-Math.sin(a)*95).toFixed(1)})`);sun.style.display=''}else sun.style.display='none';
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';

@@ -618,3 +618,6 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 #bkout .chip[aria-pressed="true"],#bkodq .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .bkper{margin-top:10px}.bkper td:first-child{color:var(--muted)}.bkper th.out,.bkper td:nth-child(3){background:var(--warnbg)}.bkper .bad{color:var(--err)}
 .bkper{width:auto;min-width:min(100%,520px);max-width:820px}.bkper td,.bkper th{text-align:left}#bkoutset .inl{display:inline-flex;flex-direction:row;align-items:center;gap:6px;white-space:nowrap}#bkoutset .inl input{width:auto;max-width:110px}
+
+.bkmicoff select{border-style:dashed;color:var(--muted,#6b7280)}
+#bkasvg .ba-off{opacity:.22}

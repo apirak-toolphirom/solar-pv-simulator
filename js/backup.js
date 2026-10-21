@@ -1,5 +1,7 @@
 /* ---- backup simulation: on-grid / hybrid / off-grid, 5-minute energy balance ---- */
-const BK={exp:'full',expW:1000,meter:'auto',mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,outKeep:6,island:'crit',soc0:50};
+const BK={exp:'full',expW:1000,meter:'auto',mode:'hybrid',src:'ideal',nIdeal:9,outStart:18,outDur:6,outKeep:6,island:'crit',soc0:50,micOff:[]};
+/* micro channels used in this menu: ideal source = not marked 'ไม่ต่อแผง'; wiring source = channel wired OK in menu 02 */
+function bkMicOn(k){if(BK.src!=='ideal')return!!(typeof lastA!=='undefined'&&lastA&&lastA.res&&lastA.res[k-1]&&lastA.res[k-1].status==='ok');return!(BK.micOff||[]).includes(k)}
 const MODE_NAME={grid:'On-grid (ไม่มีแบต)',hybrid:'Hybrid (กริด + แบต)',off:'Off-grid (ไม่ต่อกริด)'};
 
 /* pure energy balance. inputs: pv[], load[], crit[] in W (same length), cfg. returns arrays and totals */
@@ -59,9 +61,10 @@ function bkSource(noEv){
   const I=curInv();
   if(BK.src==='ideal'&&isMicro(I)){
     /* micro: one panel per input, each input its own module (shared with menu 02), × number of units */
-    const nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4))),blocks=[...Array(nm)].map((_,j)=>({n:1,ns:1,mp:1,pv:mpPV(j+1)}));
-    const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv),U=microU(I),kw=blocks.reduce((a,b)=>a+b.pv.pmax,0)*U/1000;
-    return{pv:R.pac,label:`ไมโคร 1 ตัว · ${nm} แผง (${blocks.map(b=>b.pv.pmax).join('/')} W)`,kwp:kw,E:R.E};
+    const nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4))),blocks=[...Array(nm)].map((_,j)=>bkMicOn(j+1)?{n:1,ns:1,mp:1,pv:mpPV(j+1)}:null),nOn=blocks.filter(Boolean).length;
+    if(!nOn)return{err:'ไมโครอินเวอร์เตอร์ยังไม่ได้ต่อแผงเลย เลือกแผงอย่างน้อย 1 ช่อง'};
+    const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv),U=microU(I),kw=blocks.reduce((a,b)=>a+(b?b.pv.pmax:0),0)*U/1000;
+    return{pv:R.pac,label:`ไมโคร 1 ตัว · ต่อแผง ${nOn}/${nm} ช่อง (${blocks.map(b=>b?b.pv.pmax+' W':'ว่าง').join(' / ')})`,kwp:kw,E:R.E};
   }
   if(BK.src==='ideal'){
     const N=Math.max(1,BK.nIdeal|0);
@@ -266,9 +269,10 @@ function bkSync(){
   $('#bksrc').value=BK.src;$('#bkn').value=BK.nIdeal;$('#bknwrap').hidden=BK.src!=='ideal'||mic;
   $('#bkmicbox').hidden=!(mic&&BK.src==='ideal');
   if(mic&&BK.src==='ideal'){const I=curInv(),nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4)));
-    $('#bkmicsel').innerHTML=[...Array(nm)].map((_,j)=>{const k=j+1,cur=MP_PM[k]||'';return`<label>PV${k}<select data-bkpv="${k}"><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`}).join('');
-    const W=[...Array(nm)].map((_,j)=>mpPV(j+1).pmax),sum=W.reduce((a,b)=>a+b,0);
-    $('#bkmicinfo').textContent=`ไมโคร 1 ตัว ต่อแผง ${nm} แผง (ช่องละ 1 แผง) รวม ${f(sum/1000,2)} kWp · AC ${f(I.pac/1000,2)} kW · ใช้ค่าเดียวกับเมนู 02`+(I.pvRec&&sum>I.pvRec?` · เกินกำลังแผงที่แนะนำ ${I.pvRec} W ต่อตัว`:'');}
+    $('#bkmicsel').innerHTML=[...Array(nm)].map((_,j)=>{const k=j+1,off=!bkMicOn(k),cur=off?'none':MP_PM[k]||'';return`<label${off?' class="bkmicoff"':''}>PV${k}<select data-bkpv="${k}"><option value="none" ${off?'selected':''}>— ไม่ต่อแผง (ช่องว่าง) —</option><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`}).join('');
+    const W=[...Array(nm)].map((_,j)=>bkMicOn(j+1)?mpPV(j+1).pmax:0),sum=W.reduce((a,b)=>a+b,0),nOn=W.filter(w=>w>0).length,emp=[...Array(nm)].map((_,j)=>j+1).filter(k=>!bkMicOn(k));
+    $('#bkmicinfo').textContent=(nOn?`ไมโคร 1 ตัว ต่อแผง ${nOn} จาก ${nm} ช่อง (ช่องละ 1 แผง) รวม ${f(sum/1000,2)} kWp · AC ${f(I.pac/1000,2)} kW · รุ่นแผงใช้ค่าเดียวกับเมนู 02`:'ยังไม่ได้ต่อแผงเลย เลือกแผงอย่างน้อย 1 ช่อง')
+      +(emp.length&&nOn?` · ช่องว่าง PV${emp.join(', PV')}: ไม่ผลิตไฟ ช่องอื่นทำงานแยกกันตามปกติ (เก็บขั้ว DC ช่องว่างด้วยฝาปิดกันน้ำ)`:'')+(I.pvRec&&sum>I.pvRec?` · เกินกำลังแผงที่แนะนำ ${I.pvRec} W ต่อตัว`:'');}
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
   document.querySelectorAll('#bkexp [data-be]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.be===BK.exp)));
   $('#bkexpbox').hidden=BK.mode==='off';$('#bkexpwbox').hidden=BK.exp!=='limit';$('#bkexpw').value=BK.expW;
@@ -293,7 +297,7 @@ function bkSync(){
   }[BK.mode]+(ok.length===1?` · ล็อกตามอินเวอร์เตอร์ ${curInv().name} (${curInv().type})`:'');
 }
 function initBackup(){
-  $('#bkmicsel').addEventListener('change',e=>{const s=e.target.closest('[data-bkpv]');if(!s)return;const k=+s.dataset.bkpv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];bkSync();backupRun();if(typeof render==='function')render();if(typeof touch==='function')touch()});
+  $('#bkmicsel').addEventListener('change',e=>{const s=e.target.closest('[data-bkpv]');if(!s)return;const k=+s.dataset.bkpv;BK.micOff=(BK.micOff||[]).filter(x=>x!==k);if(s.value==='none')BK.micOff.push(k);else if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];bkSync();backupRun();if(typeof render==='function')render();if(typeof touch==='function')touch()});
   $('#bkexp').addEventListener('click',e=>{const b=e.target.closest('[data-be]');if(!b)return;BK.exp=b.dataset.be;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bkmeter').addEventListener('change',e=>{BK.meter=e.target.value;bkSync();backupRun();if(typeof touch==='function')touch()});
   $('#bkexpw').addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;BK.expW=Math.max(0,Math.min(20000,n));backupRun();if(typeof touch==='function')touch()});
