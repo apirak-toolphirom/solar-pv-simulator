@@ -16,11 +16,13 @@ function bkaSVG(){
   <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
   <!-- wires (base + animated dash) -->
-  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M44 116 H440 V262 H470','ac ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
+  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M318 206 H440 V262 H470','ac ba-mic'],['md0','M82 94 V108 H186 V158','dc ba-mic'],['md1','M164 94 V117 H222 V158','dc ba-mic'],['md2','M246 94 V126 H258 V158','dc ba-mic'],['md3','M328 94 V135 H294 V158','dc ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
     .map(([id,d,c])=>`<path d="${d}" class="ba-w ${c}"/><path id="baw-${id}" d="${d}" class="ba-f ${c}"/>`).join('')}
   <!-- microinverters: one under each panel, AC trunk straight to the board -->
-  <g class="ba-mic">${[0,1,2,3].map(k=>`<rect x="${44+k*82}" y="100" width="44" height="14" rx="3" class="ba-mu"/><text x="${66+k*82}" y="111" text-anchor="middle" class="ba-mut">micro</text>`).join('')}
-    <text id="bamicn" x="210" y="146" text-anchor="middle" class="ba-lab">ไมโครอินเวอร์เตอร์</text><text x="210" y="164" text-anchor="middle" class="ba-sm">ติดใต้แผง แปลง DC เป็น AC ที่แผงเลย ไม่มีสาย DC ยาวและไม่มีแบต</text></g>
+  <g class="ba-mic"><image href="img/inv/deye-micro.png" x="150" y="150" width="184" height="108" preserveAspectRatio="xMidYMid meet"/>
+    ${[0,1,2,3].map(k=>`<text x="${186+k*36+12}" y="152" class="ba-pin">PV${k+1}</text>`).join('')}
+    <text id="bamicn" x="242" y="278" text-anchor="middle" class="ba-lab">ไมโครอินเวอร์เตอร์</text><text x="242" y="296" text-anchor="middle" class="ba-sm">แผงละ 1 ช่อง (4 แผงต่อ 1 ตัว) แปลง DC เป็น AC ที่หลังแผง</text>
+    <text id="bav-md" x="40" y="146" class="ba-sm"></text></g>
   <!-- DC isolator -->
   <g class="ba-str"><rect x="52" y="190" width="56" height="48" rx="5" class="ba-box"/><rect x="66" y="203" width="28" height="18" rx="3" class="ba-sw"/><text x="80" y="252" text-anchor="middle" class="ba-sm">DC isolator</text></g>
   <!-- inverter -->
@@ -65,8 +67,8 @@ function bkaFrame(){
   const inv=pv+bat;
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   const mic=isMicro(curInv());host.classList.toggle('micro',mic);
-  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,grid,load};
-  if(mic){txt('bav-mtr',bkaKW(inv));txt('bamicn',`ไมโครอินเวอร์เตอร์ × ${microU(curInv())} ตัว`)}/* positive = along the path as drawn */
+  const md=mic?pv/4:0;BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md,md1:md,md2:md,md3:md,grid,load};
+  if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`);txt('bav-md',pv>1?`DC ${bkaKW(pv/U)} ต่อตัว`:'')}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
   if(day){const a=(h-6)/12*Math.PI;sun.setAttribute('transform',`translate(${(430+(h-6)/12*210).toFixed(1)} ${(125-Math.sin(a)*95).toFixed(1)})`);sun.style.display=''}else sun.style.display='none';
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
@@ -86,7 +88,7 @@ function bkaFrame(){
   q('babat').classList.toggle('ba-off',mode==='grid');txt('babatx',mode==='grid'?'ไม่ใช้แบต (On-grid)':'');
   q('bagrid').classList.toggle('ba-off',mode==='off'||out);q('bagridx').style.display=out&&mode!=='off'?'':'none';
   q('baload').classList.toggle('ba-dark',unmet>1&&load<1);q('baload').classList.toggle('ba-dim',unmet>1&&load>=1);
-  ['pv','pv2','bat','ac','mtr','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
+  ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
   q('bkat').value=i;txt('bkatl',bkaHM(i));
   const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
     (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));

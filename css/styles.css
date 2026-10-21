@@ -602,3 +602,4 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .mic-rcd{fill:#2a78d6;stroke:#1d5aa3}.mic-rcd.off{fill:none;stroke:var(--err);stroke-dasharray:4 3}
 .mic-pe path{fill:none;stroke:#1baf7a;stroke-width:3}.mic-pe.off path{stroke:var(--err);stroke-dasharray:8 6}
 .bkasvg:not(.micro) .ba-mic{display:none}.bkasvg.micro .ba-str{display:none}.ba-mu{fill:#6f7b86;stroke:#3f4a54}.ba-mut{fill:#fff;font:700 9px var(--body)}
+.ba-pin{fill:#2f6fd0;font:700 8px var(--body)}
