@@ -428,8 +428,8 @@ function acReadout(I){
   const rh=document.getElementById('acrh'),rv=document.getElementById('acrhv');
   if(rh&&document.activeElement!==rh)rh.value=ACS.rh;
   if(rv)rv.textContent=hhmm(ACS.rh);
-  if(!B){body.innerHTML='<p class="hint">ยังคำนวณไม่ได้ ใส่โหลดที่แท็บ "จำลองโหลด" และเลือกแหล่งไฟที่แท็บ "จำลอง Backup" ก่อน</p>';return}
-  if(B.mode==='off'){body.innerHTML='<p class="hint">แท็บ "จำลอง Backup" ตั้งเป็น Off-grid ไม่มีกริด มิเตอร์จึงไม่มีค่า เปลี่ยนเป็น On-grid หรือ Hybrid เพื่อดูกำลังแต่ละเฟส</p>';return}
+  if(!B){body.innerHTML='<p class="hint">ยังคำนวณไม่ได้ ใส่โหลดที่แท็บ "จำลองโหลด" และเลือกแหล่งไฟที่แท็บ "จำลองการไหลของไฟ" ก่อน</p>';return}
+  if(B.mode==='off'){body.innerHTML='<p class="hint">แท็บ "จำลองการไหลของไฟ" ตั้งเป็น Off-grid ไม่มีกริด มิเตอร์จึงไม่มีค่า เปลี่ยนเป็น On-grid หรือ Hybrid เพื่อดูกำลังแต่ละเฟส</p>';return}
   const i=Math.max(0,Math.min(B.R.pv.length-1,Math.floor(ACS.rh*60/B.step)));
   const X=phaseAt(B,I,i);
   AC_READ={h:ACS.rh,grid:X.grid};

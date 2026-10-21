@@ -590,7 +590,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
     <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
     <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
     <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
-    <button class="navb" data-tab="backup"><span class="ic">07</span>จำลอง Backup</button>
+    <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
     <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
     <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
@@ -712,7 +712,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
       <h2>มิเตอร์ 3 เฟส: กำลังแต่ละเฟส</h2>
       <label class="rhrow" for="acrh">เวลา <b id="acrhv">12:00</b><input id="acrh" type="range" min="0" max="23.75" step="0.25" value="12"></label>
       <div id="acph3body"></div>
-      <p class="hint tight">ใช้แผง โหลด แบต และไฟดับจากแท็บ "จำลอง Backup" กับเฟสที่ตั้งให้แต่ละโหลดในแท็บ "จำลองโหลด" ค่า + คือซื้อจากกริด − คือขายคืน</p>
+      <p class="hint tight">ใช้แผง โหลด แบต และไฟดับจากแท็บ "จำลองการไหลของไฟ" กับเฟสที่ตั้งให้แต่ละโหลดในแท็บ "จำลองโหลด" ค่า + คือซื้อจากกริด − คือขายคืน</p>
     </div>
     <div class="panelbox acset">
       <h2>ตั้งค่าอินเวอร์เตอร์และอุปกรณ์</h2>
@@ -749,7 +749,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
       </div>
     </div>
     <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
-    <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลอง Backup" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
+    <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
   </section>
 
@@ -856,7 +856,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
   </section>
 
   <section class="tab" id="tab-backup" hidden>
-    <header><h1>จำลอง Backup</h1><p class="sub">จำลองสมดุลพลังงานทุก 5 นาที ระหว่างแผง แบต โหลด และกริด ตอนไฟดับหรือระบบ Off-grid ใช้ค่าพิกัด มุมเอียง ทิศ และวันที่เดียวกับแท็บจำลองแผง</p></header>
+    <header><h1>จำลองการไหลของไฟ</h1><p class="sub">จำลองสมดุลพลังงานทุก 5 นาที ระหว่างแผง แบต โหลด และกริด ตอนไฟดับหรือระบบ Off-grid ใช้ค่าพิกัด มุมเอียง ทิศ และวันที่เดียวกับแท็บจำลองแผง</p></header>
     <div id="bkverdict" class="verdict still"></div>
     <div class="panelbox bkc">
       <div id="bkmode" class="chips" role="group" aria-label="ชนิดระบบ">
@@ -948,7 +948,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
           <div class="row3"><label>ทิศ<select id="syeba"></select></label><label>สูง (ม.)<input id="syebh" type="number" min="1" max="200" step="0.5"></label><label>ห่าง (ม.)<input id="syebd" type="number" min="1" max="200" step="0.5"></label><label>กว้าง (ม.)<input id="syebw" type="number" min="1" max="200" step="1"></label></div></section>
       </div>
       <p class="hint tight">เมฆ ต้นไม้ และตึกใช้ค่าร่วมกับแท็บ "จำลองเหตุการณ์" (ตั้งความกว้างต้นไม้ ความหนาเงา ฝุ่น และดูภาพมุมบน/ด้านข้างได้ที่แท็บนั้น)</p>
-      <p class="hint tight">ค่าแผง ไฟดับ และ SOC เริ่มต้นใช้ร่วมกับแท็บ "จำลอง Backup" แก้ที่แท็บไหนก็เปลี่ยนทั้งสองแท็บ ค่าไฟและราคาขายเป็นค่าตัวอย่าง แก้ให้ตรงอัตราจริงได้</p>
+      <p class="hint tight">ค่าแผง ไฟดับ และ SOC เริ่มต้นใช้ร่วมกับแท็บ "จำลองการไหลของไฟ" แก้ที่แท็บไหนก็เปลี่ยนทั้งสองแท็บ ค่าไฟและราคาขายเป็นค่าตัวอย่าง แก้ให้ตรงอัตราจริงได้</p>
     </div>
     <p id="symsg" class="simmsg" hidden></p>
     <div id="sybody">
@@ -1375,7 +1375,7 @@ function bankHTML(){
   if(I.type!=='on-grid'&&!batCompat(b,I))warn.push(batCompatMsg(b,I));
   if(b.maxS>0&&BANK.s>b.maxS||b.maxP>0&&BANK.p>b.maxP)warn.push(`รุ่นนี้ต่ออนุกรมได้ ${b.maxS||'ไม่จำกัด'} · ขนานได้ ${b.maxP||'ไม่จำกัด'} ชุด ระบบใช้ค่าสูงสุดที่ทำได้`);
   if(b.v3>0)warn.push(`แรงดันชุดขึ้นกับอินเวอร์เตอร์: ${b.v} V กับรุ่น 1 เฟส, ${b.v3} V กับรุ่น 3 เฟส (power module ปรับแรงดันเอง)`);
-  if(I.type==='on-grid')warn.push('อินเวอร์เตอร์ที่เลือกเป็นแบบ On-grid ต่อแบตตรงไม่ได้ เลือกรุ่น Hybrid หรือ Off-grid ที่หัวข้ออินเวอร์เตอร์ก่อนจำลอง Backup');
+  if(I.type==='on-grid')warn.push('อินเวอร์เตอร์ที่เลือกเป็นแบบ On-grid ต่อแบตตรงไม่ได้ เลือกรุ่น Hybrid หรือ Off-grid ที่หัวข้ออินเวอร์เตอร์ก่อนจำลองการไหลของไฟ');
   return`<div class="row3"><label>ต่ออนุกรม (ลูก)<input id="bk-s" type="number" min="1" max="${b.maxS||32}" step="1" value="${bi.s}"></label><label>ต่อขนาน (ชุด)<input id="bk-p" type="number" min="1" max="${b.maxP||32}" step="1" value="${bi.p}"></label></div>
   <dl class="specs bk"><div><dt>จำนวนแบต</dt><dd>${bi.n} ลูก</dd></div><div><dt>แรงดันชุด</dt><dd>${f(bi.V,1)} V</dd></div><div><dt>ความจุชุด</dt><dd>${f(bi.Ah,0)} Ah</dd></div><div><dt>พลังงานรวม</dt><dd>${f(bi.kwh,2)} kWh</dd></div><div><dt>ใช้ได้จริง (DoD ${b.dod}%)</dt><dd>${f(bi.usable,2)} kWh</dd></div><div><dt>กระแสชาร์จสูงสุดของชุด</dt><dd>${f(bi.chgA,0)} A · ${f(bi.chgKw,1)} kW</dd></div><div><dt>กระแสจ่ายสูงสุดของชุด</dt><dd>${f(bi.disA,0)} A · ${f(bi.disKw,1)} kW</dd></div><div><dt>กระแสลัดวงจรสูงสุดของชุด</dt><dd>${bi.scA>0?f(bi.scA,0)+' A':'ไม่ระบุ'}</dd></div></dl>`+(warn.length?`<ul class="checks">${warn.map(w=>`<li><span class="b warn">!</span><span>${esc(w)}</span></li>`).join('')}</ul>`:'');
 }
@@ -2830,8 +2830,8 @@ function acReadout(I){
   const rh=document.getElementById('acrh'),rv=document.getElementById('acrhv');
   if(rh&&document.activeElement!==rh)rh.value=ACS.rh;
   if(rv)rv.textContent=hhmm(ACS.rh);
-  if(!B){body.innerHTML='<p class="hint">ยังคำนวณไม่ได้ ใส่โหลดที่แท็บ "จำลองโหลด" และเลือกแหล่งไฟที่แท็บ "จำลอง Backup" ก่อน</p>';return}
-  if(B.mode==='off'){body.innerHTML='<p class="hint">แท็บ "จำลอง Backup" ตั้งเป็น Off-grid ไม่มีกริด มิเตอร์จึงไม่มีค่า เปลี่ยนเป็น On-grid หรือ Hybrid เพื่อดูกำลังแต่ละเฟส</p>';return}
+  if(!B){body.innerHTML='<p class="hint">ยังคำนวณไม่ได้ ใส่โหลดที่แท็บ "จำลองโหลด" และเลือกแหล่งไฟที่แท็บ "จำลองการไหลของไฟ" ก่อน</p>';return}
+  if(B.mode==='off'){body.innerHTML='<p class="hint">แท็บ "จำลองการไหลของไฟ" ตั้งเป็น Off-grid ไม่มีกริด มิเตอร์จึงไม่มีค่า เปลี่ยนเป็น On-grid หรือ Hybrid เพื่อดูกำลังแต่ละเฟส</p>';return}
   const i=Math.max(0,Math.min(B.R.pv.length-1,Math.floor(ACS.rh*60/B.step)));
   const X=phaseAt(B,I,i);
   AC_READ={h:ACS.rh,grid:X.grid};
@@ -4297,7 +4297,7 @@ function initBkAnim(){
 }
 
 /* ---- system types: On-grid / Off-grid / Hybrid off-grid / Hybrid on-off grid, same day, same panels, loads and battery ----
-   Uses the energy balance from backup.js. Shared inputs (panel source, outage, start SOC, critical loads) are the same settings as tab "จำลอง Backup". */
+   Uses the energy balance from backup.js. Shared inputs (panel source, outage, start SOC, critical loads) are the same settings as tab "จำลองการไหลของไฟ". */
 const SY={sel:'hyb',h:13,buy:4.2,sell:2.2,btg:30};
 const SYS=[
   {k:'ongrid',name:'On-grid',th:'ขนานกริด ไม่มีแบต',bat:false,grid:true,exp:true,
@@ -4736,7 +4736,7 @@ function evRun(){
     ['ดวงอาทิตย์ขึ้น–ตก',`${fmtT(st.sr)}–${fmtT(st.ss)}`,`กลางวัน ${f(st.len,1)} ชม. · เงยสูงสุด ${f(st.noon,0)}°`],
     ['กำลังสูงสุด (มีเหตุการณ์)',f(R.peak/1000,2)+' kW',`ไม่มีเหตุการณ์ ${f(R0.peak/1000,2)} kW`]
   ];
-  if(BK.mode!=='off'&&BK.outDur>0&&bk)mx.push(['ไฟดับ '+hhmm(BK.outStart)+' ('+BK.outDur+' ชม.)',bk.unmet>0.005?`ขาด ${f(bk.unmet,2)} kWh`:'ไฟพอใช้',bk.mode==='grid'?'On-grid ตัดไฟทันทีเมื่อกริดดับ':'ดูรายละเอียดที่แท็บ "จำลอง Backup"']);
+  if(BK.mode!=='off'&&BK.outDur>0&&bk)mx.push(['ไฟดับ '+hhmm(BK.outStart)+' ('+BK.outDur+' ชม.)',bk.unmet>0.005?`ขาด ${f(bk.unmet,2)} kWh`:'ไฟพอใช้',bk.mode==='grid'?'On-grid ตัดไฟทันทีเมื่อกริดดับ':'ดูรายละเอียดที่แท็บ "จำลองการไหลของไฟ"']);
   document.getElementById('evmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   document.getElementById('evcause').innerHTML=cause.length?cause.map(c=>`<div class="brow"><span class="bn">${c.name}</span><span class="btrack"><span class="bfill" style="width:${Math.max(2,c.d/Math.max(loss,.001)*70)}%;background:var(--s2)"></span><span class="bv">−${f(c.d,2)} kWh</span></span></div>`).join('')
     :'<p class="hint" style="margin:0">เปิดเหตุการณ์เมฆ ฝุ่น หรือต้นไม้เพื่อดูว่าแต่ละอย่างทำให้ไฟหายไปเท่าไร</p>';
@@ -6012,7 +6012,7 @@ async function initWorksheets(){
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลอง Backup',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน'};
+const ACC_NAME={equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน'};
 function accPerm(t){
   if(!ACC.enabled||ACC.role==='teacher')return'open';
   const m=ACC.menus&&ACC.menus.find(x=>x.tab===t);

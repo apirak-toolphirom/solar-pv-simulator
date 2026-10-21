@@ -1,5 +1,5 @@
 /* ---- system types: On-grid / Off-grid / Hybrid off-grid / Hybrid on-off grid, same day, same panels, loads and battery ----
-   Uses the energy balance from backup.js. Shared inputs (panel source, outage, start SOC, critical loads) are the same settings as tab "จำลอง Backup". */
+   Uses the energy balance from backup.js. Shared inputs (panel source, outage, start SOC, critical loads) are the same settings as tab "จำลองการไหลของไฟ". */
 const SY={sel:'hyb',h:13,buy:4.2,sell:2.2,btg:30};
 const SYS=[
   {k:'ongrid',name:'On-grid',th:'ขนานกริด ไม่มีแบต',bat:false,grid:true,exp:true,

@@ -243,7 +243,7 @@ function evRun(){
     ['ดวงอาทิตย์ขึ้น–ตก',`${fmtT(st.sr)}–${fmtT(st.ss)}`,`กลางวัน ${f(st.len,1)} ชม. · เงยสูงสุด ${f(st.noon,0)}°`],
     ['กำลังสูงสุด (มีเหตุการณ์)',f(R.peak/1000,2)+' kW',`ไม่มีเหตุการณ์ ${f(R0.peak/1000,2)} kW`]
   ];
-  if(BK.mode!=='off'&&BK.outDur>0&&bk)mx.push(['ไฟดับ '+hhmm(BK.outStart)+' ('+BK.outDur+' ชม.)',bk.unmet>0.005?`ขาด ${f(bk.unmet,2)} kWh`:'ไฟพอใช้',bk.mode==='grid'?'On-grid ตัดไฟทันทีเมื่อกริดดับ':'ดูรายละเอียดที่แท็บ "จำลอง Backup"']);
+  if(BK.mode!=='off'&&BK.outDur>0&&bk)mx.push(['ไฟดับ '+hhmm(BK.outStart)+' ('+BK.outDur+' ชม.)',bk.unmet>0.005?`ขาด ${f(bk.unmet,2)} kWh`:'ไฟพอใช้',bk.mode==='grid'?'On-grid ตัดไฟทันทีเมื่อกริดดับ':'ดูรายละเอียดที่แท็บ "จำลองการไหลของไฟ"']);
   document.getElementById('evmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   document.getElementById('evcause').innerHTML=cause.length?cause.map(c=>`<div class="brow"><span class="bn">${c.name}</span><span class="btrack"><span class="bfill" style="width:${Math.max(2,c.d/Math.max(loss,.001)*70)}%;background:var(--s2)"></span><span class="bv">−${f(c.d,2)} kWh</span></span></div>`).join('')
     :'<p class="hint" style="margin:0">เปิดเหตุการณ์เมฆ ฝุ่น หรือต้นไม้เพื่อดูว่าแต่ละอย่างทำให้ไฟหายไปเท่าไร</p>';

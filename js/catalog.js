@@ -308,7 +308,7 @@ function bankHTML(){
   if(I.type!=='on-grid'&&!batCompat(b,I))warn.push(batCompatMsg(b,I));
   if(b.maxS>0&&BANK.s>b.maxS||b.maxP>0&&BANK.p>b.maxP)warn.push(`รุ่นนี้ต่ออนุกรมได้ ${b.maxS||'ไม่จำกัด'} · ขนานได้ ${b.maxP||'ไม่จำกัด'} ชุด ระบบใช้ค่าสูงสุดที่ทำได้`);
   if(b.v3>0)warn.push(`แรงดันชุดขึ้นกับอินเวอร์เตอร์: ${b.v} V กับรุ่น 1 เฟส, ${b.v3} V กับรุ่น 3 เฟส (power module ปรับแรงดันเอง)`);
-  if(I.type==='on-grid')warn.push('อินเวอร์เตอร์ที่เลือกเป็นแบบ On-grid ต่อแบตตรงไม่ได้ เลือกรุ่น Hybrid หรือ Off-grid ที่หัวข้ออินเวอร์เตอร์ก่อนจำลอง Backup');
+  if(I.type==='on-grid')warn.push('อินเวอร์เตอร์ที่เลือกเป็นแบบ On-grid ต่อแบตตรงไม่ได้ เลือกรุ่น Hybrid หรือ Off-grid ที่หัวข้ออินเวอร์เตอร์ก่อนจำลองการไหลของไฟ');
   return`<div class="row3"><label>ต่ออนุกรม (ลูก)<input id="bk-s" type="number" min="1" max="${b.maxS||32}" step="1" value="${bi.s}"></label><label>ต่อขนาน (ชุด)<input id="bk-p" type="number" min="1" max="${b.maxP||32}" step="1" value="${bi.p}"></label></div>
   <dl class="specs bk"><div><dt>จำนวนแบต</dt><dd>${bi.n} ลูก</dd></div><div><dt>แรงดันชุด</dt><dd>${f(bi.V,1)} V</dd></div><div><dt>ความจุชุด</dt><dd>${f(bi.Ah,0)} Ah</dd></div><div><dt>พลังงานรวม</dt><dd>${f(bi.kwh,2)} kWh</dd></div><div><dt>ใช้ได้จริง (DoD ${b.dod}%)</dt><dd>${f(bi.usable,2)} kWh</dd></div><div><dt>กระแสชาร์จสูงสุดของชุด</dt><dd>${f(bi.chgA,0)} A · ${f(bi.chgKw,1)} kW</dd></div><div><dt>กระแสจ่ายสูงสุดของชุด</dt><dd>${f(bi.disA,0)} A · ${f(bi.disKw,1)} kW</dd></div><div><dt>กระแสลัดวงจรสูงสุดของชุด</dt><dd>${bi.scA>0?f(bi.scA,0)+' A':'ไม่ระบุ'}</dd></div></dl>`+(warn.length?`<ul class="checks">${warn.map(w=>`<li><span class="b warn">!</span><span>${esc(w)}</span></li>`).join('')}</ul>`:'');
 }

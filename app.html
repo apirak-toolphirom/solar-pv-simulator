@@ -7,7 +7,7 @@
     <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
     <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
     <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
-    <button class="navb" data-tab="backup"><span class="ic">07</span>จำลอง Backup</button>
+    <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
     <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
     <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
@@ -129,7 +129,7 @@
       <h2>มิเตอร์ 3 เฟส: กำลังแต่ละเฟส</h2>
       <label class="rhrow" for="acrh">เวลา <b id="acrhv">12:00</b><input id="acrh" type="range" min="0" max="23.75" step="0.25" value="12"></label>
       <div id="acph3body"></div>
-      <p class="hint tight">ใช้แผง โหลด แบต และไฟดับจากแท็บ "จำลอง Backup" กับเฟสที่ตั้งให้แต่ละโหลดในแท็บ "จำลองโหลด" ค่า + คือซื้อจากกริด − คือขายคืน</p>
+      <p class="hint tight">ใช้แผง โหลด แบต และไฟดับจากแท็บ "จำลองการไหลของไฟ" กับเฟสที่ตั้งให้แต่ละโหลดในแท็บ "จำลองโหลด" ค่า + คือซื้อจากกริด − คือขายคืน</p>
     </div>
     <div class="panelbox acset">
       <h2>ตั้งค่าอินเวอร์เตอร์และอุปกรณ์</h2>
@@ -166,7 +166,7 @@
       </div>
     </div>
     <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
-    <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลอง Backup" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
+    <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
   </section>
 
@@ -273,7 +273,7 @@
   </section>
 
   <section class="tab" id="tab-backup" hidden>
-    <header><h1>จำลอง Backup</h1><p class="sub">จำลองสมดุลพลังงานทุก 5 นาที ระหว่างแผง แบต โหลด และกริด ตอนไฟดับหรือระบบ Off-grid ใช้ค่าพิกัด มุมเอียง ทิศ และวันที่เดียวกับแท็บจำลองแผง</p></header>
+    <header><h1>จำลองการไหลของไฟ</h1><p class="sub">จำลองสมดุลพลังงานทุก 5 นาที ระหว่างแผง แบต โหลด และกริด ตอนไฟดับหรือระบบ Off-grid ใช้ค่าพิกัด มุมเอียง ทิศ และวันที่เดียวกับแท็บจำลองแผง</p></header>
     <div id="bkverdict" class="verdict still"></div>
     <div class="panelbox bkc">
       <div id="bkmode" class="chips" role="group" aria-label="ชนิดระบบ">
@@ -365,7 +365,7 @@
           <div class="row3"><label>ทิศ<select id="syeba"></select></label><label>สูง (ม.)<input id="syebh" type="number" min="1" max="200" step="0.5"></label><label>ห่าง (ม.)<input id="syebd" type="number" min="1" max="200" step="0.5"></label><label>กว้าง (ม.)<input id="syebw" type="number" min="1" max="200" step="1"></label></div></section>
       </div>
       <p class="hint tight">เมฆ ต้นไม้ และตึกใช้ค่าร่วมกับแท็บ "จำลองเหตุการณ์" (ตั้งความกว้างต้นไม้ ความหนาเงา ฝุ่น และดูภาพมุมบน/ด้านข้างได้ที่แท็บนั้น)</p>
-      <p class="hint tight">ค่าแผง ไฟดับ และ SOC เริ่มต้นใช้ร่วมกับแท็บ "จำลอง Backup" แก้ที่แท็บไหนก็เปลี่ยนทั้งสองแท็บ ค่าไฟและราคาขายเป็นค่าตัวอย่าง แก้ให้ตรงอัตราจริงได้</p>
+      <p class="hint tight">ค่าแผง ไฟดับ และ SOC เริ่มต้นใช้ร่วมกับแท็บ "จำลองการไหลของไฟ" แก้ที่แท็บไหนก็เปลี่ยนทั้งสองแท็บ ค่าไฟและราคาขายเป็นค่าตัวอย่าง แก้ให้ตรงอัตราจริงได้</p>
     </div>
     <p id="symsg" class="simmsg" hidden></p>
     <div id="sybody">
