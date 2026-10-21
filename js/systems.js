@@ -19,6 +19,7 @@ const SYS=[
 function syCause(i){
   const h=(i+.5)*5/60,sn=typeof sunAt==='function'?sunAt(h):null,c=[];
   if(EV.cloud.on&&evCloud(h)>0.05)c.push('เมฆ');
+  if(sn&&sn.up&&EV.site.on&&siteShade(sn.az,sn.el,0)>0)c.push('ต้นไม้/ตึกในผัง');
   if(sn&&sn.up){if(EV.tree.on&&treeShade(sn.az,sn.el,EV.tree.mppt?EV.tree.mppt-1:0)>0)c.push('ต้นไม้');if(EV.bld.on&&bldShade(sn.az,sn.el)>0)c.push('ตึก')}
   if(EV.dust.on&&!c.length)c.push('ฝุ่น');
   return(c.join('+')||'เงา')+'บัง';
@@ -30,6 +31,8 @@ function syEnvSync(){
   q('syetr').checked=T.on;q('syeth').value=T.h;q('syetd').value=T.d;q('syeta').value=T.az;
   q('syebl').checked=B.on;q('syebh').value=B.h;q('syebd').value=B.d;q('syeba').value=B.az;q('syebw').value=B.w;
   [['syecbox',C.on],['syetbox',T.on],['syebbox',B.on]].forEach(([id,on])=>q(id).classList.toggle('on',on));
+  q('syesite').checked=EV.site.on;q('syesitebox').classList.toggle('on',EV.site.on);q('syetbox').hidden=EV.site.on;q('syebbox').hidden=EV.site.on;
+  q('syesitenote').textContent=EV.site.on?(siteHasPV()?`ต้นไม้และตึกจากผัง · แผง ${siArrays().length} ชุดบนหลังคา`:'ยังไม่มีแผงบนผัง ไปแท็บ 05 กด "+ แผงโซลาร์"'):'ปิดอยู่ ใช้ต้นไม้ / ตึกแบบเดี่ยว';
 }
 const SY_ROWS=[['exp','ขายไฟคืนกริด'],['out','ตอนไฟดับ'],['bat','แบตเตอรี่'],['gen','เครื่องปั่นไฟ'],['sw','เวลาสลับไปไฟสำรอง'],['inv','ชนิดอินเวอร์เตอร์'],['perm','การเชื่อมต่อการไฟฟ้า']];
 let SYR=null,syCfg=null;
@@ -89,6 +92,7 @@ function syDiagram(s,r,i,pv0){
 }
 function syRun(){
   if(!document.getElementById('sycards'))return;
+  syEnvSync();
   const A=syRunAll(),msg=document.getElementById('symsg'),body=document.getElementById('sybody');
   SYR=A;
   if(A.err){msg.hidden=false;msg.textContent=A.err;body.hidden=true;return}
@@ -171,7 +175,9 @@ function initSystems(){
   const env=()=>{syEnvSync();if(typeof runSim==='function')runSim();else go();syRun();if(typeof touch==='function')touch()};
   const ck=(id,obj)=>q(id).addEventListener('change',e=>{obj.on=e.target.checked;env()});
   const en=(id,obj,key,lo,hi)=>q(id).addEventListener('input',e=>{const n=parseFloat(e.target.value);if(isNaN(n))return;obj[key]=Math.max(lo,Math.min(hi,n));env()});
-  ck('syecl',EV.cloud);ck('syetr',EV.tree);ck('syebl',EV.bld);
+  ck('syecl',EV.cloud);
+  q('syetr').addEventListener('change',e=>{EV.tree.on=e.target.checked;if(EV.tree.on)EV.site.on=false;env()});q('syebl').addEventListener('change',e=>{EV.bld.on=e.target.checked;if(EV.bld.on)EV.site.on=false;env()});
+  q('syesite').addEventListener('change',e=>{evSiteOn(e.target.checked);syRun()});
   q('syecs').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;EV.cloud.start=h;env()});
   en('syecd',EV.cloud,'dur',0,12);en('syecp',EV.cloud,'depth',10,100);
   en('syeth',EV.tree,'h',1,40);en('syetd',EV.tree,'d',1,60);

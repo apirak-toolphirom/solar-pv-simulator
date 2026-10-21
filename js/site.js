@@ -4,7 +4,7 @@
 const SITE={objs:[],nextId:1,lot:{w:20,d:30},view:50,date:'',h:15,mode:'shadow',period:'day',win:'all',sel:null,play:0};
 const SI_KIND={laundry:'ลานซักล้าง / ตากผ้า',pool:'สระว่ายน้ำ',garden:'สวน / ปลูกต้นไม้',parking:'ที่จอดรถ',bedroom:'ห้องนอน',living:'ห้องนั่งเล่น',kitchen:'ครัว'};
 const SI_ROOM={bedroom:1,living:1,kitchen:1};
-const SI_TYPE={house:'บ้าน',bldg:'ตึกข้างเคียง',tree:'ต้นไม้',zone:'โซน'};
+const SI_TYPE={house:'บ้าน',bldg:'ตึกข้างเคียง',tree:'ต้นไม้',zone:'โซน',pv:'แผงโซลาร์'};
 const SI_WIN={all:['ทั้งวัน',0,24],am:['เช้า (ก่อนเที่ยง)',0,12],pm:['บ่าย (หลังเที่ยง)',12,24],pm2:['บ่ายแรง 13:00–17:00',13,17]};
 const SI_PER={day:'วันที่เลือก',summer:'ฤดูร้อน (มี.ค.–พ.ค.)',rainy:'ฤดูฝน (มิ.ย.–ต.ค.)',winter:'ฤดูหนาว (พ.ย.–ก.พ.)',year:'ทั้งปี'};
 const SI_PER_M={summer:[3,4,5],rainy:[6,7,8,9,10],winter:[11,12,1,2],year:[1,2,3,4,5,6,7,8,9,10,11,12]};
@@ -20,6 +20,7 @@ function siExample(){
   A({t:'zone',kind:'laundry',name:'ลานซักล้าง',x:6,y:-8,w:4,d:3,rot:0});
   A({t:'zone',kind:'pool',name:'สระว่ายน้ำ',x:-4,y:-9,w:6,d:3,rot:0});
   A({t:'zone',kind:'garden',name:'สวนหลังบ้าน',x:0,y:11,w:12,d:4,rot:0});
+  A({t:'pv',name:'แผงบนหลังคาด้านใต้',x:0,y:0,w:8,d:3.5,rot:0,z:4.25,mppt:0});
   A({t:'tree',name:'มะม่วง',x:-7,y:-5,r:3,h:8,ch:2.5});
   A({t:'bldg',name:'ตึกข้างบ้าน (ตะวันตก)',x:-17,y:2,w:8,d:16,rot:0,h:12});
   SITE.sel=null;
@@ -77,7 +78,25 @@ function siSteps(){
   siDays().forEach(doy=>{for(let h=0.25;h<24;h+=0.5){if(h<w[1]||h>=w[2])continue;const s=siSun(doy,h);if(s.el>=SI_EL_MIN)out.push(s)}});
   return{steps:out,nd:siDays().length};
 }
-const siCasters=()=>SITE.objs.filter(o=>o.t!=='zone');
+const siCasters=()=>SITE.objs.filter(o=>o.t!=='zone'&&o.t!=='pv');
+const siArrays=()=>SITE.objs.filter(o=>o.t==='pv');
+const siteHasPV=()=>siArrays().length>0;
+/* sample points on an array: 3 x 3 on its plane at height z */
+function siArrPts(a){const P=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++){const w=siWorld(a,(i-1)/3*a.w,(j-1)/3*a.d);P.push(w)}return P}
+/* casters that can shade array a: not the roof it sits on (footprint containing the array centre and lower than the array) */
+function siArrCasters(a){return siCasters().filter(o=>{if(o.t==='tree')return true;const l=siLocal(o,a.x,a.y);const under=Math.abs(l[0])<=o.w/2&&Math.abs(l[1])<=o.d/2;return!(under&&o.h<=a.z+0.3)})}
+/* fraction (0..1) of the direct beam blocked on the arrays feeding MPPT j (all arrays if none is assigned to j) */
+const SI_SHC=new Map();
+function siteShade(azR,elR,j){
+  if(elR<SI_EL_MIN)return 0;
+  let A=siArrays().filter(a=>!a.mppt||a.mppt===j+1);if(!A.length)A=siArrays();if(!A.length)return 0;
+  const key=j+':'+azR.toFixed(4)+':'+elR.toFixed(4)+':'+siVer;
+  if(SI_SHC.has(key))return SI_SHC.get(key);
+  const sun={az:azR,el:elR};let tot=0;
+  A.forEach(a=>{const Sh=siArrCasters(a).map(o=>siShadow(o,sun,a.z)).filter(Boolean),P=siArrPts(a);tot+=P.filter(p=>Sh.some(S=>siIn(p[0],p[1],S))).length/P.length});
+  const v=tot/A.length;if(SI_SHC.size>20000)SI_SHC.clear();SI_SHC.set(key,v);return v;
+}
+let siVer=0;
 const siOurs=o=>Math.abs(o.x)<=SITE.lot.w/2&&Math.abs(o.y)<=SITE.lot.d/2;
 const siHouseOf=z=>SITE.objs.find(o=>o.t==='house'&&(()=>{const l=siLocal(o,z.x,z.y);return Math.abs(l[0])<=o.w/2+.01&&Math.abs(l[1])<=o.d/2+.01})());
 
@@ -151,7 +170,10 @@ function siAnalyse(){
     sides.forEach(s=>{const fr=s.pts.filter(p=>So.some(S=>siIn(p[0],p[1],S))).length/s.pts.length;s.h+=fr*dt;s.max=Math.max(s.max,fr)});
     lotPts.forEach(p=>{lotSun+=dt;if(Sx.some(S=>siIn(p[0],p[1],S)))lotOut+=dt});
   });
-  return{N,V,cs,hours,zones,walls,sides,lotOut:lotSun>0?lotOut/lotSun:0,lotOutH:lotOut/lotPts.length,nOut:outs.length};
+  const arrays=siArrays().map(a=>{let sun=0,blk=0;const Cs=siArrCasters(a),P=siArrPts(a);
+    siAllSteps().forEach(({sun:s2,nd2})=>{const Sh=Cs.map(o=>siShadow(o,s2,a.z)).filter(Boolean),fr=P.filter(p=>Sh.some(S=>siIn(p[0],p[1],S))).length/P.length;sun+=0.5/nd2;blk+=fr*0.5/nd2});
+    return{a,sun,blk}});
+  return{arrays,N,V,cs,hours,zones,walls,sides,lotOut:lotSun>0?lotOut/lotSun:0,lotOutH:lotOut/lotPts.length,nOut:outs.length};
 }
 /* all sun-up steps of the period regardless of window (zones and walls split into morning/afternoon themselves) */
 function siAllSteps(){
@@ -190,7 +212,7 @@ function siDraw(){
     siCasters().forEach(o=>{const S=siShadow(o,sun,0);if(S)s+=`<polygon points="${siPts(S.p)}" class="sishd"/>`});
   }
   /* solids */
-  SITE.objs.filter(o=>o.t!=='zone').forEach(o=>{
+  SITE.objs.filter(o=>o.t!=='zone'&&o.t!=='pv').forEach(o=>{
     const sel=SITE.sel===o.id?' sel':'';
     if(o.t==='tree'){const c=siP(o.x,o.y);s+=`<g data-si="${o.id}" class="sio tree${sel}"><circle cx="${c[0]}" cy="${c[1]}" r="${o.r*K}"/><circle cx="${c[0]}" cy="${c[1]}" r="2.5" class="trunk"/><text x="${c[0]}" y="${c[1]+o.r*K+12}" text-anchor="middle" class="silab">${esc(o.name)} ${o.h} ม.</text></g>`;return}
     const R=siRect(o),c=siP(o.x,o.y);
@@ -198,6 +220,11 @@ function siDraw(){
     s+=`<g data-si="${o.id}" class="sio ${o.t}${sel}"><polygon points="${siPts(R)}"/>${ridge}${o.t==='house'?`<text x="${siP(...siWorld(o,0,-o.d/2))[0]}" y="${siP(...siWorld(o,0,-o.d/2))[1]-5}" text-anchor="middle" class="silab b">${esc(o.name)} · สูง ${o.h}${o.roof==='gable'?'+'+o.rh:''} ม.</text>`:`<text x="${c[0]}" y="${c[1]-4}" text-anchor="middle" class="silab b">${esc(o.name)}</text><text x="${c[0]}" y="${c[1]+10}" text-anchor="middle" class="silab">สูง ${o.h} ม.</text>`}</g>`;
   });
   SITE.objs.filter(o=>o.t==='zone'&&SI_ROOM[o.kind]).forEach(o=>{s+=zoneSvg(o)});
+  siArrays().forEach(o=>{
+    const c=siP(o.x,o.y),fa=siDeg(SIM.az),L=Math.max(o.w,o.d)*K*.45,tip=[c[0]+Math.sin(fa)*L,c[1]-Math.cos(fa)*L];
+    let lit='';if(SITE.mode==='shadow'&&sun.el>=SI_EL_MIN){const v=siteShade(sun.az,sun.el,(o.mppt||1)-1);if(v>0)lit=`<tspan class="bad">ถูกบัง ${f(v*100,0)}%</tspan>`}
+    s+=`<g data-si="${o.id}" class="sio pv${SITE.sel===o.id?' sel':''}"><polygon points="${siPts(siRect(o))}"/><line x1="${c[0]}" y1="${c[1]}" x2="${tip[0]}" y2="${tip[1]}" class="pvdir"/><text x="${c[0]}" y="${c[1]-4}" text-anchor="middle" class="silab b on">${esc(o.name)}</text><text x="${c[0]}" y="${c[1]+10}" text-anchor="middle" class="silab on">${lit||(o.mppt?'MPPT '+o.mppt+' · ':'')+'สูง '+o.z+' ม.'}</text></g>`;
+  });
   /* north arrow and sun direction */
   s+=`<g class="sinorth" transform="translate(${SI_PX-34} 40)"><path d="M0 -24L9 6L0 0L-9 6Z"/><text y="22" text-anchor="middle" class="silab b">N</text></g>`;
   if(SITE.mode==='shadow'){
@@ -224,10 +251,7 @@ function siSunPath(){
   const q=siSun(doy,SITE.h);if(q.el>0){const p=P(q.az,q.el);s+=`<circle cx="${p[0]}" cy="${p[1]}" r="8" class="sisun"/>`}
   host.innerHTML=`<svg viewBox="-34 0 ${W+68} ${W}" role="img" aria-label="เส้นทางดวงอาทิตย์ทั้งปีที่ตำแหน่งนี้">${s}</svg>`;
 }
-function siTables(){
-  const A=siLast;if(!A)return;
-  const h=v=>f(v,1),pill=(l,t)=>`<span class="pill ${l}">${l==='ok'?'✓':l==='warn'?'!':'×'} ${t}</span>`;
-  const rec=r=>{
+const siRec=r=>{
     const k=r.z.kind;
     if(r.room&&!r.house)return['warn','วางห้องไว้ในบ้านก่อน (ต้องอยู่ในกรอบบ้าน)'];
     if(r.room&&!r.walls.length)return['ok','ห้องอยู่ด้านใน ไม่มีผนังรับแดดตรง'];
@@ -238,9 +262,12 @@ function siTables(){
     if(k==='bedroom')return r.pm2<=.5?['ok','ผนังไม่โดนแดดบ่าย']:r.pm2<=1.5?['warn','โดนแดดบ่ายบ้าง']:['err','ผนังโดนแดดบ่าย ห้องร้อนตอนเย็น ควรมีชายคาหรือต้นไม้บัง'];
     return r.pm2<=1.5?['ok','แดดบ่ายไม่มาก']:['warn','โดนแดดบ่าย'];
   };
+function siTables(){
+  const A=siLast;if(!A)return;
+  const h=v=>f(v,1),pill=(l,t)=>`<span class="pill ${l}">${l==='ok'?'✓':l==='warn'?'!':'×'} ${t}</span>`;
   const per=SI_PER[SITE.period]+(SITE.period==='day'?' '+SITE.date:'');
   document.getElementById('siper').textContent=per;
-  document.getElementById('sizones').innerHTML=A.zones.length?`<thead><tr><th>โซน</th><th>วัด</th><th>เช้า</th><th>บ่าย</th><th>บ่ายแรง 13–17</th><th>ทั้งวัน</th><th>ผล</th></tr></thead><tbody>`+A.zones.map(r=>{const[l,t]=rec(r);
+  document.getElementById('sizones').innerHTML=A.zones.length?`<thead><tr><th>โซน</th><th>วัด</th><th>เช้า</th><th>บ่าย</th><th>บ่ายแรง 13–17</th><th>ทั้งวัน</th><th>ผล</th></tr></thead><tbody>`+A.zones.map(r=>{const[l,t]=siRec(r);
     return`<tr><td>${esc(r.z.name)}<small>${SI_KIND[r.z.kind]}</small></td><td class="sm">${r.room?(r.walls.length?'ผนัง '+r.walls.map(a=>dirName(a)).join(', '):'—'):'พื้น'}</td><td>${h(r.am)}</td><td>${h(r.pm)}</td><td>${h(r.pm2)}</td><td>${h(r.all)}</td><td>${pill(l,t)}</td></tr>`}).join('')+'</tbody>'
     :'<tbody><tr><td class="empty">ยังไม่มีโซน กด "+ โซน" แล้ววางบนผัง</td></tr></tbody>';
   document.getElementById('siwalls').innerHTML=A.walls.length?`<thead><tr><th>บ้าน / ผนังหันไปทาง</th><th>เช้า</th><th>บ่าย</th><th>บ่ายแรง 13–17</th><th>ทั้งวัน</th><th>ถูกบัง</th></tr></thead><tbody>`+A.walls.map(r=>
@@ -249,6 +276,10 @@ function siTables(){
   document.getElementById('sinbr').innerHTML=`<thead><tr><th>ด้านของที่ดิน</th><th>เงาของเราตกออกนอกที่ดิน (เฉลี่ย ชม./วัน)</th><th>ช่วงที่บังมากสุด</th></tr></thead><tbody>`
     +A.sides.map(s=>`<tr><td>${s.nm}</td><td>${h(s.h)}</td><td>${f(s.max*100,0)} % ของแนวเขต</td></tr>`).join('')
     +`<tr class="tot"><td>เงาจากภายนอกตกในที่ดินเรา</td><td>${A.nOut?h(A.lotOutH)+' ชม./วัน':'—'}</td><td>${A.nOut?f(A.lotOut*100,0)+' % ของแดดในที่ดิน':'ไม่มีวัตถุนอกที่ดิน'}</td></tr></tbody>`;
+  const AR=document.getElementById('siarr');
+  if(AR)AR.innerHTML=A.arrays.length?`<thead><tr><th>แผงโซลาร์</th><th>ต่อเข้า</th><th>สูง</th><th>ชั่วโมงแดด</th><th>ถูกบัง</th><th>ผล</th></tr></thead><tbody>`+A.arrays.map(r=>{const p=r.sun>0?r.blk/r.sun:0,l=p<=.05?'ok':p<=.15?'warn':'err';
+    return`<tr><td>${esc(r.a.name)}</td><td class="sm">${r.a.mppt?'MPPT '+r.a.mppt:'ทุก MPPT'}</td><td>${r.a.z} ม.</td><td>${h(r.sun)}</td><td>${h(r.blk)} ชม. (${f(p*100,0)}%)</td><td>${pill(l,l==='ok'?'แทบไม่ถูกบัง':l==='warn'?'ถูกบังบางช่วง':'ถูกบังมาก ควรย้ายแผง')}</td></tr>`}).join('')+'</tbody>'
+    :'<tbody><tr><td class="empty">ยังไม่มีแผงบนผัง กด "+ แผงโซลาร์" เพื่อวางบนหลังคา</td></tr></tbody>';
   document.getElementById('sinote').textContent=`ค่าเป็นชั่วโมงแดดตรงเฉลี่ยต่อวัน (${per}) · ห้องในบ้านวัดที่ผนังภายนอกของห้อง สูง 1.5 ม. · โซนนอกบ้านวัดที่พื้น · แถบ "ช่วงเวลา" ด้านบนใช้กับแผนที่สีเท่านั้น`;
 }
 let siTimer=0;
@@ -263,11 +294,13 @@ function siProps(){
   let f2=`<label class="wide">ชื่อ<input type="text" data-sp="name" value="${esc(o.name)}"></label>`;
   if(o.t==='zone')f2+=`<label>ชนิดโซน<select data-sp="kind">${Object.entries(SI_KIND).map(([k,v])=>`<option value="${k}" ${o.kind===k?'selected':''}>${v}</option>`).join('')}</select></label>`;
   f2+=n('x','ตำแหน่ง ตะวันออก (ม.)',-200,200,.5)+n('y','ตำแหน่ง เหนือ (ม.)',-200,200,.5);
-  if(o.t==='tree')f2+=n('h','สูงถึงยอด (ม.)',1,40,.5)+n('r','รัศมีพุ่ม (ม.)',.5,15,.5)+n('ch','พุ่มเริ่มที่ความสูง (ม.)',0,30,.5);
+  if(o.t==='pv')f2+=n('w','กว้าง (ม.)',.5,100,.5)+n('d','ลึก (ม.)',.5,100,.5)+n('rot','หมุน (องศา ตามเข็ม)',-180,180,5)+n('z','ความสูงจากพื้น (ม.)',0,100,.5)+`<label>ต่อเข้า<select data-sp="mppt"><option value="0" ${!o.mppt?'selected':''}>ทุก MPPT</option><option value="1" ${o.mppt===1?'selected':''}>MPPT 1</option><option value="2" ${o.mppt===2?'selected':''}>MPPT 2</option></select></label>`;
+  else if(o.t==='tree')f2+=n('h','สูงถึงยอด (ม.)',1,40,.5)+n('r','รัศมีพุ่ม (ม.)',.5,15,.5)+n('ch','พุ่มเริ่มที่ความสูง (ม.)',0,30,.5);
   else{f2+=n('w','กว้าง ตะวันออก–ตะวันตก (ม.)',1,200,.5)+n('d','ลึก เหนือ–ใต้ (ม.)',1,200,.5)+n('rot','หมุน (องศา ตามเข็ม)',-180,180,5);
     if(o.t!=='zone')f2+=n('h',o.t==='house'?'ความสูงผนัง (ม.)':'ความสูง (ม.)',1,300,.5);
     if(o.t==='house')f2+=`<label>หลังคา<select data-sp="roof"><option value="gable" ${o.roof==='gable'?'selected':''}>จั่ว</option><option value="flat" ${o.roof==='flat'?'selected':''}>แบน</option></select></label>`+(o.roof==='gable'?n('rh','จั่วสูงเพิ่ม (ม.)',0,10,.5):'');}
   box.innerHTML=`<div class="siph"><b>${SI_TYPE[o.t]}</b><button class="btn sm" id="sidel">ลบ</button></div><div class="sigrid">${f2}</div>`
+    +(o.t==='pv'?'<p class="hint tight">มุมเอียงและทิศหน้าแผงตั้งที่แท็บ "จำลองแผง" (เส้นบนผังชี้ทิศหน้าแผง) ความสูง = ระดับแผงบนหลังคา เงาบนแผงถูกนำไปคิดกำลังผลิตในแท็บจำลองแผง Backup ระบบ 4 แบบ และเหตุการณ์</p>':'')
     +(o.t==='zone'&&SI_ROOM[o.kind]?'<p class="hint tight">ห้องต้องอยู่ในกรอบบ้าน ระบบวัดแดดที่ผนังภายนอกของห้อง</p>':'');
 }
 function siAdd(t,kind){
@@ -276,10 +309,17 @@ function siAdd(t,kind){
   if(t==='bldg')Object.assign(o,{name:'ตึก '+o.id,x:SITE.lot.w/2+6,y:0,w:8,d:12,h:10});
   if(t==='tree')Object.assign(o,{name:'ต้นไม้ '+o.id,x:SITE.lot.w/2-3,y:SITE.lot.d/2-3,r:2.5,h:7,ch:2});
   if(t==='zone')Object.assign(o,{kind:kind||'laundry',name:SI_KIND[kind||'laundry'],w:4,d:3});
+  if(t==='pv'){const H=SITE.objs.find(x=>x.t==='house'),n=typeof BK!=='undefined'?(BK.src==='wiring'&&typeof lastA!=='undefined'&&lastA&&lastA.used?lastA.used:BK.nIdeal):9,area=n*1.134*2.38;
+    if(H){const w=Math.min(H.w-1,Math.max(2,Math.sqrt(area*1.6))),d=Math.min(H.d/2-.3,area/w);Object.assign(o,{x:H.x,y:H.y-H.d/4,w:Math.round(w*2)/2,d:Math.round(Math.max(1,d)*2)/2,rot:H.rot||0,z:H.h+(H.roof==='gable'?H.rh/2:0.3)})}
+    else Object.assign(o,{x:0,y:0,w:6,d:4,z:0.5});
+    Object.assign(o,{name:'แผงโซลาร์ '+o.id,mppt:0});
+    if(typeof EV!=='undefined'&&!EV.site.on)evSiteOn(true);}
   if(t==='zone'&&SI_ROOM[o.kind]){const H=SITE.objs.find(x=>x.t==='house');if(H)Object.assign(o,{x:H.x,y:H.y,w:Math.min(4,H.w),d:Math.min(4,H.d),rot:H.rot||0})}
   SITE.objs.push(o);SITE.sel=o.id;siChanged();
 }
-function siChanged(){siRender();siRecalc();if(typeof touch==='function')touch()}
+function siChanged(){siVer++;siRender();siRecalc();siLinked();if(typeof touch==='function')touch()}
+/* site model changed: PV simulation, backup, systems and events use it when EV.site.on */
+let siLinkT=0;function siLinked(){clearTimeout(siLinkT);siLinkT=setTimeout(()=>{if(typeof EV!=='undefined'&&EV.site.on&&typeof runSim==='function'){lastSig='';runSim()}},300)}
 function siSync(){
   const q=id=>document.getElementById(id);if(!q('siplan'))return;
   if(!SITE.date)SITE.date=SIM.date||new Date().toISOString().slice(0,10);
@@ -306,21 +346,22 @@ function initSite(){
   });
   svg.addEventListener('pointermove',e=>{
     if(!drag)return;const p=pt(e),r=v=>Math.round(v*2)/2,nx=r(p[0]-drag.dx),ny=r(p[1]-drag.dy);
-    if(nx===drag.o.x&&ny===drag.o.y)return;
+    if(nx===drag.o.x&&ny===drag.o.y)return;siVer++;
     /* rooms inside a house move with it when the house is dragged */
     if(drag.o.t==='house'){const ddx=nx-drag.o.x,ddy=ny-drag.o.y;SITE.objs.filter(z=>z.t==='zone'&&SI_ROOM[z.kind]&&siHouseOf(z)===drag.o).forEach(z=>{z.x+=ddx;z.y+=ddy})}
     drag.o.x=nx;drag.o.y=ny;drag.moved=true;siDraw();
   });
-  const end=()=>{if(drag&&drag.moved){siProps();siRecalc();if(typeof touch==='function')touch()}drag=null};
+  const end=()=>{if(drag&&drag.moved){siVer++;siProps();siRecalc();siLinked();if(typeof touch==='function')touch()}drag=null};
   svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
   q('siprops').addEventListener('input',e=>{
     const k=e.target.dataset.sp;if(!k)return;const o=SITE.objs.find(x=>x.id===SITE.sel);if(!o)return;
     if(k==='name'){o.name=e.target.value.slice(0,40);siDraw();if(typeof touch==='function')touch();return}
     if(k==='kind'||k==='roof'){o[k]=e.target.value;siChanged();return}
+    if(k==='mppt'){o.mppt=+e.target.value||0;siChanged();return}
     const v=parseFloat(e.target.value);if(isNaN(v))return;
-    const lim={h:[.5,300],w:[.5,200],d:[.5,200],r:[.3,15],ch:[0,30],rh:[0,10],rot:[-180,180],x:[-200,200],y:[-200,200]}[k]||[-1e3,1e3];
+    const lim={z:[0,100],h:[.5,300],w:[.5,200],d:[.5,200],r:[.3,15],ch:[0,30],rh:[0,10],rot:[-180,180],x:[-200,200],y:[-200,200]}[k]||[-1e3,1e3];
     o[k]=Math.max(lim[0],Math.min(lim[1],v));if(o.t==='tree')o.ch=Math.min(o.ch,o.h-.5);
-    siDraw();siSunPath();siRecalc();if(typeof touch==='function')touch();
+    siVer++;siDraw();siSunPath();siRecalc();siLinked();if(typeof touch==='function')touch();
   });
   q('siprops').addEventListener('change',e=>{if(e.target.tagName==='SELECT')siProps()});
   q('siprops').addEventListener('click',e=>{if(e.target.id==='sidel'){SITE.objs=SITE.objs.filter(x=>x.id!==SITE.sel);SITE.sel=null;siChanged()}});
@@ -354,6 +395,7 @@ function siRestore(o){
       if(x.t==='house'||x.t==='bldg')b.h=n(x.h,3,.5,300);
       if(x.t==='house'){b.roof=x.roof==='flat'?'flat':'gable';b.rh=n(x.rh,2,0,10)}
       if(x.t==='zone')b.kind=SI_KIND[x.kind]?x.kind:'laundry';
+      if(x.t==='pv'){b.z=n(x.z,3,0,100);b.mppt=[0,1,2].includes(x.mppt)?x.mppt:0}
       return b;
     });
     SITE.nextId=Math.max(n(o.nextId,1,1,1e6)|0,...SITE.objs.map(x=>x.id+1),1);
@@ -365,3 +407,13 @@ function siRestore(o){
   SITE.sel=null;
 }
 const siSnapshot=()=>({objs:SITE.objs,nextId:SITE.nextId,lot:SITE.lot,view:SITE.view,date:SITE.date,h:SITE.h,mode:SITE.mode,period:SITE.period,win:SITE.win});
+
+/* one-line summary for the submission (period as chosen in the tab) */
+function siSummary(){
+  if(!SITE.objs.length)return'';
+  siAllSteps.k=null;const A=siAnalyse(),k=c=>SITE.objs.filter(o=>o.t===c).length,per=SI_PER[SITE.period];
+  const parts=[`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')} · ${per}`];
+  A.arrays.forEach(r=>parts.push(`${r.a.name} ถูกบัง ${f(r.sun>0?r.blk/r.sun*100:0,0)}%`));
+  A.zones.forEach(r=>{const[l,t]=siRec(r);parts.push(`${r.z.name}: ${l==='ok'?'✓':l==='warn'?'!':'×'} ${t} (บ่ายแรง ${f(r.pm2,1)} ชม.)`)});
+  return parts.join(' | ');
+}

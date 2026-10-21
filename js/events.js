@@ -1,7 +1,8 @@
 /* ---- events: cloud, dust, tree shade, seasons, grid outage, plus top/side site views ---- */
 const EV={cloud:{on:false,start:11,dur:2,depth:70},dust:{on:false,pct:15},
   tree:{on:false,h:12,d:7,az:180,w:90,pct:60,mppt:0,ph:3},
-  bld:{on:false,h:15,d:12,az:270,w:20}};
+  bld:{on:false,h:15,d:12,az:270,w:20},
+  site:{on:false}};
 const SEASONS=[['ฤดูร้อน (กลาง เม.ย.)',4,15],['ฤดูฝน (กลาง ก.ค.)',7,15],['ฤดูหนาว (กลาง ธ.ค.)',12,15],
   ['วิษุวัต (ฤดูใบไม้ผลิ)',3,21],['ครีษมายัน (กลางวันยาวสุดทางเหนือ)',6,21],['เหมายัน (กลางวันสั้นสุดทางเหนือ)',12,21]];
 const SC={view:'top',h:12,timer:0};
@@ -32,8 +33,22 @@ function bldShade(azR,elR){
   if(angDiff(azR,b.az*Math.PI/180)>bldHalfW())return 0;
   return elR<bldLimit()?1:0;
 }
-function evTreeShade(azR,elR,j){return Math.max(treeShade(azR,elR,j),bldShade(azR,elR))}
-const evActive=()=>EV.cloud.on||EV.dust.on||EV.tree.on||EV.bld.on;
+function evTreeShade(azR,elR,j){
+  if(EV.site.on)return typeof siteShade==='function'?siteShade(azR,elR,j):0;
+  return Math.max(treeShade(azR,elR,j),bldShade(azR,elR));
+}
+const evSiteActive=()=>EV.site.on&&typeof siteHasPV==='function'&&siteHasPV();
+const evActive=()=>EV.cloud.on||EV.dust.on||EV.tree.on||EV.bld.on||evSiteActive();
+/* site model (tab 05) replaces the single tree / building; the two ways are mutually exclusive */
+function evSiteOn(on){
+  EV.site.on=!!on;
+  if(on){EV.tree.on=false;EV.bld.on=false}
+  if(typeof evSync==='function'&&document.getElementById('evmx'))evSync();
+  if(typeof syEnvSync==='function')syEnvSync();
+  if(typeof pvSiteSync==='function')pvSiteSync();
+  if(typeof runSim==='function'){lastSig='';runSim()}
+  if(typeof touch==='function')touch();
+}
 
 function evSource(){
   const I=curInv();
@@ -45,12 +60,12 @@ function evSource(){
   return{blocks:[{n:N,ns:N,mp:1}],I,ideal:true,label:`แผงสมมติ ${N} แผง (ยังไม่ได้ต่อสายที่ถูกต้อง)`,n:N};
 }
 function simWith(S,only,date){
-  const keep=JSON.stringify([EV.cloud.on,EV.dust.on,EV.tree.on,EV.bld.on]),od=SIM.date;
-  if(only==='none'){EV.cloud.on=EV.dust.on=EV.tree.on=EV.bld.on=false}
-  else if(only){const o={cloud:EV.cloud.on,dust:EV.dust.on,tree:EV.tree.on,bld:EV.bld.on};EV.cloud.on=only==='cloud'&&o.cloud;EV.dust.on=only==='dust'&&o.dust;EV.tree.on=only==='tree'&&o.tree;EV.bld.on=only==='bld'&&o.bld}
+  const keep=JSON.stringify([EV.cloud.on,EV.dust.on,EV.tree.on,EV.bld.on,EV.site.on]),od=SIM.date;
+  if(only==='none'){EV.cloud.on=EV.dust.on=EV.tree.on=EV.bld.on=EV.site.on=false}
+  else if(only){const o={cloud:EV.cloud.on,dust:EV.dust.on,tree:EV.tree.on,bld:EV.bld.on,site:EV.site.on};EV.cloud.on=only==='cloud'&&o.cloud;EV.dust.on=only==='dust'&&o.dust;EV.tree.on=only==='tree'&&o.tree;EV.bld.on=only==='bld'&&o.bld;EV.site.on=only==='site'&&o.site}
   if(date)SIM.date=date;
   let R;try{R=simDay(S.blocks,S.I,SIM.tilt,SIM.az,5,S.ideal)}finally{
-    const k=JSON.parse(keep);EV.cloud.on=k[0];EV.dust.on=k[1];EV.tree.on=k[2];EV.bld.on=k[3];SIM.date=od}
+    const k=JSON.parse(keep);EV.cloud.on=k[0];EV.dust.on=k[1];EV.tree.on=k[2];EV.bld.on=k[3];EV.site.on=k[4];SIM.date=od}
   return R;
 }
 function sunTimes(R){
@@ -204,7 +219,8 @@ function evSync(){
   const ds=SIM.date;q('evday').value=dayOfYear(ds);q('evdayv').textContent=ds;
   const B=EV.bld;if(q('evbl')){q('evbl').checked=B.on;q('evbh').value=B.h;q('evbd').value=B.d;q('evbw').value=B.w;q('evba').value=B.az;q('evbav').textContent=`${B.az}° (${dirName(B.az)})`}
   ['evcbox','evdbox','evtbox','evbbox'].forEach((id,i)=>{const e=q(id);if(e)e.classList.toggle('on',[EV.cloud.on,EV.dust.on,EV.tree.on,EV.bld.on][i])});
-  const act=[];if(EV.cloud.on)act.push('เมฆบัง');if(EV.dust.on)act.push('ฝุ่นบังแผง');if(EV.tree.on)act.push('ต้นไม้บัง');if(EV.bld.on)act.push('ตึกบัง');
+  const act=[];if(EV.cloud.on)act.push('เมฆบัง');if(EV.dust.on)act.push('ฝุ่นบังแผง');if(EV.tree.on)act.push('ต้นไม้บัง');if(EV.bld.on)act.push('ตึกบัง');if(evSiteActive())act.push('เงาจากผังไซต์');
+  if(q('evsite')){q('evsite').checked=EV.site.on;q('evsitebox').classList.toggle('on',EV.site.on);q('evtbox').hidden=EV.site.on;q('evbbox').hidden=EV.site.on;q('evsitenote').textContent=EV.site.on?(siteHasPV()?`ใช้ต้นไม้และตึกจากผังไซต์ (แท็บ 05) คิดเงาบนแผงโซลาร์ ${siArrays().length} ชุดบนผัง`:'ยังไม่มีแผงโซลาร์บนผัง ไปแท็บ 05 กด "+ แผงโซลาร์" เพื่อวางบนหลังคา'):'ใช้ต้นไม้ / ตึกแบบเดี่ยวที่ตั้งด้านล่างแทน'}
   const n=document.getElementById('evnote');if(n)n.textContent=act.length?'เหตุการณ์ที่เปิดอยู่ในกราฟด้านล่าง: '+act.join(', ')+' (ตั้งค่าที่แท็บ "จำลองเหตุการณ์")':'';
 }
 function evRun(){
@@ -216,9 +232,9 @@ function evRun(){
   msg.textContent=`แหล่งผลิต: ${S.label} · ${f(S.n*PV.pmax/1000,2)} kWp · ${SIM.date} · มุมเอียง ${SIM.tilt}° หันไป ${SIM.az}° (${dirName(SIM.az)})`;
   if(!st){document.getElementById('evmx').innerHTML='<div class="metric"><div class="k">วันนี้ไม่มีแสงอาทิตย์</div></div>';return}
   const loss=R0.E-R.E,pc=R0.E>0?loss/R0.E*100:0;
-  const cause=['cloud','dust','tree','bld'].map(k=>{
-    const on=EV[k].on;if(!on)return null;
-    const Rk=simWith(S,k);return{k,name:{cloud:'เมฆบัง',dust:'ฝุ่นบังแผง',tree:'ต้นไม้บัง',bld:'ตึกบัง'}[k],d:R0.E-Rk.E};
+  const cause=['cloud','dust','tree','bld','site'].map(k=>{
+    const on=k==='site'?evSiteActive():EV[k].on;if(!on)return null;
+    const Rk=simWith(S,k);return{k,name:{cloud:'เมฆบัง',dust:'ฝุ่นบังแผง',tree:'ต้นไม้บัง',bld:'ตึกบัง',site:'เงาจากผังไซต์'}[k],d:R0.E-Rk.E};
   }).filter(Boolean);
   const bk=window.lastBK;
   const mx=[
@@ -264,10 +280,10 @@ function initEvents(){
   q('evcs').addEventListener('input',e=>{const h=parseHM(e.target.value);if(isNaN(h))return;EV.cloud.start=h;evChanged()});
   num('evcd',EV.cloud,'dur',0,12);num('evcp',EV.cloud,'depth',10,100);
   q('evdu').addEventListener('change',e=>{EV.dust.on=e.target.checked;evChanged()});num('evdp',EV.dust,'pct',1,60);
-  q('evtr').addEventListener('change',e=>{EV.tree.on=e.target.checked;evChanged()});
+  q('evtr').addEventListener('change',e=>{EV.tree.on=e.target.checked;if(EV.tree.on)EV.site.on=false;evChanged()});
   num('evth',EV.tree,'h',1,40);num('evtd',EV.tree,'d',1,60);num('evta',EV.tree,'az',0,359);num('evtw',EV.tree,'w',5,160);num('evtp',EV.tree,'pct',10,100);num('evtph',EV.tree,'ph',0,20);
   q('evtm').addEventListener('change',e=>{EV.tree.mppt=+e.target.value;evChanged()});
-  if(q('evbl')){q('evbl').addEventListener('change',e=>{EV.bld.on=e.target.checked;evChanged()});num('evbh',EV.bld,'h',1,200);num('evbd',EV.bld,'d',1,200);num('evbw',EV.bld,'w',1,200);num('evba',EV.bld,'az',0,359);
+  if(q('evbl')){q('evbl').addEventListener('change',e=>{EV.bld.on=e.target.checked;if(EV.bld.on)EV.site.on=false;evChanged()});num('evbh',EV.bld,'h',1,200);num('evbd',EV.bld,'d',1,200);num('evbw',EV.bld,'w',1,200);num('evba',EV.bld,'az',0,359);
     q('evbdir').addEventListener('click',e=>{const b=e.target.closest('[data-az]');if(!b)return;EV.bld.az=+b.dataset.az;evChanged()})}
   q('evtdir').addEventListener('click',e=>{const b=e.target.closest('[data-az]');if(!b)return;EV.tree.az=+b.dataset.az;evChanged()});
   q('evtdir').innerHTML=DIRS.map(d=>`<button class="chip" data-az="${d[1]}">${d[0]}</button>`).join('');
@@ -280,7 +296,8 @@ function initEvents(){
   const pick=ds=>{setDate(ds);runSim();evSync();touch()};
   q('evseaschips').addEventListener('click',e=>{const b=e.target.closest('[data-si]');if(!b)return;const se=SEASONS[+b.dataset.si];pick(seasonDate(se[1],se[2]))});
   q('evseas').addEventListener('click',e=>{const b=e.target.closest('[data-sd]');if(b)pick(b.dataset.sd)});
-  q('evreset').addEventListener('click',()=>{EV.cloud.on=EV.dust.on=EV.tree.on=EV.bld.on=false;evChanged()});
+  q('evreset').addEventListener('click',()=>{EV.cloud.on=EV.dust.on=EV.tree.on=EV.bld.on=EV.site.on=false;evChanged()});
+  if(q('evsite'))q('evsite').addEventListener('change',e=>evSiteOn(e.target.checked));
   let rz2=0;window.addEventListener('resize',()=>{cancelAnimationFrame(rz2);rz2=requestAnimationFrame(drawEvCharts)});
   evSync();
 }

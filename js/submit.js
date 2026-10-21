@@ -26,7 +26,8 @@ function buildReport(){
   if(typeof backupRun==='function')backupRun();
   if(window.lastBK)r.bk=window.lastBK;
   if(typeof acAnalyze==='function'){if(typeof acRender==='function')acRender();r.ac=window.lastAC||null}
-  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:'',EV.bld.on?`ตึก ${EV.bld.h} ม.`:''].filter(Boolean).join(', ')+' · '+SIM.date:'';
+  r.site=typeof siSummary==='function'?siSummary():'';
+  r.ev=(typeof EV!=='undefined'&&evActive())?[EV.cloud.on?`เมฆ ${EV.cloud.depth}%`:'',EV.dust.on?`ฝุ่น ${EV.dust.pct}%`:'',EV.tree.on?`ต้นไม้ ${EV.tree.h} ม.`:'',EV.bld.on?`ตึก ${EV.bld.h} ม.`:'',typeof evSiteActive==='function'&&evSiteActive()?'เงาจากผังไซต์':''].filter(Boolean).join(', ')+' · '+SIM.date:'';
   return r;
 }
 const wLabel=w=>!w?'ยังไม่มีผลการต่อสาย':({ok:'ต่อถูกต้อง ผ่านทุกข้อ',warn:`ใช้ได้ แต่มี ${w.warn} ข้อควรระวัง`,err:`มี ${w.err} ข้อที่ไม่ผ่าน`,idle:'ยังไม่ได้ต่อสายเข้าอินเวอร์เตอร์'})[w.lvl];
@@ -41,7 +42,8 @@ function reportLines(r){
     ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลดสำคัญ ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
     ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-'],
     ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC'],
-    ['เหตุการณ์ที่จำลอง',r.ev||'ไม่มี']
+    ['เหตุการณ์ที่จำลอง',r.ev||'ไม่มี'],
+    ['ไซต์และเงา',r.site||'ยังไม่ได้วางผัง']
   ];
 }
 
@@ -172,7 +174,7 @@ function payload(r,receipt){
     panel:r.panel,inverter:r.inverter,battery:r.battery,
     pvKwh:r.pv?+r.pv.E.toFixed(2):'',loadKwh:+r.load.E.toFixed(2),
     bkMode:r.bk?r.bk.mode:'',bkLvl:r.bk?r.bk.lvl:'',bkText:r.bk?r.bk.vt:'',bkUnmet:r.bk?+(r.bk.unmet||0).toFixed(2):'',
-    acLvl:r.ac?r.ac.lvl:'',acErr:r.ac?r.ac.nE:0,evText:r.ev||'',
+    acLvl:r.ac?r.ac.lvl:'',acErr:r.ac?r.ac.nE:0,evText:r.ev||'',siteText:clip(r.site||'',480),
     issues:r.issues.slice(0,15).map(i=>`[${i.lvl}] ${clip(i.t,200)}`)};
 }
 async function doSubmit(){

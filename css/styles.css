@@ -511,3 +511,5 @@ table.t.sitbl td small{display:block;color:var(--muted);font-family:var(--body)}
 table.t.sitbl td:first-child{font-family:var(--body)}table.t.sitbl .empty{text-align:left;color:var(--muted);font-family:var(--body)}
 .sizone .chip,.sitools .chip{white-space:nowrap}.sio.zone.k-bedroom polygon,.sio.zone.k-living polygon,.sio.zone.k-kitchen polygon{fill-opacity:.18}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sishd{fill:#000;opacity:.55}}:root[data-theme="dark"] .sishd{fill:#000;opacity:.55}
+.sio.pv polygon{fill:#1d4b78;stroke:#0f2f4f;stroke-width:1.5}.sio.pv .pvdir{stroke:#f5b800;stroke-width:2.5}.silab.on{fill:#fff}.silab .bad,.silab.on .bad{fill:#ffb4ab;font-weight:600}
+.pvsite{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;padding:8px 10px;border:1px dashed var(--line);border-radius:8px}

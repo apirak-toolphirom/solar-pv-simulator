@@ -225,6 +225,12 @@ function setOrientUI(){
   document.querySelectorAll('#dirs .chip').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.az===Math.round(SIM.az/45)%8*45)));
   drawOrient();
 }
+function pvSiteSync(){
+  const c=document.getElementById('pvsite');if(!c||typeof EV==='undefined')return;
+  c.checked=EV.site.on;
+  const n=typeof siArrays==='function'?siArrays().length:0;
+  document.getElementById('pvsitenote').textContent=EV.site.on?(n?`ใช้ต้นไม้ ตึก และตำแหน่งแผง ${n} ชุดจากผังไซต์`:'ยังไม่มีแผงบนผัง ไปแท็บ 05 กด "+ แผงโซลาร์"'):(n?`มีแผงบนผัง ${n} ชุด ติ๊กเพื่อคิดเงาจากผัง`:'วางบ้าน ต้นไม้ ตึก และแผงได้ที่แท็บ 05');
+}
 function runSimView(){
   if(!lastA)return;
   const A=lastA,I=A.I,blocks=A.res.map(r=>r.status==='ok'?r.blk:null);
@@ -248,6 +254,9 @@ function runSimView(){
     ['สูญเสียจากเพดาน AC',f(R.Eclip,2)+' kWh',`จำกัดกระแส MPPT ${f(R.Elim*(I.eff||97)/100,2)} kWh`],
     ['มีแสงแต่ยังไม่ทำงาน',f(idleH,1)+' ชม.','แรงดันต่ำกว่าช่วง MPPT หรือยังไม่ถึงแรงดันเริ่มทำงาน']
   ];
+  if(typeof evSiteActive==='function'&&evSiteActive()){const S0=(()=>{const k=EV.site.on;EV.site.on=false;const r=simDay(blocks,I,SIM.tilt,SIM.az,5);EV.site.on=k;return r})();
+    mx.push(['เสียไฟจากเงาในผังไซต์',f(Math.max(0,S0.E-R.E),2)+' kWh',`${f(S0.E>0?(S0.E-R.E)/S0.E*100:0,1)} % ของวันนี้ · แผงบนผัง ${siArrays().length} ชุด`])}
+  pvSiteSync();
   $('#mx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   const potMax=Math.max(...R.pot)/1000,vTop=Math.max(I.hi,...R.vmp.flatMap(a=>a.filter(v=>v!=null)))*1.05;
   chartCfg={
@@ -279,6 +288,7 @@ function runSim(){runSimView();if(typeof backupRun==='function')backupRun();if(t
 function drawCharts(){if(!chartCfg)return;drawLine($('#chA'),chartCfg.A);drawLine($('#chB'),chartCfg.B)}
 let rz=0;
 window.addEventListener('resize',()=>{cancelAnimationFrame(rz);rz=requestAnimationFrame(drawCharts)});
+{const c=document.getElementById('pvsite');if(c){c.addEventListener('change',e=>evSiteOn(e.target.checked));document.getElementById('pvsitego').addEventListener('click',()=>showTab('site'))}}
 
 function applyLoc(){
   const r=parseLoc($('#loc').value),m=$('#locmsg');

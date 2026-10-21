@@ -136,7 +136,7 @@ function parse(headers,rows){
       dc:lvOf(g(r,'ผลต่อสาย')),err:+g(r,'ไม่ผ่าน')||0,warn:+g(r,'ควรระวัง')||0,used:+g(r,'แผงที่ใช้')||0,panels:+g(r,'แผงทั้งหมด')||0,kwp:+g(r,'kWp')||0,ratio:+g(r,'DC/AC')||0,
       topo:String(g(r,'รูปแบบการต่อ')||''),panel:String(g(r,'แผง')||''),inv:String(g(r,'อินเวอร์เตอร์')||''),bat:String(g(r,'แบตเตอรี่')||''),
       pv:g(r,'ผลิตต่อวัน kWh'),load:g(r,'โหลดต่อวัน kWh'),bkMode:String(g(r,'โหมด Backup')||''),bk:lvOf(g(r,'ผล Backup')),bkText:String(g(r,'สรุป Backup')||''),unmet:+g(r,'ไฟขาด kWh')||0,
-      issues:String(g(r,'ข้อที่ต้องตรวจ')||'').split('\n').map(s=>s.trim()).filter(Boolean),ac:lvOf(g(r,'ผลต่อสาย AC')),acErr:+g(r,'ข้อผิดพลาด AC')||0,ev:String(g(r,'เหตุการณ์ที่จำลอง')||'')};
+      issues:String(g(r,'ข้อที่ต้องตรวจ')||'').split('\n').map(s=>s.trim()).filter(Boolean),ac:lvOf(g(r,'ผลต่อสาย AC')),acErr:+g(r,'ข้อผิดพลาด AC')||0,ev:String(g(r,'เหตุการณ์ที่จำลอง')||''),site:String(g(r,'ไซต์และเงา')||'')};
   }).filter(r=>r.name||r.sid);
 }
 const who=r=>(r.sid||r.gmail||r.name).toLowerCase();
@@ -252,7 +252,7 @@ function drawTable(L){
     return`<tr class="main" data-id="${esc(id)}" aria-expanded="${open}"><td>${esc(r.name)}</td><td>${esc(r.sid||r.gmail)}</td><td>${tm(r.t)}</td><td>${pill(r.dc)}${r.err?` <small>${r.err} ผิด</small>`:''}${r.warn?` <small>${r.warn} ระวัง</small>`:''}</td>
       <td class="num">${r.used}/${r.panels}</td><td class="num">${f(r.kwp,2)}</td><td>${esc(r.inv)}</td><td>${pill(r.ac)}</td><td>${pill(r.bk)}</td><td class="num">${r.n||1}</td></tr>`
       +(open?`<tr class="det"><td colspan="${COLS.length}"><b>การต่อ</b> ${esc(r.topo||'-')} · DC/AC ${f(r.ratio,2)} · แผง ${esc(r.panel)} · แบต ${esc(r.bat||'-')}
-<b>พลังงาน</b> ผลิต ${esc(r.pv===''?'-':r.pv)} kWh/วัน · โหลด ${esc(r.load)} kWh/วัน${r.bkText?' · '+esc(r.bkText):''}${r.ev?'\n<b>เหตุการณ์</b> '+esc(r.ev):''}
+<b>พลังงาน</b> ผลิต ${esc(r.pv===''?'-':r.pv)} kWh/วัน · โหลด ${esc(r.load)} kWh/วัน${r.bkText?' · '+esc(r.bkText):''}${r.ev?'\n<b>เหตุการณ์</b> '+esc(r.ev):''}${r.site?'\n<b>ไซต์และเงา</b> '+esc(r.site).split(' | ').join('\n  · '):''}
 <b>ข้อที่ต้องตรวจ</b>${r.issues.length?'\n• '+r.issues.map(esc).join('\n• '):' ไม่มี'}</td></tr>`:'');
   }).join(''):`<tr><td colspan="${COLS.length}" class="empty">ไม่มีรายการตามตัวกรอง</td></tr>`;
   $('#tblh').textContent=`รายชื่อผู้ส่งงาน (${L.length})`;

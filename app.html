@@ -197,6 +197,7 @@
         </div>
         <svg id="orsvg" class="orsvg" viewBox="0 0 330 150" role="img" aria-label="ทิศที่แผงหันหน้าไปและมุมเอียง"></svg>
       </div>
+      <div class="pvsite" id="pvsitebox"><label class="chk"><input id="pvsite" type="checkbox"> คิดเงาบนแผงจากผังไซต์ (แท็บ 05)</label><span id="pvsitenote" class="hint tight"></span><button class="btn sm" id="pvsitego">ไปแท็บไซต์และเงา</button></div>
     </div>
     <div class="simcards">
       <p id="simmsg" class="simmsg" hidden>ต่อสายแผงเข้า MPPT ให้ครบวงจรและผ่านการตรวจขั้วก่อน แล้วระบบจะจำลองการทำงานทั้งวันให้</p>
@@ -221,7 +222,7 @@
     <header><h1>ไซต์และเงา</h1><p class="sub">วิเคราะห์ทิศทางและเงา (Shadow &amp; Orientation) วางบ้าน ต้นไม้ ตึกข้างเคียง และโซนบนผัง ดูเส้นทางดวงอาทิตย์ทั้งปี เงาตามวันและเวลา และชั่วโมงแดดของแต่ละจุด ใช้วางตำแหน่งห้อง (Zoning) ตรวจเงาบังข้างบ้าน (Site Planning) และเลือกจุดปลูกต้นไม้หรือสระ (Landscape)</p></header>
     <div class="panelbox sitools" id="sitools">
       <span class="lab">เพิ่ม</span>
-      <button class="chip" data-sa="house">+ บ้าน</button><button class="chip" data-sa="tree">+ ต้นไม้</button><button class="chip" data-sa="bldg">+ ตึกข้างเคียง</button>
+      <button class="chip" data-sa="house">+ บ้าน</button><button class="chip" data-sa="pv">+ แผงโซลาร์</button><button class="chip" data-sa="tree">+ ต้นไม้</button><button class="chip" data-sa="bldg">+ ตึกข้างเคียง</button>
       <span class="sizone"><select id="sizk" aria-label="ชนิดโซน"><option value="laundry">ลานซักล้าง / ตากผ้า</option><option value="pool">สระว่ายน้ำ</option><option value="garden">สวน / ปลูกต้นไม้</option><option value="parking">ที่จอดรถ</option><option value="bedroom">ห้องนอน</option><option value="living">ห้องนั่งเล่น</option><option value="kitchen">ครัว</option></select><button class="chip" data-sa="zone">+ โซน</button></span>
       <span class="sp"></span><button class="chip" data-sa="example">ตัวอย่างบ้าน</button><button class="chip" data-sa="clear">ล้างผัง</button>
     </div>
@@ -248,6 +249,7 @@
         <section class="card scsvg"><h3>เส้นทางดวงอาทิตย์ (Sun Path)</h3><div id="sipath"></div><p class="hint tight">กลางวง = เหนือศีรษะ ขอบวง = ขอบฟ้า เส้นทึบ = วันที่เลือก ตัวเลข = ชั่วโมง</p></section>
       </div>
     </div>
+    <section class="card tbl" style="margin-bottom:12px"><h3>แผงโซลาร์บนผัง: เงาบนแผง (ชม./วัน)</h3><div class="tblwrap"><table class="t sitbl" id="siarr"></table></div><p class="hint tight">ใช้ในแท็บจำลองแผง Backup ระบบ 4 แบบ และเหตุการณ์ เมื่อเปิด "ใช้เงาจากผังไซต์"</p></section>
     <section class="card tbl"><h3>โซน: ชั่วโมงแดดตรงเฉลี่ยต่อวัน · <span id="siper"></span></h3><div class="tblwrap"><table class="t sitbl" id="sizones"></table></div><p class="hint tight" id="sinote"></p></section>
     <section class="card tbl" style="margin-top:12px"><h3>ผนังบ้านแต่ละทิศ (ชม./วัน)</h3><div class="tblwrap"><table class="t sitbl" id="siwalls"></table></div></section>
     <section class="card tbl" style="margin-top:12px"><h3>เงาบังข้างบ้าน / ข้างบ้านบังเรา</h3><div class="tblwrap"><table class="t sitbl" id="sinbr"></table></div><p class="hint tight">วัตถุที่จุดกลางอยู่ในกรอบที่ดินถือเป็นของเรา วัตถุนอกกรอบถือเป็นของข้างเคียง แนวตรวจห่างเขตที่ดิน 1.5 ม.</p></section>
@@ -347,6 +349,7 @@
       <div class="syenv">
         <section class="evb" id="syecbox"><h3><label class="chk"><input id="syecl" type="checkbox"> เมฆบัง</label></h3>
           <div class="row3"><label>เริ่ม<input id="syecs" type="time"></label><label>นาน (ชม.)<input id="syecd" type="number" min="0" max="12" step="0.5"></label><label>ความหนา (%)<input id="syecp" type="number" min="10" max="100" step="5"></label></div></section>
+        <section class="evb" id="syesitebox"><h3><label class="chk"><input id="syesite" type="checkbox"> เงาจากผังไซต์ (แท็บ 05)</label></h3><p class="hint tight" id="syesitenote"></p></section>
         <section class="evb" id="syetbox"><h3><label class="chk"><input id="syetr" type="checkbox"> เงาต้นไม้</label></h3>
           <div class="row3"><label>ทิศ<select id="syeta"></select></label><label>สูง (ม.)<input id="syeth" type="number" min="1" max="40" step="0.5"></label><label>ห่าง (ม.)<input id="syetd" type="number" min="1" max="60" step="0.5"></label></div></section>
         <section class="evb" id="syebbox"><h3><label class="chk"><input id="syebl" type="checkbox"> เงาตึก / อาคาร</label></h3>
@@ -391,6 +394,7 @@
         <label>แสงที่หายไป <b id="evdpv"></b><input id="evdp" type="range" min="1" max="60" step="1"></label>
         <p class="hint tight">ฝุ่นบางๆ ราว 3–8% ฝุ่นหนาหรือขี้นก 15–30%</p>
       </section>
+      <section class="panelbox evb" id="evsitebox"><h3><label class="chk"><input id="evsite" type="checkbox"> ใช้เงาจากผังไซต์ (แท็บ 05)</label></h3><p class="hint tight" id="evsitenote"></p></section>
       <section class="panelbox evb" id="evtbox"><h3><label class="chk"><input id="evtr" type="checkbox"> ต้นไม้บังแสง</label></h3>
         <div class="chips" id="evtdir"></div>
         <label>ทิศของต้นไม้ <b id="evtav"></b><input id="evta" type="range" min="0" max="359" step="5"></label>

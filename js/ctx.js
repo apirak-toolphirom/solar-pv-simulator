@@ -34,7 +34,7 @@ function ctxChips(t){
       a.push(C(ACS.apply?'ok':'idle','ส่งผลไปแท็บ 06',ACS.apply?'ใช้ (ติ๊กแล้ว)':'ไม่ใช้ (ยังไม่ติ๊ก)',null));
       return a;
     }
-    case'pv':return[C(dcOk?'ok':'warn','แผงที่ต่อสาย',dcOk?`${nUsed} แผง · ${f(A.pv/1000,2)} kWp`:'ยังต่อสายไม่ถูก','wiring'),C('ok','อินเวอร์เตอร์',inv,'equip'),C('ok','พิกัด / มุมแผง',site,null)];
+    case'pv':return[C(dcOk?'ok':'warn','แผงที่ต่อสาย',dcOk?`${nUsed} แผง · ${f(A.pv/1000,2)} kWp`:'ยังต่อสายไม่ถูก','wiring'),C('ok','อินเวอร์เตอร์',inv,'equip'),C('ok','พิกัด / มุมแผง',site,null),C(EV.site.on?(siteHasPV()?'ok':'warn'):'idle','เงาบนแผง',EV.site.on?(siteHasPV()?`จากผังไซต์ ${siArrays().length} ชุด`:'ยังไม่มีแผงบนผัง'):'ไม่ใช้ผังไซต์','site')];
     case'load':return[C('ok','อินเวอร์เตอร์ (ใช้เทียบกำลัง)',inv,'equip'),C(ph3?'ok':'idle','คอลัมน์เฟส',ph3?'แสดง (ระบบ 3 เฟส)':'ซ่อน (ระบบ 1 เฟส)','ac'),C(loads.length?'ok':'warn','ส่งต่อไป',loads.length?`${loads.length} รายการ · ${f(kwh,1)} kWh/วัน → 03, 06`:'ยังไม่มีโหลด',null)];
     case'backup':{
       const ps=panelSrc();
@@ -52,10 +52,10 @@ function ctxChips(t){
     case'events':{
       const ev=typeof evSource==='function'?evSource():null,bk=window.lastBK;
       return[C(ev&&!ev.ideal?'ok':'idle','แผง',ev?(ev.ideal?`แผงสมมติ ${ev.n} แผง`:`ตามที่ต่อสาย ${ev.n} แผง`):'-','wiring'),C('ok','พิกัด / วันที่',site,'pv'),
-        C(bk&&BK.mode!=='off'&&BK.outDur>0?'ok':'idle','ไฟดับ',bk&&BK.mode!=='off'&&BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (จาก 06)`:'ไม่ได้ตั้งในแท็บ 06','backup')];
+        C(bk&&BK.mode!=='off'&&BK.outDur>0?'ok':'idle','ไฟดับ',bk&&BK.mode!=='off'&&BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (จาก 07)`:'ไม่ได้ตั้งในแท็บ 07','backup'),C(EV.site.on?'ok':'idle','ต้นไม้ / ตึก',EV.site.on?'จากผังไซต์':'ตั้งแบบเดี่ยวในแท็บนี้','site')];
     }
     case'site':{const n=SITE.objs.length,k=c=>SITE.objs.filter(o=>o.t===c).length;
-      return[C('ok','พิกัด',`${f(SIM.lat,3)}, ${f(SIM.lon,3)}`,'pv'),C(n?'ok':'warn','ผัง',n?`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')}`:'ยังว่าง',null),C('idle','ส่งต่อ','ยังไม่เชื่อมกับแท็บอื่น (ขั้นที่ 2)',null)]}
+      return[C('ok','พิกัด',`${f(SIM.lat,3)}, ${f(SIM.lon,3)}`,'pv'),C(n?'ok':'warn','ผัง',n?`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')}`:'ยังว่าง',null),C(EV.site.on&&k('pv')?'ok':'idle','ส่งต่อ',EV.site.on?(k('pv')?`เงาบนแผง ${k('pv')} ชุด → 04, 07, 08, 09`:'ยังไม่มีแผงบนผัง'):'ปิดอยู่ (เปิดที่แท็บ 04, 08 หรือ 09)',null),C(k('pv')?'ok':'idle','แผงบนผัง',k('pv')+' ชุด',null)]}
     case'bench':return[C('idle','อิสระ','ไม่ใช้ข้อมูลจากแท็บอื่น (ระบบ 12 / 24 / 48 V)',null)];
     case'submit':{
       const lv=x=>x==='ok'?'ok':x==='err'||x==='warn'?'warn':'idle',lab=x=>x==='ok'?'ผ่าน':x==='warn'?'มีข้อควรระวัง':x==='err'?'ไม่ผ่าน':'ยังไม่ได้ทำ';
