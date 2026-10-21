@@ -92,11 +92,11 @@ const BUILTIN=(()=>{
     .forEach(([m,p,s,nm,ib,bv,rec])=>inv.push({id:slug('deye '+m),brand:'Deye',model:m,type:'hybrid',phase:'1',pac:p,nmppt:nm,vmax:500,lo:150,hi:425,start:125,imax:18,isc:27,pvRec:rec,eff:96.5,
     bvMin:bv===24?20:40,bvMax:bv===24?30:60,bchg:Math.round(ib*bv/100)/10,bdis:Math.round(ib*bv/100)/10,backupKw:p/1000,builtin:1,
     note:`Hybrid 1 เฟส 220/230 V แบตแรงดันต่ำ ${bv===24?'20–30':'40–60'} V (ลิเธียมหรือตะกั่วกรด) ชาร์จ/จ่าย ${ib} A · ${nm} MPPT 18 A / Isc 27 A ต่อ MPPT · MPPT 150–425 V (เต็มกำลัง 300–425 V) · S สูงสุด ${s} VA · ออฟกริดจ่ายพีค 2 เท่า 10 วินาที · ไฟผ่านจากกริดถึงโหลดสูงสุด ${p<=3000?35:40} A · eff สูงสุด 97.6% · CT หรือมิเตอร์ RS485 · คู่มือ Deye 2026-01`}));
-  // SUN2000-5..12K-MAP0: three-phase hybrid, whole-home backup with SmartGuard
+  // SUN2000-5..12K-MAP0: checked against FusionSolar datasheet 02-202406 (all values match) three-phase hybrid, whole-home backup with SmartGuard
   [[5,98.4,97.5,9000,5.5],[6,98.6,97.7,11000,6.6],[8,98.6,98.0,14600,8.8],[10,98.6,98.1,18000,11],[12,98.6,98.2,22000,12]]
     .forEach(([k,mx,eu,rec,dis])=>hw(`SUN2000-${k}K-MAP0`,{type:'hybrid',phase:'3',asym:'1',bph:'3',pac:k*1000,vmax:1100,lo:160,hi:1000,start:160,imax:16,isc:22,pvRec:rec,eff:eu,
     bvMin:600,bvMax:980,bchg:12,bdis:dis,backupKw:k,
-    note:`3 เฟส 380/400 V รองรับโหลดไม่สมดุล 100% · แบต LUNA2000-S0/S1 แรงดัน 600–980 V แบต 51.2 V ใช้ไม่ได้ · Backup ทั้งบ้านผ่าน SmartGuard-63A-T0 สลับ ≤20 ms · eff สูงสุด ${mx}%`}));
+    note:`3 เฟส 380/400 V รองรับโหลดไม่สมดุล 100% · แบต LUNA2000-5/10/15-S0 หรือ LUNA2000-7/14/21-S1 แรงดัน 600–980 V กระแส 20 A แบต 51.2 V ใช้ไม่ได้ · ชาร์จจากกริดได้ · Backup ทั้งบ้านผ่าน SmartGuard-63A-T0 สลับ ≤20 ms รับโหลดเกิน 150% 1 นาที (3 เฟส) และ 200% 10 วินาที · AFCI · มาตรฐาน MEA/PEA · eff สูงสุด ${mx}% · ดาต้าชีต 02-202406`}));
   const b=(brand,model,o)=>bat.push(Object.assign({id:slug(brand+' '+model),brand,model,chem:'LiFePO4',rt:95,builtin:1},o));
   // Huawei LUNA2000-(5-30)-S0: power control module LUNA2000-5KW-C0 (5 kW, DC/DC) + 1-3 battery modules LUNA2000-5-E0 (5 kWh each)
   [1,2,3].forEach(n=>b('Huawei',`LUNA2000-${5*n}-S0`,{chem:'Li-ion',v:450,v3:600,ah:Math.round(5*n*1000/450*100)/100,dod:95,maxChg:11.11,maxDis:11.11,maxS:1,maxP:2,compat:'Huawei',
