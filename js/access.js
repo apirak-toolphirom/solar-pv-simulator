@@ -81,14 +81,14 @@ async function accRefreshMenus(){try{const j=await accPost({action:'menus'});if(
 async function initAccess(){
   ACC.enabled=false;accBar();
   if(!CFG.SUBMIT_URL)return;
-  /* the lock only switches on when the web app answers with a menu list (an older Code.gs has no access control) */
-  try{const j=await accPost({action:'menus'});if(!(j&&j.ok&&Array.isArray(j.menus)))return;ACC.menus=j.menus}catch(e){return}
+  /* locked from the first paint: a visitor sees only the default menu (07) even while the web app is slow or unreachable */
   ACC.enabled=true;
   const s=(()=>{try{return JSON.parse(localStorage.getItem(ACC_KEY)||'{}')}catch(e){return{}}})();
   if(typeof TEACH!=='undefined'&&TEACH.on)ACC.role='teacher';
   else if(s.role==='student'&&s.day===accToday())ACC.role='student';
   if(ACC.role==='visitor')accForget(false);
   accApply();
+  accRefreshMenus();
   const bar=document.getElementById('accbar');
   bar.addEventListener('click',async e=>{
     if(e.target.id==='accgo'){const v=id=>document.getElementById(id).value.trim();await accStudent(v('accname'),v('accsid'),v('acccls'))}
