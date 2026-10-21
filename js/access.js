@@ -24,7 +24,7 @@ function accBar(){
   if(ACC.role==='visitor'){
     b.className='accbar visitor';
     b.innerHTML=`<div class="accrow"><b>ผู้เยี่ยมชม</b><span class="hint tight">ดูได้เฉพาะ ${esc(vis.join(', ')||'—')} · ผู้เรียนกรอกข้อมูลเพื่อเริ่มใช้งานทุกเมนูที่เปิด</span></div>
-      <div class="accrow accform"><input id="accname" placeholder="ชื่อ-นามสกุล" autocomplete="name" value="${esc(MEMBER.name)}"><input id="accsid" placeholder="รหัสผู้เรียน" value="${esc(MEMBER.sid)}"><input id="acccls" placeholder="รหัสห้องอบรม" value="${esc(MEMBER.cls)}"><button class="btn pri" id="accgo">เข้าใช้งาน</button>
+      <div class="accrow accform"><input id="accname" placeholder="ชื่อ-นามสกุล" autocomplete="name" value="${esc(MEMBER.name)}"><input id="accsid" placeholder="รหัสผู้เรียน" value="${esc(MEMBER.sid)}"><input id="acccls" type="password" placeholder="รหัสห้องอบรม" autocomplete="off" value=""><button class="btn pri" id="accgo">เข้าใช้งาน</button>
       <span class="accsep">ผู้สอน</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>
       <p class="simmsg" id="accmsg" role="status" hidden></p>`;
   }else if(ACC.role==='student'){
@@ -34,6 +34,12 @@ function accBar(){
     b.className='accbar teacher';
     b.innerHTML=`<div class="accrow"><b>โหมดผู้สอน</b><span class="hint tight">เห็นและใช้ได้ทุกเมนู · ตั้งเปิด/ปิดเมนูและใบงานที่หน้า <a href="dashboard.html" target="_blank" rel="noopener">สรุปงานส่ง</a></span><button class="btn sm" id="accout">ออกจากโหมดผู้สอน</button></div>`;
   }
+}
+/* the class code is never left on a shared lab computer once the student is not signed in */
+function accForget(all){
+  MEMBER.cls='';if(all){MEMBER.name='';MEMBER.sid=''}
+  ['mcls'].concat(all?['mname','msid']:[]).forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  try{lsSet(MEM_KEY,MEMBER)}catch(e){}if(typeof whoUpdate==='function')whoUpdate();
 }
 function accMsg(t,cls){const m=document.getElementById('accmsg');if(!m)return;m.textContent=t;m.className='simmsg'+(cls?' '+cls:'');m.hidden=!t}
 function accApply(){
@@ -81,6 +87,7 @@ async function initAccess(){
   const s=(()=>{try{return JSON.parse(localStorage.getItem(ACC_KEY)||'{}')}catch(e){return{}}})();
   if(typeof TEACH!=='undefined'&&TEACH.on)ACC.role='teacher';
   else if(s.role==='student'&&s.day===accToday())ACC.role='student';
+  if(ACC.role==='visitor')accForget(false);
   accApply();
   const bar=document.getElementById('accbar');
   bar.addEventListener('click',async e=>{
@@ -89,10 +96,10 @@ async function initAccess(){
       const ok=typeof teachVerify==='function'?await teachVerify(c,true):false;if(ok){ACC.role='teacher';accApply()}else accMsg('รหัสผู้สอนไม่ถูกต้อง หรือยังไม่ได้ตั้ง TEACHER_CODE','err')}
     else if(e.target.id==='accout'){
       if(ACC.role==='teacher'){if(typeof TEACH!=='undefined'){TEACH.on=false;try{sessionStorage.removeItem('pv.tcode')}catch(_){}if(typeof teachSync==='function')teachSync()}}
-      ACC.role='visitor';accSave();accApply();
+      ACC.role='visitor';accForget(true);accSave();accApply();
     }
   });
   bar.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='acctc')document.getElementById('acctgo').click();else if(e.target.closest('.accform')&&e.target.id!=='acctc')document.getElementById('accgo').click()});
   /* a saved student unlock is checked again: changed class code or removal from the roster locks the page */
-  if(ACC.role==='student'&&MEMBER.name){const ok=await accStudent(MEMBER.name,MEMBER.sid,MEMBER.cls,true);if(ok===false){ACC.role='visitor';accSave();accApply()}}
+  if(ACC.role==='student'&&MEMBER.name){const ok=await accStudent(MEMBER.name,MEMBER.sid,MEMBER.cls,true);if(ok===false){ACC.role='visitor';accForget(false);accSave();accApply()}}
 }
