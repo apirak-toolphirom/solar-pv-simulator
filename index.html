@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="deceac5247">
+<meta name="build" content="6bed0e264f">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='deceac5247'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='6bed0e264f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>ต่อสายแผงโซลาร์</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -92,8 +92,7 @@ if(m&&m[1]!=='deceac5247'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 
   <section>
     <h2>ผลการต่อ</h2>
-    <div id="micbox" class="panelbox micbox" hidden><label for="micn">จำนวนไมโครอินเวอร์เตอร์ในระบบ <input id="micn" type="number" inputmode="numeric" min="1" max="60" step="1" value="4"> ตัว</label>
-      <span class="hint tight">ผังด้านบนคือไมโคร 1 ตัว ทุกตัวต่อแผงแบบเดียวกัน · <b id="micsum"></b> · วางแผนสาย AC (สายย่อย เบรกเกอร์ ฝาปิดปลายสาย) ที่เมนู 03</span></div>
+    <div id="micbox" class="panelbox micbox" hidden><b>ไมโครอินเวอร์เตอร์ 1 ตัว</b><span class="hint tight">ต่อแผงได้ช่องละ 1 แผง เลือกแผงแต่ละช่องที่การ์ด MPPT ด้านล่าง · <b id="micsum"></b></span></div>
     <div id="cards" class="cards"></div>
   </section>
 
@@ -311,7 +310,7 @@ if(m&&m[1]!=='deceac5247'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <label for="bkis">โหลดที่ต้องจ่ายตอนจ่ายไฟเอง<select id="bkis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
       </div>
       <div id="bkmicbox" class="bkmic" hidden>
-        <div class="bkmich"><b>ไมโครอินเวอร์เตอร์: เลือกแผงแต่ละช่อง</b><label for="bkmicn" class="inl">จำนวนไมโคร<input id="bkmicn" type="number" inputmode="numeric" min="1" max="60" step="1" value="1"> ตัว</label></div>
+        <div class="bkmich"><b>ไมโครอินเวอร์เตอร์: เลือกแผงแต่ละช่อง</b></div>
         <div class="bkmicsel" id="bkmicsel"></div>
         <p class="hint tight" id="bkmicinfo"></p>
       </div>
@@ -508,19 +507,19 @@ if(m&&m[1]!=='deceac5247'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/config.js?v=396a084b"></script>
 <script src="js/catalog.js?v=c8df3b9a"></script>
 <script src="js/pdfimport.js?v=e4c2f177"></script>
-<script src="js/model.js?v=c49985cf"></script>
-<script src="js/engine.js?v=33e40fe0"></script>
-<script src="js/wiring.js?v=ddc45b16"></script>
+<script src="js/model.js?v=f5bf7887"></script>
+<script src="js/engine.js?v=0c08839d"></script>
+<script src="js/wiring.js?v=431b1ab5"></script>
 <script src="js/acart.js?v=f733ded9"></script>
 <script src="js/acsys.js?v=142656c7"></script>
-<script src="js/acmicro.js?v=afd5e570"></script>
-<script src="js/solar.js?v=9ae9c675"></script>
+<script src="js/acmicro.js?v=82b00d72"></script>
+<script src="js/solar.js?v=770c7bcc"></script>
 <script src="js/site.js?v=3ef896c8"></script>
 <script src="js/loads.js?v=d3b46921"></script>
-<script src="js/backup.js?v=b025a099"></script>
+<script src="js/backup.js?v=630801d5"></script>
 <script src="js/bkanim.js?v=b33ab657"></script>
 <script src="js/systems.js?v=a0f2fb7f"></script>
-<script src="js/events.js?v=b24a89a8"></script>
+<script src="js/events.js?v=50b85166"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
 <script src="js/benchui.js?v=266c0de5"></script>
 <script src="js/submit.js?v=c9dabcd4"></script>

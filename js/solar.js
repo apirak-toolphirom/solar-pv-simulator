@@ -260,7 +260,7 @@ function runSimView(){
   const hrs=R.ops*R.step/60,idleH=R.idle*R.step/60;
   const mx=[
     ['ช่วงที่อินเวอร์เตอร์ทำงาน',R.ops?`${fmtT(R.first*R.step/60)}–${fmtT((R.last+1)*R.step/60)}`:'ไม่ทำงาน',R.ops?`${f(hrs,1)} ชม. · แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`:`แสงอาทิตย์ ${fmtT(sr)}–${fmtT(ss)}`],
-    ['กำลัง AC สูงสุด',R.ops?f(R.peak/1000,2)+' kW':'0 kW',R.ops?`เวลา ${fmtT(R.t[R.peakI])} · พิกัด ${f(I.pac*microU(I)/1000,2)} kW${isMicro(I)?` (ไมโคร ${microU(I)} ตัว)`:''}`:''],
+    ['กำลัง AC สูงสุด',R.ops?f(R.peak/1000,2)+' kW':'0 kW',R.ops?`เวลา ${fmtT(R.t[R.peakI])} · พิกัด ${f(I.pac*microU(I)/1000,2)} kW`:''],
     ['พลังงานต่อวัน',f(R.E,1)+' kWh',`${f(R.E/kwp,2)} kWh ต่อ kWp · ${nUsed} แผง`],
     ['สูญเสียจากเพดาน AC',f(R.Eclip,2)+' kWh',`จำกัดกระแส MPPT ${f(R.Elim*(I.eff||97)/100,2)} kWh`],
     ['มีแสงแต่ยังไม่ทำงาน',f(idleH,1)+' ชม.','แรงดันต่ำกว่าช่วง MPPT หรือยังไม่ถึงแรงดันเริ่มทำงาน']

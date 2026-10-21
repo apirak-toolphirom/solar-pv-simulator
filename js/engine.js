@@ -56,7 +56,7 @@ function analyze(){
       else sys.push({lvl:'ok',t:`DC/AC ${f(ratio,2)} เทียบกับ AC ${I.pac/1000} kW`});
     }
   }
-  if(isMicro(I)&&used>0){const U=microU(I);sys.push({lvl:'ok',t:`ระบบไมโคร ${U} ตัว (ผังนี้คือ 1 ตัว ทุกตัวต่อแผงแบบเดียวกัน): ${U*used} แผง · ${f(U*pvW/1000,2)} kWp · AC รวม ${f(U*I.pac/1000,2)} kW · วางแผนสาย AC ที่เมนู 03`})}
+  if(isMicro(I)&&used>0)sys.push({lvl:'ok',t:`ไมโครอินเวอร์เตอร์ 1 ตัว: ${used} แผง (ช่องละ 1 แผง) · ${f(pvW/1000,2)} kWp · AC ${f(I.pac/1000,2)} kW`});
   const items=[...res.flatMap(r=>r.ck),...sys];
   const cnt={err:0,warn:0,ok:0};items.forEach(c=>cnt[c.lvl]++);
   const lvl=!active.length&&!si.cyc.size?'idle':cnt.err?'err':cnt.warn?'warn':'ok';

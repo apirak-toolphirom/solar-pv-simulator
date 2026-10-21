@@ -61,7 +61,7 @@ function micAC(){
     <div class="panelbox"><h2>ไมโครอินเวอร์เตอร์: วางแผนสาย AC</h2>
       <p class="hint tight">ไมโครติดใต้แผงและจ่ายไฟ AC ออกมาเลย ไม่มีสาย DC ยาวและไม่ต่อแบต ไมโครหลายตัวต่อพ่วงบนสาย AC trunk เส้นเดียวกันเป็นสายย่อย แต่ละสายย่อยมีเบรกเกอร์ของตัวเองในตู้</p>
       <div class="row3">
-        <label for="mcn">จำนวนไมโคร (ตัว)<input id="mcn" type="number" inputmode="numeric" min="1" max="60" step="1"></label>
+        <label for="mcn">จำนวนไมโครที่จะติดตั้ง (ใช้วางแผนสายย่อย)<input id="mcn" type="number" inputmode="numeric" min="1" max="60" step="1"></label>
         <label for="mcb">จำนวนสายย่อย (วงจร)<input id="mcb" type="number" inputmode="numeric" min="1" max="20" step="1"></label>
         <label for="mcbrk">เบรกเกอร์ต่อสายย่อย<select id="mcbrk"></select></label>
         <label for="mccab">ขนาดสาย AC<select id="mccab"></select></label>
