@@ -147,6 +147,11 @@ const BUILTIN=(()=>{
   [[5,10000,96.77,25,3,8],[6,12000,97.10,25,3,9.6],[8,16000,97.41,50,3,12.8],[10,20000,97.51,50,4,16]].forEach(([k,rec,eu,ib,nm,pk])=>inv.push({id:slug(`solis s6-eh3p${k}k-h`),brand:'Solis',model:`S6-EH3P${k}K-H`,type:'hybrid',phase:'3',asym:'0',bph:'3',
     pac:k*1000,nmppt:nm,vmax:1000,lo:200,hi:850,start:160,imax:16,isc:24,pvRec:rec,eff:eu,bvMin:120,bvMax:600,bchg:k,bdis:k,backupKw:k,builtin:1,
     note:`Hybrid 3 เฟส 380/400 V แบตแรงดันสูง 120–600 V กระแสแบต ${ib} A ชาร์จ/จ่าย ${k} kW · ${nm} MPPT 16 A / Isc 24 A · MPPT 200–850 V · Backup ${k} kW (สูงสุด ${pk} kVA 60 วินาที) · แบต 48 V ใช้ไม่ได้ · ดาต้าชีต EU 2024-10 (จำนวน MPPT และกระแสแบตตีความจากตาราง ควรตรวจซ้ำ)`}));
+  // GoodWe ET PLUS+ (5-10 kW): three-phase hybrid, HV battery 180–600 V. Drive "PV Datasheets/01 อินเวอร์เตอร์/GoodWe" (datasheet V1.0 2021-09):
+  //   1000 V, MPPT 200–850 V, start 180 V, 2 MPPT × 1 string, 12.5 A / Isc 15.2 A per MPPT, battery 25 A; charge/discharge kW not listed -> rated power
+  [[5,'5',6500,97.2,8.5,10],[6.5,'6.5',8450,97.2,10.8,13],[8,'8',9600,97.5,13.5,16],[10,'10',13000,97.5,16.5,16.5]].forEach(([k,ks,rec,eu,ia,pk])=>inv.push({id:slug(`goodwe gw${ks}k-et`),brand:'GoodWe',model:`GW${ks}K-ET (ET PLUS+)`,type:'hybrid',phase:'3',asym:'0',bph:'3',
+    pac:k*1000,nmppt:2,vmax:1000,lo:200,hi:850,start:180,imax:12.5,isc:15.2,pvRec:rec,eff:eu,bvMin:180,bvMax:600,bchg:k,bdis:k,backupKw:k,builtin:1,
+    note:`Hybrid 3 เฟส 380/400 V (3L/N/PE) แบตแรงดันสูง Li-ion 180–600 V กระแสแบต 25 A · 2 MPPT × 1 สตริง 12.5 A / Isc 15.2 A · MPPT 200–850 V (เต็มกำลัง ${{5:240,6.5:310,8:380,10:460}[k]}–850 V) · เริ่มทำงาน 180 V · กระแส AC ${ia} A · Backup ${k} kVA (พีค ${pk} kVA 60 วินาที) สลับ < 8 ms · ประสิทธิภาพสูงสุด ${k>=8?98.2:98.0}% · IP66 · 24 kg · แบต 48 V ใช้ไม่ได้ · ดาต้าชีต V1.0 2021-09 (กำลังชาร์จ/จ่ายแบต kW ไม่ระบุ ใช้เท่ากำลังพิกัด)`}));
   // ---- panels from Drive "PV Datasheets/03 แผงโซลาร์" (2026-10-22), STC front-side values ----
   const P=(brand,id,model,w,voc,vmp,isc,imp,k,noct,note)=>pan.push({id:slug(id),brand,model,pmax:w,voc,vmp,isc,imp,kVoc:k[0],kPmax:k[1],kIsc:k[2],noct,builtin:1,note});
   // LONGi Hi-MO X10 Explorer LR7-72HVH-630~650M, HPBC 2.0 single glass, datasheet 20241118 BGV02. 650 W keeps the old default id
