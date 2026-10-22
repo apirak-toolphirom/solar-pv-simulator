@@ -5,7 +5,7 @@ const WS_DEFAULT=[
   {id:'W1',name:'อุปกรณ์และต่อสาย DC',tabs:'equip,wiring',crit:'dc_pass;panels>=8;dcac=0.9-1.5',q:'ทำไมต่ออนุกรมเกินจำนวนที่ระบบแนะนำไม่ได้|ต่อขนานกับต่ออนุกรมให้แรงดันและกระแสต่างกันอย่างไร',img:'dc'},
   {id:'W2',name:'ต่อสาย AC และพอร์ตอินเวอร์เตอร์',tabs:'ac',crit:'ac_pass',q:'ทำไมห้ามต่อพอร์ต BACKUP เข้าตู้เมนที่มีไฟกริด',img:'ac'},
   {id:'W3',name:'กำลังผลิตและเงา',tabs:'pv,site',crit:'pv_sim;site_pv;site_on;shade<=15',q:'แผงของคุณถูกบังช่วงเวลาไหน เพราะอะไร และจะแก้อย่างไร',img:'site'},
-  {id:'W4',name:'โหลดและ Backup',tabs:'load,backup',crit:'loads>=5;bk_outage>=6;bk_ok',q:'โหลดสำคัญที่เลือกมีอะไรบ้าง ทำไมเลือก',img:'none'},
+  {id:'W4',name:'โหลดและ Backup',tabs:'load,backup',crit:'loads>=5;bk_outage>=6;bk_ok',q:'โหลด Backup ที่เลือกมีอะไรบ้าง ทำไมเลือก',img:'none'},
   {id:'W5',name:'เลือกระบบ On-grid / Off-grid / Hybrid',tabs:'systems',crit:'sys_seen',q:'บ้านตัวอย่างควรใช้ระบบแบบไหน เพราะอะไร',img:'none'},
   {id:'W6',name:'จำลองเหตุการณ์',tabs:'events',crit:'ev_any',q:'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร',img:'none'},
   {id:'W7',name:'วงจร DC 12 / 24 / 48 V',tabs:'bench',crit:'bench_pass',q:'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์',img:'bench'},

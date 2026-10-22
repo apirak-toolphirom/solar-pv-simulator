@@ -639,6 +639,11 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .syic.bt .cs{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}.syic.bt .tm{fill:var(--ink)}.syic.bt .lv{fill:#3fb950}.syic.bt .lv.mid{fill:#e0a400}.syic.bt .lv.lo{fill:#d64545}.syic.bt .pl{stroke:var(--ink);stroke-width:1.4;opacity:.55;fill:none}
 .synode .syn{font-size:12px}
 .sycard .syv{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}.synode .syinvl{fill:var(--ink)}
+/* menu 07: backup-port loads */
+#babk{transition:opacity .3s}#babk.ba-dim{opacity:.6}#babk.ba-dark{opacity:.3}#babk.ba-dark .ba-lamp{fill:#888}.ba-bkled{fill:#3fb950}#babk.ba-dark .ba-bkled{fill:#888}
+.nobkport .ba-bkinv{display:none}.bkasvg:not(.nobkport) .ba-bkgrid,#bkasvg:not(.nobkport) .ba-bkgrid{display:none}
+/* menu 06: port select */
+.ldport{min-width:6.5em}.ldport.bk{border-color:#d6338a;color:#d6338a;font-weight:600}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -908,10 +913,10 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
   </section>
 
   <section class="tab" id="tab-load" hidden>
-    <header><h1>จำลองโหลด</h1><p class="sub">ใส่รายการเครื่องใช้ไฟฟ้า กำลัง ช่วงเวลา และเปอร์เซ็นต์ที่ทำงานจริง ติ๊ก "โหลดสำคัญ" ให้รายการที่ต้องมีไฟตอนไฟดับ</p></header>
+    <header><h1>จำลองโหลด</h1><p class="sub">ใส่รายการเครื่องใช้ไฟฟ้า กำลัง ช่วงเวลา และเปอร์เซ็นต์ที่ทำงานจริง เลือก "ต่อที่ช่อง" ของแต่ละรายการ: Backup คือต่อพอร์ต BACKUP ของอินเวอร์เตอร์ ตอนไฟดับยังมีไฟ ส่วนกริดคือต่อฝั่งตู้ไฟหลัก ตอนไฟดับไม่มีไฟ</p></header>
     <div class="panelbox ldwrap">
       <div class="ldchips"><span class="lab" style="font-size:12.5px;color:var(--muted)">ตัวอย่าง</span><span id="ldpre" class="ldchips"></span></div>
-      <div class="ldscroll"><table class="ldt"><thead><tr><th>ชื่อ</th><th>กำลัง (W)</th><th>จำนวน</th><th>เริ่ม</th><th>หยุด</th><th>ใช้จริง (%)</th><th class="ldph">เฟส</th><th>สำคัญ</th><th></th></tr></thead><tbody id="ldrows"></tbody></table></div>
+      <div class="ldscroll"><table class="ldt"><thead><tr><th>ชื่อ</th><th>กำลัง (W)</th><th>จำนวน</th><th>เริ่ม</th><th>หยุด</th><th>ใช้จริง (%)</th><th class="ldph">เฟส</th><th>ต่อที่ช่อง</th><th></th></tr></thead><tbody id="ldrows"></tbody></table></div>
       <p id="ldempty" class="simmsg" hidden>ยังไม่มีรายการ กด "เพิ่มโหลด" หรือเลือกตัวอย่าง</p>
       <div><button class="btn pri" id="ldadd">+ เพิ่มโหลด</button></div>
       <p class="hint tight">เวลาหยุดที่น้อยกว่าเวลาเริ่ม แปลว่าข้ามเที่ยงคืน เช่น 22:00 ถึง 06:00 ส่วนเวลาเริ่มเท่ากับหยุดคือทำงานทั้งวัน ตัวอย่างที่ให้มาเป็นค่าโดยประมาณ ปรับเป็นของจริงได้</p>
@@ -936,7 +941,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
         <label for="kbat">แบตเตอรี่ (ปรับจำนวนที่แท็บ "อุปกรณ์")<select id="kbat"></select></label>
         <label for="bksrc">แหล่งไฟจากแผง<select id="bksrc"><option value="ideal">แผงสมมติ (ไม่ตรวจการต่อสาย)</option><option value="wiring">ตามที่ต่อสายไว้</option></select></label>
         <label id="bknwrap" for="bkn" hidden>จำนวนแผงสมมติ<input id="bkn" type="number" inputmode="numeric" min="1" max="200" step="1" value="9"></label>
-        <label for="bkis">โหลดที่ต้องจ่ายตอนจ่ายไฟเอง<select id="bkis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
+        <label for="bkis">โหลดที่ต้องจ่ายตอนจ่ายไฟเอง<select id="bkis"><option value="crit">เฉพาะโหลด Backup (โหลดกริดดับ)</option><option value="all">โหลดทั้งหมด</option></select></label>
       </div>
       <div id="bkmicbox" class="bkmic" hidden>
         <div class="bkmich"><b>ไมโครอินเวอร์เตอร์: เลือกแผงแต่ละช่อง</b></div>
@@ -1012,7 +1017,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
       <div class="row3">
         <label for="sysrc">แหล่งไฟจากแผง<select id="sysrc"><option value="ideal">แผงสมมติ (ไม่ตรวจการต่อสาย)</option><option value="wiring">ตามที่ต่อสายไว้</option></select></label>
         <label id="synwrap" for="syn">จำนวนแผงสมมติ<input id="syn" type="number" inputmode="numeric" min="1" max="200" step="1"></label>
-        <label for="syis">โหลดที่ต้องจ่ายตอนไฟดับ<select id="syis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
+        <label for="syis">โหลดที่ต้องจ่ายตอนไฟดับ<select id="syis"><option value="crit">เฉพาะโหลด Backup (โหลดกริดดับ)</option><option value="all">โหลดทั้งหมด</option></select></label>
       </div>
       <div class="row3">
         <label for="syos">ไฟดับตั้งแต่<input id="syos" type="time"></label>
@@ -4344,19 +4349,20 @@ function loadRowsHTML(){
     <td data-th="หยุด"><input data-k="end" type="time" value="${L.end>=24?'00:00':hhmm(L.end)}" aria-label="เวลาหยุด"></td>
     <td data-th="ใช้จริง (%)"><input data-k="duty" type="number" inputmode="decimal" min="0" max="100" step="1" value="${L.duty}" aria-label="เปอร์เซ็นต์เวลาที่ทำงานจริง"></td>
     <td data-th="เฟส" class="ldph"><select data-k="ph" aria-label="เฟสที่ต่อ">${LOAD_PH.map(p=>`<option value="${p}" ${L.ph===p?'selected':''}>${p==='3P'?'3 เฟส':p}</option>`).join('')}</select></td>
-    <td data-th="สำคัญ"><label class="chk"><input data-k="crit" type="checkbox" ${L.crit?'checked':''}><span>โหลดสำคัญ</span></label></td>
+    <td data-th="ต่อที่ช่อง"><select data-k="crit" class="ldport${L.crit?' bk':''}" title="Backup = ต่อพอร์ต BACKUP ไฟดับยังมีไฟ · กริด = ต่อตู้ไฟหลัก ไฟดับไม่มีไฟ" aria-label="ช่องที่ต่อโหลดนี้"><option value="1" ${L.crit?'selected':''}>Backup</option><option value="0" ${L.crit?'':'selected'}>กริด</option></select></td>
     <td><button class="btn sm" data-ldel="${L.id}" aria-label="ลบ ${esc(L.name)}">ลบ</button></td></tr>`).join('');
 }
 let loadChartCfg=null;
 function loadView(){
   const P=loadProfile(5),dt=5/60/1000;
-  let E=0,Ec=0,pk=0,pkI=0;
-  P.all.forEach((w,i)=>{E+=w*dt;Ec+=P.crit[i]*dt;if(w>pk){pk=w;pkI=i}});
+  let E=0,Ec=0,pk=0,pkI=0,pg=0;
+  P.all.forEach((w,i)=>{E+=w*dt;Ec+=P.crit[i]*dt;if(w>pk){pk=w;pkI=i}if(w-P.crit[i]>pg)pg=w-P.crit[i]});
   const I=curInv(),pc=Math.max(...P.crit),w=[];
   const mx=[
     ['พลังงานต่อวัน',f(E,2)+' kWh',`เฉลี่ย ${f(E/24,2)} kW`],
     ['กำลังสูงสุด',f(pk/1000,2)+' kW',pk>0?`เวลา ${hhmm((pkI+.5)*5/60)}`:''],
-    ['โหลดสำคัญต่อวัน',f(Ec,2)+' kWh',`สูงสุด ${f(pc/1000,2)} kW`],
+    ['โหลด Backup ต่อวัน',f(Ec,2)+' kWh',`สูงสุด ${f(pc/1000,2)} kW · ไฟดับยังมีไฟ`],
+    ['โหลดกริดต่อวัน',f(E-Ec,2)+' kWh',`สูงสุด ${f(pg/1000,2)} kW · ไฟดับไม่มีไฟ`],
     ['เทียบพิกัด AC อินเวอร์เตอร์',I.pac?f(pk/I.pac*100,0)+' %':'-',`${esc(I.name)} ${I.pac/1000} kW`]
   ];
   const inv3=isPh3(I),p3=inv3||(typeof ACS!=='undefined'&&ACS.set.supply==='3');
@@ -4371,13 +4377,14 @@ function loadView(){
   document.querySelectorAll('.ldph').forEach(e=>e.hidden=!p3);
   $('#ldmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   if(pk>I.pac)w.push(`กำลังโหลดสูงสุด ${f(pk/1000,2)} kW เกินพิกัด AC ของอินเวอร์เตอร์ ${I.pac/1000} kW`);
-  if(I.type!=='on-grid'&&I.backupKw&&pc>I.backupKw*1000)w.push(`โหลดสำคัญสูงสุด ${f(pc/1000,2)} kW เกินกำลังขาออกโหมด Backup ${I.backupKw} kW`);
+  if(I.type!=='on-grid'&&I.backupKw&&pc>I.backupKw*1000)w.push(`โหลด Backup สูงสุด ${f(pc/1000,2)} kW เกินกำลังพอร์ต Backup ${I.backupKw} kW ย้ายบางรายการไปช่องกริด`);
   $('#ldwarn').innerHTML=w.map(t=>`<li><span class="b warn">!</span><span>${esc(t)}</span></li>`).join('');
   const x=P.all.map((_,i)=>(i+.5)*5/60),ymax=Math.max(pk/1000,0.5)*1.1;
   loadChartCfg={x,xmin:0,xmax:24,ymax,unit:'kW',aria:'กราฟกำลังโหลดตลอดวัน',
     refs:I.pac&&pk>I.pac*0.3?[{y:I.pac/1000,label:`พิกัด AC ${I.pac/1000} kW`}]:[],
     series:[{short:'โหลดทั้งหมด',color:'var(--s1)',vals:P.all.map(v=>v/1000),area:true,peak:true,fmt:v=>f(v,2)},
-            {short:'โหลดสำคัญ',color:'var(--s2)',vals:P.crit.map(v=>v/1000),fmt:v=>f(v,2)}]};
+            {short:'โหลด Backup',color:'#d6338a',vals:P.crit.map(v=>v/1000),fmt:v=>f(v,2)},
+            {short:'โหลดกริด',color:'#b7791f',vals:P.all.map((v,i)=>(v-P.crit[i])/1000),fmt:v=>f(v,2)}]};
   loadChartCfg.leg='ldleg';$('#ldleg').innerHTML=legHTML('ldleg',loadChartCfg.series,'',drawLoadChart);
   drawLoadChart();
 }
@@ -4404,7 +4411,7 @@ function initLoads(){
     const L=LOADS.find(l=>l.id===+tr.dataset.lid);if(!L)return;
     const k=t.dataset.k;
     if(k==='name')L.name=t.value;
-    else if(k==='crit')L.crit=t.checked?1:0;
+    else if(k==='crit'){L.crit=t.value==='1'?1:0;t.classList.toggle('bk',!!L.crit)}
     else if(k==='ph'){if(LOAD_PH.includes(t.value))L.ph=t.value}
     else if(k==='start'||k==='end'){const h=parseHM(t.value);if(isNaN(h))return;L[k]=h}
     else{const n=parseFloat(t.value);if(isNaN(n))return;L[k]=Math.max(0,n)}
@@ -4432,8 +4439,8 @@ function balance(pv,loadAll,loadCrit,cfg){
   const cap=bat?cfg.bank.kwh:0,Emin=bat?cap*(1-(cfg.bank.b.dod||90)/100):0,eta=bat?Math.sqrt(cfg.bank.rt):1;
   const chgMax=bat?cfg.chgKw:0,disMax=bat?cfg.disKw:0;
   let E=bat?Math.max(Emin,Math.min(cap,cap*cfg.soc0/100)):0;
-  const R={pv:[],load:[],direct:[],toBat:[],fromBat:[],exp:[],imp:[],unmet:[],curt:[],soc:[],outage:[],
-    T:{pv:0,load:0,direct:0,toBat:0,fromBat:0,exp:0,imp:0,unmet:0,curt:0,unmetOut:0,loadOut:0,unmetH:0},socMin:100,Emin,cap};
+  const R={pv:[],load:[],direct:[],toBat:[],fromBat:[],exp:[],imp:[],unmet:[],curt:[],soc:[],outage:[],wBk:[],wGr:[],ldBk:[],ldGr:[],grOff:[],
+    T:{pv:0,load:0,direct:0,toBat:0,fromBat:0,exp:0,imp:0,unmet:0,curt:0,unmetOut:0,loadOut:0,unmetH:0,ldBk:0,ldGr:0,grOff:0},socMin:100,Emin,cap};
   for(let i=0;i<n;i++){
     const h=(i+.5)*cfg.step/60;
     const outage=cfg.mode==='off'?false:(cfg.outDur>0&&inWin(h,cfg.outStart%24,(cfg.outStart+cfg.outDur)%24));
@@ -4466,6 +4473,10 @@ function balance(pv,loadAll,loadCrit,cfg){
     }
     if(cfg.mode==='grid'){/* toB, fromB stay 0 */}
     const soc=bat?E/cap*100:0;
+    /* BACKUP-port loads (ticked in menu 06) vs GRID-side loads: when the inverter runs on its own with "backup loads only", grid-side loads have no power */
+    {const sup=Math.max(0,want-unmet),cut=island&&cfg.island==='crit',bk=cut?sup:Math.min(loadCrit[i],sup),go=cut?Math.max(0,loadAll[i]-loadCrit[i]):0;
+     R.wBk.push(loadCrit[i]);R.wGr.push(Math.max(0,loadAll[i]-loadCrit[i]));R.ldBk.push(bk);R.ldGr.push(cut?0:sup-bk);R.grOff.push(go);
+     R.T.ldBk+=bk*dt/1000;R.T.ldGr+=(cut?0:sup-bk)*dt/1000;R.T.grOff+=go*dt/1000}
     R.pv.push(pv[i]);R.load.push(want);R.direct.push(direct);R.toBat.push(toB);R.fromBat.push(fromB);R.exp.push(exp);R.imp.push(imp);R.unmet.push(unmet);R.curt.push(curt);R.soc.push(soc);R.outage.push(outage);
     const T=R.T,k=dt/1000;
     T.pv+=pv[i]*k;T.load+=want*k;T.direct+=direct*k;T.toBat+=toB*k;T.fromBat+=fromB*k;T.exp+=exp*k;T.imp+=imp*k;T.unmet+=unmet*k;T.curt+=curt*k;
@@ -4579,7 +4590,7 @@ function backupRun(){
   if(BK.mode!=='grid')mx.push(['ชาร์จเข้าแบต',f(T.toBat,1)+' kWh',`จ่ายออกจากแบต ${f(T.fromBat,1)} kWh`],['SOC ต่ำสุด / สิ้นวัน',f(R.socMin,0)+' / '+f(R.socEnd,0)+' %',`ขั้นต่ำที่ใช้ได้ ${f(R.Emin/R.cap*100,0)} %`]);
   if(BK.mode!=='off')mx.push(['ซื้อไฟจากกริด',f(T.imp,1)+' kWh',`ขายคืนกริด ${f(T.exp,1)} kWh`]);
   mx.push(['ไฟขาด (ไม่มีไฟใช้)',f(T.unmet,2)+' kWh',`${f(T.unmetH,1)} ชม.`+(T.curt>0.01?` · ไฟแผงเหลือทิ้ง ${f(T.curt,1)} kWh`:'')]);
-  if(autonomy!=null&&(BK.mode!=='grid'))mx.push(['แบตเต็มอยู่ได้ (ไม่มีแดด)',f(autonomy,1)+' ชม.',`โหลดเฉลี่ย ${f(avgIsl,2)} kW · ${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'โหลดทั้งหมด'}`]);
+  if(autonomy!=null&&(BK.mode!=='grid'))mx.push(['แบตเต็มอยู่ได้ (ไม่มีแดด)',f(autonomy,1)+' ชม.',`โหลดเฉลี่ย ${f(avgIsl,2)} kW · ${BK.island==='crit'?'เฉพาะโหลด Backup':'โหลดทั้งหมด'}`]);
   bkPeriods(R,bi);
   $('#bkmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   $('#bklim').textContent=!need?'โหมด On-grid ไม่ใช้แบตในการคำนวณ (รายการแบตแสดงเฉพาะรุ่นที่ต่อกับอินเวอร์เตอร์นี้ได้: ยี่ห้อและแรงดันตรงกัน)':need&&bi?`ขีดจำกัดที่ใช้คำนวณ: ชาร์จสูงสุด ${f(chgKw,1)} kW · จ่ายสูงสุด ${f(disKw,1)} kW · ประสิทธิภาพรอบ ${f(bi.rt*100,0)} % · กำลังขาออกช่วงจ่ายเอง ${f(islandW/1000,1)} kW`:'';
@@ -4591,7 +4602,7 @@ function backupRun(){
     const s=BK.outStart%24,e=s+BK.outDur;
     if(e<=24)vb.push([s,e]);else vb.push([s,24],[0,e-24]);
   }
-  const pot=src.pot||[],yTop=Math.max(Math.max(...R.pv),Math.max(...R.load),pot.length?Math.max(...pot):0,1)/1000*1.1;
+  const pot=src.pot||[],yTop=Math.max(Math.max(...R.pv),Math.max(...R.load),Math.max(...R.wBk.map((v,j)=>v+R.wGr[j])),pot.length?Math.max(...pot):0,1)/1000*1.1;
   const used=R.pv.map((v,i)=>Math.max(0,v-R.curt[i]));
   const s1=[{short:T.curt>0.005?'กำลังจากแผงที่ใช้ได้':'กำลังจากแผง',color:'var(--s1)',vals:kw(used),area:true,fmt:v=>f(v,2)},{short:'โหลดที่ต้องการ',color:'var(--s2)',vals:kw(R.load),fmt:v=>f(v,2)}];
   if(BK.mode!=='off')s1.push({short:'ซื้อจากกริด',color:'var(--s3)',vals:kw(R.imp),fmt:v=>f(v,2)});
@@ -4599,6 +4610,10 @@ function backupRun(){
   if(pot.length===R.pv.length)s1.push({short:'กำลัง DC ที่แผงผลิตได้ (ก่อนตัด)',color:'var(--s1)',dash:'5 4',vals:kw(pot),fmt:v=>f(v,2)});
   if(T.curt>0.005)s1.push({short:BK.mode==='grid'?'แดดมีแต่ไม่ได้จ่าย (หยุด/จำกัดขาย)':'ไฟแผงเหลือทิ้ง',color:'var(--muted)',vals:kw(R.curt),fmt:v=>f(v,2)});
   if(T.unmet>0.005)s1.push({short:'ส่วนที่ไฟไม่พอ',color:'var(--err)',vals:kw(R.unmet),fmt:v=>f(v,2)});
+  /* loads split by where they are wired: BACKUP port (power stays on in an outage) and GRID side (off in an outage) */
+  s1.push({short:'โหลด Backup (ได้ไฟ)',color:'#d6338a',vals:kw(R.ldBk),fmt:v=>f(v,2)});
+  s1.push({short:'โหลดกริด (ได้ไฟ)',color:'#b7791f',vals:kw(R.ldGr),fmt:v=>f(v,2)});
+  if(T.grOff>0.005)s1.push({short:'โหลดกริดที่ดับตอนไฟดับ',color:'#b7791f',dash:'3 3',vals:kw(R.grOff),fmt:v=>f(v,2)});
   bkCfg={A:{x,xmin:0,xmax:24,ymax:yTop,unit:'kW',aria:'กราฟกำลังจากแผง โหลด และไฟจากกริดตลอดวัน',vb,vbl:'ไฟดับ',series:s1}};
   if(BK.mode!=='grid')bkCfg.B={x,xmin:0,xmax:24,ymax:100,unit:'%',aria:'กราฟสถานะประจุแบต SOC ตลอดวัน',vb,vbl:'ไฟดับ',
     refs:[{y:R.Emin/R.cap*100,label:`SOC ขั้นต่ำ ${f(R.Emin/R.cap*100,0)}%`}],series:[{short:'SOC แบต',color:'var(--s3)',vals:R.soc,area:true,fmt:v=>f(v,0)}]};
@@ -4626,7 +4641,7 @@ function bkPeriods(R,bi){
   const row=(nm,a,b,u)=>`<tr><td>${nm}</td><td>${a}</td>${on?`<td>${b}</td>`:''}</tr>`,v=x=>f(x,2)+' kWh',N=P[0],O=P[1];
   let h=`<table class="t bkper"><thead><tr><th>ช่วงเวลา</th><th>ปกติ (กริดมีไฟ)</th>${on?'<th class="out">ไฟดับ</th>':''}</tr></thead><tbody>`
     +row('ระยะเวลา',f(N.h,1)+' ชม.',f(O.h,1)+' ชม.')
-    +row('โหลดที่ต้องจ่าย',v(N.load)+' <small>(ทั้งหมด)</small>',v(O.load)+` <small>(${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'ทั้งหมด'})</small>`)
+    +row('โหลดที่ต้องจ่าย',v(N.load)+' <small>(ทั้งหมด)</small>',v(O.load)+` <small>(${BK.island==='crit'?'เฉพาะโหลด Backup':'ทั้งหมด'})</small>`)
     +row('จากแผงตรง',v(N.direct),v(O.direct))
     +(bat?row('จากแบต',v(N.fromBat),v(O.fromBat))+row('ชาร์จเข้าแบต',v(N.toBat),v(O.toBat)):'')
     +row('ซื้อจากกริด',v(N.imp),on?'— <small>(กริดดับ)</small>':'')
@@ -4757,7 +4772,7 @@ function bkaSVG(){
   <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
   <!-- wires (base + animated dash) -->
-  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M340 229 H440 V262 H470','ac ba-mic'],['md0','M82 94 V222 H140','dc ba-mic'],['md1','M164 94 V130 H120 V172 H140','dc ba-mic'],['md2','M246 94 V130 H298 V173 H276','dc ba-mic'],['md3','M328 94 V216 H276','dc ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
+  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M340 229 H440 V262 H470','ac ba-mic'],['md0','M82 94 V222 H140','dc ba-mic'],['md1','M164 94 V130 H120 V172 H140','dc ba-mic'],['md2','M246 94 V130 H298 V173 H276','dc ba-mic'],['md3','M328 94 V216 H276','dc ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac'],['bkld','M360 330 V396 H412','ac ba-bkinv'],['bkg','M496 298 V356','ac ba-bkgrid']]
     .map(([id,d,c])=>`<path d="${d}" class="ba-w ${c}"/><path id="baw-${id}" d="${d}" class="ba-f ${c}"/>`).join('')}
   <!-- microinverters: one under each panel, AC trunk straight to the board -->
   <g class="ba-mic"><image href="img/inv/deye-micro.png?v=2" x="140" y="150" width="200" height="109" preserveAspectRatio="xMidYMid meet"/>
@@ -4791,25 +4806,35 @@ function bkaSVG(){
     <rect x="660" y="352" width="56" height="36" rx="3" class="ba-tv"/><rect x="684" y="388" width="8" height="12" class="ba-ap"/>
     <rect x="660" y="300" width="112" height="28" rx="6" class="ba-ap"/><line x1="668" y1="320" x2="764" y2="320" class="ba-apl"/>
     <circle cx="748" cy="374" r="13" class="ba-lamp"/><rect x="744" y="386" width="8" height="14" class="ba-ap"/>
-    <text x="690" y="430" text-anchor="middle" class="ba-lab">โหลดในบ้าน</text></g>
+    <text x="690" y="428" text-anchor="middle" class="ba-lab">โหลดกริด</text><text x="690" y="446" text-anchor="middle" class="ba-sm">ต่อฝั่งตู้ไฟหลัก · ไฟดับไม่มีไฟ</text></g>
+  <!-- backup loads: wired to the inverter BACKUP port (menu 06 "ต่อที่ช่อง: Backup") -->
+  <g id="babk"><rect x="412" y="430" width="150" height="7" class="ba-shelf"/>
+    <rect x="418" y="358" width="36" height="72" rx="5" class="ba-ap"/><line x1="418" y1="384" x2="454" y2="384" class="ba-apl"/><line x1="448" y1="366" x2="448" y2="378" class="ba-apl"/>
+    <rect x="466" y="408" width="40" height="22" rx="4" class="ba-ap"/><line x1="474" y1="408" x2="470" y2="394" class="ba-apl"/><line x1="498" y1="408" x2="502" y2="394" class="ba-apl"/><circle cx="476" cy="420" r="2.2" class="ba-bkled"/><circle cx="484" cy="420" r="2.2" class="ba-bkled"/>
+    <circle cx="536" cy="398" r="12" class="ba-lamp"/><rect x="532" y="410" width="8" height="20" class="ba-ap"/>
+    <text x="487" y="455" text-anchor="middle" class="ba-lab">โหลด Backup</text></g>
+  <text x="370" y="350" class="ba-pin ba-bkinv">BACKUP</text>
   <g id="bacloud" class="ba-cloud" transform="translate(520 70)" tabindex="0" role="slider" aria-label="เมฆ ลากไปบังแผง (ใช้ลูกศรซ้าย/ขวาได้)"><g class="ba-cs"><ellipse cx="0" cy="12" rx="62" ry="22"/><circle cx="-28" cy="2" r="24"/><circle cx="6" cy="-10" r="32"/><circle cx="36" cy="4" r="22"/></g><text x="0" y="12" text-anchor="middle" class="ba-sm">⇆ ลากเมฆ</text></g>
   ${badge(80,150,'DC','dc','ba-str')}${badge(190,262,'DC','dc','ba-str')}${badge(250,372,'DC','dc','ba-str')}${badge(425,262,'AC','ac','ba-str')}${badge(400,229,'AC','ac','ba-mic')}${badge(620,215,'AC','ac')}${badge(560,330,'AC','ac')}
   <!-- flow labels -->
   <g class="ba-val"><text id="bav-pv" x="150" y="140" class="ba-str">—</text><text id="bav-bat" x="210" y="396" class="ba-str">—</text><text id="bav-ac" x="425" y="250" text-anchor="middle" class="ba-str">—</text><text id="bav-mtr" x="360" y="212" class="ba-mic">—</text>
-    <text id="bav-grid" x="640" y="240">—</text><text id="bav-load" x="690" y="292" text-anchor="middle">—</text></g>
+    <text id="bav-grid" x="640" y="240">—</text><text id="bav-load" x="690" y="292" text-anchor="middle">—</text><text id="bav-bk" x="440" y="350" text-anchor="middle">—</text></g>
 </svg>`;
 }
 function bkaFrame(){
   const R=window.lastBal&&window.lastBal.R,host=document.getElementById('bkasvg');
   if(!R||!host||!host.firstChild)return;
   const i=Math.max(0,Math.min(R.pv.length-1,BKA.i)),mode=window.lastBal.mode;
-  const cf=bkaCloud(),out=R.outage[i];let pv=Math.max(0,R.pv[i]-R.curt[i]),bat=R.fromBat[i]-R.toBat[i],grid=R.imp[i]-R.exp[i],load=Math.max(0,R.load[i]-R.unmet[i]),unmet=R.unmet[i];
+  const cf=bkaCloud(),out=R.outage[i],cut=(out||mode==='off')&&window.lastBal.island==='crit';let pv=Math.max(0,R.pv[i]-R.curt[i]),bat=R.fromBat[i]-R.toBat[i],grid=R.imp[i]-R.exp[i],load=Math.max(0,R.load[i]-R.unmet[i]),unmet=R.unmet[i];
   if(cf>0&&R.pv[i]>1){const x=bkaInstant(i,R.pv[i]*(1-cf));pv=x.pv;bat=x.bat;grid=x.grid;load=x.load;unmet=x.unmet}
   const inv=pv+bat;
+  /* split what the loads got into BACKUP-port and GRID-side loads (same rule as balance()) */
+  const wBk=(R.wBk&&R.wBk[i])||0,wGr=(R.wGr&&R.wGr[i])||0,ldBk=cut?load:Math.min(wBk,load),ldGr=cut?0:Math.max(0,load-ldBk);
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   const mic=isMicro(curInv());host.classList.toggle('micro',mic);
   const On=[1,2,3,4].map(k=>!mic||bkMicOn(k)),Wp=[1,2,3,4].map((k,j)=>On[j]?mpPV(k).pmax:0),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
-  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load};
+  const noBk=mode==='grid'||mic;host.classList.toggle('nobkport',noBk);
+  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv-(noBk?0:ldBk),mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load:ldGr,bkld:noBk?0:ldBk,bkg:noBk?ldBk:0};
   if(mic)Wp.forEach((w,k)=>txt('bapw'+k,On[k]?w+' W':'ไม่ต่อแผง'));[0,1,2,3].forEach(k=>{const g=q('bapnl'+k);if(g)g.classList.toggle('ba-off',!On[k])});
   if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง ${On.filter(Boolean).length} แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
@@ -4817,7 +4842,7 @@ function bkaFrame(){
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
   bkaShade(day);
   host.classList.toggle('night',!day);
-  txt('bav-pv',pv>1?bkaKW(pv):'0 kW');txt('bav-ac',Math.abs(inv)>1?bkaKW(inv):'0 kW');txt('bav-load',(load>1?bkaKW(load):'0 kW')+(unmet>1?' · ขาด '+bkaKW(unmet):''));
+  txt('bav-pv',pv>1?bkaKW(pv):'0 kW');{const toBoard=inv-(noBk?0:ldBk);txt('bav-ac',Math.abs(toBoard)>1?bkaKW(toBoard):'0 kW')}txt('bav-load',cut&&wGr>1?'ไฟดับ · ไม่มีไฟ '+bkaKW(wGr):ldGr>1?bkaKW(ldGr):'0 kW');txt('bav-bk',(ldBk>1?bkaKW(ldBk):'0 kW')+(unmet>1?' · ขาด '+bkaKW(unmet):''));
   txt('bav-bat',mode==='grid'?'':Math.abs(bat)<1?'พัก':(bat>0?'จ่าย ':'ชาร์จ ')+bkaKW(bat));
   const lim=window.lastBal.cfg&&window.lastBal.cfg.expLimW;
   txt('bav-grid',mode==='off'?'':out?'ไฟดับ':(Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid))+(lim!=null?(lim===0?' · Zero export':' · จำกัด '+bkaKW(lim)):''));
@@ -4830,10 +4855,11 @@ function bkaFrame(){
   f.setAttribute('height',Math.max(0,64*soc/100));f.setAttribute('y',353+64*(1-soc/100));f.setAttribute('class','ba-socf'+(soc<25?' low':''));
   q('babat').classList.toggle('ba-off',mode==='grid');txt('babatx',mode==='grid'?'ไม่ใช้แบต (On-grid)':'');
   q('bagrid').classList.toggle('ba-off',mode==='off'||out);q('bagridx').style.display=out&&mode!=='off'?'':'none';
-  q('baload').classList.toggle('ba-dark',unmet>1&&load<1);q('baload').classList.toggle('ba-dim',unmet>1&&load>=1);
-  ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
+  q('baload').classList.toggle('ba-dark',wGr>1&&ldGr<1);q('baload').classList.toggle('ba-dim',false);
+  q('babk').classList.toggle('ba-dark',unmet>1&&ldBk<1);q('babk').classList.toggle('ba-dim',unmet>1&&ldBk>=1);
+  ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load','bkld','bkg'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
   q('bkat').value=i;txt('bkatl',bkaHM(i));bkaCursor();
-  const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
+  const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต '+(window.lastBal.island==='crit'?'เฉพาะโหลด Backup โหลดกริดไม่มีไฟ':'จ่ายโหลดทั้งหมด'):
     (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));
 }
 /* cloud: covered share of the panel row (horizontal overlap while the cloud is at panel height) × thickness */
@@ -6263,7 +6289,7 @@ function reportLines(r){
     ['รูปแบบการต่อ',w?w.topo:'-'],
     ['แผงที่ใช้',r.panel],['อินเวอร์เตอร์',r.inverter],['แบตเตอรี่',r.battery],
     ['ผลิตต่อวัน',r.pv?`${f(r.pv.E,1)} kWh (สูงสุด ${f(r.pv.peak,2)} kW · เอียง ${r.pv.tilt}° · ทิศ ${r.pv.az}°)`:'-'],
-    ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลดสำคัญ ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
+    ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลด Backup ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
     ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-'],
     ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC'],
     ['เหตุการณ์ที่จำลอง',r.ev||'ไม่มี'],
@@ -6382,7 +6408,7 @@ function submitRefresh(){
     ['ผลการต่อสาย',w?(w.lvl==='idle'?'รอต่อสาย':LABEL[w.lvl]):'-',wLabel(w)],
     ['แผง',w?`${w.used}/${w.panels}`:'-',w?`${f(w.kwp,2)} kWp · DC/AC ${f(w.ratio,2)}`:''],
     ['ผลิตต่อวัน',r.pv?f(r.pv.E,1)+' kWh':'-',r.pv?`สูงสุด ${f(r.pv.peak,2)} kW`:'ต่อสายให้ถูกต้องก่อน'],
-    ['โหลดต่อวัน',f(r.load.E,1)+' kWh',`${r.load.n} รายการ · โหลดสำคัญ ${f(r.load.Ec,1)} kWh`],
+    ['โหลดต่อวัน',f(r.load.E,1)+' kWh',`${r.load.n} รายการ · โหลด Backup ${f(r.load.Ec,1)} kWh`],
     ['Backup',r.bk?({ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'})[r.bk.lvl]:'-',r.bk?r.bk.vt:'ยังไม่มีผล'],
     ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?LABEL[r.ac.lvl]:'-',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC']
   ].map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${esc(m[1])}</div><div class="s">${esc(m[2])}</div></div>`).join('');
@@ -6548,7 +6574,7 @@ const WS_DEFAULT=[
   {id:'W1',name:'อุปกรณ์และต่อสาย DC',tabs:'equip,wiring',crit:'dc_pass;panels>=8;dcac=0.9-1.5',q:'ทำไมต่ออนุกรมเกินจำนวนที่ระบบแนะนำไม่ได้|ต่อขนานกับต่ออนุกรมให้แรงดันและกระแสต่างกันอย่างไร',img:'dc'},
   {id:'W2',name:'ต่อสาย AC และพอร์ตอินเวอร์เตอร์',tabs:'ac',crit:'ac_pass',q:'ทำไมห้ามต่อพอร์ต BACKUP เข้าตู้เมนที่มีไฟกริด',img:'ac'},
   {id:'W3',name:'กำลังผลิตและเงา',tabs:'pv,site',crit:'pv_sim;site_pv;site_on;shade<=15',q:'แผงของคุณถูกบังช่วงเวลาไหน เพราะอะไร และจะแก้อย่างไร',img:'site'},
-  {id:'W4',name:'โหลดและ Backup',tabs:'load,backup',crit:'loads>=5;bk_outage>=6;bk_ok',q:'โหลดสำคัญที่เลือกมีอะไรบ้าง ทำไมเลือก',img:'none'},
+  {id:'W4',name:'โหลดและ Backup',tabs:'load,backup',crit:'loads>=5;bk_outage>=6;bk_ok',q:'โหลด Backup ที่เลือกมีอะไรบ้าง ทำไมเลือก',img:'none'},
   {id:'W5',name:'เลือกระบบ On-grid / Off-grid / Hybrid',tabs:'systems',crit:'sys_seen',q:'บ้านตัวอย่างควรใช้ระบบแบบไหน เพราะอะไร',img:'none'},
   {id:'W6',name:'จำลองเหตุการณ์',tabs:'events',crit:'ev_any',q:'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร',img:'none'},
   {id:'W7',name:'วงจร DC 12 / 24 / 48 V',tabs:'bench',crit:'bench_pass',q:'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์',img:'bench'},

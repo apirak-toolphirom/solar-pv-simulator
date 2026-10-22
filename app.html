@@ -266,10 +266,10 @@
   </section>
 
   <section class="tab" id="tab-load" hidden>
-    <header><h1>จำลองโหลด</h1><p class="sub">ใส่รายการเครื่องใช้ไฟฟ้า กำลัง ช่วงเวลา และเปอร์เซ็นต์ที่ทำงานจริง ติ๊ก "โหลดสำคัญ" ให้รายการที่ต้องมีไฟตอนไฟดับ</p></header>
+    <header><h1>จำลองโหลด</h1><p class="sub">ใส่รายการเครื่องใช้ไฟฟ้า กำลัง ช่วงเวลา และเปอร์เซ็นต์ที่ทำงานจริง เลือก "ต่อที่ช่อง" ของแต่ละรายการ: Backup คือต่อพอร์ต BACKUP ของอินเวอร์เตอร์ ตอนไฟดับยังมีไฟ ส่วนกริดคือต่อฝั่งตู้ไฟหลัก ตอนไฟดับไม่มีไฟ</p></header>
     <div class="panelbox ldwrap">
       <div class="ldchips"><span class="lab" style="font-size:12.5px;color:var(--muted)">ตัวอย่าง</span><span id="ldpre" class="ldchips"></span></div>
-      <div class="ldscroll"><table class="ldt"><thead><tr><th>ชื่อ</th><th>กำลัง (W)</th><th>จำนวน</th><th>เริ่ม</th><th>หยุด</th><th>ใช้จริง (%)</th><th class="ldph">เฟส</th><th>สำคัญ</th><th></th></tr></thead><tbody id="ldrows"></tbody></table></div>
+      <div class="ldscroll"><table class="ldt"><thead><tr><th>ชื่อ</th><th>กำลัง (W)</th><th>จำนวน</th><th>เริ่ม</th><th>หยุด</th><th>ใช้จริง (%)</th><th class="ldph">เฟส</th><th>ต่อที่ช่อง</th><th></th></tr></thead><tbody id="ldrows"></tbody></table></div>
       <p id="ldempty" class="simmsg" hidden>ยังไม่มีรายการ กด "เพิ่มโหลด" หรือเลือกตัวอย่าง</p>
       <div><button class="btn pri" id="ldadd">+ เพิ่มโหลด</button></div>
       <p class="hint tight">เวลาหยุดที่น้อยกว่าเวลาเริ่ม แปลว่าข้ามเที่ยงคืน เช่น 22:00 ถึง 06:00 ส่วนเวลาเริ่มเท่ากับหยุดคือทำงานทั้งวัน ตัวอย่างที่ให้มาเป็นค่าโดยประมาณ ปรับเป็นของจริงได้</p>
@@ -294,7 +294,7 @@
         <label for="kbat">แบตเตอรี่ (ปรับจำนวนที่แท็บ "อุปกรณ์")<select id="kbat"></select></label>
         <label for="bksrc">แหล่งไฟจากแผง<select id="bksrc"><option value="ideal">แผงสมมติ (ไม่ตรวจการต่อสาย)</option><option value="wiring">ตามที่ต่อสายไว้</option></select></label>
         <label id="bknwrap" for="bkn" hidden>จำนวนแผงสมมติ<input id="bkn" type="number" inputmode="numeric" min="1" max="200" step="1" value="9"></label>
-        <label for="bkis">โหลดที่ต้องจ่ายตอนจ่ายไฟเอง<select id="bkis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
+        <label for="bkis">โหลดที่ต้องจ่ายตอนจ่ายไฟเอง<select id="bkis"><option value="crit">เฉพาะโหลด Backup (โหลดกริดดับ)</option><option value="all">โหลดทั้งหมด</option></select></label>
       </div>
       <div id="bkmicbox" class="bkmic" hidden>
         <div class="bkmich"><b>ไมโครอินเวอร์เตอร์: เลือกแผงแต่ละช่อง</b></div>
@@ -370,7 +370,7 @@
       <div class="row3">
         <label for="sysrc">แหล่งไฟจากแผง<select id="sysrc"><option value="ideal">แผงสมมติ (ไม่ตรวจการต่อสาย)</option><option value="wiring">ตามที่ต่อสายไว้</option></select></label>
         <label id="synwrap" for="syn">จำนวนแผงสมมติ<input id="syn" type="number" inputmode="numeric" min="1" max="200" step="1"></label>
-        <label for="syis">โหลดที่ต้องจ่ายตอนไฟดับ<select id="syis"><option value="crit">เฉพาะโหลดสำคัญ</option><option value="all">โหลดทั้งหมด</option></select></label>
+        <label for="syis">โหลดที่ต้องจ่ายตอนไฟดับ<select id="syis"><option value="crit">เฉพาะโหลด Backup (โหลดกริดดับ)</option><option value="all">โหลดทั้งหมด</option></select></label>
       </div>
       <div class="row3">
         <label for="syos">ไฟดับตั้งแต่<input id="syos" type="time"></label>

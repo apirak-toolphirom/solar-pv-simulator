@@ -11,8 +11,8 @@ function balance(pv,loadAll,loadCrit,cfg){
   const cap=bat?cfg.bank.kwh:0,Emin=bat?cap*(1-(cfg.bank.b.dod||90)/100):0,eta=bat?Math.sqrt(cfg.bank.rt):1;
   const chgMax=bat?cfg.chgKw:0,disMax=bat?cfg.disKw:0;
   let E=bat?Math.max(Emin,Math.min(cap,cap*cfg.soc0/100)):0;
-  const R={pv:[],load:[],direct:[],toBat:[],fromBat:[],exp:[],imp:[],unmet:[],curt:[],soc:[],outage:[],
-    T:{pv:0,load:0,direct:0,toBat:0,fromBat:0,exp:0,imp:0,unmet:0,curt:0,unmetOut:0,loadOut:0,unmetH:0},socMin:100,Emin,cap};
+  const R={pv:[],load:[],direct:[],toBat:[],fromBat:[],exp:[],imp:[],unmet:[],curt:[],soc:[],outage:[],wBk:[],wGr:[],ldBk:[],ldGr:[],grOff:[],
+    T:{pv:0,load:0,direct:0,toBat:0,fromBat:0,exp:0,imp:0,unmet:0,curt:0,unmetOut:0,loadOut:0,unmetH:0,ldBk:0,ldGr:0,grOff:0},socMin:100,Emin,cap};
   for(let i=0;i<n;i++){
     const h=(i+.5)*cfg.step/60;
     const outage=cfg.mode==='off'?false:(cfg.outDur>0&&inWin(h,cfg.outStart%24,(cfg.outStart+cfg.outDur)%24));
@@ -45,6 +45,10 @@ function balance(pv,loadAll,loadCrit,cfg){
     }
     if(cfg.mode==='grid'){/* toB, fromB stay 0 */}
     const soc=bat?E/cap*100:0;
+    /* BACKUP-port loads (ticked in menu 06) vs GRID-side loads: when the inverter runs on its own with "backup loads only", grid-side loads have no power */
+    {const sup=Math.max(0,want-unmet),cut=island&&cfg.island==='crit',bk=cut?sup:Math.min(loadCrit[i],sup),go=cut?Math.max(0,loadAll[i]-loadCrit[i]):0;
+     R.wBk.push(loadCrit[i]);R.wGr.push(Math.max(0,loadAll[i]-loadCrit[i]));R.ldBk.push(bk);R.ldGr.push(cut?0:sup-bk);R.grOff.push(go);
+     R.T.ldBk+=bk*dt/1000;R.T.ldGr+=(cut?0:sup-bk)*dt/1000;R.T.grOff+=go*dt/1000}
     R.pv.push(pv[i]);R.load.push(want);R.direct.push(direct);R.toBat.push(toB);R.fromBat.push(fromB);R.exp.push(exp);R.imp.push(imp);R.unmet.push(unmet);R.curt.push(curt);R.soc.push(soc);R.outage.push(outage);
     const T=R.T,k=dt/1000;
     T.pv+=pv[i]*k;T.load+=want*k;T.direct+=direct*k;T.toBat+=toB*k;T.fromBat+=fromB*k;T.exp+=exp*k;T.imp+=imp*k;T.unmet+=unmet*k;T.curt+=curt*k;
@@ -158,7 +162,7 @@ function backupRun(){
   if(BK.mode!=='grid')mx.push(['ชาร์จเข้าแบต',f(T.toBat,1)+' kWh',`จ่ายออกจากแบต ${f(T.fromBat,1)} kWh`],['SOC ต่ำสุด / สิ้นวัน',f(R.socMin,0)+' / '+f(R.socEnd,0)+' %',`ขั้นต่ำที่ใช้ได้ ${f(R.Emin/R.cap*100,0)} %`]);
   if(BK.mode!=='off')mx.push(['ซื้อไฟจากกริด',f(T.imp,1)+' kWh',`ขายคืนกริด ${f(T.exp,1)} kWh`]);
   mx.push(['ไฟขาด (ไม่มีไฟใช้)',f(T.unmet,2)+' kWh',`${f(T.unmetH,1)} ชม.`+(T.curt>0.01?` · ไฟแผงเหลือทิ้ง ${f(T.curt,1)} kWh`:'')]);
-  if(autonomy!=null&&(BK.mode!=='grid'))mx.push(['แบตเต็มอยู่ได้ (ไม่มีแดด)',f(autonomy,1)+' ชม.',`โหลดเฉลี่ย ${f(avgIsl,2)} kW · ${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'โหลดทั้งหมด'}`]);
+  if(autonomy!=null&&(BK.mode!=='grid'))mx.push(['แบตเต็มอยู่ได้ (ไม่มีแดด)',f(autonomy,1)+' ชม.',`โหลดเฉลี่ย ${f(avgIsl,2)} kW · ${BK.island==='crit'?'เฉพาะโหลด Backup':'โหลดทั้งหมด'}`]);
   bkPeriods(R,bi);
   $('#bkmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   $('#bklim').textContent=!need?'โหมด On-grid ไม่ใช้แบตในการคำนวณ (รายการแบตแสดงเฉพาะรุ่นที่ต่อกับอินเวอร์เตอร์นี้ได้: ยี่ห้อและแรงดันตรงกัน)':need&&bi?`ขีดจำกัดที่ใช้คำนวณ: ชาร์จสูงสุด ${f(chgKw,1)} kW · จ่ายสูงสุด ${f(disKw,1)} kW · ประสิทธิภาพรอบ ${f(bi.rt*100,0)} % · กำลังขาออกช่วงจ่ายเอง ${f(islandW/1000,1)} kW`:'';
@@ -170,7 +174,7 @@ function backupRun(){
     const s=BK.outStart%24,e=s+BK.outDur;
     if(e<=24)vb.push([s,e]);else vb.push([s,24],[0,e-24]);
   }
-  const pot=src.pot||[],yTop=Math.max(Math.max(...R.pv),Math.max(...R.load),pot.length?Math.max(...pot):0,1)/1000*1.1;
+  const pot=src.pot||[],yTop=Math.max(Math.max(...R.pv),Math.max(...R.load),Math.max(...R.wBk.map((v,j)=>v+R.wGr[j])),pot.length?Math.max(...pot):0,1)/1000*1.1;
   const used=R.pv.map((v,i)=>Math.max(0,v-R.curt[i]));
   const s1=[{short:T.curt>0.005?'กำลังจากแผงที่ใช้ได้':'กำลังจากแผง',color:'var(--s1)',vals:kw(used),area:true,fmt:v=>f(v,2)},{short:'โหลดที่ต้องการ',color:'var(--s2)',vals:kw(R.load),fmt:v=>f(v,2)}];
   if(BK.mode!=='off')s1.push({short:'ซื้อจากกริด',color:'var(--s3)',vals:kw(R.imp),fmt:v=>f(v,2)});
@@ -178,6 +182,10 @@ function backupRun(){
   if(pot.length===R.pv.length)s1.push({short:'กำลัง DC ที่แผงผลิตได้ (ก่อนตัด)',color:'var(--s1)',dash:'5 4',vals:kw(pot),fmt:v=>f(v,2)});
   if(T.curt>0.005)s1.push({short:BK.mode==='grid'?'แดดมีแต่ไม่ได้จ่าย (หยุด/จำกัดขาย)':'ไฟแผงเหลือทิ้ง',color:'var(--muted)',vals:kw(R.curt),fmt:v=>f(v,2)});
   if(T.unmet>0.005)s1.push({short:'ส่วนที่ไฟไม่พอ',color:'var(--err)',vals:kw(R.unmet),fmt:v=>f(v,2)});
+  /* loads split by where they are wired: BACKUP port (power stays on in an outage) and GRID side (off in an outage) */
+  s1.push({short:'โหลด Backup (ได้ไฟ)',color:'#d6338a',vals:kw(R.ldBk),fmt:v=>f(v,2)});
+  s1.push({short:'โหลดกริด (ได้ไฟ)',color:'#b7791f',vals:kw(R.ldGr),fmt:v=>f(v,2)});
+  if(T.grOff>0.005)s1.push({short:'โหลดกริดที่ดับตอนไฟดับ',color:'#b7791f',dash:'3 3',vals:kw(R.grOff),fmt:v=>f(v,2)});
   bkCfg={A:{x,xmin:0,xmax:24,ymax:yTop,unit:'kW',aria:'กราฟกำลังจากแผง โหลด และไฟจากกริดตลอดวัน',vb,vbl:'ไฟดับ',series:s1}};
   if(BK.mode!=='grid')bkCfg.B={x,xmin:0,xmax:24,ymax:100,unit:'%',aria:'กราฟสถานะประจุแบต SOC ตลอดวัน',vb,vbl:'ไฟดับ',
     refs:[{y:R.Emin/R.cap*100,label:`SOC ขั้นต่ำ ${f(R.Emin/R.cap*100,0)}%`}],series:[{short:'SOC แบต',color:'var(--s3)',vals:R.soc,area:true,fmt:v=>f(v,0)}]};
@@ -205,7 +213,7 @@ function bkPeriods(R,bi){
   const row=(nm,a,b,u)=>`<tr><td>${nm}</td><td>${a}</td>${on?`<td>${b}</td>`:''}</tr>`,v=x=>f(x,2)+' kWh',N=P[0],O=P[1];
   let h=`<table class="t bkper"><thead><tr><th>ช่วงเวลา</th><th>ปกติ (กริดมีไฟ)</th>${on?'<th class="out">ไฟดับ</th>':''}</tr></thead><tbody>`
     +row('ระยะเวลา',f(N.h,1)+' ชม.',f(O.h,1)+' ชม.')
-    +row('โหลดที่ต้องจ่าย',v(N.load)+' <small>(ทั้งหมด)</small>',v(O.load)+` <small>(${BK.island==='crit'?'เฉพาะโหลดสำคัญ':'ทั้งหมด'})</small>`)
+    +row('โหลดที่ต้องจ่าย',v(N.load)+' <small>(ทั้งหมด)</small>',v(O.load)+` <small>(${BK.island==='crit'?'เฉพาะโหลด Backup':'ทั้งหมด'})</small>`)
     +row('จากแผงตรง',v(N.direct),v(O.direct))
     +(bat?row('จากแบต',v(N.fromBat),v(O.fromBat))+row('ชาร์จเข้าแบต',v(N.toBat),v(O.toBat)):'')
     +row('ซื้อจากกริด',v(N.imp),on?'— <small>(กริดดับ)</small>':'')

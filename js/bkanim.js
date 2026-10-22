@@ -16,7 +16,7 @@ function bkaSVG(){
   <rect id="bashade" x="0" y="40" width="0" height="60" class="ba-shade" clip-path="url(#bapvclip)"/>
   <text x="210" y="34" text-anchor="middle" class="ba-lab">แผงโซลาร์</text>
   <!-- wires (base + animated dash) -->
-  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M340 229 H440 V262 H470','ac ba-mic'],['md0','M82 94 V222 H140','dc ba-mic'],['md1','M164 94 V130 H120 V172 H140','dc ba-mic'],['md2','M246 94 V130 H298 V173 H276','dc ba-mic'],['md3','M328 94 V216 H276','dc ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac']]
+  ${[['pv','M120 96 V150 H80 V190','dc ba-str'],['pv2','M80 238 V262 H262','dc ba-str'],['bat','M300 330 V372 H200','dc ba-str'],['ac','M380 262 H470','ac ba-str'],['mtr','M340 229 H440 V262 H470','ac ba-mic'],['md0','M82 94 V222 H140','dc ba-mic'],['md1','M164 94 V130 H120 V172 H140','dc ba-mic'],['md2','M246 94 V130 H298 V173 H276','dc ba-mic'],['md3','M328 94 V216 H276','dc ba-mic'],['grid','M700 150 V215 H570','ac'],['load','M520 262 V330 H600','ac'],['bkld','M360 330 V396 H412','ac ba-bkinv'],['bkg','M496 298 V356','ac ba-bkgrid']]
     .map(([id,d,c])=>`<path d="${d}" class="ba-w ${c}"/><path id="baw-${id}" d="${d}" class="ba-f ${c}"/>`).join('')}
   <!-- microinverters: one under each panel, AC trunk straight to the board -->
   <g class="ba-mic"><image href="img/inv/deye-micro.png?v=2" x="140" y="150" width="200" height="109" preserveAspectRatio="xMidYMid meet"/>
@@ -50,25 +50,35 @@ function bkaSVG(){
     <rect x="660" y="352" width="56" height="36" rx="3" class="ba-tv"/><rect x="684" y="388" width="8" height="12" class="ba-ap"/>
     <rect x="660" y="300" width="112" height="28" rx="6" class="ba-ap"/><line x1="668" y1="320" x2="764" y2="320" class="ba-apl"/>
     <circle cx="748" cy="374" r="13" class="ba-lamp"/><rect x="744" y="386" width="8" height="14" class="ba-ap"/>
-    <text x="690" y="430" text-anchor="middle" class="ba-lab">โหลดในบ้าน</text></g>
+    <text x="690" y="428" text-anchor="middle" class="ba-lab">โหลดกริด</text><text x="690" y="446" text-anchor="middle" class="ba-sm">ต่อฝั่งตู้ไฟหลัก · ไฟดับไม่มีไฟ</text></g>
+  <!-- backup loads: wired to the inverter BACKUP port (menu 06 "ต่อที่ช่อง: Backup") -->
+  <g id="babk"><rect x="412" y="430" width="150" height="7" class="ba-shelf"/>
+    <rect x="418" y="358" width="36" height="72" rx="5" class="ba-ap"/><line x1="418" y1="384" x2="454" y2="384" class="ba-apl"/><line x1="448" y1="366" x2="448" y2="378" class="ba-apl"/>
+    <rect x="466" y="408" width="40" height="22" rx="4" class="ba-ap"/><line x1="474" y1="408" x2="470" y2="394" class="ba-apl"/><line x1="498" y1="408" x2="502" y2="394" class="ba-apl"/><circle cx="476" cy="420" r="2.2" class="ba-bkled"/><circle cx="484" cy="420" r="2.2" class="ba-bkled"/>
+    <circle cx="536" cy="398" r="12" class="ba-lamp"/><rect x="532" y="410" width="8" height="20" class="ba-ap"/>
+    <text x="487" y="455" text-anchor="middle" class="ba-lab">โหลด Backup</text></g>
+  <text x="370" y="350" class="ba-pin ba-bkinv">BACKUP</text>
   <g id="bacloud" class="ba-cloud" transform="translate(520 70)" tabindex="0" role="slider" aria-label="เมฆ ลากไปบังแผง (ใช้ลูกศรซ้าย/ขวาได้)"><g class="ba-cs"><ellipse cx="0" cy="12" rx="62" ry="22"/><circle cx="-28" cy="2" r="24"/><circle cx="6" cy="-10" r="32"/><circle cx="36" cy="4" r="22"/></g><text x="0" y="12" text-anchor="middle" class="ba-sm">⇆ ลากเมฆ</text></g>
   ${badge(80,150,'DC','dc','ba-str')}${badge(190,262,'DC','dc','ba-str')}${badge(250,372,'DC','dc','ba-str')}${badge(425,262,'AC','ac','ba-str')}${badge(400,229,'AC','ac','ba-mic')}${badge(620,215,'AC','ac')}${badge(560,330,'AC','ac')}
   <!-- flow labels -->
   <g class="ba-val"><text id="bav-pv" x="150" y="140" class="ba-str">—</text><text id="bav-bat" x="210" y="396" class="ba-str">—</text><text id="bav-ac" x="425" y="250" text-anchor="middle" class="ba-str">—</text><text id="bav-mtr" x="360" y="212" class="ba-mic">—</text>
-    <text id="bav-grid" x="640" y="240">—</text><text id="bav-load" x="690" y="292" text-anchor="middle">—</text></g>
+    <text id="bav-grid" x="640" y="240">—</text><text id="bav-load" x="690" y="292" text-anchor="middle">—</text><text id="bav-bk" x="440" y="350" text-anchor="middle">—</text></g>
 </svg>`;
 }
 function bkaFrame(){
   const R=window.lastBal&&window.lastBal.R,host=document.getElementById('bkasvg');
   if(!R||!host||!host.firstChild)return;
   const i=Math.max(0,Math.min(R.pv.length-1,BKA.i)),mode=window.lastBal.mode;
-  const cf=bkaCloud(),out=R.outage[i];let pv=Math.max(0,R.pv[i]-R.curt[i]),bat=R.fromBat[i]-R.toBat[i],grid=R.imp[i]-R.exp[i],load=Math.max(0,R.load[i]-R.unmet[i]),unmet=R.unmet[i];
+  const cf=bkaCloud(),out=R.outage[i],cut=(out||mode==='off')&&window.lastBal.island==='crit';let pv=Math.max(0,R.pv[i]-R.curt[i]),bat=R.fromBat[i]-R.toBat[i],grid=R.imp[i]-R.exp[i],load=Math.max(0,R.load[i]-R.unmet[i]),unmet=R.unmet[i];
   if(cf>0&&R.pv[i]>1){const x=bkaInstant(i,R.pv[i]*(1-cf));pv=x.pv;bat=x.bat;grid=x.grid;load=x.load;unmet=x.unmet}
   const inv=pv+bat;
+  /* split what the loads got into BACKUP-port and GRID-side loads (same rule as balance()) */
+  const wBk=(R.wBk&&R.wBk[i])||0,wGr=(R.wGr&&R.wGr[i])||0,ldBk=cut?load:Math.min(wBk,load),ldGr=cut?0:Math.max(0,load-ldBk);
   const q=id=>document.getElementById(id),txt=(id,t)=>{const e=q(id);if(e)e.textContent=t};
   const mic=isMicro(curInv());host.classList.toggle('micro',mic);
   const On=[1,2,3,4].map(k=>!mic||bkMicOn(k)),Wp=[1,2,3,4].map((k,j)=>On[j]?mpPV(k).pmax:0),Ws=Wp.reduce((a,b)=>a+b,0)||1,Uu=mic?microU(curInv()):1,md=k=>mic?pv/Uu*Wp[k]/Ws:0;
-  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv,mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load};
+  const noBk=mode==='grid'||mic;host.classList.toggle('nobkport',noBk);
+  BKA.v={pv:mic?0:pv,pv2:mic?0:pv,bat:mic?0:-bat,ac:mic?0:inv-(noBk?0:ldBk),mtr:mic?inv:0,md0:md(0),md1:md(1),md2:md(2),md3:md(3),grid,load:ldGr,bkld:noBk?0:ldBk,bkg:noBk?ldBk:0};
   if(mic)Wp.forEach((w,k)=>txt('bapw'+k,On[k]?w+' W':'ไม่ต่อแผง'));[0,1,2,3].forEach(k=>{const g=q('bapnl'+k);if(g)g.classList.toggle('ba-off',!On[k])});
   if(mic){const U=microU(curInv());txt('bav-mtr',bkaKW(inv)+(U>1?` (รวม ${U} ตัว)`:''));txt('bamicn',U>1?`ไมโครอินเวอร์เตอร์ × ${U} ตัว (ภาพแสดง 1 ตัว)`:'ไมโครอินเวอร์เตอร์ 1 ตัว');txt('bav-md',pv>1?`กำลังจากแผง ${On.filter(Boolean).length} แผง ${bkaKW(pv/U)}${U>1?' ต่อตัว':''}`:'')}/* positive = along the path as drawn */
   const h=i*5/60,day=h>=6&&h<=18,sun=q('basun'),moon=q('bamoon');
@@ -76,7 +86,7 @@ function bkaFrame(){
   {const hn=(h+6)%24,a=Math.min(12,hn)/12*Math.PI;moon.setAttribute('transform',`translate(${(430+Math.min(12,hn)/12*210).toFixed(1)} ${(115-Math.sin(a)*80).toFixed(1)})`)}moon.style.display=day?'none':'';
   bkaShade(day);
   host.classList.toggle('night',!day);
-  txt('bav-pv',pv>1?bkaKW(pv):'0 kW');txt('bav-ac',Math.abs(inv)>1?bkaKW(inv):'0 kW');txt('bav-load',(load>1?bkaKW(load):'0 kW')+(unmet>1?' · ขาด '+bkaKW(unmet):''));
+  txt('bav-pv',pv>1?bkaKW(pv):'0 kW');{const toBoard=inv-(noBk?0:ldBk);txt('bav-ac',Math.abs(toBoard)>1?bkaKW(toBoard):'0 kW')}txt('bav-load',cut&&wGr>1?'ไฟดับ · ไม่มีไฟ '+bkaKW(wGr):ldGr>1?bkaKW(ldGr):'0 kW');txt('bav-bk',(ldBk>1?bkaKW(ldBk):'0 kW')+(unmet>1?' · ขาด '+bkaKW(unmet):''));
   txt('bav-bat',mode==='grid'?'':Math.abs(bat)<1?'พัก':(bat>0?'จ่าย ':'ชาร์จ ')+bkaKW(bat));
   const lim=window.lastBal.cfg&&window.lastBal.cfg.expLimW;
   txt('bav-grid',mode==='off'?'':out?'ไฟดับ':(Math.abs(grid)<1?'0 kW':(grid>0?'ซื้อ ':'ขาย ')+bkaKW(grid))+(lim!=null?(lim===0?' · Zero export':' · จำกัด '+bkaKW(lim)):''));
@@ -89,10 +99,11 @@ function bkaFrame(){
   f.setAttribute('height',Math.max(0,64*soc/100));f.setAttribute('y',353+64*(1-soc/100));f.setAttribute('class','ba-socf'+(soc<25?' low':''));
   q('babat').classList.toggle('ba-off',mode==='grid');txt('babatx',mode==='grid'?'ไม่ใช้แบต (On-grid)':'');
   q('bagrid').classList.toggle('ba-off',mode==='off'||out);q('bagridx').style.display=out&&mode!=='off'?'':'none';
-  q('baload').classList.toggle('ba-dark',unmet>1&&load<1);q('baload').classList.toggle('ba-dim',unmet>1&&load>=1);
-  ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
+  q('baload').classList.toggle('ba-dark',wGr>1&&ldGr<1);q('baload').classList.toggle('ba-dim',false);
+  q('babk').classList.toggle('ba-dark',unmet>1&&ldBk<1);q('babk').classList.toggle('ba-dim',unmet>1&&ldBk>=1);
+  ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load','bkld','bkg'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
   q('bkat').value=i;txt('bkatl',bkaHM(i));bkaCursor();
-  const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต เฉพาะ'+(window.lastBal.island==='crit'?'โหลดสำคัญ':'โหลดทั้งหมด'):
+  const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต '+(window.lastBal.island==='crit'?'เฉพาะโหลด Backup โหลดกริดไม่มีไฟ':'จ่ายโหลดทั้งหมด'):
     (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));
 }
 /* cloud: covered share of the panel row (horizontal overlap while the cloud is at panel height) × thickness */

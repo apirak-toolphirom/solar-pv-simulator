@@ -633,3 +633,8 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .syic.bt .cs{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}.syic.bt .tm{fill:var(--ink)}.syic.bt .lv{fill:#3fb950}.syic.bt .lv.mid{fill:#e0a400}.syic.bt .lv.lo{fill:#d64545}.syic.bt .pl{stroke:var(--ink);stroke-width:1.4;opacity:.55;fill:none}
 .synode .syn{font-size:12px}
 .sycard .syv{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}.synode .syinvl{fill:var(--ink)}
+/* menu 07: backup-port loads */
+#babk{transition:opacity .3s}#babk.ba-dim{opacity:.6}#babk.ba-dark{opacity:.3}#babk.ba-dark .ba-lamp{fill:#888}.ba-bkled{fill:#3fb950}#babk.ba-dark .ba-bkled{fill:#888}
+.nobkport .ba-bkinv{display:none}.bkasvg:not(.nobkport) .ba-bkgrid,#bkasvg:not(.nobkport) .ba-bkgrid{display:none}
+/* menu 06: port select */
+.ldport{min-width:6.5em}.ldport.bk{border-color:#d6338a;color:#d6338a;font-weight:600}

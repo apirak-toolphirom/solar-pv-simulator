@@ -46,19 +46,20 @@ function loadRowsHTML(){
     <td data-th="หยุด"><input data-k="end" type="time" value="${L.end>=24?'00:00':hhmm(L.end)}" aria-label="เวลาหยุด"></td>
     <td data-th="ใช้จริง (%)"><input data-k="duty" type="number" inputmode="decimal" min="0" max="100" step="1" value="${L.duty}" aria-label="เปอร์เซ็นต์เวลาที่ทำงานจริง"></td>
     <td data-th="เฟส" class="ldph"><select data-k="ph" aria-label="เฟสที่ต่อ">${LOAD_PH.map(p=>`<option value="${p}" ${L.ph===p?'selected':''}>${p==='3P'?'3 เฟส':p}</option>`).join('')}</select></td>
-    <td data-th="สำคัญ"><label class="chk"><input data-k="crit" type="checkbox" ${L.crit?'checked':''}><span>โหลดสำคัญ</span></label></td>
+    <td data-th="ต่อที่ช่อง"><select data-k="crit" class="ldport${L.crit?' bk':''}" title="Backup = ต่อพอร์ต BACKUP ไฟดับยังมีไฟ · กริด = ต่อตู้ไฟหลัก ไฟดับไม่มีไฟ" aria-label="ช่องที่ต่อโหลดนี้"><option value="1" ${L.crit?'selected':''}>Backup</option><option value="0" ${L.crit?'':'selected'}>กริด</option></select></td>
     <td><button class="btn sm" data-ldel="${L.id}" aria-label="ลบ ${esc(L.name)}">ลบ</button></td></tr>`).join('');
 }
 let loadChartCfg=null;
 function loadView(){
   const P=loadProfile(5),dt=5/60/1000;
-  let E=0,Ec=0,pk=0,pkI=0;
-  P.all.forEach((w,i)=>{E+=w*dt;Ec+=P.crit[i]*dt;if(w>pk){pk=w;pkI=i}});
+  let E=0,Ec=0,pk=0,pkI=0,pg=0;
+  P.all.forEach((w,i)=>{E+=w*dt;Ec+=P.crit[i]*dt;if(w>pk){pk=w;pkI=i}if(w-P.crit[i]>pg)pg=w-P.crit[i]});
   const I=curInv(),pc=Math.max(...P.crit),w=[];
   const mx=[
     ['พลังงานต่อวัน',f(E,2)+' kWh',`เฉลี่ย ${f(E/24,2)} kW`],
     ['กำลังสูงสุด',f(pk/1000,2)+' kW',pk>0?`เวลา ${hhmm((pkI+.5)*5/60)}`:''],
-    ['โหลดสำคัญต่อวัน',f(Ec,2)+' kWh',`สูงสุด ${f(pc/1000,2)} kW`],
+    ['โหลด Backup ต่อวัน',f(Ec,2)+' kWh',`สูงสุด ${f(pc/1000,2)} kW · ไฟดับยังมีไฟ`],
+    ['โหลดกริดต่อวัน',f(E-Ec,2)+' kWh',`สูงสุด ${f(pg/1000,2)} kW · ไฟดับไม่มีไฟ`],
     ['เทียบพิกัด AC อินเวอร์เตอร์',I.pac?f(pk/I.pac*100,0)+' %':'-',`${esc(I.name)} ${I.pac/1000} kW`]
   ];
   const inv3=isPh3(I),p3=inv3||(typeof ACS!=='undefined'&&ACS.set.supply==='3');
@@ -73,13 +74,14 @@ function loadView(){
   document.querySelectorAll('.ldph').forEach(e=>e.hidden=!p3);
   $('#ldmx').innerHTML=mx.map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${m[1]}</div><div class="s">${m[2]}</div></div>`).join('');
   if(pk>I.pac)w.push(`กำลังโหลดสูงสุด ${f(pk/1000,2)} kW เกินพิกัด AC ของอินเวอร์เตอร์ ${I.pac/1000} kW`);
-  if(I.type!=='on-grid'&&I.backupKw&&pc>I.backupKw*1000)w.push(`โหลดสำคัญสูงสุด ${f(pc/1000,2)} kW เกินกำลังขาออกโหมด Backup ${I.backupKw} kW`);
+  if(I.type!=='on-grid'&&I.backupKw&&pc>I.backupKw*1000)w.push(`โหลด Backup สูงสุด ${f(pc/1000,2)} kW เกินกำลังพอร์ต Backup ${I.backupKw} kW ย้ายบางรายการไปช่องกริด`);
   $('#ldwarn').innerHTML=w.map(t=>`<li><span class="b warn">!</span><span>${esc(t)}</span></li>`).join('');
   const x=P.all.map((_,i)=>(i+.5)*5/60),ymax=Math.max(pk/1000,0.5)*1.1;
   loadChartCfg={x,xmin:0,xmax:24,ymax,unit:'kW',aria:'กราฟกำลังโหลดตลอดวัน',
     refs:I.pac&&pk>I.pac*0.3?[{y:I.pac/1000,label:`พิกัด AC ${I.pac/1000} kW`}]:[],
     series:[{short:'โหลดทั้งหมด',color:'var(--s1)',vals:P.all.map(v=>v/1000),area:true,peak:true,fmt:v=>f(v,2)},
-            {short:'โหลดสำคัญ',color:'var(--s2)',vals:P.crit.map(v=>v/1000),fmt:v=>f(v,2)}]};
+            {short:'โหลด Backup',color:'#d6338a',vals:P.crit.map(v=>v/1000),fmt:v=>f(v,2)},
+            {short:'โหลดกริด',color:'#b7791f',vals:P.all.map((v,i)=>(v-P.crit[i])/1000),fmt:v=>f(v,2)}]};
   loadChartCfg.leg='ldleg';$('#ldleg').innerHTML=legHTML('ldleg',loadChartCfg.series,'',drawLoadChart);
   drawLoadChart();
 }
@@ -106,7 +108,7 @@ function initLoads(){
     const L=LOADS.find(l=>l.id===+tr.dataset.lid);if(!L)return;
     const k=t.dataset.k;
     if(k==='name')L.name=t.value;
-    else if(k==='crit')L.crit=t.checked?1:0;
+    else if(k==='crit'){L.crit=t.value==='1'?1:0;t.classList.toggle('bk',!!L.crit)}
     else if(k==='ph'){if(LOAD_PH.includes(t.value))L.ph=t.value}
     else if(k==='start'||k==='end'){const h=parseHM(t.value);if(isNaN(h))return;L[k]=h}
     else{const n=parseFloat(t.value);if(isNaN(n))return;L[k]=Math.max(0,n)}

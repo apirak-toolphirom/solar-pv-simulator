@@ -41,7 +41,7 @@ function reportLines(r){
     ['รูปแบบการต่อ',w?w.topo:'-'],
     ['แผงที่ใช้',r.panel],['อินเวอร์เตอร์',r.inverter],['แบตเตอรี่',r.battery],
     ['ผลิตต่อวัน',r.pv?`${f(r.pv.E,1)} kWh (สูงสุด ${f(r.pv.peak,2)} kW · เอียง ${r.pv.tilt}° · ทิศ ${r.pv.az}°)`:'-'],
-    ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลดสำคัญ ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
+    ['โหลดต่อวัน',`${f(r.load.E,1)} kWh (โหลด Backup ${f(r.load.Ec,1)} kWh · สูงสุด ${f(r.load.peak,2)} kW)`],
     ['Backup',r.bk?`${({grid:'On-grid',hybrid:'Hybrid',off:'Off-grid'})[r.bk.mode]}: ${r.bk.vt}`:'-'],
     ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC'],
     ['เหตุการณ์ที่จำลอง',r.ev||'ไม่มี'],
@@ -160,7 +160,7 @@ function submitRefresh(){
     ['ผลการต่อสาย',w?(w.lvl==='idle'?'รอต่อสาย':LABEL[w.lvl]):'-',wLabel(w)],
     ['แผง',w?`${w.used}/${w.panels}`:'-',w?`${f(w.kwp,2)} kWp · DC/AC ${f(w.ratio,2)}`:''],
     ['ผลิตต่อวัน',r.pv?f(r.pv.E,1)+' kWh':'-',r.pv?`สูงสุด ${f(r.pv.peak,2)} kW`:'ต่อสายให้ถูกต้องก่อน'],
-    ['โหลดต่อวัน',f(r.load.E,1)+' kWh',`${r.load.n} รายการ · โหลดสำคัญ ${f(r.load.Ec,1)} kWh`],
+    ['โหลดต่อวัน',f(r.load.E,1)+' kWh',`${r.load.n} รายการ · โหลด Backup ${f(r.load.Ec,1)} kWh`],
     ['Backup',r.bk?({ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน'})[r.bk.lvl]:'-',r.bk?r.bk.vt:'ยังไม่มีผล'],
     ['ต่อสาย AC',r.ac&&r.ac.lvl!=='idle'?LABEL[r.ac.lvl]:'-',r.ac&&r.ac.lvl!=='idle'?r.ac.txt:'ยังไม่ได้ต่อสาย AC']
   ].map(m=>`<div class="metric"><div class="k">${m[0]}</div><div class="v">${esc(m[1])}</div><div class="s">${esc(m[2])}</div></div>`).join('');
