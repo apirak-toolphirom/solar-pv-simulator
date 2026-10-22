@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="09a77b6244">
+<meta name="build" content="28542473b6">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='09a77b6244'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='28542473b6'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=7bfdfe00">
+<link rel="stylesheet" href="css/styles.css?v=3b9207e3">
 </head>
 <body>
 <div class="app">
@@ -349,7 +349,7 @@ if(m&&m[1]!=='09a77b6244'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
           <select id="bkasp" aria-label="ความเร็ว"><option value="1">ช้า</option><option value="3" selected>ปกติ</option><option value="8">เร็ว</option></select>
           <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button>
           <button class="btn sm" id="bkacloud" aria-pressed="false">☁ เพิ่มเมฆ</button><select id="bkathick" aria-label="ความหนาเมฆ" hidden><option value="0.4">เมฆบาง (บัง 40%)</option><option value="0.75" selected>เมฆปานกลาง (บัง 75%)</option><option value="0.95">เมฆหนา (บัง 95%)</option></select><select id="bkasize" aria-label="ขนาดเมฆ" hidden><option value="1">ก้อนเล็ก</option><option value="1.5" selected>ก้อนกลาง</option><option value="2.8">ก้อนใหญ่ (คลุมทั้งแผง)</option></select></div></div>
-        <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="144" aria-label="เวลาในวัน"><output id="bkatl">12:00</output></div>
+        <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="72" aria-label="เวลาในวัน เริ่มพระอาทิตย์ขึ้น 06:00 ถึง 06:00 เช้าวันถัดไป"><output id="bkatl">12:00</output></div><div class="bkatx" aria-hidden="true"><span>06:00 ☀</span><span>12:00</span><span>18:00</span><span>00:00</span><span>06:00</span></div>
         <div id="bkasvg" class="bkasvg"></div><p class="hint tight" id="bkanote" aria-live="polite"></p></section>
       <div class="simcards">
         <section class="card"><h3>กำลังจากแผง โหลด และไฟจากกริด</h3><div id="bkleg1" class="legend"></div><div id="chK1" class="chart"></div></section>
@@ -530,7 +530,7 @@ if(m&&m[1]!=='09a77b6244'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/site.js?v=68afc494"></script>
 <script src="js/loads.js?v=ab042e0e"></script>
 <script src="js/backup.js?v=a1c91c8f"></script>
-<script src="js/bkanim.js?v=fd23875d"></script>
+<script src="js/bkanim.js?v=4517d54a"></script>
 <script src="js/systems.js?v=ea106708"></script>
 <script src="js/events.js?v=50b85166"></script>
 <script src="js/bench.js?v=ebe5032f"></script>

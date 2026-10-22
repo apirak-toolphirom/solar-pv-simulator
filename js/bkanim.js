@@ -1,6 +1,8 @@
 /* ---- menu 07: animated power-flow picture (panels → DC box → inverter ↔ battery, inverter → AC board ↔ grid, board → loads)
    Reads the 5-minute balance from backupRun (window.lastBal). Dash speed follows the power on each wire, direction follows its sign. */
 const BKA={picBad:{},i:144,play:false,speed:3,last:0,acc:0,off:{},raf:0,cloud:{on:false,x:520,y:70,thick:0.75,size:1.5}};
+/* the time slider starts at sunrise 06:00 and runs to 06:00 of the next morning (00:00–06:00 is the same simulated day); charts keep the 00:00–24:00 axis */
+const BKA_T0=72,bkaPos=i=>(i-BKA_T0+288)%288,bkaIdx=p=>(+p+BKA_T0)%288;
 const bkaHM=i=>{const m=i*5;return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const bkaKW=w=>(Math.abs(w)/1000).toFixed(Math.abs(w)<10000?2:1)+' kW';
 function bkaSVG(){
@@ -102,7 +104,7 @@ function bkaFrame(){
   q('baload').classList.toggle('ba-dark',wGr>1&&ldGr<1);q('baload').classList.toggle('ba-dim',false);
   q('babk').classList.toggle('ba-dark',unmet>1&&ldBk<1);q('babk').classList.toggle('ba-dim',unmet>1&&ldBk>=1);
   ['pv','pv2','bat','ac','mtr','md0','md1','md2','md3','grid','load','bkld','bkg'].forEach(k=>{const p=q('baw-'+k);if(p)p.classList.toggle('idle',Math.abs(BKA.v[k])<1||(k==='bat'&&mode==='grid')||(k==='grid'&&(mode==='off'||out)))});
-  q('bkat').value=i;txt('bkatl',bkaHM(i));bkaCursor();
+  q('bkat').value=bkaPos(i);txt('bkatl',bkaHM(i));bkaCursor();
   const note=q('bkanote');if(note)note.textContent=(cf>0&&R.pv[i]>1&&(out||stop)?`เมฆบังแผง ${Math.round(cf*100)}% · `:'')+(stop?'กริดดับ อินเวอร์เตอร์ On-grid ตัดการจ่ายทันที (anti-islanding) แม้มีแดด':out?'กริดดับ ระบบจ่ายไฟเองจากแผงและแบต '+(window.lastBal.island==='crit'?'เฉพาะโหลด Backup โหลดกริดไม่มีไฟ':'จ่ายโหลดทั้งหมด'):
     (cf>0&&R.pv[i]>1?`เมฆบังแผง ${Math.round(cf*100)}% แดดลดลง · `:'')+(unmet>1?'ไฟไม่พอจ่ายโหลด':grid<-1?'ไฟเหลือ ขายคืนกริด':bat<-1?'ไฟเหลือ ชาร์จเข้าแบต':grid>1?'ซื้อไฟจากกริดเสริม':bat>1?'แบตจ่ายเสริม':''));
 }
@@ -174,8 +176,8 @@ function bkaKick(){if(!BKA.raf)BKA.raf=requestAnimationFrame(bkaTick)}
 function bkAnimUpdate(){const host=document.getElementById('bkasvg');if(!host)return;if(!host.firstChild){host.innerHTML=bkaSVG();bkaDrag()}bkaFrame();bkaKick()}
 function initBkAnim(){
   const t=document.getElementById('bkat');if(!t)return;
-  t.addEventListener('input',e=>{BKA.i=+e.target.value;bkaFrame()});
-  document.getElementById('bkaplay').addEventListener('click',e=>{BKA.play=!BKA.play;e.currentTarget.textContent=BKA.play?'❚❚ หยุด':'▶ เล่นทั้งวัน';e.currentTarget.setAttribute('aria-pressed',String(BKA.play));bkaKick()});
+  t.addEventListener('input',e=>{BKA.i=bkaIdx(e.target.value);bkaFrame()});
+  document.getElementById('bkaplay').addEventListener('click',e=>{BKA.play=!BKA.play;if(BKA.play&&bkaPos(BKA.i)>=287)BKA.i=BKA_T0;e.currentTarget.textContent=BKA.play?'❚❚ หยุด':'▶ เล่นทั้งวัน';e.currentTarget.setAttribute('aria-pressed',String(BKA.play));bkaKick()});
   document.getElementById('bkasp').addEventListener('change',e=>{BKA.speed=+e.target.value});
   document.querySelectorAll('[data-bkat]').forEach(b=>b.addEventListener('click',()=>{const R=window.lastBal&&window.lastBal.R;let i=144;
     if(b.dataset.bkat==='out'&&R){const k=R.outage.indexOf(true);i=k>=0?Math.min(287,k+6):144}else i=+b.dataset.bkat;BKA.i=i;bkaFrame()}));

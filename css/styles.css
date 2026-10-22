@@ -638,3 +638,5 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .nobkport .ba-bkinv{display:none}.bkasvg:not(.nobkport) .ba-bkgrid,#bkasvg:not(.nobkport) .ba-bkgrid{display:none}
 /* menu 06: port select */
 .ldport{min-width:6.5em}.ldport.bk{border-color:#d6338a;color:#d6338a;font-weight:600}
+
+.bkatx{display:flex;justify-content:space-between;margin:2px 58px 0 0;font:11px var(--mono);color:var(--muted)}

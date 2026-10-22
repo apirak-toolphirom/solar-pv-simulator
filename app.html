@@ -333,7 +333,7 @@
           <select id="bkasp" aria-label="ความเร็ว"><option value="1">ช้า</option><option value="3" selected>ปกติ</option><option value="8">เร็ว</option></select>
           <button class="btn sm" data-bkat="96">08:00</button><button class="btn sm" data-bkat="144">12:00</button><button class="btn sm" data-bkat="228">19:00</button><button class="btn sm" data-bkat="out">ช่วงไฟดับ</button>
           <button class="btn sm" id="bkacloud" aria-pressed="false">☁ เพิ่มเมฆ</button><select id="bkathick" aria-label="ความหนาเมฆ" hidden><option value="0.4">เมฆบาง (บัง 40%)</option><option value="0.75" selected>เมฆปานกลาง (บัง 75%)</option><option value="0.95">เมฆหนา (บัง 95%)</option></select><select id="bkasize" aria-label="ขนาดเมฆ" hidden><option value="1">ก้อนเล็ก</option><option value="1.5" selected>ก้อนกลาง</option><option value="2.8">ก้อนใหญ่ (คลุมทั้งแผง)</option></select></div></div>
-        <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="144" aria-label="เวลาในวัน"><output id="bkatl">12:00</output></div>
+        <div class="bkat"><input type="range" id="bkat" min="0" max="287" step="1" value="72" aria-label="เวลาในวัน เริ่มพระอาทิตย์ขึ้น 06:00 ถึง 06:00 เช้าวันถัดไป"><output id="bkatl">12:00</output></div><div class="bkatx" aria-hidden="true"><span>06:00 ☀</span><span>12:00</span><span>18:00</span><span>00:00</span><span>06:00</span></div>
         <div id="bkasvg" class="bkasvg"></div><p class="hint tight" id="bkanote" aria-live="polite"></p></section>
       <div class="simcards">
         <section class="card"><h3>กำลังจากแผง โหลด และไฟจากกริด</h3><div id="bkleg1" class="legend"></div><div id="chK1" class="chart"></div></section>
