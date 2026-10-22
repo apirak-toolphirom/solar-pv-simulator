@@ -63,31 +63,55 @@ function syFit(s,I){
   if(s.types.includes(I.type))return{ok:true,t:`อินเวอร์เตอร์ที่เลือก (${I.type}) ใช้กับระบบนี้ได้`};
   return{ok:false,t:`อินเวอร์เตอร์ที่เลือกเป็น ${I.type} ระบบนี้ต้องใช้ ${s.types.join(' หรือ ')} ผลด้านล่างจำลองตามหลักการทำงานของระบบ`};
 }
-/* small flow diagram for one system at the chosen time; values in kW, arrows show direction */
+/* small flow diagram for one system at the chosen time; values in kW, arrows show direction.
+   Each node is a symbol (panel, inverter, battery, grid pole, house) labelled with the brand of the equipment chosen in tab 01;
+   the inverter shows the brand's product picture (img/inv/*.png, same as menu 07) and falls back to a drawn symbol. */
+const SY_ICON={
+  pv:`<g class="syic pv"><path class="fr" d="M-19 2L19 2"/><path class="leg" d="M-12 2L-14 12M12 2L14 12"/><polygon class="pn" points="-22,-14 16,-14 22,2 -16,2"/><path class="cl" d="M-9.3 -14L-3.3 2M3.3 -14L9.3 2M-19 -6L19 -6"/></g>`,
+  grid:`<g class="syic gr"><path class="po" d="M0 -16L0 14M-14 -11L14 -11M-10 -4L10 -4M-6 14L0 -16L6 14M-12 -11L-12 -8M12 -11L12 -8M0 -11L0 -8"/><circle class="ins" cx="-12" cy="-8" r="1.6"/><circle class="ins" cx="12" cy="-8" r="1.6"/><circle class="ins" cx="0" cy="-8" r="1.6"/></g>`,
+  load:`<g class="syic ld"><polygon class="rf" points="-18,-3 0,-17 18,-3"/><rect class="hs" x="-14" y="-3" width="28" height="18" rx="1.5"/><rect class="dr" x="-4" y="5" width="8" height="10"/><rect class="wn" x="-11" y="1" width="5" height="5"/><rect class="wn" x="6" y="1" width="5" height="5"/></g>`,
+  inv:`<g class="syic iv"><rect class="bx" x="-15" y="-19" width="30" height="38" rx="4"/><rect class="lcd" x="-9" y="-13" width="18" height="9" rx="1.5"/><circle class="led" cx="-5" cy="3" r="1.7"/><circle class="led2" cx="0" cy="3" r="1.7"/><path class="fin" d="M-9 10L9 10M-9 14L9 14"/></g>`
+};
+function syBatIcon(soc,on){
+  const w=Math.max(0,Math.min(1,(soc||0)/100))*26,c=!on?'':soc<20?' lo':soc<50?' mid':'';
+  return`<g class="syic bt"><rect class="cs" x="-16" y="-11" width="32" height="22" rx="3"/><rect class="tm" x="16" y="-4" width="3.5" height="8" rx="1"/>`
+    +(on?`<rect class="lv${c}" x="-13" y="-8" width="${w.toFixed(1)}" height="16" rx="1.5"/>`:'')+`<path class="pl" d="M-9 0L-5 0M-7 -2L-7 2M5 0L9 0"/></g>`;
+}
+const syBrand=x=>{const t=String(x&&x.brand||'').trim();return esc(t.length>14?t.slice(0,13)+'…':t)};
 function syDiagram(s,r,i,pv0){
   const R=r.R,kw=v=>f(Math.abs(v)/1000,2),out=s.k!=='off'&&R.outage[i];
   const pv=R.pv[i],ld=R.load[i]-R.unmet[i],bat=(R.fromBat[i]-R.toBat[i]),grid=R.imp[i]-R.exp[i],waste=R.curt[i];
-  const C={pv:[52,28],grid:[248,28],inv:[150,92],bat:[52,156],load:[248,156]};
-  const node=(k,lab,sub,off)=>`<g class="synode${off?' off':''}"><rect x="${C[k][0]-40}" y="${C[k][1]-17}" width="80" height="34" rx="8"/><text x="${C[k][0]}" y="${C[k][1]-2}" text-anchor="middle" class="syn">${lab}</text><text x="${C[k][0]}" y="${C[k][1]+11}" text-anchor="middle" class="sys">${sub}</text></g>`;
+  const I=curInv(),P=typeof curPanel==='function'?curPanel():null,B=typeof curBat==='function'?curBat():null;
+  const C={pv:[46,42],grid:[314,42],inv:[180,112],bat:[46,182],load:[314,182]};
+  /* symbol at the point, brand / name and a status line under it */
+  const node=(k,icon,lab,sub,off)=>{const [x,y]=C[k],top=y<C.inv[1],ly=top?y-40:y+34;
+    return`<g class="synode${off?' off':''}"><g transform="translate(${x} ${y})"><rect class="plate" x="-27" y="-20" width="54" height="40" rx="9"/>${icon}</g>`
+    +`<text x="${x}" y="${ly}" text-anchor="middle" class="syn">${lab}</text><text x="${x}" y="${ly+13}" text-anchor="middle" class="sys">${sub}</text></g>`};
   const link=(k,val,toInv,cls,off)=>{
     const [x,y]=C[k],[cx,cy]=C.inv,live=!off&&Math.abs(val)>5,a=toInv?[x,y,cx,cy]:[cx,cy,x,y];
     const mx=(x+cx)/2,my=(y+cy)/2;
     return`<line x1="${x}" y1="${y}" x2="${cx}" y2="${cy}" class="syl ${cls}${live?' live':''}${off?' off':''}"/>`
-      +(live?(()=>{const dx=a[2]-a[0],dy=a[3]-a[1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,px=a[0]+dx*.62,py=a[1]+dy*.62,s=6;
+      +(live?(()=>{const dx=a[2]-a[0],dy=a[3]-a[1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,px=a[0]+dx*.6,py=a[1]+dy*.6,s=6;
           return`<path d="M${(px+ux*s).toFixed(1)} ${(py+uy*s).toFixed(1)}L${(px-ux*s-uy*s).toFixed(1)} ${(py-uy*s+ux*s).toFixed(1)}L${(px-ux*s+uy*s).toFixed(1)} ${(py-uy*s-ux*s).toFixed(1)}Z" class="syarr ${cls}"/>`})():'')
-      +`<text x="${mx+(x<cx?-6:6)}" y="${my-6}" text-anchor="${x<cx?'end':'start'}" class="syv">${off?'':live?kw(val)+' kW':'0'}</text>`;
+      +`<text x="${mx}" y="${my+(y<cy?-9:17)}" text-anchor="middle" class="syv">${off?'':live?kw(val)+' kW':'0'}</text>`;
   };
-  let g=`<svg viewBox="0 -18 300 204" role="img" aria-label="ภาพการไหลของไฟ ${s.name}">`;
+  let g=`<svg viewBox="0 -10 360 268" role="img" aria-label="ภาพการไหลของไฟ ${s.name}">`;
   g+=link('pv',pv,true,'pv',false);
   g+=link('grid',grid,grid>0,'gr',!s.grid||out);
   g+=link('bat',bat,bat>0,'bt',!s.bat);
   g+=link('load',ld,false,'ld',false);
-  g+=node('pv','แผง',kw(pv)+' kW')+node('grid','กริด',!s.grid?'ไม่ต่อ':out?'ไฟดับ':grid>5?'ซื้อ':grid<-5?'ขาย':'—',!s.grid||out)
-    +node('bat','แบต',s.bat?f(R.soc[i],0)+' %':'ไม่มี',!s.bat)+node('load','โหลด',kw(ld)+' kW',false);
-  g+=`<g class="synode inv"><rect x="${C.inv[0]-34}" y="${C.inv[1]-15}" width="68" height="30" rx="8"/><text x="${C.inv[0]}" y="${C.inv[1]+4}" text-anchor="middle" class="syn">INV</text></g>`;
-  {const lost=pv0?pv0[i]-R.pv[i]:0;if(lost>20)g+=`<text x="12" y="-5" text-anchor="start" class="syv bad">${syCause(i)} −${kw(lost)} kW</text>`}
-  if(R.unmet[i]>5)g+=`<text x="248" y="182" text-anchor="middle" class="syv bad">ขาด ${kw(R.unmet[i])} kW</text>`;
-  if(waste>5)g+=`<text x="52" y="182" text-anchor="middle" class="syv mut">ไฟแผงทิ้ง ${kw(waste)} kW</text>`;
+  g+=node('pv',SY_ICON.pv,(P&&syBrand(P))||'แผง',kw(pv)+' kW',false)
+    +node('grid',SY_ICON.grid,'การไฟฟ้า',!s.grid?'ไม่ต่อ':out?'ไฟดับ':grid>5?'ซื้อ':grid<-5?'ขาย':'—',!s.grid||out)
+    +node('bat',syBatIcon(R.soc[i],s.bat&&B),s.bat?((B&&syBrand(B))||'แบต'):'แบต',s.bat?f(R.soc[i],0)+' %':'ไม่มี',!s.bat)
+    +node('load',SY_ICON.load,'โหลด',kw(ld)+' kW',false);
+  /* inverter: brand product picture when there is one, else the drawn symbol */
+  {const k=typeof bkaInvSrc==='function'?bkaInvSrc(I):'',bad=k&&typeof BKA!=='undefined'&&BKA.picBad&&BKA.picBad[k],[x,y]=C.inv;
+   const pic=k&&!bad?`<image href="img/inv/${k}.png?v=3" x="-24" y="-24" width="48" height="48" preserveAspectRatio="xMidYMid meet" onerror="this.style.display='none';this.nextElementSibling.style.display=''"/>`:'';
+   g+=`<g class="synode syinv"><g transform="translate(${x} ${y})"><rect class="plate" x="-28" y="-27" width="56" height="52" rx="10"/>${pic}<g${pic?' style="display:none"':''}>${SY_ICON.inv}</g></g>`
+     +`<text x="${x}" y="${y+42}" text-anchor="middle" class="syn syinvl">${syBrand(I)||'INV'}</text></g>`}
+  {const lost=pv0?pv0[i]-R.pv[i]:0;if(lost>20)g+=`<text x="180" y="2" text-anchor="middle" class="syv bad">${syCause(i)} −${kw(lost)} kW</text>`}
+  if(R.unmet[i]>5)g+=`<text x="314" y="252" text-anchor="middle" class="syv bad">ขาด ${kw(R.unmet[i])} kW</text>`;
+  if(waste>5)g+=`<text x="4" y="252" text-anchor="start" class="syv mut">ไฟแผงทิ้ง ${kw(waste)} kW</text>`;
   return g+'</svg>';
 }
 function syRun(){

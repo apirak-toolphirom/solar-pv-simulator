@@ -621,3 +621,15 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 
 .bkmicoff select{border-style:dashed;color:var(--muted,#6b7280)}
 #bkasvg .ba-off{opacity:.22}
+
+/* menu 08 node symbols */
+.synode .plate{fill:var(--surface);stroke:var(--line);stroke-width:1.2}.synode.syinv .plate{fill:var(--invfill)}
+.synode.off{opacity:.5}.synode.off .plate{stroke-dasharray:4 3;fill:none}
+.syic path,.syic rect,.syic polygon,.syic circle{stroke-linejoin:round;stroke-linecap:round}
+.syic.pv .pn{fill:#1f4e8c;stroke:#0f2f5c;stroke-width:1}.syic.pv .cl{stroke:#8fb4e8;stroke-width:.8;fill:none}.syic.pv .fr,.syic.pv .leg{stroke:#7b8794;stroke-width:1.8;fill:none}
+.syic.gr .po{stroke:var(--ink);stroke-width:1.6;fill:none}.syic.gr .ins{fill:#5a9bd5}
+.syic.ld .rf{fill:#c0563b}.syic.ld .hs{fill:#f4e7cf;stroke:#9c7a4a;stroke-width:1}.syic.ld .dr{fill:#9c7a4a}.syic.ld .wn{fill:#ffd54a}
+.syic.iv .bx{fill:#eef1f4;stroke:#7b8794;stroke-width:1.2}.syic.iv .lcd{fill:#1e3a2a}.syic.iv .led{fill:#3fb950}.syic.iv .led2{fill:#e0a400}.syic.iv .fin{stroke:#a3adb8;stroke-width:1.2;fill:none}
+.syic.bt .cs{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}.syic.bt .tm{fill:var(--ink)}.syic.bt .lv{fill:#3fb950}.syic.bt .lv.mid{fill:#e0a400}.syic.bt .lv.lo{fill:#d64545}.syic.bt .pl{stroke:var(--ink);stroke-width:1.4;opacity:.55;fill:none}
+.synode .syn{font-size:12px}
+.sycard .syv{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}.synode .syinvl{fill:var(--ink)}
