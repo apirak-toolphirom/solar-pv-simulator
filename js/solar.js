@@ -138,7 +138,7 @@ function niceStep(raw){
 const LEGOFF=new Set(),LEGDRAW={};
 function legHTML(id,series,extra,redraw){
   if(redraw)LEGDRAW[id]=redraw;
-  return series.map(se=>{const off=LEGOFF.has(id+'|'+se.short);return`<button type="button" class="lg lgb" data-leg="${id}" data-s="${esc(se.short)}" aria-pressed="${!off}" title="กดเพื่อซ่อน/แสดงเส้นนี้"><i class="lk" style="background:${se.color}"></i>${se.short}</button>`}).join('')+(extra||'');
+  return series.map(se=>{const off=LEGOFF.has(id+'|'+se.short);return`<button type="button" class="lg lgb" data-leg="${id}" data-s="${esc(se.short)}" aria-pressed="${!off}" title="กดเพื่อซ่อน/แสดงเส้นนี้"><i class="lk" style="${se.dash?`background:repeating-linear-gradient(90deg,${se.color} 0 5px,transparent 5px 8px)`:`background:${se.color}`}"></i>${se.short}</button>`}).join('')+(extra||'');
 }
 document.addEventListener('click',e=>{const b=e.target.closest('.lgb');if(!b)return;const k=b.dataset.leg+'|'+b.dataset.s;
   if(LEGOFF.has(k))LEGOFF.delete(k);else LEGOFF.add(k);b.setAttribute('aria-pressed',String(!LEGOFF.has(k)));const f=LEGDRAW[b.dataset.leg];if(f)f()});
@@ -172,7 +172,7 @@ function drawLine(host,c){
     };
     se.vals.forEach((v,i)=>{if(v==null)flush();else seg.push([sx(c.x[i]),sy(v)])});
     flush();
-    s+=area+`<path d="${d}" class="ln" style="stroke:${se.color}"/>`;
+    s+=area+`<path d="${d}" class="ln" style="stroke:${se.color}${se.dash?`;stroke-dasharray:${se.dash}`:''}"/>`;
     if(se.peak){
       let mi=-1,mv=-1;se.vals.forEach((v,i)=>{if(v!=null&&v>mv){mv=v;mi=i}});
       if(mi>=0&&mv>0){

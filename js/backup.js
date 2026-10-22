@@ -64,19 +64,19 @@ function bkSource(noEv){
     const nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4))),blocks=[...Array(nm)].map((_,j)=>bkMicOn(j+1)?{n:1,ns:1,mp:1,pv:mpPV(j+1)}:null),nOn=blocks.filter(Boolean).length;
     if(!nOn)return{err:'ไมโครอินเวอร์เตอร์ยังไม่ได้ต่อแผงเลย เลือกแผงอย่างน้อย 1 ช่อง'};
     const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv),U=microU(I),kw=blocks.reduce((a,b)=>a+(b?b.pv.pmax:0),0)*U/1000;
-    return{pv:R.pac,label:`ไมโคร 1 ตัว · ต่อแผง ${nOn}/${nm} ช่อง (${blocks.map(b=>b?b.pv.pmax+' W':'ว่าง').join(' / ')})`,kwp:kw,E:R.E};
+    return{pv:R.pac,pot:R.pot,label:`ไมโคร 1 ตัว · ต่อแผง ${nOn}/${nm} ช่อง (${blocks.map(b=>b?b.pv.pmax+' W':'ว่าง').join(' / ')})`,kwp:kw,E:R.E};
   }
   if(BK.src==='ideal'){
     const N=Math.max(1,BK.nIdeal|0);
     const R=simDay([{n:N,ns:N,mp:1}],I,SIM.tilt,SIM.az,5,true,noEv);
-    return{pv:R.pac,label:`แผงสมมติ ${N} แผง`,kwp:N*PV.pmax/1000,E:R.E};
+    return{pv:R.pac,pot:R.pot,label:`แผงสมมติ ${N} แผง`,kwp:N*PV.pmax/1000,E:R.E};
   }
   if(!lastA)return{err:'ยังไม่มีผลการต่อสาย'};
   const blocks=lastA.res.map(r=>r.status==='ok'?r.blk:null);
   if(!blocks.some(Boolean))return{err:'ยังไม่ได้ต่อสายแผงเข้า MPPT ให้ถูกต้อง ไปแท็บ "ต่อสาย" หรือเลือกแหล่งไฟเป็นแผงสมมติ'};
   const R=simDay(blocks,I,SIM.tilt,SIM.az,5,false,noEv);
   const U=microU(I),nUsed=blocks.reduce((a,b)=>a+(b?b.n:0),0)*U;
-  return{pv:R.pac,label:`ตามที่ต่อสายไว้ ${nUsed} แผง${U>1?` (ไมโคร ${U} ตัว)`:''}`,kwp:blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000*U,E:R.E};
+  return{pv:R.pac,pot:R.pot,label:`ตามที่ต่อสายไว้ ${nUsed} แผง${U>1?` (ไมโคร ${U} ตัว)`:''}`,kwp:blocks.reduce((a,b)=>a+(b?b.n*(b.pv||PV).pmax:0),0)/1000*U,E:R.E};
 }
 
 let bkCfg=null;
@@ -170,10 +170,12 @@ function backupRun(){
     const s=BK.outStart%24,e=s+BK.outDur;
     if(e<=24)vb.push([s,e]);else vb.push([s,24],[0,e-24]);
   }
-  const yTop=Math.max(Math.max(...R.pv),Math.max(...R.load),1)/1000*1.1;
+  const pot=src.pot||[],yTop=Math.max(Math.max(...R.pv),Math.max(...R.load),pot.length?Math.max(...pot):0,1)/1000*1.1;
   const used=R.pv.map((v,i)=>Math.max(0,v-R.curt[i]));
   const s1=[{short:T.curt>0.005?'กำลังจากแผงที่ใช้ได้':'กำลังจากแผง',color:'var(--s1)',vals:kw(used),area:true,fmt:v=>f(v,2)},{short:'โหลดที่ต้องการ',color:'var(--s2)',vals:kw(R.load),fmt:v=>f(v,2)}];
   if(BK.mode!=='off')s1.push({short:'ซื้อจากกริด',color:'var(--s3)',vals:kw(R.imp),fmt:v=>f(v,2)});
+  if(BK.mode!=='off')s1.push({short:'ขายคืนกริด',color:'#8b5cf6',vals:kw(R.exp),fmt:v=>f(v,2)});
+  if(pot.length===R.pv.length)s1.push({short:'กำลัง DC ที่แผงผลิตได้ (ก่อนตัด)',color:'var(--s1)',dash:'5 4',vals:kw(pot),fmt:v=>f(v,2)});
   if(T.curt>0.005)s1.push({short:BK.mode==='grid'?'แดดมีแต่ไม่ได้จ่าย (หยุด/จำกัดขาย)':'ไฟแผงเหลือทิ้ง',color:'var(--muted)',vals:kw(R.curt),fmt:v=>f(v,2)});
   if(T.unmet>0.005)s1.push({short:'ส่วนที่ไฟไม่พอ',color:'var(--err)',vals:kw(R.unmet),fmt:v=>f(v,2)});
   bkCfg={A:{x,xmin:0,xmax:24,ymax:yTop,unit:'kW',aria:'กราฟกำลังจากแผง โหลด และไฟจากกริดตลอดวัน',vb,vbl:'ไฟดับ',series:s1}};
