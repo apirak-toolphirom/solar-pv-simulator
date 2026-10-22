@@ -4861,7 +4861,7 @@ function bkaDrag(){
 /* product picture of the chosen inverter brand (img/inv/*.png, transparent background); the drawn box stays as fallback */
 function bkaInvSrc(I){
   const b=String(I.brand||'').toLowerCase(),m=String(I.model||'');
-  if(b==='huawei')return'huawei';if(b==='solis')return'solis';
+  if(b==='huawei')return'huawei';if(b==='solis')return'solis';if(b==='goodwe')return'goodwe';
   if(b==='deye')return /SUN-M|micro|ไมโคร/i.test(m+' '+(I.note||''))||I.type==='micro'?'deye-micro':'deye-hybrid';
   return'';
 }
