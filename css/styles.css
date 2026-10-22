@@ -640,3 +640,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .ldport{min-width:6.5em}.ldport.bk{border-color:#d6338a;color:#d6338a;font-weight:600}
 
 .bkatx{display:flex;justify-content:space-between;margin:2px 58px 0 0;font:11px var(--mono);color:var(--muted)}
+/* menu 07 grid: green = buying (flows in), red = selling (flows back); big cross when the grid is down */
+.ba-w.ac.gin{stroke:#1f9d55}.ba-f.ac.gin{stroke:#1f9d55}.ba-bd.ac.gin circle{fill:#1f9d55}
+.ba-val text.gin{fill:#17803f}.ba-val text.gout{fill:#c23a35}.bkasvg.night .ba-val text.gin{fill:#5fd68f}.bkasvg.night .ba-val text.gout{fill:#ff8a80}
+.ba-x line{stroke:#e5483b;stroke-width:7;stroke-linecap:round}.ba-xbg{fill:#fff;fill-opacity:.85;stroke:#e5483b;stroke-width:3}.ba-xt{fill:#e5483b;font:700 14px var(--body);paint-order:stroke;stroke:#fff;stroke-width:3px}
