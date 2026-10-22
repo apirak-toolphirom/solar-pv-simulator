@@ -147,11 +147,36 @@ const BUILTIN=(()=>{
   [[5,10000,96.77,25,3,8],[6,12000,97.10,25,3,9.6],[8,16000,97.41,50,3,12.8],[10,20000,97.51,50,4,16]].forEach(([k,rec,eu,ib,nm,pk])=>inv.push({id:slug(`solis s6-eh3p${k}k-h`),brand:'Solis',model:`S6-EH3P${k}K-H`,type:'hybrid',phase:'3',asym:'0',bph:'3',
     pac:k*1000,nmppt:nm,vmax:1000,lo:200,hi:850,start:160,imax:16,isc:24,pvRec:rec,eff:eu,bvMin:120,bvMax:600,bchg:k,bdis:k,backupKw:k,builtin:1,
     note:`Hybrid 3 เฟส 380/400 V แบตแรงดันสูง 120–600 V กระแสแบต ${ib} A ชาร์จ/จ่าย ${k} kW · ${nm} MPPT 16 A / Isc 24 A · MPPT 200–850 V · Backup ${k} kW (สูงสุด ${pk} kVA 60 วินาที) · แบต 48 V ใช้ไม่ได้ · ดาต้าชีต EU 2024-10 (จำนวน MPPT และกระแสแบตตีความจากตาราง ควรตรวจซ้ำ)`}));
+  // ---- panels from Drive "PV Datasheets/03 แผงโซลาร์" (2026-10-22), STC front-side values ----
+  const P=(brand,id,model,w,voc,vmp,isc,imp,k,noct,note)=>pan.push({id:slug(id),brand,model,pmax:w,voc,vmp,isc,imp,kVoc:k[0],kPmax:k[1],kIsc:k[2],noct,builtin:1,note});
+  // LONGi Hi-MO X10 Explorer LR7-72HVH-630~650M, HPBC 2.0 single glass, datasheet 20241118 BGV02. 650 W keeps the old default id
+  [[630,53.50,44.16,14.97,14.27,23.3],[635,53.60,44.26,15.05,14.35,23.5],[640,53.70,44.36,15.13,14.43,23.7],[645,53.80,44.46,15.21,14.51,23.9]]
+    .forEach(([w,voc,vmp,isc,imp,eff])=>P('LONGi','longi hi-mo x10 '+w,`Hi-MO X10 ${w} W (LR7-72HVH-${w}M)`,w,voc,vmp,isc,imp,[-0.20,-0.26,0.05],45,
+      `Explorer · BC 144 เซลล์ · ประสิทธิภาพ ${eff}% · กระจกชั้นเดียว 2382×1134×30 mm 28.5 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 25 A · NOCT 45±2 °C ตามดาต้าชีต`));
+  // Trina Vertex N TSM-NEG19RC.20 (590-620 W), 210R i-TOPCon bifacial dual glass, TSM_EN_2024_A, NOCT 43 °C
+  [[590,47.8,39.7,15.72,14.86,21.8],[595,48.1,40.0,15.76,14.89,22.0],[600,48.4,40.3,15.80,14.91,22.2],[605,48.7,40.5,15.83,14.94,22.4],[610,49.0,40.8,15.86,14.96,22.6],[615,49.3,41.1,15.89,14.98,22.8],[620,49.6,41.4,15.91,14.99,23.0]]
+    .forEach(([w,voc,vmp,isc,imp,eff])=>P('Trina Solar','trina tsm-'+w+'neg19rc.20',`TSM-${w}NEG19RC.20 Vertex N (${w} W)`,w,voc,vmp,isc,imp,[-0.24,-0.29,0.04],43,
+      `210R N-type i-TOPCon สองหน้า 132 เซลล์ · ประสิทธิภาพ ${eff}% · bifaciality 80±5% (ค่าที่ใช้เป็นด้านหน้าอย่างเดียว) · 2382×1134×30 mm 33.7 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 35 A`));
+  // Jinko Tiger Neo JKM625-650N-66HL4M-BDV (Z1), N-type TOPCon bifacial dual glass. The Drive PDF is an image scan, values from Jinko's published -Z1 datasheet; NOCT not stated, 45 °C assumed
+  [[625,49.28,40.88,16.14,15.29,23.14],[630,49.48,41.02,16.20,15.36,23.32],[635,49.68,41.16,16.26,15.43,23.51],[640,49.88,41.30,16.32,15.50,23.69],[645,50.08,41.44,16.38,15.57,23.88],[650,50.28,41.58,16.44,15.64,24.06]]
+    .forEach(([w,voc,vmp,isc,imp,eff])=>P('Jinko','jinko jkm'+w+'n-66hl4m-bdv',`Tiger Neo JKM${w}N-66HL4M-BDV (${w} W)`,w,voc,vmp,isc,imp,[-0.25,-0.29,0.045],45,
+      `N-type TOPCon สองหน้า 132 เซลล์ · ประสิทธิภาพ ${eff}% · bifaciality 80±5% (ค่าที่ใช้เป็นด้านหน้าอย่างเดียว) · 2382×1134×30 mm 32.4 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 35 A · NOCT 45 °C เป็นค่าสมมติ (ดาต้าชีตไม่ระบุ)`));
+  // Solar N Plus SP-N16/156HG 620-650 W, N-type bifacial dual glass, V4.0 2025-05. High Voc (56.6-57.9 V): above 60 V at cold cell temps, too high for 60 V micro inputs
+  [[620,56.65,48.56,13.50,12.77,22.2],[625,56.85,48.76,13.55,12.82,22.4],[630,57.05,48.96,13.60,12.87,22.5],[635,57.25,49.16,13.65,12.92,22.7],[640,57.45,49.36,13.70,12.97,22.9],[645,57.65,49.56,13.75,13.02,23.1],[650,57.85,49.77,13.79,13.06,23.3]]
+    .forEach(([w,voc,vmp,isc,imp,eff])=>P('Solar N Plus','solar n plus sp-n16 156hg '+w,`SP-N16/156HG ${w} W`,w,voc,vmp,isc,imp,[-0.25,-0.29,0.045],42,
+      `N-type สองหน้า 156 เซลล์ (6×26) · ประสิทธิภาพ ${eff}% · bifaciality 80±5% (ค่าที่ใช้เป็นด้านหน้าอย่างเดียว) · 2465×1134×30 mm 34 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 25 A · NMOT 42±2 °C · Voc สูง ระวังเกิน 60 V เมื่อใช้กับไมโครอินเวอร์เตอร์`));
+  // Sunpro SPDG710~725-N132M12, TOPCon 210 bifacial transparent back, 33 mm frame
+  [[710,48.65,40.88,18.40,17.37,22.86],[715,48.84,41.07,18.44,17.41,23.02],[720,49.03,41.27,18.48,17.45,23.18],[725,49.23,41.46,18.52,17.49,23.34]]
+    .forEach(([w,voc,vmp,isc,imp,eff])=>P('Sunpro','sunpro spdg'+w+'-n132m12',`SPDG${w}-N132M12 (${w} W)`,w,voc,vmp,isc,imp,[-0.25,-0.30,0.045],45,
+      `TOPCon 210 สองหน้า 132 เซลล์ · ประสิทธิภาพ ${eff}% · ค่าที่ใช้เป็นด้านหน้าอย่างเดียว · 2384×1303×33 mm 37.5 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 35 A · NOCT 45±2 °C · Isc 18.4 A เกินช่อง MPPT 16 A บางรุ่น`));
+  // Ningbo Zhongyi (RENE PV) ZY550M10PH-144, P-type mono half-cell, single glass
+  P('Zhongyi (RENE PV)','zhongyi zy550m10ph-144','ZY550M10PH-144 (550 W)',550,49.60,40.83,14.04,13.48,[-0.30,-0.35,0.046],44,
+    'P-type โมโน 144 เซลล์ครึ่ง (182 mm) · ประสิทธิภาพ 21.3% · กระจกชั้นเดียว 3.2 mm · 2278×1134×35 mm 28 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 25 A · NOCT 44±2 °C');
   return{inverters:inv,batteries:bat,panels:pan};
 })();
 
 const DEFAULT_CAT=()=>({
-  panels:[{id:'longi-hi-mo-x10-650',brand:'LONGi',model:'Hi-MO X10 650 W',pmax:650,voc:53.9,vmp:44.56,isc:15.29,imp:14.59,kVoc:-0.20,kPmax:-0.26,kIsc:0.05,noct:43,note:'NOCT 43°C เป็นค่าสมมติ ตรวจกับแผ่นข้อมูลจริง'}].concat(BUILTIN.panels),
+  panels:[{id:'longi-hi-mo-x10-650',brand:'LONGi',model:'Hi-MO X10 650 W (LR7-72HVH-650M)',pmax:650,voc:53.9,vmp:44.56,isc:15.29,imp:14.59,kVoc:-0.20,kPmax:-0.26,kIsc:0.05,noct:45,builtin:1,note:'Explorer LR7-72HVH-650M · BC 144 เซลล์ · ประสิทธิภาพ 24.1% · กระจกชั้นเดียว 2382×1134×30 mm 28.5 kg · ระบบสูงสุด 1500 V · ฟิวส์อนุกรมสูงสุด 25 A · NOCT 45±2 °C ตามดาต้าชีต'}].concat(BUILTIN.panels),
   inverters:[
     {id:'solis-s6-gr1p6k-s',brand:'Solis',model:'S6-GR1P6K-S',type:'on-grid',pac:6000,vmax:550,lo:90,hi:550,start:100,imax:16,isc:22,pvRec:9000,eff:97,note:''},
     {id:'solis-s6-gr1p6k',brand:'Solis',model:'S6-GR1P6K',type:'on-grid',pac:6000,vmax:600,lo:90,hi:520,start:120,imax:14,isc:22,pvRec:9000,eff:97,note:''},
