@@ -93,3 +93,8 @@ SUBMIT_URL:'https://script.google.com/macros/s/xxxxxxxx/exec',
 ใช้ชีตรายชื่อจากไฟล์อื่นได้ด้วย Script properties `ROSTER_SHEET_ID` (และ `ROSTER_SHEET_NAME`)
 
 > การล็อกบนหน้าเว็บเป็นด่านหน้า งานที่บันทึกลง Sheet/Drive ของผู้สอนจะถูก Apps Script ตรวจรหัสห้องและรายชื่อซ้ำทุกครั้ง
+
+## แบบทดสอบ Google Form (คำถามชุดเดียวกับเมนู 00)
+`QuizForm.gs` สร้าง Google Form แบบทดสอบ 15 หัวข้อ 44 ข้อ (ข้อละ 1 คะแนน มีเฉลยและคำอธิบาย) พร้อมชีตเก็บคำตอบ
+เปิด script.google.com → New project → วางไฟล์นี้ → Run `createSolarQuiz` → ดูลิงก์ใน Execution log · ตั้งค่าได้ที่ `CONFIG` · ไม่ต้องใช้ร่วมกับ Code.gs
+ถ้าแก้คำถามใน `js/basics.js` ให้สร้างไฟล์นี้ใหม่เพื่อให้คำถามตรงกัน
