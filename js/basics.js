@@ -34,9 +34,58 @@ function b0Chart(o){
   if(o.legend)s+=o.legend.map((g,k)=>`<g transform="translate(${L+10+k*150},${T+4})"><line x1="0" x2="18" y1="6" y2="6" stroke="${g[1]}" stroke-width="3" ${g[2]?'stroke-dasharray="5 3"':''}/><text x="24" y="10" class="b0ax">${esc(g[0])}</text></g>`).join('');
   return s+'</svg>';
 }
+
+/* ---- cartoon icons used in the mini simulations (SVG fragments) ---- */
+const B0G={
+  sun(cx,cy,r,on){on=on==null?1:Math.max(0,Math.min(1,on));let ray='';for(let k=0;k<12;k++){const a=k*Math.PI/6,l=r*(k%2?1.55:1.8);ray+=`<path d="M${(cx+Math.cos(a-.12)*r*1.12).toFixed(1)} ${(cy+Math.sin(a-.12)*r*1.12).toFixed(1)}L${(cx+Math.cos(a)*l).toFixed(1)} ${(cy+Math.sin(a)*l).toFixed(1)}L${(cx+Math.cos(a+.12)*r*1.12).toFixed(1)} ${(cy+Math.sin(a+.12)*r*1.12).toFixed(1)}Z"/>`}
+    return`<g class="b0sun"><g fill="#f7a823" opacity="${(0.25+0.75*on).toFixed(2)}">${ray}</g><circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffd23f" stroke="#f08c00" stroke-width="${(r/9).toFixed(1)}"/>
+      <circle cx="${cx-r*.35}" cy="${cy-r*.15}" r="${r*.11}" fill="#5a3a00"/><circle cx="${cx+r*.35}" cy="${cy-r*.15}" r="${r*.11}" fill="#5a3a00"/>
+      <path d="M${cx-r*.42} ${cy+r*.22}Q${cx} ${cy+r*.62} ${cx+r*.42} ${cy+r*.22}" fill="none" stroke="#5a3a00" stroke-width="${(r/10).toFixed(1)}" stroke-linecap="round"/>
+      <circle cx="${cx-r*.6}" cy="${cy+r*.2}" r="${r*.13}" fill="#ff8a65" opacity=".55"/><circle cx="${cx+r*.6}" cy="${cy+r*.2}" r="${r*.13}" fill="#ff8a65" opacity=".55"/></g>`},
+  thermo(x,y,h,lv,id){lv=Math.max(0,Math.min(1,lv));const w=h*.22,br=w*.95,top=y,bot=y+h-br,fill=(bot-top-w*.4)*lv;
+    let tk='';for(let k=1;k<5;k++){const yy=top+w*.4+(bot-top-w*.4)*k/5;tk+=`<path d="M${x+w/2} ${yy.toFixed(1)}h${(w*.45).toFixed(1)}" stroke="#7d8a96" stroke-width="${(w/9).toFixed(1)}"/>`}
+    return`<g class="b0th"><rect x="${x-w/2}" y="${top}" width="${w}" height="${bot-top+br*.4}" rx="${w/2}" fill="#fff" stroke="#55626e" stroke-width="${(w/7).toFixed(1)}"/>${tk}
+      <rect ${id?`id="${id}"`:''} x="${x-w*.22}" y="${(bot-fill).toFixed(1)}" width="${w*.44}" height="${(fill+br*.3).toFixed(1)}" rx="${w*.2}" fill="#e53935"/>
+      <circle cx="${x}" cy="${bot+br*.35}" r="${br}" fill="#e53935" stroke="#55626e" stroke-width="${(w/7).toFixed(1)}"/><circle cx="${x-br*.3}" cy="${bot+br*.1}" r="${br*.28}" fill="#fff" opacity=".5"/></g>`},
+  bulb(cx,cy,s,on,id){on=Math.max(0,Math.min(1,on||0));const g=`hsl(48,${(30+70*on).toFixed(0)}%,${(78+10*on).toFixed(0)}%)`;
+    return`<g class="b0bulb" ${id?`id="${id}"`:''}><circle cx="${cx}" cy="${cy}" r="${s*1.25}" fill="#ffe066" opacity="${(on*.55).toFixed(2)}"/>
+      <path d="M${cx-s*.62} ${cy+s*.5}C${cx-s*1.05} ${cy+s*.05} ${cx-s*.95} ${cy-s*.95} ${cx} ${cy-s*.95}C${cx+s*.95} ${cy-s*.95} ${cx+s*1.05} ${cy+s*.05} ${cx+s*.62} ${cy+s*.5}L${cx+s*.4} ${cy+s*.78}H${cx-s*.4}Z" fill="${g}" stroke="#8a6d00" stroke-width="${(s/9).toFixed(1)}"/>
+      <path d="M${cx-s*.25} ${cy+s*.72}L${cx-s*.25} ${cy+s*.1}Q${cx-s*.12} ${cy-s*.25} ${cx} ${cy+s*.1}Q${cx+s*.12} ${cy-s*.25} ${cx+s*.25} ${cy+s*.1}L${cx+s*.25} ${cy+s*.72}" fill="none" stroke="${on>.15?'#e65100':'#8d8d8d'}" stroke-width="${(s/12).toFixed(1)}"/>
+      <rect x="${cx-s*.45}" y="${cy+s*.78}" width="${s*.9}" height="${s*.42}" rx="${s*.08}" fill="#9aa5ae" stroke="#5f6b75" stroke-width="${(s/14).toFixed(1)}"/><path d="M${cx-s*.45} ${cy+s*.92}h${s*.9}M${cx-s*.45} ${cy+s*1.06}h${s*.9}" stroke="#5f6b75" stroke-width="${(s/16).toFixed(1)}"/>
+      <path d="M${cx-s*.22} ${cy+s*1.2}h${s*.44}l${-s*.08} ${s*.16}h${-s*.28}z" fill="#3b4650"/></g>`},
+  panel(x,y,w,h){let l='';for(let k=1;k<4;k++)l+=`M${x+w*k/4} ${y}V${y+h}`;for(let k=1;k<3;k++)l+=`M${x} ${y+h*k/3}H${x+w}`;return`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(w,h)*.06}" fill="#1d4b78" stroke="#9fb0be" stroke-width="${(Math.min(w,h)*.05).toFixed(1)}"/><path d="${l}" stroke="#7fa6cf" stroke-width="${(Math.min(w,h)*.025).toFixed(1)}"/>`},
+  battery(x,y,w,h,lv,col){lv=Math.max(0,Math.min(1,lv));return`<rect x="${x}" y="${y+h*.12}" width="${w}" height="${h*.88}" rx="${w*.12}" fill="#2b3138" stroke="#111" stroke-width="${(w/20).toFixed(1)}"/><rect x="${x+w*.3}" y="${y}" width="${w*.4}" height="${h*.14}" rx="${w*.05}" fill="#5f6b75"/>
+    <rect x="${x+w*.14}" y="${(y+h*.2+h*.72*(1-lv)).toFixed(1)}" width="${w*.72}" height="${(h*.72*lv).toFixed(1)}" rx="${w*.06}" fill="${col||'#43c46b'}"/>`},
+  house(x,y,s){return`<path d="M${x} ${y+s*.45}L${x+s*.5} ${y}L${x+s} ${y+s*.45}" fill="none" stroke="#a0522d" stroke-width="${(s/10).toFixed(1)}" stroke-linejoin="round"/><rect x="${x+s*.14}" y="${y+s*.42}" width="${s*.72}" height="${s*.56}" fill="#fff4e0" stroke="#a0522d" stroke-width="${(s/16).toFixed(1)}"/><rect x="${x+s*.42}" y="${y+s*.66}" width="${s*.18}" height="${s*.32}" fill="#a0522d"/>`},
+  pole(x,y,h,off){return`<path d="M${x} ${y+h}L${x+h*.12} ${y}L${x+h*.24} ${y+h}M${x+h*.03} ${y+h*.72}H${x+h*.21}M${x+h*.06} ${y+h*.42}H${x+h*.18}M${x-h*.12} ${y+h*.12}H${x+h*.36}" fill="none" stroke="#55626e" stroke-width="${(h/22).toFixed(1)}"/>${off?`<path d="M${x-h*.15} ${y-h*.05}l${h*.54} ${h*.6}M${x+h*.39} ${y-h*.05}l${-h*.54} ${h*.6}" stroke="#e53935" stroke-width="${(h/12).toFixed(1)}" stroke-linecap="round"/>`:''}`},
+  bolt(x,y,s,col){return`<path d="M${x+s*.55} ${y}L${x} ${y+s*.6}H${x+s*.42}L${x+s*.28} ${y+s*1.1}L${x+s*.9} ${y+s*.42}H${x+s*.48}Z" fill="${col||'#ffc400'}" stroke="#8a6d00" stroke-width="${(s/14).toFixed(1)}" stroke-linejoin="round"/>`},
+  person(x,y,s,col){col=col||'#55626e';return`<g stroke="${col}" stroke-width="${(s/9).toFixed(1)}" stroke-linecap="round" fill="none"><circle cx="${x}" cy="${y}" r="${s*.16}" fill="#ffd8b1"/><path d="M${x} ${y+s*.16}V${y+s*.6}M${x} ${y+s*.6}L${x-s*.18} ${y+s}M${x} ${y+s*.6}L${x+s*.18} ${y+s}M${x} ${y+s*.3}L${x-s*.32} ${y+s*.18}"/></g>`},
+  gnd(x,y,s,col){col=col||'#1a9c6e';return`<path d="M${x} ${y}V${y+s*.45}M${x-s*.45} ${y+s*.45}H${x+s*.45}M${x-s*.3} ${y+s*.68}H${x+s*.3}M${x-s*.14} ${y+s*.9}H${x+s*.14}" stroke="${col}" stroke-width="${(s/8).toFixed(1)}" stroke-linecap="round"/>`},
+  dust(x,y,w,h,n){let d='';for(let k=0;k<n;k++){const a=(k*97%100)/100,b=(k*53%100)/100;d+=`<circle cx="${(x+a*w).toFixed(1)}" cy="${(y+b*h).toFixed(1)}" r="${1.2+(k%3)*.6}" fill="#8d6e63" opacity=".75"/>`}return d}
+};
+/* small icon in front of each slider / select label, picked from the label text */
+function b0LabIc(lab){const L=String(lab);let g='';
+  if(/ฝุ่น/.test(L))g=B0G.panel(2,7,20,12)+B0G.dust(3,7,18,12,9);
+  else if(/อุณหภูมิ/.test(L))g=B0G.thermo(12,2,20,.55);
+  else if(/มุมสูงดวงอาทิตย์/.test(L))g=`<path d="M2 21H22" stroke="#7d8a96" stroke-width="1.5"/><path d="M4 21A10 10 0 0 1 20 21" fill="none" stroke="#c9a227" stroke-width="1" stroke-dasharray="2 1.5"/>`+B0G.sun(15,9,4,1);
+  else if(/แสง|รังสี/.test(L))g=B0G.sun(12,12,5.2,1);
+  else if(/มุมเอียง/.test(L))g=`<path d="M2 21H22" stroke="#7d8a96" stroke-width="1.5"/><path d="M4 21L19 11" stroke="#1d4b78" stroke-width="4" stroke-linecap="round"/><path d="M11 21A7 7 0 0 0 10 17" fill="none" stroke="#e65100" stroke-width="1.2"/>`;
+  else if(/ความต้านทานหลักดิน/.test(L))g=B0G.gnd(12,4,16);
+  else if(/ความต้านทาน/.test(L))g=`<path d="M1 12H5L7 7L10 17L13 7L16 17L18 12H23" fill="none" stroke="#55626e" stroke-width="1.8" stroke-linejoin="round"/>`;
+  else if(/โหลดที่ต้องการ|โหลด/.test(L))g=B0G.bulb(12,10,7,1);
+  else if(/กำลัง DC|แผง|สตริง/.test(L))g=B0G.panel(3,5,18,14);
+  else if(/Ah|ความจุ|อนุกรม \(ลูก\)|ขนาน \(ชุด\)|แบต/.test(L))g=B0G.battery(6,2,12,20,.7);
+  else if(/ไฟการไฟฟ้า/.test(L))g=B0G.pole(7,3,18,0);
+  else if(/อินเวอร์เตอร์/.test(L))g=`<rect x="4" y="3" width="16" height="18" rx="2" fill="#dbe3ea" stroke="#55626e" stroke-width="1.3"/><path d="M8 15c1.5-3 2.5-3 4 0s2.5 3 4 0" fill="none" stroke="#2a6fc4" stroke-width="1.4"/>`;
+  else if(/ฟิวส์/.test(L))g=`<path d="M1 12H23" stroke="#55626e" stroke-width="1.5"/><rect x="6" y="8" width="12" height="8" rx="1.5" fill="#fff" stroke="#55626e" stroke-width="1.4"/>`;
+  else if(/เบรกเกอร์/.test(L))g=`<rect x="6" y="2" width="12" height="20" rx="2" fill="#fff" stroke="#55626e" stroke-width="1.4"/><rect x="9" y="7" width="6" height="7" rx="1" fill="#e53935"/>`;
+  else if(/เครื่องมือ|ย่าน/.test(L))g=`<rect x="6" y="2" width="12" height="20" rx="2" fill="#e9b52a" stroke="#55626e"/><rect x="8" y="4" width="8" height="5" fill="#cfe8d4"/><circle cx="12" cy="15" r="3" fill="#333"/>`;
+  else if(/การต่อ|รูปแบบ|ชนิดแผง/.test(L))g=B0G.panel(1,6,10,12)+B0G.panel(13,6,10,12)+`<path d="M11 9h2" stroke="#d62828" stroke-width="1.5"/>`;
+  return g?`<svg class="b0li" viewBox="0 0 24 24" aria-hidden="true">${g}</svg>`:'';
+}
 /* control helpers */
-const b0Rng=(id,lab,min,max,step,val,unit)=>`<label class="b0r"><span>${lab}</span><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"><b id="${id}v">${val}${unit||''}</b></label>`;
-const b0Sel=(id,lab,opts,val)=>`<label class="b0s"><span>${lab}</span><select id="${id}">${opts.map(o=>{const[v,t]=Array.isArray(o)?o:[o,o];return`<option value="${esc(v)}" ${String(v)===String(val)?'selected':''}>${esc(t)}</option>`}).join('')}</select></label>`;
+const b0Rng=(id,lab,min,max,step,val,unit)=>`<label class="b0r"><span>${b0LabIc(lab)}${lab}</span><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"><b id="${id}v">${val}${unit||''}</b></label>`;
+const b0Sel=(id,lab,opts,val)=>`<label class="b0s"><span>${lab?b0LabIc(lab):''}${lab}</span><select id="${id}">${opts.map(o=>{const[v,t]=Array.isArray(o)?o:[o,o];return`<option value="${esc(v)}" ${String(v)===String(val)?'selected':''}>${esc(t)}</option>`}).join('')}</select></label>`;
 const b0Kv=rows=>`<div class="b0kv">${rows.map(r=>`<div class="${r[2]||''}"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>`;
 const b0V=id=>{const e=document.getElementById(id);return e?+e.value:0};
 function b0Bind(root,ids,fn,units){ids.forEach((id,k)=>{const e=root.querySelector('#'+id);if(!e)return;e.addEventListener('input',()=>{const v=root.querySelector('#'+id+'v');if(v)v.textContent=e.value+((units&&units[k])||'');fn()})});fn()}
@@ -49,17 +98,19 @@ const B0T=[
  intro:`<ul><li>เซลล์ทำจากสารกึ่งตัวนำ (ซิลิคอนชนิด N ประกบชนิด P) แสง (โฟตอน) ที่ตกกระทบให้พลังงานแก่อิเล็กตรอนจนหลุดเป็นอิสระ สนามไฟฟ้าที่รอยต่อ P-N ผลักอิเล็กตรอนไปด้านเดียว เกิดแรงดันและกระแส เรียกว่า <b>ปรากฏการณ์โฟโตโวลตาอิก</b></li>
  <li>ไฟที่ได้เป็น <b>ไฟฟ้ากระแสตรง (DC)</b> มีขั้ว + และ − ชัดเจน</li><li><b>กระแส</b> แปรผันตรงกับความเข้มแสง ส่วน <b>แรงดัน</b> เปลี่ยนน้อยเมื่อแสงเปลี่ยน แต่ลดลงเมื่อเซลล์ร้อนขึ้น</li></ul>`,
  w(el){
-  el.innerHTML=`<div class="b0fig"><svg viewBox="0 0 520 170" class="b0ill" role="img" aria-label="แสงตกกระทบเซลล์ อิเล็กตรอนไหลผ่านหลอดไฟ">
-   <circle cx="40" cy="36" r="20" fill="var(--accent)"/><g stroke="var(--accent)" stroke-width="2.5"><line x1="62" y1="44" x2="150" y2="78"/><line x1="56" y1="58" x2="140" y2="92"/><line x1="70" y1="30" x2="170" y2="70"/></g>
+  el.innerHTML=`<div class="b0fig"><svg viewBox="0 0 520 170" class="b0ill" role="img" aria-label="แสงตกกระทบเซลล์ อิเล็กตรอนไหลผ่านหลอดไฟ" overflow="visible">
+   <g id="b1sun">${B0G.sun(42,40,19,1)}</g><g id="b1ray" stroke="#f7a823" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 6"><line x1="66" y1="52" x2="150" y2="76"/><line x1="60" y1="64" x2="146" y2="90"/><line x1="72" y1="38" x2="168" y2="70"/></g>
    <rect x="150" y="70" width="190" height="22" fill="var(--s1)" opacity=".85"/><text x="245" y="85" text-anchor="middle" class="b0lab" fill="#fff">ชนิด N (−)</text>
    <rect x="150" y="92" width="190" height="40" fill="var(--s2)" opacity=".75"/><text x="245" y="117" text-anchor="middle" class="b0lab" fill="#fff">ชนิด P (+)</text>
-   <path d="M340 80 H420 V40 H470" fill="none" stroke="var(--neg)" stroke-width="2.5"/><path d="M340 120 H420 V150 H500 V60" fill="none" stroke="var(--pos)" stroke-width="2.5"/>
-   <circle id="b1bulb" cx="482" cy="50" r="16" fill="var(--accent)" opacity=".6" stroke="var(--ink)"/><text x="482" y="92" text-anchor="middle" class="b0ax">หลอด DC</text>
+   <path d="M340 80 H420 V40 H462" fill="none" stroke="var(--neg)" stroke-width="2.5"/><path d="M340 120 H420 V150 H500 V64 H478" fill="none" stroke="var(--pos)" stroke-width="2.5"/>
+   <g id="b1bw">${B0G.bulb(470,44,17,.8)}</g><text x="470" y="100" text-anchor="middle" class="b0ax">หลอด DC</text>
+   <g id="b1th">${B0G.thermo(120,6,52,.3)}</g><text x="120" y="2" text-anchor="middle" class="b0ax" id="b1tt"></text>
    <text x="380" y="72" class="b0ax">e⁻ →</text></svg></div>
    ${b0Rng('b1g','ความเข้มแสง (W/m²)',0,1200,50,1000)}${b0Rng('b1t','อุณหภูมิเซลล์ (°C)',10,75,1,25,' °C')}<div id="b1o"></div>`;
   b0Bind(el,['b1g','b1t'],()=>{const c=b0Curve(b0V('b1g'),b0V('b1t'));
    el.querySelector('#b1o').innerHTML=b0Kv([['กระแสลัดวงจร Isc',b0f(c.isc,2)+' A'],['แรงดันวงจรเปิด Voc',b0f(c.voc,1)+' V'],['กำลังสูงสุด',b0f(c.mp.P,0)+' W'],['ชนิดไฟ','DC (มีขั้ว + / −)']]);
-   el.querySelector('#b1bulb').setAttribute('opacity',(0.1+0.9*Math.min(1,c.mp.P/550)).toFixed(2))},['',' °C']);
+   const on=Math.min(1,c.mp.P/550),g=b0V('b1g'),t=b0V('b1t');el.querySelector('#b1bw').innerHTML=B0G.bulb(470,44,17,on);el.querySelector('#b1sun').innerHTML=B0G.sun(42,40,19,g/1200);
+   el.querySelector('#b1ray').setAttribute('opacity',(g/1200).toFixed(2));el.querySelector('#b1th').innerHTML=B0G.thermo(120,10,52,(t-0)/80);el.querySelector('#b1tt').textContent=t+' °C'},['',' °C']);
  },
  q:[{q:'แผงโซลาร์เซลล์ผลิตไฟฟ้าชนิดใด',o:['ไฟฟ้ากระแสสลับ (AC) 230 V','ไฟฟ้ากระแสตรง (DC)','ไฟฟ้าสถิต','ไฟฟ้า 3 เฟส'],a:1,ex:'เซลล์ให้ไฟ DC ต้องใช้อินเวอร์เตอร์แปลงเป็น AC ก่อนใช้กับเครื่องใช้ไฟฟ้าในบ้าน'},
   {q:'ถ้าแสงลดลงเหลือครึ่งหนึ่ง (อุณหภูมิคงที่) ค่าใดลดลงเกือบครึ่งตาม',o:['แรงดันวงจรเปิด Voc','กระแส','ความถี่','ไม่มีค่าใดเปลี่ยน'],a:1,ex:'กระแสแปรผันตรงกับความเข้มแสง ส่วนแรงดันลดลงเพียงเล็กน้อย ลองเลื่อนแถบความเข้มแสงดู'},
@@ -140,10 +191,16 @@ const B0T=[
  <li><b>On-grid</b> ขนานกับไฟการไฟฟ้า ต้องหยุดจ่ายทันทีเมื่อไฟดับ (Anti-islanding) เพื่อความปลอดภัยของช่าง · <b>Off-grid</b> สร้างไฟเองจากแบต · <b>Hybrid</b> ทำได้ทั้งสองแบบ</li>
  <li>มีวงจร <b>MPPT</b> ฝั่ง DC และมีประสิทธิภาพราว 95–98% กำลังส่วนที่เหลือกลายเป็นความร้อน</li></ul>`,
  w(el){
-  el.innerHTML=`<p class="hint tight">อินเวอร์เตอร์ตัวอย่าง 5 kW (AC) · รับ DC สูงสุด 7.5 kW</p>${b0Rng('b5p','กำลัง DC จากแผง (W)',0,7500,100,3000)}${b0Sel('b5grid','ไฟการไฟฟ้า',[['on','ปกติ'],['off','ไฟดับ']],'on')}${b0Sel('b5ty','ชนิดอินเวอร์เตอร์',[['on','On-grid'],['hy','Hybrid (มีแบต)']],'on')}<div id="b5o"></div><div id="b5w"></div>`;
+  el.innerHTML=`<p class="hint tight">อินเวอร์เตอร์ตัวอย่าง 5 kW (AC) · รับ DC สูงสุด 7.5 kW</p>${b0Rng('b5p','กำลัง DC จากแผง (W)',0,7500,100,3000)}${b0Sel('b5grid','ไฟการไฟฟ้า',[['on','ปกติ'],['off','ไฟดับ']],'on')}${b0Sel('b5ty','ชนิดอินเวอร์เตอร์',[['on','On-grid'],['hy','Hybrid (มีแบต)']],'on')}<div id="b5s"></div><div id="b5o"></div><div id="b5w"></div>`;
   const run=()=>{const p=b0V('b5p'),grid=el.querySelector('#b5grid').value,ty=el.querySelector('#b5ty').value,ld=p/5000;
    const eta=p<=0?0:Math.min(0.975,0.975-0.06*Math.exp(-ld*9)),ac0=p*eta,ac=Math.min(5000,ac0),clip=ac0>5000;
    const stop=grid==='off'&&ty==='on';
+   {const on=stop?0:Math.min(1,ac/4000),hy=ty==='hy';el.querySelector('#b5s').innerHTML=`<svg viewBox="0 0 520 120" class="b0ill" role="img" aria-label="แผงผลิตไฟ DC ผ่านอินเวอร์เตอร์เป็น AC เข้าบ้าน">
+     ${B0G.sun(34,34,16,Math.min(1,p/6000))}${B0G.panel(70,40,70,44)}<path d="M140 62H190" stroke="var(--pos)" stroke-width="3" ${p>0?'stroke-dasharray="6 5"':''}/><text x="165" y="54" text-anchor="middle" class="b0ax">DC</text>
+     <rect x="192" y="34" width="62" height="56" rx="6" fill="var(--invfill)" stroke="var(--ink)" stroke-width="2"/><text x="207" y="54" class="b0lab" fill="var(--pos)">=</text><path d="M214 74c4-9 8-9 12 0s8 9 12 0" fill="none" stroke="var(--s1)" stroke-width="2.4"/>
+     <path d="M254 62H312" stroke="${stop?'var(--muted)':'var(--s1)'}" stroke-width="3" ${stop?'':'stroke-dasharray="6 5"'}/><text x="283" y="54" text-anchor="middle" class="b0ax">AC</text>
+     ${B0G.house(314,22,74)}${B0G.bulb(351,72,9,on)}${hy?B0G.battery(214,94,22,24,.7):''}
+     <path d="M388 70H440" stroke="${grid==='off'?'var(--muted)':'var(--muted)'}" stroke-width="2"/>${B0G.pole(442,26,70,grid==='off')}<text x="452" y="114" text-anchor="middle" class="b0ax">${grid==='off'?'ไฟการไฟฟ้าดับ':'ไฟการไฟฟ้า'}</text></svg>`}
    el.querySelector('#b5o').innerHTML=b0Kv([['ประสิทธิภาพ',stop?'—':b0f(eta*100,1)+' %'],['กำลัง AC ที่จ่าย',stop?'0 W (หยุดจ่าย Anti-islanding)':b0f(ac,0)+' W',stop?'err':''],['ความร้อนสูญเสีย',stop?'0 W':b0f(Math.max(0,p*(1-eta)),0)+' W'],['ตัดยอด (Clipping)',clip&&!stop?b0f(ac0-5000,0)+' W':'ไม่มี',clip&&!stop?'warn':'']]);
    const amp=stop?0:Math.max(.15,Math.min(1,ac/5000));let d='',dd='';for(let k=0;k<=200;k++){const x=20+k*2.4,y=80-50*amp*Math.sin(k/200*4*Math.PI);d+=(k?'L':'M')+x.toFixed(1)+' '+y.toFixed(1)}
    dd=`M20 ${80-40*Math.min(1,p/7500)} H500`;
@@ -179,9 +236,12 @@ const B0T=[
  <li><b>ตะกั่วกรด</b> ราคาถูก หนัก ควรใช้ไม่เกินราว 50% · <b>ลิเธียมฟอสเฟต (LiFePO4)</b> ใช้ได้ลึก 80–90% อายุรอบมากกว่าหลายเท่า มี BMS ควบคุม</li>
  <li>ต่อ <b>อนุกรม</b> แรงดันเพิ่ม Ah เท่าเดิม · ต่อ <b>ขนาน</b> Ah เพิ่ม แรงดันเท่าเดิม</li></ul>`,
  w(el){
-  el.innerHTML=`${b0Sel('b7k','ชนิด',[['pb','ตะกั่วกรด (DoD 50%)'],['li','LiFePO4 (DoD 90%)']],'li')}${b0Sel('b7v','แรงดันลูกละ',[['12','12 V'],['12.8','12.8 V'],['25.6','25.6 V'],['51.2','51.2 V']],'51.2')}${b0Rng('b7a','ความจุลูกละ (Ah)',50,300,10,100,' Ah')}${b0Rng('b7s','ต่ออนุกรม (ลูก)',1,4,1,1)}${b0Rng('b7p','ต่อขนาน (ชุด)',1,4,1,1)}${b0Rng('b7l','โหลดที่ต้องการสำรอง (W)',100,3000,50,600,' W')}<div id="b7o"></div>`;
+  el.innerHTML=`${b0Sel('b7k','ชนิด',[['pb','ตะกั่วกรด (DoD 50%)'],['li','LiFePO4 (DoD 90%)']],'li')}${b0Sel('b7v','แรงดันลูกละ',[['12','12 V'],['12.8','12.8 V'],['25.6','25.6 V'],['51.2','51.2 V']],'51.2')}${b0Rng('b7a','ความจุลูกละ (Ah)',50,300,10,100,' Ah')}${b0Rng('b7s','ต่ออนุกรม (ลูก)',1,4,1,1)}${b0Rng('b7p','ต่อขนาน (ชุด)',1,4,1,1)}${b0Rng('b7l','โหลดที่ต้องการสำรอง (W)',100,3000,50,600,' W')}<div id="b7pic"></div><div id="b7o"></div>`;
   const run=()=>{const li=el.querySelector('#b7k').value==='li',v=+el.querySelector('#b7v').value,a=b0V('b7a'),s=b0V('b7s'),p=b0V('b7p'),ld=b0V('b7l');
    const V=v*s,Ah=a*p,E=V*Ah,dod=li?0.9:0.5,use=E*dod*0.92;
+   {let g='';for(let j=0;j<p;j++)for(let i=0;i<s;i++){const x=20+i*46,y=12+j*52;g+=B0G.battery(x,y,30,40,.85,li?'#43c46b':'#f0a030');if(i<s-1)g+=`<path d="M${x+21} ${y+2}Q${x+38} ${y-8} ${x+55} ${y+2}" fill="none" stroke="var(--pos)" stroke-width="2"/>`}
+    const W=Math.max(260,40+s*46+130),hrs=use/ld;g+=`<path d="M${30+s*46} ${12+p*26}H${60+s*46}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 4"/>`+B0G.bulb(84+s*46,8+p*26,14,Math.min(1,hrs/8))+`<text x="${84+s*46}" y="${36+p*26}" text-anchor="middle" class="b0ax">${ld} W</text>`;
+    el.querySelector('#b7pic').innerHTML=`<svg viewBox="0 0 ${W} ${20+p*52}" class="b0ill" style="max-width:${W*1.2}px" role="img" aria-label="แบตต่อ ${s} อนุกรม × ${p} ขนาน">${g}</svg>`}
    el.querySelector('#b7o').innerHTML=b0Kv([['แรงดันระบบแบต',b0f(V,1)+' V'],['ความจุรวม',Ah+' Ah'],['พลังงานรวม',b0f(E/1000,2)+' kWh'],['ใช้ได้จริง (× DoD × 92%)',b0f(use/1000,2)+' kWh'],['สำรองโหลด '+ld+' W ได้',b0f(use/ld,1)+' ชม.','ok'],['อายุรอบโดยประมาณ',li?'3,000–6,000 รอบ':'300–800 รอบ']])};
   el.querySelector('#b7k').addEventListener('change',run);el.querySelector('#b7v').addEventListener('change',run);b0Bind(el,['b7a','b7s','b7p','b7l'],run,[' Ah','','',' W']);
  },
@@ -216,13 +276,22 @@ const B0T=[
  <li>เมื่อไฟรั่วลงโครง กระแสจะไหลผ่านสายดินซึ่งความต้านทานต่ำ ทำให้เบรกเกอร์/RCD ตัดวงจร และแรงดันที่โครงไม่สูงจนเป็นอันตราย</li>
  <li>ค่าความต้านทานหลักดินที่นิยมใช้อ้างอิงคือไม่เกิน 5 Ω (ตรวจตามมาตรฐาน วสท. และการไฟฟ้าในพื้นที่) · SPD ทำงานได้ก็ต่อเมื่อมีสายดินที่ดี</li></ul>`,
  w(el){
-  el.innerHTML=`<div class="b0tog"><label class="chk"><input type="checkbox" id="b9pe" checked> ต่อสายดินที่โครงเครื่อง</label><label class="chk"><input type="checkbox" id="b9rcd" checked> มี RCD/RCBO 30 mA</label><label class="chk"><input type="checkbox" id="b9f"> เกิดไฟรั่วลงโครง</label><label class="chk"><input type="checkbox" id="b9h" checked> มีคนจับโครงเครื่อง</label></div>${b0Rng('b9r','ความต้านทานหลักดิน (Ω)',1,100,1,5,' Ω')}<div id="b9o"></div>`;
+  el.innerHTML=`<div class="b0tog"><label class="chk"><input type="checkbox" id="b9pe" checked> ต่อสายดินที่โครงเครื่อง</label><label class="chk"><input type="checkbox" id="b9rcd" checked> มี RCD/RCBO 30 mA</label><label class="chk"><input type="checkbox" id="b9f"> เกิดไฟรั่วลงโครง</label><label class="chk"><input type="checkbox" id="b9h" checked> มีคนจับโครงเครื่อง</label></div>${b0Rng('b9r','ความต้านทานหลักดิน (Ω)',1,100,1,5,' Ω')}<div id="b9s"></div><div id="b9o"></div>`;
   const run=()=>{const pe=el.querySelector('#b9pe').checked,rcd=el.querySelector('#b9rcd').checked,fa=el.querySelector('#b9f').checked,hu=el.querySelector('#b9h').checked,rg=b0V('b9r');
    let rows,lvl='ok',t;
    if(!fa){rows=[['สถานะ','ปกติ ไม่มีไฟรั่ว'],['แรงดันที่โครง','0 V']];t='ลองติ๊ก "เกิดไฟรั่วลงโครง"'}
    else{const Rb=1000,Rsrc=1+rg; /* fault loop through PE: source/neutral earth ~1 Ω + electrode */
     if(pe){const If=230/(Rsrc+0.5),Vt=If*0.5;rows=[['กระแสรั่วผ่านสายดิน',b0f(If,1)+' A'],['แรงดันสัมผัสที่โครง',b0f(Math.min(230,Vt),0)+' V'],['ผล',rcd?'RCD ตัดวงจรภายในราว 0.03 วินาที':If>=200?'เบรกเกอร์ตัดเพราะกระแสสูง':'เบรกเกอร์อาจไม่ตัด (กระแสไม่พอ) ควรมี RCD']];lvl=rcd||If>=200?'ok':'warn';t=rcd?'ปลอดภัย: สายดินพากระแสลงดินและเครื่องตัดทำงาน':'มีสายดินแต่ไม่มี RCD: ถ้าหลักดินมีความต้านทานสูง กระแสอาจไม่พอให้เบรกเกอร์ตัด โครงจะมีไฟค้าง'}
     else{const Ib=hu?230/(Rb+Rsrc)*1000:0;rows=[['แรงดันที่โครง','≈ 230 V (ไม่มีทางให้กระแสไหลลงดิน)'],['กระแสผ่านร่างกาย',hu?b0f(Ib,0)+' mA':'—'],['ผล',hu?(rcd?'RCD ตัดหลังมีกระแสผ่านคน (ยังโดนดูดชั่วขณะ)':'อันตรายถึงชีวิต: ไม่มีอะไรตัดวงจร'):'โครงมีไฟค้างรอคนมาจับ']];lvl=hu&&!rcd?'err':'warn';t=hu&&!rcd?'อันตรายมาก: ไม่มีสายดินและไม่มี RCD':'ไม่มีสายดิน: แม้มี RCD ก็ต้องให้กระแสผ่านคนก่อนจึงตัด'}}
+   {const danger=fa&&!pe&&hu,trip=fa&&rcd,cur=fa&&pe;el.querySelector('#b9s').innerHTML=`<svg viewBox="0 0 520 150" class="b0ill" role="img" aria-label="ไฟรั่วลงโครงเครื่อง สายดิน และคนสัมผัส">
+     <path d="M20 30H120" stroke="#8b5a2b" stroke-width="3"/><text x="20" y="22" class="b0ax">L 230 V</text>
+     <rect x="120" y="16" width="34" height="28" rx="4" fill="${rcd?'#fff':'var(--band)'}" stroke="var(--ink)" stroke-width="1.6"/><text x="137" y="34" text-anchor="middle" class="b0ax">${rcd?(trip?'ตัด':'RCD'):'—'}</text>
+     <path d="M154 30H210" stroke="${trip?'var(--muted)':'#8b5a2b'}" stroke-width="3" ${trip?'stroke-dasharray="4 4"':''}/>
+     <rect x="210" y="14" width="110" height="80" rx="8" fill="#e8ecef" stroke="${fa&&!trip?'#e53935':'var(--ink)'}" stroke-width="${fa&&!trip?3:2}"/><text x="265" y="58" text-anchor="middle" class="b0lab">เครื่องใช้ไฟฟ้า</text>
+     ${fa?B0G.bolt(228,22,22,trip?'#cfd8dc':'#ffc400'):''}
+     ${pe?`<path d="M240 94V128" stroke="#1a9c6e" stroke-width="3" ${cur?'stroke-dasharray="6 4"':''}/>${B0G.gnd(240,126,20)}<text x="252" y="116" class="b0ax">PE ${rg} Ω</text>`:`<text x="222" y="116" class="b0ax">ไม่มีสายดิน</text>`}
+     ${hu?`<path d="M320 52H352" stroke="${danger?'#e53935':'var(--muted)'}" stroke-width="2.5"/>${B0G.person(372,40,70,danger?'#e53935':'#55626e')}${danger?B0G.bolt(392,36,22,'#ff7043'):''}`:''}
+     <text x="440" y="74" class="b0lab" fill="${!fa?'var(--muted)':danger?'#e53935':trip||cur?'var(--ok)':'var(--warn)'}">${!fa?'ปกติ':danger?'อันตราย!':trip?'ปลอดภัย':'ระวัง'}</text></svg>`}
    el.querySelector('#b9o').innerHTML=b0Kv(rows)+`<p class="b0msg ${lvl==='ok'?'ok':lvl==='err'?'err':''}">${t}</p>`};
   ['b9pe','b9rcd','b9f','b9h'].forEach(id=>el.querySelector('#'+id).addEventListener('change',run));b0Bind(el,['b9r'],run,[' Ω']);
  },
@@ -342,10 +411,22 @@ const B0T=[
  intro:`<ul><li><b>แสงที่ตกบนแผง</b> ≈ แสงตรง × cos(มุมตกกระทบ) แสงตั้งฉากกับแผงได้มากที่สุด</li><li><b>อุณหภูมิเซลล์</b> ≈ อุณหภูมิอากาศ + (NOCT − 20) ÷ 800 × แสง กำลังลดตามสัมประสิทธิ์ Pmax (ราว −0.3 ถึง −0.4 %/°C)</li>
  <li>ประเทศไทย (ละติจูดราว 6–20°) หันแผงทิศใต้ เอียงราว 10–15° ได้พลังงานทั้งปีดี และฝนช่วยล้างฝุ่น</li></ul>`,
  w(el){
-  el.innerHTML=`${b0Rng('b15g','แสงตรงตั้งฉากกับดวงอาทิตย์ (W/m²)',200,1100,50,950)}${b0Rng('b15e','มุมสูงดวงอาทิตย์ (องศาจากขอบฟ้า)',10,90,1,70,'°')}${b0Rng('b15tl','มุมเอียงแผง (หันเข้าหาดวงอาทิตย์)',0,60,1,15,'°')}${b0Rng('b15ta','อุณหภูมิอากาศ (°C)',15,42,1,33,' °C')}${b0Rng('b15d','ฝุ่นบังแสง (%)',0,30,1,0,' %')}<div id="b15o"></div>`;
+  el.innerHTML=`${b0Rng('b15g','แสงตรงตั้งฉากกับดวงอาทิตย์ (W/m²)',200,1100,50,950)}${b0Rng('b15e','มุมสูงดวงอาทิตย์ (องศาจากขอบฟ้า)',10,90,1,70,'°')}${b0Rng('b15tl','มุมเอียงแผง (หันเข้าหาดวงอาทิตย์)',0,60,1,15,'°')}${b0Rng('b15ta','อุณหภูมิอากาศ (°C)',15,42,1,33,' °C')}${b0Rng('b15d','ฝุ่นบังแสง (%)',0,30,1,0,' %')}<div id="b15s"></div><div id="b15o"></div>`;
   const run=()=>{const Gn=b0V('b15g'),el2=b0V('b15e'),tl=b0V('b15tl'),ta=b0V('b15ta'),du=b0V('b15d');
    const inc=Math.abs(90-el2-tl),cosi=Math.max(0,Math.cos(inc*Math.PI/180)),G=Gn*cosi*(1-du/100),tc=ta+(B0P.noct-20)/800*G;
    const c=b0Curve(G,tc),fx=B0P.P*G/1000*(1+B0P.gP/100*(tc-25));
+   {const ox=150,oy=150,R=120,ea=el2*Math.PI/180,sx=ox-R*Math.cos(ea),sy=oy-R*Math.sin(ea),ta2=tl*Math.PI/180,L=70,px=ox+L/2*Math.cos(ta2),py=oy-8-L/2*Math.sin(ta2),qx=ox-L/2*Math.cos(ta2),qy=oy-8+L/2*Math.sin(ta2);
+    const mx=(px+qx)/2,my=(py+qy)/2,nx=-Math.sin(ta2),ny=-Math.cos(ta2);
+    el.querySelector('#b15s').innerHTML=`<svg viewBox="0 0 520 170" class="b0ill" role="img" aria-label="ดวงอาทิตย์ มุมเอียงแผง และอุณหภูมิ">
+     <path d="M10 ${oy}H330" stroke="#7d8a96" stroke-width="2"/><path d="M${ox+R} ${oy}A${R} ${R} 0 0 0 ${ox-R} ${oy}" fill="none" stroke="#c9a227" stroke-width="1.2" stroke-dasharray="4 4"/>
+     <line x1="${sx.toFixed(1)}" y1="${sy.toFixed(1)}" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="#f7a823" stroke-width="3" stroke-dasharray="8 6" opacity="${(0.3+0.7*cosi).toFixed(2)}"/>
+     <line x1="${mx.toFixed(1)}" y1="${my.toFixed(1)}" x2="${(mx+nx*34).toFixed(1)}" y2="${(my+ny*34).toFixed(1)}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 3"/>
+     <line x1="${qx.toFixed(1)}" y1="${qy.toFixed(1)}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#1d4b78" stroke-width="9" stroke-linecap="round"/>
+     ${B0G.dust(qx<px?qx:px,Math.min(py,qy)-6,Math.abs(px-qx),Math.abs(py-qy)+8,Math.round(du/2))}
+     <path d="M${ox} ${oy}V${oy-8}" stroke="#55626e" stroke-width="3"/>${B0G.sun(sx,sy,15,Gn/1100)}
+     <text x="${(mx+nx*38).toFixed(1)}" y="${(my+ny*38).toFixed(1)}" class="b0ax" text-anchor="middle">ตั้งฉาก</text><text x="${ox-60}" y="${oy+16}" class="b0ax">มุมตกกระทบ ${b0f(inc,0)}°</text>
+     ${B0G.thermo(380,20,110,(ta-10)/40)}<text x="380" y="160" text-anchor="middle" class="b0ax">อากาศ ${ta} °C</text>
+     ${B0G.thermo(460,20,110,(tc-10)/70)}<text x="460" y="160" text-anchor="middle" class="b0ax">เซลล์ ${b0f(tc,0)} °C</text></svg>`}
    el.querySelector('#b15o').innerHTML=b0Kv([['มุมตกกระทบ',b0f(inc,0)+'° (cos = '+b0f(cosi,2)+')'],['แสงที่ตกบนแผง',b0f(G,0)+' W/m²'],['อุณหภูมิเซลล์โดยประมาณ',b0f(tc,1)+' °C'],['กำลัง (จากเส้น I-V)',b0f(c.mp.P,0)+' W','ok'],['กำลัง (สูตร P × G/1000 × (1 + γ(Tc − 25)))',b0f(fx,0)+' W'],['เทียบกับป้าย 550 W',b0f(c.mp.P/550*100,0)+' %']])+`<p class="hint tight">ลองหาว่ามุมเอียงเท่าใดทำให้มุมตกกระทบเป็น 0° (แสงตั้งฉาก) และอากาศร้อนขึ้น 10 °C กำลังหายไปกี่วัตต์</p>`};
   b0Bind(el,['b15g','b15e','b15tl','b15ta','b15d'],run,['','°','°',' °C',' %']);
  },
@@ -375,7 +456,7 @@ const B0IC=(()=>{const P='var(--cell)',A='var(--accent)',I='currentColor',R='var
   const pv=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5" fill="${P}"/><path d="M${x+w/3} ${y}V${y+h}M${x+2*w/3} ${y}V${y+h}M${x} ${y+h/2}H${x+w}" stroke="#fff" stroke-width=".8" opacity=".7"/>`;
   const meter=t=>`<rect x="11" y="5" width="18" height="30" rx="3" fill="#e9b52a" stroke="${I}" stroke-width="1.4"/><rect x="14" y="8" width="12" height="7" rx="1" fill="#cfe8d4" stroke="${I}" stroke-width=".8"/><text x="20" y="13.8" font-size="5" text-anchor="middle" font-family="monospace" fill="#1d3a26">${t}</text><circle cx="20" cy="24" r="5" fill="#333" stroke="#111"/><path d="M20 24l3-3" stroke="#fff" stroke-width="1.2"/><circle cx="15" cy="32" r="1.3" fill="${R}"/><circle cx="25" cy="32" r="1.3" fill="${K}"/>`;
   return{
-  t1:`<circle cx="30" cy="9" r="5" fill="${A}"/><path d="M24 13l-4 3M27 16l-2 4" stroke="${A}" stroke-width="1.5"/><g transform="skewX(-12)">${pv(10,18,22,15)}</g>`,
+  t1:`${B0G.sun(29,10,5.5,1)}<g transform="skewX(-12)">${pv(10,18,22,15)}</g>`,
   t2:`<rect x="3" y="15" width="6" height="8" rx="1" fill="${P}"/><path d="M10 19h3" stroke="${I}" stroke-width="1.2"/>${pv(14,12,8,14)}<path d="M23 19h2" stroke="${I}" stroke-width="1.2"/>${pv(26,10,11,18)}<text x="6" y="30" font-size="4.5" text-anchor="middle" fill="${I}">cell</text>`,
   t3:meter('Voc'),t4:meter('Vmp'),
   t5:`<rect x="8" y="6" width="24" height="28" rx="3" fill="var(--invfill)" stroke="${I}" stroke-width="1.4"/><text x="14" y="17" font-size="7" fill="${R}" font-weight="700">=</text><path d="M18 26c2-5 4-5 6 0s4 5 6 0" fill="none" stroke="var(--s1)" stroke-width="1.6"/><path d="M8 34l24-28" stroke="${I}" stroke-width=".8" opacity=".5"/>`,
@@ -388,7 +469,7 @@ const B0IC=(()=>{const P='var(--cell)',A='var(--accent)',I='currentColor',R='var
   t12:`<rect x="6" y="14" width="13" height="22" rx="2" fill="#e9b52a" stroke="${I}" stroke-width="1.1"/><rect x="8.5" y="17" width="8" height="5" fill="#cfe8d4"/><circle cx="12.5" cy="28" r="3" fill="#333"/><path d="M23 30V16a8 8 0 1 1 10 0v4" fill="none" stroke="#c0392b" stroke-width="3" stroke-linecap="round"/><rect x="21" y="26" width="8" height="10" rx="2" fill="#333"/>`,
   t13:`<path d="M6 5v29h29" fill="none" stroke="${I}" stroke-width="1.4"/><path d="M6 11h17c5 0 7 6 9 23" fill="none" stroke="var(--s1)" stroke-width="2"/><path d="M6 34L24 13c3-2 5 4 7 21" fill="none" stroke="var(--s2)" stroke-width="1.4" stroke-dasharray="2 1.5"/><circle cx="25" cy="13" r="2" fill="${A}"/><text x="24" y="9" font-size="5" fill="${I}">I-V</text>`,
   t14:`${pv(4,6,9,12)}${pv(16,6,9,12)}${pv(4,22,9,12)}${pv(16,22,9,12)}<path d="M13 12h3" stroke="${R}" stroke-width="1.6"/><path d="M28 12h6v16h-6M28 28h-3" fill="none" stroke="${R}" stroke-width="1.3"/><path d="M8.5 18v4" stroke="${K}" stroke-width="1.3"/>`,
-  t15:`<circle cx="9" cy="9" r="5" fill="${A}"/><rect x="31" y="4" width="4" height="18" rx="2" fill="#fff" stroke="${I}" stroke-width="1"/><circle cx="33" cy="24" r="3.4" fill="${R}"/><path d="M33 20V10" stroke="${R}" stroke-width="2"/><path d="M6 34L26 24" stroke="${P}" stroke-width="5"/><path d="M14 31v4M22 27v8" stroke="${I}" stroke-width="1.3"/>`}})();
+  t15:`${B0G.sun(10,10,5,1)}${B0G.thermo(33,3,24,.7)}<path d="M6 34L26 24" stroke="${P}" stroke-width="5"/><path d="M14 31v4M22 27v8" stroke="${I}" stroke-width="1.3"/>`}})();
 const b0Icon=(t,i)=>`<span class="b0ic" aria-hidden="true"><svg viewBox="0 0 40 40">${B0IC[t.id]||''}</svg><em>${String(i+1).padStart(2,'0')}</em></span>`;
 
 /* ---- quiz ---- */
