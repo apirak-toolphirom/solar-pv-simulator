@@ -13,6 +13,9 @@ var CONFIG = {
     { key: 'sat', label: 'วันเสาร์ 24 ตุลาคม 2569', from: 1, to: 7 },
     { key: 'sun', label: 'วันอาทิตย์ 25 ตุลาคม 2569', from: 8, to: 15 }
   ],
+  // ข้อที่ไม่ใช้ในฟอร์ม (หัวข้อ-ข้อที่ ตามลำดับในเมนู 00) ให้เหลือวันละ 20 ข้อ · เว็บเมนู 00 ยังมีครบทุกข้อ
+  // เสาร์ 21 → 20: ตัด 01-3 (ชื่อปรากฏการณ์) · อาทิตย์ 23 → 20: ตัด 09-2 (สีสายดิน), 12-3 (IR กับกระจก), 13-3 (Fill Factor)
+  SKIP: ['01-3', '09-2', '12-3', '13-3'],
   DESCRIPTION: 'หลักสูตรพัฒนาสมรรถนะบุคลากรด้านการผลิตไฟฟ้าพลังงานแสงอาทิตย์ เพื่อประยุกต์ใช้ในครัวเรือน · กิจกรรมที่ 2 อบรมเชิงปฏิบัติการ 24–25 ตุลาคม 2569 ณ มหาวิทยาลัยราชภัฏศรีสะเกษ\n' +
     'ข้อละ 1 คะแนน · ค่าของแผงตัวอย่างในคำถามเป็นค่าสมมติเพื่อการเรียนรู้',
   ONE_PAGE_PER_TOPIC: true,   // true = แยกหน้าตามหัวข้อ 01–15 · false = ทุกข้ออยู่หน้าเดียว
@@ -626,7 +629,9 @@ function createBothQuizzes() {
 }
 
 function buildQuiz_(day, ss) {
-  var topics = TOPICS.filter(function (t) { return +t.no >= day.from && +t.no <= day.to; });
+  var topics = TOPICS.filter(function (t) { return +t.no >= day.from && +t.no <= day.to; }).map(function (t) {
+    return { no: t.no, title: t.title, desc: t.desc, q: t.q.filter(function (q, i) { return CONFIG.SKIP.indexOf(t.no + '-' + (i + 1)) < 0; }) };
+  }).filter(function (t) { return t.q.length; });
   var range = ('0' + day.from).slice(-2) + '–' + ('0' + day.to).slice(-2);
   var form = FormApp.create(CONFIG.TITLE + ' · ' + day.label + ' (หัวข้อ ' + range + ')');
   var nq = topics.reduce(function (a, t) { return a + t.q.length; }, 0);
