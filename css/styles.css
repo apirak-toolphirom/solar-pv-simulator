@@ -731,3 +731,4 @@ body[data-tab="basics"] .wrap{max-width:1280px}
 .b6h{margin:0;font-size:15px}
 .b6btn{cursor:pointer;outline:none}.b6btn:hover rect,.b6btn:focus-visible rect{fill:#fff4c2}
 .b6cc .eqact{align-items:center}
+.b0sl,.b0chp{cursor:pointer;outline:none}.b0sl:focus-visible>rect:first-child,.b0chp:focus-visible rect{stroke:var(--accent);stroke-width:2}
