@@ -20,7 +20,7 @@ const b0f=(x,d=1)=>Number(x).toLocaleString('th-TH',{minimumFractionDigits:d,max
 
 /* small line chart: series [{pts:[[x,y]],col,lab,dash}] · dots [{x,y,col,lab}] */
 function b0Chart(o){
-  const W=520,H=260,L=46,R=o.y2?46:14,T=14,B=36,pw=W-L-R,ph=H-T-B;
+  const W=o.W||520,H=o.H||260,L=46,R=o.y2?46:14,T=14,B=36,pw=W-L-R,ph=H-T-B;
   const X=x=>L+x/o.xmax*pw,Y=y=>T+ph-y/o.ymax*ph,Y2=y=>T+ph-y/(o.y2max||1)*ph;
   let s=`<svg class="b0ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria||'กราฟ')}">`;
   for(let k=0;k<=4;k++){const yy=T+ph*k/4;s+=`<line x1="${L}" x2="${L+pw}" y1="${yy}" y2="${yy}" class="b0grid"/><text x="${L-6}" y="${yy+4}" class="b0ax" text-anchor="end">${b0f(o.ymax*(4-k)/4,o.ymax<20?1:0)}</text>`;
@@ -257,20 +257,21 @@ const B0T=[
   const POS=[['off','OFF','ปิด'],['adc','A⎓','กระแส DC (ปากคีบ)'],['aac','A~','กระแส AC (ปากคีบ)'],['vdc','V⎓','แรงดัน DC (สายวัด)'],['vac','V~','แรงดัน AC (สายวัด)'],['ohm','Ω •)))','ความต้านทาน / ความต่อเนื่อง'],['cap','⊣⊢','ความจุไฟฟ้า'],['tmp','°C','อุณหภูมิ']];
   const ang=k=>-120+k*240/(POS.length-1),SC=.55,JX=130*SC,JY=70*SC,Rk=k=>0.4*Math.pow(150,k/100);
   const TP={pos:[490,323],neg:[560,467]};
-  const ZN={red:[95,330,'สาย + (แดง)'],blk:[150,330,'สาย − (ดำ)'],pair:[222,400,'สาย + และ − พร้อมกัน'],red2:[390,290,'สาย + (แดง) ช่วงเข้าโหลด']};
-  const H0={mx:615,my:150,pr:[640,520],pb:[712,520]};
+  const ZN={red:[95,330,'สาย + (แดง)'],blk:[150,330,'สาย − (ดำ)'],pair:[222,400,'สาย + และ − พร้อมกัน'],red2:[400,302,'สาย + (แดง) ช่วงเข้าโหลด']};
+  const H0={mx:615,my:392,pr:[430,606],pb:[505,560]};
+  const SL={g:{x:40,y:552,w:230,min:100,max:1100,step:50},r:{x:40,y:612,w:230,min:0,max:100,step:1}};  /* in-scene sliders */
   const S=Object.assign({pos:4,jaw:null,mv:null,mi:null},JSON.parse(JSON.stringify(H0)));
   const dial=POS.map((p,k)=>{const r=(ang(k)-90)*Math.PI/180,x=130+Math.cos(r)*74,y=300+Math.sin(r)*74;return`<g class="b0dp" data-k="${k}" tabindex="0" role="button" aria-label="${p[2]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="transparent"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="${p[0]==='off'?'#ff8a80':'#fff'}">${p[1]}</text></g>`}).join('');
   const cloud=(x,y,s,o)=>`<g opacity="${o.toFixed(2)}" fill="#fff" stroke="#9aa9b6" stroke-width="2"><path d="M${x} ${y}a${s*.5} ${s*.5} 0 0 1 ${s*.45} ${-s*.42}a${s*.62} ${s*.62} 0 0 1 ${s*1.05} ${-s*.1}a${s*.48} ${s*.48} 0 0 1 ${s*.62} ${s*.52}a${s*.36} ${s*.36} 0 0 1 0 ${s*.72}H${x+s*.1}a${s*.36} ${s*.36} 0 0 1 ${-s*.1} ${-s*.72}z"/></g>`;
   el.innerHTML=`<p class="hint tight">ภารกิจ: ปรับโหลดให้แผงจ่ายกำลังสูงสุด แล้ว<b>วัดเอง</b>ทั้งแรงดัน (หมุนไป V⎓ ลากปลายสายแดงแตะขั้ว + และดำแตะขั้ว − ของโหลด) และกระแส (หมุนไป A⎓ ลากปากคีบไปคล้องสายเส้นเดียว) ที่จุดเดียวกัน</p>
    <div class="eqact"><button class="chip" id="b4l" type="button" aria-label="หมุนปุ่มซ้าย">◀ หมุน</button><button class="chip" id="b4rr" type="button" aria-label="หมุนปุ่มขวา">หมุน ▶</button><button class="chip" id="b4rs" type="button">วางเครื่องมือที่เดิม</button></div>
-   <div class="b0scn"><svg id="b4svg" viewBox="0 0 760 640" role="img" aria-label="แผงโซลาร์ต่อโหลด DC และแคลมป์มิเตอร์">
+   <div class="b0scn"><svg id="b4svg" viewBox="0 0 760 650" role="img" aria-label="แผงโซลาร์ต่อโหลด DC และแคลมป์มิเตอร์">
     <g id="b4sky"></g>
     <g>${B0G.panel(20,60,190,230)}<rect x="96" y="290" width="60" height="22" rx="3" fill="#2b3138"/><text x="126" y="305" text-anchor="middle" font-size="10" fill="#cfd8dc">J-Box</text></g>
-    <path d="M110 312V352Q95 360 95 372V384Q95 394 120 394H262Q300 394 300 370V310Q300 290 320 290H470Q490 290 490 310V330" fill="none" stroke="#d62828" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M110 312V352Q95 360 95 372V384Q95 394 120 394H262Q300 394 300 370V320Q300 302 320 302H470Q490 302 490 318V330" fill="none" stroke="#d62828" stroke-width="7" stroke-linejoin="round"/>
     <path d="M142 312V352Q150 360 150 372V396Q150 406 170 406H262Q300 406 300 430V480Q300 500 320 500H540Q560 500 560 480V460" fill="none" stroke="#2b3138" stroke-width="7" stroke-linejoin="round"/>
-    <path d="M345 280l14 10-14 10" fill="none" stroke="#d62828" stroke-width="2.5"/><text x="336" y="272" font-size="11" fill="var(--muted)">กระแส I →</text>
-    <g id="b4load"></g>
+    <path d="M340 292l14 10-14 10" fill="none" stroke="#d62828" stroke-width="2.5"/><text x="326" y="328" font-size="11" fill="var(--muted)">กระแส I →</text>
+    <g id="b4load"></g><g id="b4chart"></g><g id="b4ctl"></g>
     <g id="b4zones"></g>
     <g id="b4m" class="b0drag" transform="translate(${S.mx} ${S.my}) scale(${SC})">
      <path class="b4grab" d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#2b3138" stroke-width="26" stroke-linecap="round"/><path d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#e8b923" stroke-width="10" stroke-linecap="round" pointer-events="none"/>
@@ -285,15 +286,15 @@ const B0T=[
     <g id="b4leads"></g><g id="b4pr" class="b0drag"></g><g id="b4pb" class="b0drag"></g>
    </svg></div>
    <p class="b0cmpos" id="b4pos"></p>
-   ${b0Rng('b4g','ความเข้มแสง (W/m²)',100,1100,50,1000)}${b0Rng('b4r','ความต้านทานโหลด',0,100,1,20)}
-   <div id="b4o"></div><p class="b0msg" id="b4msg"></p><div class="b0done" id="b4d"></div><div id="b4c"></div>`;
+   <div class="b0vh">${b0Rng('b4g','ความเข้มแสง (W/m²)',100,1100,50,1000)}${b0Rng('b4r','ความต้านทานโหลด',0,100,1,20)}</div>
+   <p class="b0msg" id="b4msg"></p><div class="b0done" id="b4d"></div>`;
   const $q=x=>el.querySelector(x),svg=$q('#b4svg');
   const probe=(x,y,col,d)=>`<path d="M${x} ${y}l-5 ${16*d}h10z" fill="#c9ccd0" stroke="#7d8a96" stroke-width=".8"/><rect x="${x-7}" y="${d>0?y+16:y-60}" width="14" height="44" rx="5" fill="${col}" stroke="#111" stroke-width="1.2"/><rect x="${x-9}" y="${d>0?y+18:y-24}" width="18" height="6" rx="2" fill="${col}" stroke="#111" stroke-width="1"/><circle cx="${x}" cy="${y+38*d}" r="24" fill="transparent"/>`;
   const near=(p,q,r)=>Math.hypot(p[0]-q[0],p[1]-q[1])<=r,on=p=>near(p,TP.pos,8)?'pos':near(p,TP.neg,8)?'neg':null;
   const op=()=>{const c=b0Curve(b0V('b4g'),25),R=Rk(b0V('b4r')),o=b0OnR(c,R);return{c,R,o,pct:c.mp.P>0?o.P/c.mp.P*100:0}};
   function draw(){
    const g=b0V('b4g'),{R,o}=op(),kn=-135+270*b0V('b4r')/100;
-   $q('#b4sky').innerHTML=B0G.sun(250,44,24,g/1100)+cloud(196,70,62,Math.max(0,Math.min(.95,(900-g)/700)))+`<text x="250" y="136" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">แสง ${g} W/m²</text>`;
+   $q('#b4sky').innerHTML=B0G.sun(250,44,24,g/1100)+cloud(196,70,62,Math.max(0,Math.min(.95,(900-g)/700)));
    $q('#b4load').innerHTML=`<rect x="470" y="330" width="140" height="130" rx="10" fill="#cfd8dc" stroke="#455a64" stroke-width="2"/><text x="540" y="350" text-anchor="middle" font-size="11" font-weight="700" fill="#263238">โหลด DC ปรับค่าได้</text>
      <path d="M484 378h8l5-9 8 18 8-18 8 18 8-18 8 18 5-9h8" fill="none" stroke="#37474f" stroke-width="2.4" stroke-linejoin="round"/><path d="M498 398L566 362" stroke="#37474f" stroke-width="2"/><path d="M566 362l-9 1 5 7z" fill="#37474f"/>
      <circle cx="584" cy="418" r="17" fill="#37474f" stroke="#111" stroke-width="1.5"/><g transform="rotate(${kn.toFixed(0)} 584 418)"><rect x="581" y="402" width="6" height="16" rx="3" fill="#ffd400"/></g>
@@ -307,6 +308,12 @@ const B0T=[
    $q('#b4leads').innerHTML=lead(jr,S.pr,'#d62828',-1)+lead(jb,S.pb,'#2b3138',1);
    $q('#b4pr').innerHTML=probe(S.pr[0],S.pr[1],'#d62828',-1);$q('#b4pb').innerHTML=probe(S.pb[0],S.pb[1],'#2b3138',1);
    $q('#b4rv').textContent=b0f(R,2)+' Ω';
+   const sl=(k,lab,txt,ic)=>{const c=SL[k],v=b0V(k==='g'?'b4g':'b4r'),kx=c.x+(v-c.min)/(c.max-c.min)*c.w;
+     return`<g class="b4sl" data-k="${k}" tabindex="0" role="slider" aria-label="${lab}" aria-valuenow="${v}"><rect x="${c.x-34}" y="${c.y-30}" width="${c.w+60}" height="52" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+      <g transform="translate(${c.x-28} ${c.y-22}) scale(1.1)">${ic}</g><text x="${c.x}" y="${c.y-12}" font-size="12" font-weight="600" fill="var(--ink)">${lab}</text><text x="${c.x+c.w+20}" y="${c.y-12}" font-size="12" font-weight="700" text-anchor="end" font-family="monospace" fill="var(--ink)">${txt}</text>
+      <rect x="${c.x}" y="${c.y+2}" width="${c.w}" height="6" rx="3" fill="var(--band)"/><rect x="${c.x}" y="${c.y+2}" width="${(kx-c.x).toFixed(1)}" height="6" rx="3" fill="var(--accent)"/>
+      <rect x="${c.x-6}" y="${c.y-10}" width="${c.w+12}" height="30" fill="transparent"/><circle cx="${kx.toFixed(1)}" cy="${c.y+5}" r="10" fill="#fff" stroke="var(--accent)" stroke-width="3"/></g>`};
+   $q('#b4ctl').innerHTML=sl('g','ความเข้มแสง',b0V('b4g')+' W/m²',B0G.sun(10,10,4.6,1))+sl('r','ความต้านทานโหลด',b0f(R,2)+' Ω',`<path d="M0 10H4L6 5L9 15L12 5L15 15L17 10H21" fill="none" stroke="#55626e" stroke-width="1.8" stroke-linejoin="round"/>`);
   }
   function measure(){
    const m=POS[S.pos][0],{c,R,o,pct}=op(),r=on(S.pr),k=on(S.pb);let v='0.0',u='',ok=null,t='';
@@ -326,14 +333,15 @@ const B0T=[
    $q('#b4lcd').textContent=v;$q('#b4unit').textContent=u;b0Msg($q('#b4msg'),ok,t);
    $q('#b4pos').innerHTML=`ปุ่มหมุนอยู่ที่ <b>${POS[S.pos][1]}</b> · ${POS[S.pos][2]}${S.jaw?` · ปากคีบคล้อง<b>${ZN[S.jaw][2]}</b>`:''}`;
    const P=S.mv!=null&&S.mi!=null?S.mv*S.mi:null;
-   $q('#b4o').innerHTML=b0Kv([['V ที่วัดได้ (มิเตอร์ V⎓)',S.mv!=null?b0f(S.mv,1)+' V':'ยังไม่ได้วัด'],['I ที่วัดได้ (ปากคีบ A⎓)',S.mi!=null?b0f(S.mi,2)+' A':'ยังไม่ได้วัด'],['P = V × I',P!=null?b0f(P,0)+' W':'—',P!=null&&pct>=98?'ok':''],['เทียบกำลังสูงสุดที่ความเข้มแสงนี้',P!=null?b0f(pct,1)+' %':'—',P!=null&&pct>=98?'ok':'']]);
    const done=P!=null&&pct>=98;
    $q('#b4d').innerHTML=`<span class="${S.mv!=null?'ok':''}">${S.mv!=null?'✓':'○'} วัดแรงดัน</span><span class="${S.mi!=null?'ok':''}">${S.mi!=null?'✓':'○'} วัดกระแส</span><span class="${done?'ok':''}">${done?'✓':'○'} อยู่ที่จุดกำลังสูงสุด (≥ 98%)</span>`;
    if(done){b0Task('t4',true);b0Msg($q('#b4msg'),true,`สำเร็จ: Vmp ≈ ${b0f(S.mv,1)} V, Imp ≈ ${b0f(S.mi,2)} A, Pmax ≈ ${b0f(P,0)} W (ป้ายแผงตัวอย่าง ${B0P.Vmp} V / ${B0P.Imp} A ที่ STC)`)}
    else if(P!=null&&pct<98&&ok!==false)$q('#b4msg').textContent+=` · ได้ ${b0f(pct,0)}% ของกำลังสูงสุด ลองปรับโหลดแล้ววัดใหม่`;
-   $q('#b4c').innerHTML=b0Chart({xmax:52,ymax:15,y2:true,y2max:600,xl:'แรงดัน (V)',yl:'กระแส (A)',y2l:'กำลัง (W)',aria:'เส้น I-V และ P-V พร้อมจุดทำงาน',
+   const near=Math.abs(o.V-c.mp.V)<2.5;const ch=b0Chart({W:440,H:210,xmax:52,ymax:16,y2:true,y2max:600,xl:'แรงดัน (V)',yl:'กระแส (A)',y2l:'กำลัง (W)',aria:'เส้น I-V และ P-V พร้อมจุดทำงาน',
     series:[{pts:c.pts.map(p=>[p[0],p[1]]),col:'var(--s1)'},{pts:c.pts.map(p=>[p[0],p[2]]),col:'var(--s2)',y2:true,dash:true},{pts:[[0,0],[c.voc,c.voc/R]],col:'var(--muted)'}],
-    dots:[{x:o.V,y:o.I,col:'var(--accent)',lab:'จุดทำงาน'}],legend:[['I-V','var(--s1)'],['P-V','var(--s2)',1],['เส้นโหลด V/R','var(--muted)']]});
+    dots:[{x:o.V,y:o.I,col:'var(--accent)',lab:near?'':'จุดทำงาน'},{x:c.mp.V,y:c.mp.P,col:'var(--s2)',lab:near?'จุดทำงาน ≈ Pmax':'Pmax',y2:true}],legend:[['I-V','var(--s1)'],['P-V','var(--s2)',1],['เส้นโหลด','var(--muted)']]});
+   const rd=`<text x="2" y="12" font-size="12.5" font-weight="700" fill="${P!=null&&pct>=98?'var(--ok)':'var(--ink)'}">วัดได้: V ${S.mv!=null?b0f(S.mv,1)+' V':'—'} · I ${S.mi!=null?b0f(S.mi,2)+' A':'—'} · P = V × I ${P!=null?b0f(P,0)+' W ('+b0f(pct,0)+'% ของสูงสุด)':'—'}</text>`;
+   $q('#b4chart').innerHTML=`<g transform="translate(312 2)"><rect x="-6" y="-4" width="452" height="238" rx="10" fill="var(--surface)" stroke="var(--line)" opacity=".96"/>`+ch.replace(/^<svg class="b0ch" viewBox="0 0 440 210"[^>]*>/,'<svg x="0" y="20" width="440" height="210" viewBox="0 0 440 210">')+rd+'</g>';
   }
   const run=()=>{draw();measure()};
   const reset=()=>{S.mv=null;S.mi=null};
@@ -345,10 +353,14 @@ const B0T=[
   let drag=null;
   const start=(w,e)=>{e.preventDefault();const p=pt(e);drag={w,dx:w==='m'?p[0]-S.mx:p[0]-S[w][0],dy:w==='m'?p[1]-S.my:p[1]-S[w][1]};if(w==='m')S.jaw=null;try{svg.setPointerCapture(e.pointerId)}catch(_){}};
   el.querySelectorAll('#b4m .b4grab').forEach(g=>g.addEventListener('pointerdown',e=>start('m',e)));
+  /* in-scene sliders: drag the knob or the track, arrow keys when focused */
+  const slSet=(k,x)=>{const c=SL[k],id=k==='g'?'b4g':'b4r',inp=$q('#'+id);let v=c.min+(x-c.x)/c.w*(c.max-c.min);v=Math.round(v/c.step)*c.step;v=Math.max(c.min,Math.min(c.max,v));if(+inp.value!==v){inp.value=v;inp.dispatchEvent(new Event('input'))}};
+  $q('#b4ctl').addEventListener('pointerdown',e=>{const g=e.target.closest('.b4sl');if(!g)return;e.preventDefault();e.stopPropagation();drag={w:'sl',k:g.dataset.k};try{svg.setPointerCapture(e.pointerId)}catch(_){}slSet(g.dataset.k,pt(e)[0])});
+  $q('#b4ctl').addEventListener('keydown',e=>{const g=e.target.closest('.b4sl');if(!g)return;const k=g.dataset.k,c=SL[k],inp=$q(k==='g'?'#b4g':'#b4r'),d=e.key==='ArrowRight'||e.key==='ArrowUp'?1:e.key==='ArrowLeft'||e.key==='ArrowDown'?-1:0;if(!d)return;e.preventDefault();inp.value=Math.max(c.min,Math.min(c.max,+inp.value+d*c.step));inp.dispatchEvent(new Event('input'));const n=$q(`.b4sl[data-k="${k}"]`);if(n)n.focus()});
   $q('#b4pr').addEventListener('pointerdown',e=>start('pr',e));$q('#b4pb').addEventListener('pointerdown',e=>start('pb',e));
-  svg.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e),x=Math.max(0,Math.min(760,p[0]-drag.dx)),y=p[1]-drag.dy;
+  svg.addEventListener('pointermove',e=>{if(!drag)return;if(drag.w==='sl'){slSet(drag.k,pt(e)[0]);return}const p=pt(e),x=Math.max(0,Math.min(760,p[0]-drag.dx)),y=p[1]-drag.dy;
     if(drag.w==='m'){S.mx=Math.min(760-143,x);S.my=Math.max(-20,Math.min(600,y))}else S[drag.w]=[x,Math.max(60,Math.min(y,570))];draw()});
-  const end=()=>{if(!drag)return;const w=drag.w;drag=null;
+  const end=()=>{if(!drag)return;const w=drag.w;drag=null;if(w==='sl')return;
     if(w==='m'){const jc=[S.mx+JX,S.my+JY];let best=null,bd=34;Object.keys(ZN).forEach(k=>{const d=Math.hypot(jc[0]-ZN[k][0],jc[1]-ZN[k][1]);if(d<bd){bd=d;best=k}});if(best){S.jaw=best;S.mx=ZN[best][0]-JX;S.my=ZN[best][1]-JY}}
     else{const dp=Math.hypot(S[w][0]-TP.pos[0],S[w][1]-TP.pos[1]),dn=Math.hypot(S[w][0]-TP.neg[0],S[w][1]-TP.neg[1]),t=Math.min(dp,dn)<=30?(dp<=dn?'pos':'neg'):null;if(t)S[w]=TP[t].slice()}
     run()};

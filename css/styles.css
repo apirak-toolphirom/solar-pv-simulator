@@ -723,3 +723,5 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b0scn{border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden}
 .b0scn svg{display:block;width:100%;height:auto;touch-action:none;user-select:none;-webkit-user-select:none}
 .b0drag .b3grab,#b3pr,#b3pb{cursor:grab}
+.b0vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.b4sl{cursor:pointer;outline:none}.b4sl:focus-visible>rect:first-child{stroke:var(--accent);stroke-width:2}
