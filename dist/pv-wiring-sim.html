@@ -748,6 +748,17 @@ body[data-tab="basics"] .wrap{max-width:1280px}
 .b8drag{display:flex;gap:8px;align-items:center;cursor:grab;touch-action:none;user-select:none}.b8drag span{display:flex;flex-direction:column;font-weight:600;line-height:1.3}.b8drag small{font-weight:400;color:var(--muted)}
 .b8ico{height:auto;flex:none}
 #b8svg .b8dev{cursor:grab}#b8svg .b8t,#b8svg .b8tog,#b8svg .b8w{cursor:pointer}
+/* menu 00: zoom wrapper for simulations */
+.b0zbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:6px}
+.b0zbar .chip.sm{min-height:32px;padding:0 10px;font-size:13px}.b0zv{font-family:var(--mono);font-size:13px;min-width:46px;text-align:center}
+.b0zh{font-size:12px}
+.b0zo{overflow-x:auto;overflow-y:hidden;position:relative;-webkit-overflow-scrolling:touch}
+.b0zo.zoomed{max-height:78vh;overflow:auto;border:1px dashed var(--line);border-radius:10px}
+.b0zsp{position:relative}.b0zin{transform-origin:0 0;position:absolute;left:0;top:0;display:flex;flex-direction:column;gap:10px}
+.b0zo.pan svg,.b0zo.pan .b0scn{pointer-events:none}.b0zo.pan{touch-action:pan-x pan-y;cursor:grab}
+.b0wi.b0zfull{position:fixed;inset:0;z-index:1000;background:var(--bg);padding:10px max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:6px}
+.b0wi.b0zfull .b0zo{flex:1;max-height:none;overflow:auto}
+body.b0zlock{overflow:hidden}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -7422,6 +7433,35 @@ function b0Combiner(el){
   palette();draw();
 }
 
+
+/* ---- zoom for each topic's simulation (mobile): buttons, two-finger pinch, pan mode, full screen ----
+   content is scaled with a CSS transform (SVG pointer maths use getScreenCTM so dragging and tapping still land correctly) */
+function b0Zoom(w){
+  if(w.dataset.zm)return;w.dataset.zm='1';
+  const bar=document.createElement('div');bar.className='b0zbar';
+  bar.innerHTML=`<button class="chip sm" data-z="-" type="button" aria-label="ย่อ">−</button><b class="b0zv">100%</b><button class="chip sm" data-z="+" type="button" aria-label="ขยาย">+</button><button class="chip sm" data-z="fit" type="button">พอดีจอ</button><button class="chip sm" data-z="pan" type="button" aria-pressed="false">✋ เลื่อนภาพ</button><button class="chip sm" data-z="full" type="button" aria-pressed="false">⛶ เต็มจอ</button><span class="hint tight b0zh">มือถือ: ใช้สองนิ้วบีบเพื่อซูม · เปิด ✋ แล้วใช้นิ้วเดียวเลื่อนภาพ</span>`;
+  const out=document.createElement('div');out.className='b0zo';const sp=document.createElement('div');sp.className='b0zsp';const inn=document.createElement('div');inn.className='b0zin';
+  while(w.firstChild)inn.appendChild(w.firstChild);sp.appendChild(inn);out.appendChild(sp);w.appendChild(bar);w.appendChild(out);
+  let z=1,base=0;const val=bar.querySelector('.b0zv');
+  const layout=()=>{if(!base||z===1)base=out.clientWidth||base;inn.style.width=base+'px';inn.style.transform=z===1?'':`scale(${z})`;
+    sp.style.width=(base*z)+'px';sp.style.height=(inn.offsetHeight*z)+'px';val.textContent=Math.round(z*100)+'%';out.classList.toggle('zoomed',z>1)};
+  const setZ=(nz,cx,cy)=>{nz=Math.max(1,Math.min(3,Math.round(nz*100)/100));if(nz===z)return;const r=out.getBoundingClientRect(),px=(cx==null?r.width/2:cx-r.left),py=(cy==null?Math.min(r.height,innerHeight)/2:cy-r.top);
+    const ax=(out.scrollLeft+px)/z,ay=(out.scrollTop+py)/z;z=nz;layout();out.scrollLeft=ax*z-px;out.scrollTop=ay*z-py};
+  new ResizeObserver(layout).observe(inn);addEventListener('resize',()=>{if(z===1){base=0;layout()}});
+  bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.z;
+    if(k==='+')setZ(z+.25);else if(k==='-')setZ(z-.25);else if(k==='fit'){z=1;base=0;layout();out.scrollLeft=0}
+    else if(k==='pan'){const on=!out.classList.contains('pan');out.classList.toggle('pan',on);b.setAttribute('aria-pressed',on)}
+    else if(k==='full'){const on=!w.classList.contains('b0zfull');w.classList.toggle('b0zfull',on);b.setAttribute('aria-pressed',on);document.body.classList.toggle('b0zlock',on);base=0;z=1;layout();out.scrollTop=0;out.scrollLeft=0}});
+  /* two-finger pinch + pan */
+  let pin=null;const d2=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY),mid=t=>[(t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2];
+  out.addEventListener('touchstart',e=>{if(e.touches.length===2){pin={d:d2(e.touches),z,m:mid(e.touches),sl:out.scrollLeft,st:out.scrollTop};e.preventDefault()}},{passive:false});
+  out.addEventListener('touchmove',e=>{if(!pin||e.touches.length!==2)return;e.preventDefault();const m=mid(e.touches);setZ(pin.z*d2(e.touches)/pin.d,m[0],m[1]);out.scrollLeft-=m[0]-pin.m[0];out.scrollTop-=m[1]-pin.m[1];pin.m=m},{passive:false});
+  out.addEventListener('touchend',e=>{if(e.touches.length<2)pin=null});
+  /* ctrl + wheel on desktop */
+  out.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();setZ(z*(e.deltaY<0?1.1:1/1.1),e.clientX,e.clientY)},{passive:false});
+  requestAnimationFrame(layout);
+}
+
 /* ---- state ----
    B0.ans[id][i] = คำตอบที่ "ส่ง" แล้ว (ไม่ใช่ตัวที่กำลังเลือก) · B0.tries[id] = จำนวนครั้งที่ส่ง
    ข้อที่ส่งถูกแล้วล็อกไว้ ข้อที่ผิดเลือกใหม่ได้หลังเวลารอ (นานขึ้นทุกครั้งที่ส่งผิด) กันการกดสุ่ม */
@@ -7501,7 +7541,7 @@ function b0RenderAll(){
   L.innerHTML=B0T.map((t,i)=>`<details class="b0t" data-id="${t.id}" ${open.has(t.id)?'open':''}><summary>${b0Icon(t,i)}<span class="b0tt"><b>${esc(t.title)}</b><small>${esc(t.desc)}</small></span><span class="b0bdw">${b0Badge(t)}</span></summary>
     <div class="b0body"><div class="b0intro">${t.intro}</div>${t.w?`<div class="b0w panelbox"><h3>แบบจำลอง${t.task?' · ภารกิจ: '+esc(t.task):''}</h3><div class="b0wi"></div></div>`:''}<div class="b0qz"></div></div></details>`).join('');
   L.querySelectorAll('details.b0t').forEach(d=>{const t=B0T.find(x=>x.id===d.dataset.id);
-    const mount=()=>{const w=d.querySelector('.b0wi');if(w&&!w.dataset.on&&t.w){w.dataset.on='1';try{t.w(w)}catch(e){w.textContent='แบบจำลองนี้แสดงไม่ได้ในเบราว์เซอร์นี้'}}};
+    const mount=()=>{const w=d.querySelector('.b0wi');if(w&&!w.dataset.on&&t.w){w.dataset.on='1';try{t.w(w)}catch(e){w.textContent='แบบจำลองนี้แสดงไม่ได้ในเบราว์เซอร์นี้'}try{b0Zoom(w)}catch(e){}}};
     d.addEventListener('toggle',()=>{if(d.open)mount()});if(d.open)mount();
     b0QuizMount(d,t);b0QuizBind(d,t)});
   b0Status();

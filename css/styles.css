@@ -742,3 +742,14 @@ body[data-tab="basics"] .wrap{max-width:1280px}
 .b8drag{display:flex;gap:8px;align-items:center;cursor:grab;touch-action:none;user-select:none}.b8drag span{display:flex;flex-direction:column;font-weight:600;line-height:1.3}.b8drag small{font-weight:400;color:var(--muted)}
 .b8ico{height:auto;flex:none}
 #b8svg .b8dev{cursor:grab}#b8svg .b8t,#b8svg .b8tog,#b8svg .b8w{cursor:pointer}
+/* menu 00: zoom wrapper for simulations */
+.b0zbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:6px}
+.b0zbar .chip.sm{min-height:32px;padding:0 10px;font-size:13px}.b0zv{font-family:var(--mono);font-size:13px;min-width:46px;text-align:center}
+.b0zh{font-size:12px}
+.b0zo{overflow-x:auto;overflow-y:hidden;position:relative;-webkit-overflow-scrolling:touch}
+.b0zo.zoomed{max-height:78vh;overflow:auto;border:1px dashed var(--line);border-radius:10px}
+.b0zsp{position:relative}.b0zin{transform-origin:0 0;position:absolute;left:0;top:0;display:flex;flex-direction:column;gap:10px}
+.b0zo.pan svg,.b0zo.pan .b0scn{pointer-events:none}.b0zo.pan{touch-action:pan-x pan-y;cursor:grab}
+.b0wi.b0zfull{position:fixed;inset:0;z-index:1000;background:var(--bg);padding:10px max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:6px}
+.b0wi.b0zfull .b0zo{flex:1;max-height:none;overflow:auto}
+body.b0zlock{overflow:hidden}
