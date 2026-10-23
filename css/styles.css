@@ -701,3 +701,14 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b0o:hover{background:var(--band)}.b0o.ok{background:var(--okbg);color:var(--ok);font-weight:500}.b0o.err{background:var(--errbg);color:var(--err)}
 .b0ex{margin:4px 0 0;font-size:13.5px;padding:6px 8px;border-radius:6px}.b0ex.ok{color:var(--ok)}.b0ex.err{color:var(--err)}
 @media (max-width:760px){.b0r{grid-template-columns:1fr 72px}.b0r span{grid-column:1/-1}.b0t>summary{padding:10px 12px;gap:10px}.b0bdw{display:none}.b0t[open] .b0bdw{display:block}}
+/* menu 00: topic icons + submit-to-check quiz */
+.b0ic{flex:none;position:relative;width:46px;height:46px;border-radius:10px;background:var(--accentbg);display:grid;place-items:center;color:var(--ink)}
+.b0ic svg{width:36px;height:36px}
+.b0ic em{position:absolute;right:-5px;bottom:-5px;font:600 10px/1 var(--mono);font-style:normal;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:2px 4px;color:var(--muted)}
+.b0q.lock{border-color:var(--ok)}.b0q.miss{border-color:var(--err)}
+.b0q.lock .b0o{cursor:default}.b0q.lock .b0o:hover{background:none}.b0q.lock .b0o.ok:hover{background:var(--okbg)}
+.b0o.tried{text-decoration:line-through;color:var(--muted)}
+.b0mk{font-weight:700}.b0mk.ok{color:var(--ok)}.b0mk.err{color:var(--err)}
+.b0sub{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:4px}
+.b0sub .btn[disabled]{opacity:.55;cursor:not-allowed}
+.b0sub.done b{color:var(--ok)}
