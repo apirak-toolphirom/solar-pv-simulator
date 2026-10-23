@@ -714,3 +714,9 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b0sub.done b{color:var(--ok)}
 .b0li{width:22px;height:22px;flex:none;vertical-align:middle;margin-right:6px}
 .b0r>span,.b0s>span{display:inline-flex;align-items:center}
+.b0cm{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.b0cmsvg{width:230px;max-width:100%;height:auto;flex:none;overflow:visible}
+.b0cmside{flex:1 1 280px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.b0cmpos{margin:0;font-size:14px}
+.b0dp{cursor:pointer;outline:none}.b0dp:hover circle,.b0dp:focus-visible circle{fill:rgba(255,255,255,.14)}.b0dp.on circle{fill:rgba(232,185,35,.35)}.b0dp.on text{fill:#ffe27a}
+#b3knob{transition:transform .25s}

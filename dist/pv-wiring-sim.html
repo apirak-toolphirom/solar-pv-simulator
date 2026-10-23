@@ -720,6 +720,12 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b0sub.done b{color:var(--ok)}
 .b0li{width:22px;height:22px;flex:none;vertical-align:middle;margin-right:6px}
 .b0r>span,.b0s>span{display:inline-flex;align-items:center}
+.b0cm{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.b0cmsvg{width:230px;max-width:100%;height:auto;flex:none;overflow:visible}
+.b0cmside{flex:1 1 280px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.b0cmpos{margin:0;font-size:14px}
+.b0dp{cursor:pointer;outline:none}.b0dp:hover circle,.b0dp:focus-visible circle{fill:rgba(255,255,255,.14)}.b0dp.on circle{fill:rgba(232,185,35,.35)}.b0dp.on text{fill:#ffe27a}
+#b3knob{transition:transform .25s}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -6472,35 +6478,66 @@ const B0T=[
   {q:'อาร์เรย์ 2 สตริง สตริงละ 10 แผง แผงละ 550 W มีกำลังติดตั้งเท่าใด',o:['5.5 kWp','11 kWp','1.1 kWp','22 kWp'],a:1,ex:'2 × 10 × 550 W = 11,000 W = 11 kWp'}]},
 
 {id:'t3',title:'วิธีวัดแรงดันวงจรเปิด (Voc) และกระแสลัดวงจร (Isc)',desc:'ใช้เครื่องมือวัดตรวจสภาพแผงก่อนต่อใช้งาน',task:'วัด Voc และ Isc ได้ถูกวิธี',
- intro:`<ul><li><b>Voc</b> วัดด้วยมัลติมิเตอร์ย่าน <b>V DC</b> คร่อมขั้ว + และ − ขณะ <b>ไม่ต่อโหลด</b> ตั้งย่านสูงกว่าค่าที่คาดไว้</li>
- <li><b>Isc</b> ลัดขั้ว + กับ − ผ่าน <b>สวิตช์/เบรกเกอร์ DC</b> แล้วคล้อง <b>แคลมป์มิเตอร์ DC</b> ที่สายลัด ห้ามเสียบสายมิเตอร์ช่อง A ตรงขั้วแผง (กระแสเกินพิกัด ฟิวส์มิเตอร์ขาด และเกิดอาร์กตอนปลดสาย)</li>
+ intro:`<ul><li><b>Voc</b> หมุนปุ่มไป <b>V⎓</b> (แรงดัน DC) ใช้สายวัดแดงเสียบช่อง V Ω ดำเสียบ COM จิ้มคร่อมขั้ว + และ − ขณะ <b>ไม่ต่อโหลด</b> ตั้งย่านสูงกว่าค่าที่คาดไว้</li>
+ <li><b>Isc</b> ลัดขั้ว + กับ − ผ่าน <b>สวิตช์/เบรกเกอร์ DC</b> แล้วหมุนแคลมป์มิเตอร์ไป <b>A⎓</b> กดตั้งศูนย์ แล้วคล้องปากคีบรอบสายลัด <b>เส้นเดียว</b> ห้ามเสียบสายมิเตอร์ช่อง A ของมัลติมิเตอร์ตรงขั้วแผง (กระแสเกินพิกัด ฟิวส์มิเตอร์ขาด และเกิดอาร์กตอนปลดสาย)</li>
  <li>จดความเข้มแสงและอุณหภูมิแผงพร้อมกันทุกครั้ง เพราะค่าที่วัดเปลี่ยนตามสองค่านี้ ป้ายแผงบอกค่าที่ STC (1000 W/m², 25 °C)</li></ul>`,
  w(el){
-  el.innerHTML=`${b0Sel('b3m','เครื่องมือ / ย่าน',[['vdc','มัลติมิเตอร์ V DC (V⎓)'],['vac','มัลติมิเตอร์ V AC (V~)'],['ohm','มัลติมิเตอร์ Ω'],['adc','มัลติมิเตอร์ A DC (ช่อง 10 A)'],['clamp','แคลมป์มิเตอร์ DC (Hall)']],'vac')}
-   ${b0Sel('b3c','การต่อ',[['open','จิ้มคร่อมขั้ว + และ − (ไม่มีโหลด)'],['short','ลัดขั้วผ่านสวิตช์ DC แล้วคล้องแคลมป์ที่สายลัด'],['meter','ต่อสายมิเตอร์แทนสายลัด (มิเตอร์อยู่ในวงจร)']],'open')}
-   ${b0Rng('b3g','ความเข้มแสงขณะวัด (W/m²)',200,1100,50,900)}${b0Rng('b3t','อุณหภูมิแผง (°C)',20,70,1,45,' °C')}
-   <div class="b0meter"><span class="b0lcd" id="b3lcd">--.-</span><span id="b3u"></span></div><p class="b0msg" id="b3msg"></p><div class="b0done" id="b3d"></div>`;
+  /* แคลมป์มิเตอร์ดิจิทัล ปุ่มหมุนเรียงแบบ Fluke 325: วัดกระแสด้วยปากคีบ วัดแรงดัน/โอห์มด้วยสายวัด */
+  const POS=[['off','OFF','ปิด'],['adc','A⎓','กระแส DC (ปากคีบ)'],['aac','A~','กระแส AC (ปากคีบ)'],['vdc','V⎓','แรงดัน DC (สายวัด)'],['vac','V~','แรงดัน AC (สายวัด)'],['ohm','Ω •)))','ความต้านทาน / ความต่อเนื่อง'],['cap','⊣⊢','ความจุไฟฟ้า'],['tmp','°C','อุณหภูมิ']];
+  const ang=k=>-120+k*240/(POS.length-1);let pos=4;
+  el.innerHTML=`<p class="hint tight">หมุนปุ่มโดยแตะสัญลักษณ์รอบปุ่ม (หรือกด ◀ ▶) แล้วเลือกวิธีต่อ · ปุ่มหมุนเรียงแบบแคลมป์มิเตอร์ Fluke 325: กระแสวัดด้วยปากคีบเท่านั้น แรงดันและโอห์มวัดด้วยสายวัด</p>
+   <div class="b0cm"><svg viewBox="0 0 260 420" class="b0cmsvg" role="img" aria-label="แคลมป์มิเตอร์ดิจิทัลพร้อมปุ่มหมุน">
+    <path d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#2b3138" stroke-width="26" stroke-linecap="round"/><path d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#e8b923" stroke-width="10" stroke-linecap="round" opacity=".9"/>
+    <rect id="b3gap" x="122" y="-2" width="16" height="22" fill="var(--surface)"/>
+    <g id="b3wire"></g>
+    <rect x="30" y="118" width="200" height="292" rx="26" fill="#e8b923" stroke="#2b3138" stroke-width="3"/><rect x="42" y="128" width="176" height="272" rx="18" fill="#3a4148"/>
+    <rect x="56" y="140" width="148" height="64" rx="8" fill="#b9d8b0" stroke="#1d2a1d" stroke-width="2"/>
+    <text id="b3lcd" x="192" y="186" text-anchor="end" font-family="monospace" font-size="34" font-weight="700" fill="#1d2a1d">0.0</text><text id="b3unit" x="62" y="158" font-family="monospace" font-size="13" fill="#1d2a1d"></text>
+    <g font-family="sans-serif" font-size="11" font-weight="700">${POS.map((p,k)=>{const r=(ang(k)-90)*Math.PI/180,x=130+Math.cos(r)*74,y=300+Math.sin(r)*74;return`<g class="b0dp" data-k="${k}" tabindex="0" role="button" aria-label="${p[2]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17" fill="transparent"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="${p[0]==='off'?'#ff8a80':'#fff'}">${p[1]}</text></g>`}).join('')}</g>
+    <circle cx="130" cy="300" r="46" fill="#22272c" stroke="#111" stroke-width="3"/><g id="b3knob"><circle cx="130" cy="300" r="38" fill="#2f363c" stroke="#555" stroke-width="2"/><rect x="124" y="258" width="12" height="44" rx="5" fill="#e8b923"/><path d="M130 260v10" stroke="#2b3138" stroke-width="3"/></g>
+    <circle cx="96" cy="388" r="7" fill="#d62828" stroke="#111"/><circle cx="164" cy="388" r="7" fill="#111" stroke="#666"/><text x="96" y="372" text-anchor="middle" font-size="9" fill="#fff">V Ω</text><text x="164" y="372" text-anchor="middle" font-size="9" fill="#fff">COM</text>
+   </svg>
+   <div class="b0cmside"><div class="eqact"><button class="chip" id="b3l" type="button" aria-label="หมุนซ้าย">◀ หมุน</button><button class="chip" id="b3r" type="button" aria-label="หมุนขวา">หมุน ▶</button></div>
+    <p class="b0cmpos" id="b3pos"></p>
+    ${b0Sel('b3c','การต่อ',[['open','สายวัดแดง/ดำ จิ้มขั้ว + / − ของแผง (ไม่มีโหลด)'],['short','ลัดขั้วผ่านสวิตช์ DC แล้วคล้องปากคีบที่สายลัด 1 เส้น'],['pair','ลัดขั้วผ่านสวิตช์ DC แล้วคล้องปากคีบรอบสาย + และ − พร้อมกัน'],['probe','จิ้มสายวัดขณะลัดขั้วอยู่']],'open')}
+    ${b0Rng('b3g','ความเข้มแสงขณะวัด (W/m²)',200,1100,50,900)}${b0Rng('b3t','อุณหภูมิแผง (°C)',20,70,1,45,' °C')}
+    <p class="b0msg" id="b3msg"></p><div class="b0done" id="b3d"></div></div></div>`;
   const st={voc:false,isc:false};
-  const run=()=>{const m=el.querySelector('#b3m').value,cn=el.querySelector('#b3c').value,c=b0Curve(b0V('b3g'),b0V('b3t'));
-   const lcd=el.querySelector('#b3lcd'),u=el.querySelector('#b3u'),msg=el.querySelector('#b3msg');let ok=null,t='';
-   if(cn==='open'){
-    if(m==='vdc'){lcd.textContent=b0f(c.voc,1);u.textContent='V DC';ok=true;st.voc=true;t=`ถูกต้อง: นี่คือ Voc ที่สภาพนี้ (ป้ายบอก ${B0P.Voc} V ที่ STC) แผงร้อนกว่า 25 °C ค่าจึงต่ำกว่าป้าย`}
-    else if(m==='vac'){lcd.textContent='0.0';u.textContent='V AC';ok=false;t='ตั้งผิดย่าน: แผงให้ไฟ DC ย่าน AC อ่านค่าไม่ถูก'}
-    else if(m==='ohm'){lcd.textContent='Err';u.textContent='Ω';ok=false;t='อันตราย: ห้ามวัดโอห์มกับวงจรที่มีแรงดัน มิเตอร์อาจเสียหาย'}
-    else if(m==='adc'){lcd.textContent='FUSE';u.textContent='';ok=false;t='อันตราย: ช่อง A มีความต้านทานต่ำ จิ้มคร่อมขั้วเท่ากับลัดวงจรผ่านมิเตอร์ กระแส '+b0f(c.isc,1)+' A เกิน 10 A ฟิวส์มิเตอร์ขาด'}
-    else{lcd.textContent='0.00';u.textContent='A';ok=false;t='ไม่มีกระแสไหลขณะวงจรเปิด แคลมป์จึงอ่านได้ 0 A'}}
+  const run=()=>{const m=POS[pos][0],cn=el.querySelector('#b3c').value,c=b0Curve(b0V('b3g'),b0V('b3t'));
+   el.querySelector('#b3knob').setAttribute('transform',`rotate(${ang(pos)} 130 300)`);
+   el.querySelectorAll('.b0dp').forEach(g=>g.classList.toggle('on',+g.dataset.k===pos));
+   el.querySelector('#b3pos').innerHTML=`ปุ่มอยู่ที่ <b>${POS[pos][1]}</b> · ${POS[pos][2]}`;
+   const jaw=cn==='short'||cn==='pair';
+   el.querySelector('#b3wire').innerHTML=jaw?(cn==='pair'?'<path d="M112 -10V140M148 -10V140" stroke="#d62828" stroke-width="7"/><path d="M148 -10V140" stroke="#2b3138" stroke-width="7"/><text x="196" y="40" font-size="12" fill="var(--muted)">← สาย + และ −</text>':'<path d="M130 -10V140" stroke="#d62828" stroke-width="7"/><text x="196" y="40" font-size="12" fill="var(--muted)">← สายลัด</text>'):'';
+   el.querySelector('#b3gap').setAttribute('visibility',jaw?'hidden':'visible');
+   let v='0.0',u='',ok=null,t='';
+   if(m==='off'){v='';u='';t='เครื่องปิดอยู่ หมุนปุ่มไปยังย่านที่ต้องการ'}
+   else if(m==='tmp'){v='--';u='°C';ok=false;t='ย่านอุณหภูมิต้องใช้หัววัดอุณหภูมิ ไม่ใช่การวัดค่าไฟฟ้าของแผง'}
+   else if(m==='cap'){v='OL';u='µF';ok=false;t='ย่านความจุไฟฟ้าใช้กับตัวเก็บประจุที่ปลดไฟแล้ว ห้ามวัดกับแผงที่มีแรงดัน'}
+   else if(cn==='open'){
+    if(m==='vdc'){v=b0f(c.voc,1);u='V⎓';ok=true;st.voc=true;t=`ถูกต้อง: นี่คือ Voc ที่สภาพนี้ (ป้ายบอก ${B0P.Voc} V ที่ STC) แผงร้อนกว่า 25 °C ค่าจึงต่ำกว่าป้าย`}
+    else if(m==='vac'){v='0.0';u='V~';ok=false;t='ตั้งผิดย่าน: แผงให้ไฟ DC ย่าน V~ อ่านค่าไม่ถูก ให้หมุนไป V⎓'}
+    else if(m==='ohm'){v='OL';u='Ω';ok=false;t='อันตราย: ห้ามวัดโอห์มกับแหล่งจ่ายที่มีแรงดัน มิเตอร์อาจเสียหาย'}
+    else{v='0.0';u=m==='adc'?'A⎓':'A~';ok=false;t='ปากคีบไม่ได้คล้องสายที่มีกระแส และวงจรเปิดอยู่จึงไม่มีกระแสไหล'}}
    else if(cn==='short'){
-    if(m==='clamp'){lcd.textContent=b0f(c.isc,2);u.textContent='A DC';ok=true;st.isc=true;t=`ถูกต้อง: นี่คือ Isc ที่สภาพนี้ (ป้ายบอก ${B0P.Isc} A ที่ 1000 W/m²) เปิดสวิตช์ DC ก่อนปลดสายลัดทุกครั้ง`}
-    else if(m==='vdc'){lcd.textContent='0.0';u.textContent='V DC';ok=false;t='ขั้วถูกลัดอยู่ แรงดันจึงใกล้ 0 V ถ้าต้องการ Isc ให้ใช้แคลมป์ DC'}
-    else{lcd.textContent='?';u.textContent='';ok=false;t='เครื่องมือนี้วัดกระแสในสายลัดไม่ได้ ใช้แคลมป์มิเตอร์ DC (แบบ Hall effect)'}}
+    if(m==='adc'){v=b0f(c.isc,1);u='A⎓';ok=true;st.isc=true;t=`ถูกต้อง: นี่คือ Isc ที่สภาพนี้ (ป้ายบอก ${B0P.Isc} A ที่ 1000 W/m²) ก่อนคล้องให้กดปุ่มตั้งศูนย์ย่าน A⎓ และเปิดสวิตช์ DC ก่อนปลดสายลัดทุกครั้ง`}
+    else if(m==='aac'){v='0.0';u='A~';ok=false;t='กระแสจากแผงเป็น DC ย่าน A~ อ่านได้ราว 0 A ให้หมุนไป A⎓'}
+    else{v='0.0';u=m==='vdc'?'V⎓':m==='vac'?'V~':'Ω';ok=false;t='ปากคีบใช้วัดกระแสเท่านั้น ย่านนี้ต้องใช้สายวัด ให้หมุนไป A⎓'}}
+   else if(cn==='pair'){
+    if(m==='adc'||m==='aac'){v='0.0';u=m==='adc'?'A⎓':'A~';ok=false;t='คล้องสาย + และ − พร้อมกัน กระแสไปและกลับหักล้างกันเหลือ 0 A ต้องคล้องสายเส้นเดียว'}
+    else{v='0.0';u='';ok=false;t='ต้องเป็นย่านกระแส (A⎓) และคล้องสายเส้นเดียว'}}
    else{
-    if(m==='adc'){lcd.textContent='FUSE';u.textContent='';ok=false;t='กระแส '+b0f(c.isc,1)+' A เกินพิกัดช่อง 10 A และเมื่อดึงสายออกจะเกิดอาร์ก DC ใช้สวิตช์ DC + แคลมป์แทน'}
-    else if(m==='vdc'){lcd.textContent=b0f(c.voc,1);u.textContent='V DC';ok=null;t='ช่อง V มีความต้านทานสูง จึงไม่ใช่การลัดวงจร ค่าที่อ่านได้คือ Voc (เลือกการต่อ "จิ้มคร่อมขั้ว" จะตรงความหมายกว่า)'}
-    else{lcd.textContent='Err';u.textContent='';ok=false;t='การต่อแบบนี้ไม่ถูกต้องสำหรับเครื่องมือที่เลือก'}}
-   b0Msg(msg,ok,t);
+    if(m==='vdc'){v='0.0';u='V⎓';ok=false;t='ขั้วถูกลัดอยู่ แรงดันจึงใกล้ 0 V ถ้าต้องการ Voc ให้เปิดสวิตช์ลัดออกก่อน'}
+    else if(m==='ohm'){v='0.1';u='Ω';ok=false;t='อันตราย: แผงยังจ่ายกระแสอยู่ ห้ามวัดโอห์ม ค่าที่อ่านไม่น่าเชื่อถือและมิเตอร์อาจเสียหาย'}
+    else{v='0.0';u=m==='vac'?'V~':m==='adc'?'A⎓':'A~';ok=false;t='การต่อนี้ไม่ได้วัด Voc หรือ Isc'}}
+   el.querySelector('#b3lcd').textContent=v;el.querySelector('#b3unit').textContent=u;
+   b0Msg(el.querySelector('#b3msg'),ok,t);
    el.querySelector('#b3d').innerHTML=`<span class="${st.voc?'ok':''}">${st.voc?'✓':'○'} วัด Voc ถูกวิธี</span><span class="${st.isc?'ok':''}">${st.isc?'✓':'○'} วัด Isc ถูกวิธี</span>`;
    if(st.voc&&st.isc)b0Task('t3',true)};
-  ['b3m','b3c'].forEach(id=>el.querySelector('#'+id).addEventListener('change',run));
+  const go=k=>{pos=Math.max(0,Math.min(POS.length-1,k));run()};
+  el.querySelectorAll('.b0dp').forEach(g=>{g.addEventListener('click',()=>go(+g.dataset.k));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go(+g.dataset.k)}})});
+  el.querySelector('#b3l').addEventListener('click',()=>go(pos-1));el.querySelector('#b3r').addEventListener('click',()=>go(pos+1));
+  el.querySelector('#b3c').addEventListener('change',run);
   b0Bind(el,['b3g','b3t'],run,['',' °C']);
  },
  q:[{q:'ตั้งมิเตอร์และต่ออย่างไรจึงวัด Voc ได้ถูกต้อง',o:['V AC คร่อมขั้วขณะต่ออินเวอร์เตอร์','V DC คร่อมขั้ว + และ − ขณะไม่มีโหลด','A DC ต่ออนุกรมกับแผง','Ω คร่อมขั้ว'],a:1,ex:'Voc = แรงดันขณะวงจรเปิด (ไม่มีกระแสไหล) วัดด้วยย่าน V DC'},
