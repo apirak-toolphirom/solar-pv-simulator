@@ -133,65 +133,109 @@ const B0T=[
 
 {id:'t3',title:'วิธีวัดแรงดันวงจรเปิด (Voc) และกระแสลัดวงจร (Isc)',desc:'ใช้เครื่องมือวัดตรวจสภาพแผงก่อนต่อใช้งาน',task:'วัด Voc และ Isc ได้ถูกวิธี',
  intro:`<ul><li><b>Voc</b> หมุนปุ่มไป <b>V⎓</b> (แรงดัน DC) ใช้สายวัดแดงเสียบช่อง V Ω ดำเสียบ COM จิ้มคร่อมขั้ว + และ − ขณะ <b>ไม่ต่อโหลด</b> ตั้งย่านสูงกว่าค่าที่คาดไว้</li>
- <li><b>Isc</b> ลัดขั้ว + กับ − ผ่าน <b>สวิตช์/เบรกเกอร์ DC</b> แล้วหมุนแคลมป์มิเตอร์ไป <b>A⎓</b> กดตั้งศูนย์ แล้วคล้องปากคีบรอบสายลัด <b>เส้นเดียว</b> ห้ามเสียบสายมิเตอร์ช่อง A ของมัลติมิเตอร์ตรงขั้วแผง (กระแสเกินพิกัด ฟิวส์มิเตอร์ขาด และเกิดอาร์กตอนปลดสาย)</li>
+ <li><b>Isc</b> ต่อสายลัดขั้ว + กับ − ผ่าน <b>สวิตช์/เบรกเกอร์ DC</b> (สวิตช์ OFF) แล้วหมุนแคลมป์มิเตอร์ไป <b>A⎓</b> กดตั้งศูนย์ คล้องปากคีบรอบสาย <b>เส้นเดียว</b> แล้วจึงปิดสวิตช์ (ON) อ่านค่า เปิดสวิตช์ (OFF) ก่อนถอดสายลัด ห้ามเสียบสายมิเตอร์ช่อง A ของมัลติมิเตอร์ตรงขั้วแผง (กระแสเกินพิกัด ฟิวส์มิเตอร์ขาด และเกิดอาร์กตอนปลดสาย)</li>
  <li>จดความเข้มแสงและอุณหภูมิแผงพร้อมกันทุกครั้ง เพราะค่าที่วัดเปลี่ยนตามสองค่านี้ ป้ายแผงบอกค่าที่ STC (1000 W/m², 25 °C)</li></ul>`,
  w(el){
-  /* แคลมป์มิเตอร์ดิจิทัล ปุ่มหมุนเรียงแบบ Fluke 325: วัดกระแสด้วยปากคีบ วัดแรงดัน/โอห์มด้วยสายวัด */
+  /* ฉากลากได้: แผง + สาย +/− ขั้ว MC4 · สายลัดผ่านสวิตช์ DC · แคลมป์มิเตอร์ปุ่มหมุนแบบ Fluke 325 (ลากตัวเครื่องไปคล้องสาย) · ปลายสายวัดแดง/ดำ (ลากไปแตะขั้ว) */
   const POS=[['off','OFF','ปิด'],['adc','A⎓','กระแส DC (ปากคีบ)'],['aac','A~','กระแส AC (ปากคีบ)'],['vdc','V⎓','แรงดัน DC (สายวัด)'],['vac','V~','แรงดัน AC (สายวัด)'],['ohm','Ω •)))','ความต้านทาน / ความต่อเนื่อง'],['cap','⊣⊢','ความจุไฟฟ้า'],['tmp','°C','อุณหภูมิ']];
-  const ang=k=>-120+k*240/(POS.length-1);let pos=4;
-  el.innerHTML=`<p class="hint tight">หมุนปุ่มโดยแตะสัญลักษณ์รอบปุ่ม (หรือกด ◀ ▶) แล้วเลือกวิธีต่อ · ปุ่มหมุนเรียงแบบแคลมป์มิเตอร์ Fluke 325: กระแสวัดด้วยปากคีบเท่านั้น แรงดันและโอห์มวัดด้วยสายวัด</p>
-   <div class="b0cm"><svg viewBox="0 0 260 420" class="b0cmsvg" role="img" aria-label="แคลมป์มิเตอร์ดิจิทัลพร้อมปุ่มหมุน">
-    <path d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#2b3138" stroke-width="26" stroke-linecap="round"/><path d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#e8b923" stroke-width="10" stroke-linecap="round" opacity=".9"/>
-    <rect id="b3gap" x="122" y="-2" width="16" height="22" fill="var(--surface)"/>
-    <g id="b3wire"></g>
-    <rect x="30" y="118" width="200" height="292" rx="26" fill="#e8b923" stroke="#2b3138" stroke-width="3"/><rect x="42" y="128" width="176" height="272" rx="18" fill="#3a4148"/>
-    <rect x="56" y="140" width="148" height="64" rx="8" fill="#b9d8b0" stroke="#1d2a1d" stroke-width="2"/>
-    <text id="b3lcd" x="192" y="186" text-anchor="end" font-family="monospace" font-size="34" font-weight="700" fill="#1d2a1d">0.0</text><text id="b3unit" x="62" y="158" font-family="monospace" font-size="13" fill="#1d2a1d"></text>
-    <g font-family="sans-serif" font-size="11" font-weight="700">${POS.map((p,k)=>{const r=(ang(k)-90)*Math.PI/180,x=130+Math.cos(r)*74,y=300+Math.sin(r)*74;return`<g class="b0dp" data-k="${k}" tabindex="0" role="button" aria-label="${p[2]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17" fill="transparent"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="${p[0]==='off'?'#ff8a80':'#fff'}">${p[1]}</text></g>`}).join('')}</g>
-    <circle cx="130" cy="300" r="46" fill="#22272c" stroke="#111" stroke-width="3"/><g id="b3knob"><circle cx="130" cy="300" r="38" fill="#2f363c" stroke="#555" stroke-width="2"/><rect x="124" y="258" width="12" height="44" rx="5" fill="#e8b923"/><path d="M130 260v10" stroke="#2b3138" stroke-width="3"/></g>
-    <circle cx="96" cy="388" r="7" fill="#d62828" stroke="#111"/><circle cx="164" cy="388" r="7" fill="#111" stroke="#666"/><text x="96" y="372" text-anchor="middle" font-size="9" fill="#fff">V Ω</text><text x="164" y="372" text-anchor="middle" font-size="9" fill="#fff">COM</text>
-   </svg>
-   <div class="b0cmside"><div class="eqact"><button class="chip" id="b3l" type="button" aria-label="หมุนซ้าย">◀ หมุน</button><button class="chip" id="b3r" type="button" aria-label="หมุนขวา">หมุน ▶</button></div>
-    <p class="b0cmpos" id="b3pos"></p>
-    ${b0Sel('b3c','การต่อ',[['open','สายวัดแดง/ดำ จิ้มขั้ว + / − ของแผง (ไม่มีโหลด)'],['short','ลัดขั้วผ่านสวิตช์ DC แล้วคล้องปากคีบที่สายลัด 1 เส้น'],['pair','ลัดขั้วผ่านสวิตช์ DC แล้วคล้องปากคีบรอบสาย + และ − พร้อมกัน'],['probe','จิ้มสายวัดขณะลัดขั้วอยู่']],'open')}
-    ${b0Rng('b3g','ความเข้มแสงขณะวัด (W/m²)',200,1100,50,900)}${b0Rng('b3t','อุณหภูมิแผง (°C)',20,70,1,45,' °C')}
-    <p class="b0msg" id="b3msg"></p><div class="b0done" id="b3d"></div></div></div>`;
-  const st={voc:false,isc:false};
-  const run=()=>{const m=POS[pos][0],cn=el.querySelector('#b3c').value,c=b0Curve(b0V('b3g'),b0V('b3t'));
-   el.querySelector('#b3knob').setAttribute('transform',`rotate(${ang(pos)} 130 300)`);
-   el.querySelectorAll('.b0dp').forEach(g=>g.classList.toggle('on',+g.dataset.k===pos));
-   el.querySelector('#b3pos').innerHTML=`ปุ่มอยู่ที่ <b>${POS[pos][1]}</b> · ${POS[pos][2]}`;
-   const jaw=cn==='short'||cn==='pair';
-   el.querySelector('#b3wire').innerHTML=jaw?(cn==='pair'?'<path d="M112 -10V140M148 -10V140" stroke="#d62828" stroke-width="7"/><path d="M148 -10V140" stroke="#2b3138" stroke-width="7"/><text x="196" y="40" font-size="12" fill="var(--muted)">← สาย + และ −</text>':'<path d="M130 -10V140" stroke="#d62828" stroke-width="7"/><text x="196" y="40" font-size="12" fill="var(--muted)">← สายลัด</text>'):'';
-   el.querySelector('#b3gap').setAttribute('visibility',jaw?'hidden':'visible');
+  const ang=k=>-120+k*240/(POS.length-1),SC=.55,JX=130*SC,JY=70*SC;
+  const TP={pos:[318,372],neg:[318,428]};                       /* MC4 tips: probes touch here */
+  const ZN={red:[95,330,'สาย + (แดง)'],blk:[150,330,'สาย − (ดำ)'],pair:[222,400,'สาย + และ − พร้อมกัน'],sh:[420,346,'สายลัด']};
+  const S={pos:4,mx:560,my:150,pr:[600,520],pb:[690,520],jaw:null,lead:false,sw:false,warn:''};
+  const dial=POS.map((p,k)=>{const r=(ang(k)-90)*Math.PI/180,x=130+Math.cos(r)*74,y=300+Math.sin(r)*74;return`<g class="b0dp" data-k="${k}" tabindex="0" role="button" aria-label="${p[2]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="transparent"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="${p[0]==='off'?'#ff8a80':'#fff'}">${p[1]}</text></g>`}).join('');
+  const mc4=(x,y,col,lab)=>`<rect x="${x-34}" y="${y-9}" width="30" height="18" rx="4" fill="#20252a"/><rect x="${x-6}" y="${y-6}" width="12" height="12" rx="2" fill="#20252a"/><circle cx="${x+6}" cy="${y}" r="3.2" fill="#c9ccd0"/><text x="${x-19}" y="${y+4}" text-anchor="middle" font-size="12" font-weight="700" fill="${col}">${lab}</text>`;
+  el.innerHTML=`<p class="hint tight">ลาก<b>ปลายสายวัดแดง/ดำ</b>ไปแตะขั้ว MC4 เพื่อวัดแรงดัน · ลาก<b>แคลมป์มิเตอร์</b> (จับที่ปากคีบหรือตัวเครื่อง) ไปคล้องสาย เพื่อวัดกระแส · แตะสัญลักษณ์รอบปุ่มเพื่อหมุนย่าน · วัด Isc ต้องต่อสายลัดและปิดสวิตช์ DC</p>
+   <div class="eqact"><button class="chip" id="b3lead" type="button">ต่อสายลัด (ผ่านสวิตช์ DC)</button><button class="chip" id="b3sw" type="button" disabled>สวิตช์ DC: เปิด (OFF)</button><button class="chip" id="b3l" type="button" aria-label="หมุนปุ่มซ้าย">◀ หมุน</button><button class="chip" id="b3r" type="button" aria-label="หมุนปุ่มขวา">หมุน ▶</button><button class="chip" id="b3rs" type="button">วางเครื่องมือที่เดิม</button></div>
+   <div class="b0scn"><svg id="b3svg" viewBox="0 0 760 640" role="img" aria-label="แผงโซลาร์ ขั้ว MC4 สายลัด และแคลมป์มิเตอร์">
+    <g id="b3sun"></g>
+    <g>${B0G.panel(20,60,190,230)}<rect x="96" y="290" width="60" height="22" rx="3" fill="#2b3138"/><text x="126" y="305" text-anchor="middle" font-size="10" fill="#cfd8dc">J-Box</text></g>
+    <path d="M110 312V352Q95 360 95 372V384Q95 394 120 394H200Q210 394 214 394H262Q290 394 290 372H314" fill="none" stroke="#d62828" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M142 312V352Q150 360 150 372V396Q150 406 170 406H262Q290 406 290 428H314" fill="none" stroke="#2b3138" stroke-width="7" stroke-linejoin="round"/>
+    ${mc4(TP.pos[0]+6,TP.pos[1],'#ff8a80','+')}${mc4(TP.neg[0]+6,TP.neg[1],'#cfd8dc','−')}
+    <g id="b3short"></g>
+    <g id="b3zones"></g>
+    <g id="b3m" class="b0drag" transform="translate(${S.mx} ${S.my}) scale(${SC})">
+     <path class="b3grab" d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#2b3138" stroke-width="26" stroke-linecap="round"/><path d="M70 120V70A60 60 0 1 1 190 70V120" fill="none" stroke="#e8b923" stroke-width="10" stroke-linecap="round" pointer-events="none"/>
+     <rect id="b3gap" x="120" y="-4" width="20" height="24" fill="var(--surface)" pointer-events="none"/>
+     <rect class="b3grab" x="30" y="118" width="200" height="292" rx="26" fill="#e8b923" stroke="#2b3138" stroke-width="3"/><rect class="b3grab" x="42" y="128" width="176" height="272" rx="18" fill="#3a4148"/>
+     <rect class="b3grab" x="56" y="140" width="148" height="64" rx="8" fill="#b9d8b0" stroke="#1d2a1d" stroke-width="2"/>
+     <text id="b3lcd" x="192" y="186" text-anchor="end" font-family="monospace" font-size="34" font-weight="700" fill="#1d2a1d" pointer-events="none">0.0</text><text id="b3unit" x="62" y="158" font-family="monospace" font-size="13" fill="#1d2a1d" pointer-events="none"></text>
+     <g font-family="sans-serif" font-size="12" font-weight="700">${dial}</g>
+     <circle cx="130" cy="300" r="46" fill="#22272c" stroke="#111" stroke-width="3" pointer-events="none"/><g id="b3knob" pointer-events="none"><circle cx="130" cy="300" r="38" fill="#2f363c" stroke="#555" stroke-width="2"/><rect x="124" y="258" width="12" height="44" rx="5" fill="#e8b923"/></g>
+     <circle cx="96" cy="388" r="7" fill="#d62828" stroke="#111"/><circle cx="164" cy="388" r="7" fill="#111" stroke="#666"/><text x="96" y="372" text-anchor="middle" font-size="10" fill="#fff">V Ω</text><text x="164" y="372" text-anchor="middle" font-size="10" fill="#fff">COM</text>
+    </g>
+    <g id="b3leads"></g>
+    <g id="b3pr" class="b0drag"></g><g id="b3pb" class="b0drag"></g>
+   </svg></div>
+   <p class="b0cmpos" id="b3pos"></p>
+   ${b0Rng('b3g','ความเข้มแสงขณะวัด (W/m²)',200,1100,50,900)}${b0Rng('b3t','อุณหภูมิแผง (°C)',20,70,1,45,' °C')}
+   <p class="b0msg" id="b3msg"></p><div class="b0done" id="b3d"></div>`;
+  const st={voc:false,isc:false},$q=x=>el.querySelector(x),svg=$q('#b3svg');
+  const probe=(x,y,col)=>`<path d="M${x} ${y}l-5 16h10z" fill="#c9ccd0"/><rect x="${x-7}" y="${y+16}" width="14" height="44" rx="5" fill="${col}" stroke="#111" stroke-width="1.2"/><circle cx="${x}" cy="${y+38}" r="24" fill="transparent"/>`;
+  const near=(p,q,r)=>Math.hypot(p[0]-q[0],p[1]-q[1])<=r;
+  const on=p=>near(p,TP.pos,16)?'pos':near(p,TP.neg,16)?'neg':null;
+  const shortOn=()=>S.lead&&S.sw;
+  function draw(){
+   const g=b0V('b3g');$q('#b3sun').innerHTML=B0G.sun(250,40,22,g/1100);
+   $q('#b3short').innerHTML=S.lead?`<path d="M324 372H380Q392 372 392 360V346H448Q470 346 470 372V382" fill="none" stroke="#d62828" stroke-width="6"/><path d="M324 428H448Q470 428 470 418V410" fill="none" stroke="#2b3138" stroke-width="6"/>
+     <rect id="b3swg" x="446" y="378" width="48" height="36" rx="5" fill="#eceff1" stroke="#455a64" stroke-width="2" style="cursor:pointer"/><path d="M458 396H${S.sw?'482':'478'}" stroke="${S.sw?'#2e7d32':'#e53935'}" stroke-width="5" stroke-linecap="round" transform="${S.sw?'':'rotate(-35 458 396)'}"/><text x="470" y="428" text-anchor="middle" font-size="11" fill="var(--muted)" dy="14">สวิตช์ DC ${S.sw?'ON':'OFF'}</text>`:'';
+   const sw=$q('#b3swg');if(sw)sw.addEventListener('click',toggleSw);
+   $q('#b3zones').innerHTML=Object.keys(ZN).filter(k=>k!=='sh'||S.lead).map(k=>`<circle cx="${ZN[k][0]}" cy="${ZN[k][1]}" r="${S.jaw===k?0:9}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3" opacity=".8"/>`).join('');
+   $q('#b3m').setAttribute('transform',`translate(${S.mx} ${S.my}) scale(${SC})`);$q('#b3gap').setAttribute('visibility',S.jaw?'hidden':'visible');
+   $q('#b3knob').setAttribute('transform',`rotate(${ang(S.pos)} 130 300)`);el.querySelectorAll('.b0dp').forEach(d=>d.classList.toggle('on',+d.dataset.k===S.pos));
+   const jr=[S.mx+96*SC,S.my+388*SC],jb=[S.mx+164*SC,S.my+388*SC];
+   const lead=(j,p,col)=>`<path d="M${j[0]} ${j[1]}C${j[0]} ${j[1]+90} ${p[0]} ${p[1]+150} ${p[0]} ${p[1]+60}" fill="none" stroke="${col}" stroke-width="4"/>`;
+   $q('#b3leads').innerHTML=lead(jr,S.pr,'#d62828')+lead(jb,S.pb,'#2b3138');
+   $q('#b3pr').innerHTML=probe(S.pr[0],S.pr[1],'#d62828');$q('#b3pb').innerHTML=probe(S.pb[0],S.pb[1],'#2b3138');
+   $q('#b3sw').disabled=!S.lead;$q('#b3sw').textContent=`สวิตช์ DC: ${S.sw?'ปิดวงจร (ON)':'เปิด (OFF)'}`;$q('#b3lead').textContent=S.lead?'ถอดสายลัด':'ต่อสายลัด (ผ่านสวิตช์ DC)';
+  }
+  function measure(){
+   const m=POS[S.pos][0],c=b0Curve(b0V('b3g'),b0V('b3t')),r=on(S.pr),k=on(S.pb),sh=shortOn();
    let v='0.0',u='',ok=null,t='';
-   if(m==='off'){v='';u='';t='เครื่องปิดอยู่ หมุนปุ่มไปยังย่านที่ต้องการ'}
-   else if(m==='tmp'){v='--';u='°C';ok=false;t='ย่านอุณหภูมิต้องใช้หัววัดอุณหภูมิ ไม่ใช่การวัดค่าไฟฟ้าของแผง'}
-   else if(m==='cap'){v='OL';u='µF';ok=false;t='ย่านความจุไฟฟ้าใช้กับตัวเก็บประจุที่ปลดไฟแล้ว ห้ามวัดกับแผงที่มีแรงดัน'}
-   else if(cn==='open'){
-    if(m==='vdc'){v=b0f(c.voc,1);u='V⎓';ok=true;st.voc=true;t=`ถูกต้อง: นี่คือ Voc ที่สภาพนี้ (ป้ายบอก ${B0P.Voc} V ที่ STC) แผงร้อนกว่า 25 °C ค่าจึงต่ำกว่าป้าย`}
-    else if(m==='vac'){v='0.0';u='V~';ok=false;t='ตั้งผิดย่าน: แผงให้ไฟ DC ย่าน V~ อ่านค่าไม่ถูก ให้หมุนไป V⎓'}
-    else if(m==='ohm'){v='OL';u='Ω';ok=false;t='อันตราย: ห้ามวัดโอห์มกับแหล่งจ่ายที่มีแรงดัน มิเตอร์อาจเสียหาย'}
-    else{v='0.0';u=m==='adc'?'A⎓':'A~';ok=false;t='ปากคีบไม่ได้คล้องสายที่มีกระแส และวงจรเปิดอยู่จึงไม่มีกระแสไหล'}}
-   else if(cn==='short'){
-    if(m==='adc'){v=b0f(c.isc,1);u='A⎓';ok=true;st.isc=true;t=`ถูกต้อง: นี่คือ Isc ที่สภาพนี้ (ป้ายบอก ${B0P.Isc} A ที่ 1000 W/m²) ก่อนคล้องให้กดปุ่มตั้งศูนย์ย่าน A⎓ และเปิดสวิตช์ DC ก่อนปลดสายลัดทุกครั้ง`}
-    else if(m==='aac'){v='0.0';u='A~';ok=false;t='กระแสจากแผงเป็น DC ย่าน A~ อ่านได้ราว 0 A ให้หมุนไป A⎓'}
-    else{v='0.0';u=m==='vdc'?'V⎓':m==='vac'?'V~':'Ω';ok=false;t='ปากคีบใช้วัดกระแสเท่านั้น ย่านนี้ต้องใช้สายวัด ให้หมุนไป A⎓'}}
-   else if(cn==='pair'){
-    if(m==='adc'||m==='aac'){v='0.0';u=m==='adc'?'A⎓':'A~';ok=false;t='คล้องสาย + และ − พร้อมกัน กระแสไปและกลับหักล้างกันเหลือ 0 A ต้องคล้องสายเส้นเดียว'}
-    else{v='0.0';u='';ok=false;t='ต้องเป็นย่านกระแส (A⎓) และคล้องสายเส้นเดียว'}}
-   else{
-    if(m==='vdc'){v='0.0';u='V⎓';ok=false;t='ขั้วถูกลัดอยู่ แรงดันจึงใกล้ 0 V ถ้าต้องการ Voc ให้เปิดสวิตช์ลัดออกก่อน'}
-    else if(m==='ohm'){v='0.1';u='Ω';ok=false;t='อันตราย: แผงยังจ่ายกระแสอยู่ ห้ามวัดโอห์ม ค่าที่อ่านไม่น่าเชื่อถือและมิเตอร์อาจเสียหาย'}
-    else{v='0.0';u=m==='vac'?'V~':m==='adc'?'A⎓':'A~';ok=false;t='การต่อนี้ไม่ได้วัด Voc หรือ Isc'}}
-   el.querySelector('#b3lcd').textContent=v;el.querySelector('#b3unit').textContent=u;
-   b0Msg(el.querySelector('#b3msg'),ok,t);
-   el.querySelector('#b3d').innerHTML=`<span class="${st.voc?'ok':''}">${st.voc?'✓':'○'} วัด Voc ถูกวิธี</span><span class="${st.isc?'ok':''}">${st.isc?'✓':'○'} วัด Isc ถูกวิธี</span>`;
-   if(st.voc&&st.isc)b0Task('t3',true)};
-  const go=k=>{pos=Math.max(0,Math.min(POS.length-1,k));run()};
-  el.querySelectorAll('.b0dp').forEach(g=>{g.addEventListener('click',()=>go(+g.dataset.k));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go(+g.dataset.k)}})});
-  el.querySelector('#b3l').addEventListener('click',()=>go(pos-1));el.querySelector('#b3r').addEventListener('click',()=>go(pos+1));
-  el.querySelector('#b3c').addEventListener('change',run);
+   if(m==='off'){v='';t='เครื่องปิดอยู่ หมุนปุ่มไปยังย่านที่ต้องการ'}
+   else if(m==='tmp'){v='--';u='°C';ok=false;t='ย่านอุณหภูมิใช้กับหัววัดอุณหภูมิ ไม่ใช่การวัดค่าไฟฟ้าของแผง'}
+   else if(m==='cap'){v='OL';u='µF';ok=false;t='ย่านความจุใช้กับตัวเก็บประจุที่ปลดไฟแล้ว ห้ามวัดกับแผงที่มีแรงดัน'}
+   else if(m==='adc'||m==='aac'){u=m==='adc'?'A⎓':'A~';
+    if(!S.jaw){t='ลากแคลมป์มิเตอร์ไปคล้องสาย (วงกลมประ) ปากคีบจะปิดเมื่อคล้องได้'}
+    else if(S.jaw==='pair'){ok=false;t='คล้องสาย + และ − พร้อมกัน กระแสไปและกลับหักล้างกัน อ่านได้ 0 A ต้องคล้องสายเส้นเดียว'}
+    else if(!sh){ok=false;t=S.lead?'สวิตช์ DC ยังเปิดอยู่ ไม่มีกระแสไหล แตะที่สวิตช์เพื่อปิดวงจร':'วงจรเปิดอยู่ (ไม่มีโหลด) จึงไม่มีกระแส ต่อสายลัดผ่านสวิตช์ DC ก่อน'}
+    else if(m==='aac'){ok=false;t='กระแสจากแผงเป็น DC ย่าน A~ อ่านได้ราว 0 A ให้หมุนไป A⎓'}
+    else{const neg=S.jaw==='blk';v=(neg?'-':'')+b0f(c.isc,1);ok=true;st.isc=true;t=`ถูกต้อง: Isc = ${b0f(c.isc,2)} A ที่สภาพนี้ (ป้าย ${B0P.Isc} A ที่ 1000 W/m²)${neg?' · ค่าติดลบเพราะสาย − กระแสไหลสวนทิศลูกศรบนปากคีบ':''} · เปิดสวิตช์ DC ก่อนถอดสายลัดทุกครั้ง`}
+    if(ok!==true&&!(m==='adc'&&ok===null))v='0.0'}
+   else{u=m==='vdc'?'V⎓':m==='vac'?'V~':'Ω';
+    if(!r||!k||r===k){v=m==='ohm'?'OL':'0.0';t=r&&r===k?'ปลายสายทั้งสองแตะขั้วเดียวกัน ให้แตะคนละขั้ว':'ลากปลายสายวัดแดงไปแตะขั้ว + และสายดำไปแตะขั้ว −'}
+    else if(m==='ohm'){v='OL';ok=false;t='อันตราย: ห้ามวัดโอห์มกับแผงที่มีแรงดัน มิเตอร์อาจเสียหาย'}
+    else if(m==='vac'){v='0.0';ok=false;t='ตั้งผิดย่าน: แผงให้ไฟ DC ย่าน V~ อ่านค่าไม่ถูก ให้หมุนไป V⎓'}
+    else if(sh){v='0.0';ok=false;t='ขั้วถูกลัดผ่านสวิตช์ DC อยู่ แรงดันจึงใกล้ 0 V เปิดสวิตช์ก่อนวัด Voc'}
+    else if(r==='neg'){v='-'+b0f(c.voc,1);ok=false;t='สลับขั้ว: สายแดงแตะขั้ว − ค่าจึงติดลบ ให้สายแดงแตะ + และสายดำแตะ −'}
+    else{v=b0f(c.voc,1);ok=true;st.voc=true;t=`ถูกต้อง: Voc = ${b0f(c.voc,1)} V ที่สภาพนี้ (ป้าย ${B0P.Voc} V ที่ STC) แผงร้อนกว่า 25 °C ค่าจึงต่ำกว่าป้าย`}}
+   if(S.warn){t=S.warn+' · '+t;ok=false}
+   $q('#b3lcd').textContent=v;$q('#b3unit').textContent=u;b0Msg($q('#b3msg'),ok,t);
+   $q('#b3pos').innerHTML=`ปุ่มหมุนอยู่ที่ <b>${POS[S.pos][1]}</b> · ${POS[S.pos][2]}${S.jaw?` · ปากคีบคล้อง<b>${ZN[S.jaw][2]}</b>`:''}`;
+   $q('#b3d').innerHTML=`<span class="${st.voc?'ok':''}">${st.voc?'✓':'○'} วัด Voc ถูกวิธี</span><span class="${st.isc?'ok':''}">${st.isc?'✓':'○'} วัด Isc ถูกวิธี</span>`;
+   if(st.voc&&st.isc)b0Task('t3',true)}
+  const run=()=>{draw();measure()};
+  function toggleSw(){if(!S.lead)return;S.sw=!S.sw;S.warn='';run()}
+  $q('#b3lead').addEventListener('click',()=>{S.warn=S.lead&&S.sw?'อันตราย: ถอดสายลัดขณะสวิตช์ปิดวงจรอยู่ จะเกิดอาร์ก DC ต้องเปิดสวิตช์ DC (OFF) ก่อนถอดทุกครั้ง':'';S.lead=!S.lead;S.sw=false;if(!S.lead&&S.jaw==='sh')S.jaw=null;run()});
+  $q('#b3sw').addEventListener('click',toggleSw);
+  const go=k=>{S.pos=Math.max(0,Math.min(POS.length-1,k));run()};
+  el.querySelectorAll('.b0dp').forEach(d=>{d.addEventListener('pointerdown',e=>e.stopPropagation());d.addEventListener('click',()=>go(+d.dataset.k));d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go(+d.dataset.k)}})});
+  $q('#b3l').addEventListener('click',()=>go(S.pos-1));$q('#b3r').addEventListener('click',()=>go(S.pos+1));
+  $q('#b3rs').addEventListener('click',()=>{Object.assign(S,{mx:560,my:150,pr:[600,520],pb:[690,520],jaw:null,warn:''});run()});
+  /* dragging */
+  const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return[q.x,q.y]};
+  let drag=null;
+  const start=(what,e)=>{e.preventDefault();const p=pt(e);drag={what,dx:what==='m'?p[0]-S.mx:p[0]-S[what][0],dy:what==='m'?p[1]-S.my:p[1]-S[what][1]};S.warn='';if(what==='m')S.jaw=null;try{svg.setPointerCapture(e.pointerId)}catch(_){}};
+  el.querySelectorAll('#b3m .b3grab').forEach(g=>g.addEventListener('pointerdown',e=>start('m',e)));
+  $q('#b3pr').addEventListener('pointerdown',e=>start('pr',e));$q('#b3pb').addEventListener('pointerdown',e=>start('pb',e));
+  svg.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e),x=Math.max(0,Math.min(760,p[0]-drag.dx)),y=Math.max(-20,Math.min(600,p[1]-drag.dy));
+    if(drag.what==='m'){S.mx=Math.min(760-140*SC*2,x);S.my=y}else S[drag.what]=[x,Math.min(y,570)];draw()});
+  const end=()=>{if(!drag)return;const w=drag.what;drag=null;
+    if(w==='m'){const jc=[S.mx+JX,S.my+JY];let best=null,bd=34;Object.keys(ZN).forEach(k=>{if(k==='sh'&&!S.lead)return;const d=Math.hypot(jc[0]-ZN[k][0],jc[1]-ZN[k][1]);if(d<bd){bd=d;best=k}});
+      if(best){S.jaw=best;S.mx=ZN[best][0]-JX;S.my=ZN[best][1]-JY}}
+    else{const dp=Math.hypot(S[w][0]-TP.pos[0],S[w][1]-TP.pos[1]),dn=Math.hypot(S[w][0]-TP.neg[0],S[w][1]-TP.neg[1]),t=Math.min(dp,dn)<=30?(dp<=dn?'pos':'neg'):null;if(t)S[w]=TP[t].slice()}
+    run()};
+  svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);
   b0Bind(el,['b3g','b3t'],run,['',' °C']);
  },
  q:[{q:'ตั้งมิเตอร์และต่ออย่างไรจึงวัด Voc ได้ถูกต้อง',o:['V AC คร่อมขั้วขณะต่ออินเวอร์เตอร์','V DC คร่อมขั้ว + และ − ขณะไม่มีโหลด','A DC ต่ออนุกรมกับแผง','Ω คร่อมขั้ว'],a:1,ex:'Voc = แรงดันขณะวงจรเปิด (ไม่มีกระแสไหล) วัดด้วยย่าน V DC'},
