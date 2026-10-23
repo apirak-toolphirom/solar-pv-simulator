@@ -1,13 +1,18 @@
 /**
- * สร้าง Google Form แบบทดสอบ "แบบฝึกพื้นฐาน 15 หัวข้อ" (คำถามชุดเดียวกับเมนู 00 ในเว็บจำลอง)
+ * สร้าง Google Form แบบทดสอบ "แบบฝึกพื้นฐาน 15 หัวข้อ" (คำถามชุดเดียวกับเมนู 00 ในเว็บจำลอง) แยกเป็น 2 ฟอร์มตามวัน
+ *   วันเสาร์ 24 ต.ค. 69 = หัวข้อ 01–07 · วันอาทิตย์ 25 ต.ค. 69 = หัวข้อ 08–15
  * วิธีใช้:
  *   1) เปิด https://script.google.com → New project → วางโค้ดนี้ทั้งไฟล์ → Save
- *   2) เลือกฟังก์ชัน createSolarQuiz แล้วกด Run (ครั้งแรกจะขอสิทธิ์ Forms/Sheets ให้กดอนุญาต)
+ *   2) เลือกฟังก์ชัน createBothQuizzes (หรือ createSaturdayQuiz / createSundayQuiz ทีละวัน) แล้วกด Run (ครั้งแรกจะขอสิทธิ์ Forms/Sheets ให้กดอนุญาต)
  *   3) ดูลิงก์ฟอร์มที่ View → Logs (Execution log) หรือในไดรฟ์ของคุณ
  * ปรับค่าได้ใน CONFIG ด้านล่าง · รันซ้ำจะได้ฟอร์มใหม่ทุกครั้ง (ฟอร์มเดิมไม่ถูกแก้)
  */
 var CONFIG = {
-  TITLE: 'แบบทดสอบ: เจาะลึกข้อมูลทางเทคนิคเกี่ยวกับระบบผลิตไฟฟ้าพลังงานแสงอาทิตย์ (15 หัวข้อ)',
+  TITLE: 'แบบทดสอบ: เจาะลึกข้อมูลทางเทคนิคเกี่ยวกับระบบผลิตไฟฟ้าพลังงานแสงอาทิตย์',
+  DAYS: [
+    { key: 'sat', label: 'วันเสาร์ 24 ตุลาคม 2569', from: 1, to: 7 },
+    { key: 'sun', label: 'วันอาทิตย์ 25 ตุลาคม 2569', from: 8, to: 15 }
+  ],
   DESCRIPTION: 'หลักสูตรพัฒนาสมรรถนะบุคลากรด้านการผลิตไฟฟ้าพลังงานแสงอาทิตย์ เพื่อประยุกต์ใช้ในครัวเรือน · กิจกรรมที่ 2 อบรมเชิงปฏิบัติการ 24–25 ตุลาคม 2569 ณ มหาวิทยาลัยราชภัฏศรีสะเกษ\n' +
     'ข้อละ 1 คะแนน · ค่าของแผงตัวอย่างในคำถามเป็นค่าสมมติเพื่อการเรียนรู้',
   ONE_PAGE_PER_TOPIC: true,   // true = แยกหน้าตามหัวข้อ 01–15 · false = ทุกข้ออยู่หน้าเดียว
@@ -610,17 +615,31 @@ var TOPICS = [
  }
 ];
 
-function createSolarQuiz() {
-  var form = FormApp.create(CONFIG.TITLE);
-  form.setIsQuiz(true).setDescription(CONFIG.DESCRIPTION).setProgressBar(true)
-      .setCollectEmail(CONFIG.COLLECT_EMAIL).setLimitOneResponsePerUser(CONFIG.ONE_RESPONSE)
+function createSaturdayQuiz() { return buildQuiz_(CONFIG.DAYS[0], null); }
+function createSundayQuiz() { return buildQuiz_(CONFIG.DAYS[1], null); }
+// สร้างทั้ง 2 วัน คำตอบเก็บในชีตเดียวกัน (แยกแท็บต่อวัน)
+function createBothQuizzes() {
+  var ss = CONFIG.LINK_SHEET ? SpreadsheetApp.create(CONFIG.TITLE + ' (คำตอบ 2 วัน)') : null;
+  var out = CONFIG.DAYS.map(function (d) { return buildQuiz_(d, ss); });
+  if (ss) Logger.log('ชีตคำตอบ (2 วัน): ' + ss.getUrl());
+  return out;
+}
+
+function buildQuiz_(day, ss) {
+  var topics = TOPICS.filter(function (t) { return +t.no >= day.from && +t.no <= day.to; });
+  var range = ('0' + day.from).slice(-2) + '–' + ('0' + day.to).slice(-2);
+  var form = FormApp.create(CONFIG.TITLE + ' · ' + day.label + ' (หัวข้อ ' + range + ')');
+  var nq = topics.reduce(function (a, t) { return a + t.q.length; }, 0);
+  form.setIsQuiz(true).setDescription(CONFIG.DESCRIPTION + '\n' + day.label + ' · หัวข้อ ' + range + ' · ' + nq + ' ข้อ ' + nq + ' คะแนน\n' +
+      topics.map(function (t) { return t.no + ' ' + t.title; }).join('\n'))
+      .setProgressBar(true).setCollectEmail(CONFIG.COLLECT_EMAIL).setLimitOneResponsePerUser(CONFIG.ONE_RESPONSE)
       .setShuffleQuestions(false).setConfirmationMessage('ส่งคำตอบแล้ว ขอบคุณครับ/ค่ะ');
   try { form.setPublishingSummary(false); } catch (e) {}
 
   CONFIG.ID_FIELDS.forEach(function (label) { form.addTextItem().setTitle(label).setRequired(true); });
 
   var n = 0;
-  TOPICS.forEach(function (t, ti) {
+  topics.forEach(function (t) {
     if (CONFIG.ONE_PAGE_PER_TOPIC) form.addPageBreakItem().setTitle(t.no + ' ' + t.title).setHelpText(t.desc);
     else form.addSectionHeaderItem().setTitle(t.no + ' ' + t.title).setHelpText(t.desc);
     t.q.forEach(function (q) {
@@ -632,15 +651,14 @@ function createSolarQuiz() {
         .setFeedbackForIncorrect(FormApp.createFeedback().setText('คำตอบที่ถูกคือ "' + q.o[q.a] + '" · ' + q.ex).build());
     });
   });
-
   if (!CONFIG.RELEASE_SCORE_NOW) Logger.log('ตั้งให้ปล่อยคะแนนเอง: ฟอร์ม → การตั้งค่า → แบบทดสอบ → ปล่อยคะแนน "ภายหลัง หลังจากตรวจทานด้วยตนเอง"');
   if (CONFIG.LINK_SHEET) {
-    var ss = SpreadsheetApp.create(CONFIG.TITLE + ' (คำตอบ)');
+    var own = !ss; if (own) ss = SpreadsheetApp.create(form.getTitle() + ' (คำตอบ)');
     form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
-    Logger.log('ชีตคำตอบ: ' + ss.getUrl());
+    if (own) Logger.log('ชีตคำตอบ: ' + ss.getUrl());
   }
-  Logger.log('สร้างแล้ว ' + n + ' ข้อ (' + n + ' คะแนน)');
-  Logger.log('ลิงก์ให้ผู้เรียนตอบ: ' + form.getPublishedUrl());
-  Logger.log('ลิงก์แก้ไขฟอร์ม: ' + form.getEditUrl());
+  Logger.log('[' + day.label + '] หัวข้อ ' + range + ' · ' + n + ' ข้อ (' + n + ' คะแนน)');
+  Logger.log('  ลิงก์ให้ผู้เรียนตอบ: ' + form.getPublishedUrl());
+  Logger.log('  ลิงก์แก้ไขฟอร์ม: ' + form.getEditUrl());
   return form.getPublishedUrl();
 }
