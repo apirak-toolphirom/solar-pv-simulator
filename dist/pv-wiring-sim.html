@@ -733,6 +733,10 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b4sl{cursor:pointer;outline:none}.b4sl:focus-visible>rect:first-child{stroke:var(--accent);stroke-width:2}
 /* menu 00 uses wide simulation scenes */
 body[data-tab="basics"] .wrap{max-width:1280px}
+.b6cc{display:flex;flex-direction:column;gap:10px;margin-top:8px;padding-top:12px;border-top:1px dashed var(--line)}
+.b6h{margin:0;font-size:15px}
+.b6btn{cursor:pointer;outline:none}.b6btn:hover rect,.b6btn:focus-visible rect{fill:#fff4c2}
+.b6cc .eqact{align-items:center}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -6749,10 +6753,10 @@ const B0T=[
   {q:'เมื่อไฟการไฟฟ้าดับ อินเวอร์เตอร์ On-grid ทำอย่างไร',o:['จ่ายไฟต่อให้ทั้งบ้าน','หยุดจ่ายไฟทันที (Anti-islanding)','เพิ่มแรงดันเป็น 400 V','สลับไปชาร์จแบต'],a:1,ex:'ป้องกันไฟย้อนเข้าสายของการไฟฟ้าขณะช่างกำลังซ่อม'},
   {q:'รับ DC 5,000 W ประสิทธิภาพ 97% จะได้ AC ประมาณเท่าใด',o:['5,150 W','4,850 W','3,500 W','5,000 W พอดี'],a:1,ex:'5,000 × 0.97 = 4,850 W อีก 150 W เป็นความร้อน'}]},
 
-{id:'t6',title:'การทำงานของเครื่องควบคุมการชาร์จ (Charger/Controller)',desc:'ชาร์จแบตอย่างปลอดภัย ระบบ PWM / MPPT',
+{id:'t6',title:'การทำงานของเครื่องควบคุมการชาร์จ (Charger/Controller)',desc:'ชาร์จแบตอย่างปลอดภัย ระบบ PWM / MPPT',task:'ตั้งค่า CC / CV / Float ให้เหมาะกับแบต แล้วชาร์จจนเข้า Float',
  intro:`<ul><li><b>PWM</b> เปิด-ปิดสวิตช์ต่อแผงกับแบตตรง ๆ แผงจึงถูกดึงแรงดันลงมาเท่าแบต ใช้ได้ดีเมื่อ Vmp ของแผงใกล้แรงดันชาร์จแบต (แผง "12 V" กับแบต 12 V)</li>
  <li><b>MPPT</b> เป็นตัวแปลง DC-DC ให้แผงทำงานที่ Vmp แล้วแปลงแรงดันส่วนเกินเป็นกระแสชาร์จ ได้พลังงานมากกว่า โดยเฉพาะแผงแรงดันสูง</li>
- <li>ขั้นตอนชาร์จ: Bulk → Absorption → Float · <b>ต่อแบตเข้าคอนโทรลเลอร์ก่อน แล้วจึงต่อแผง</b> (ถอดกลับลำดับ) เพื่อให้คอนโทรลเลอร์รู้แรงดันระบบ</li></ul>`,
+ <li>ขั้นตอนชาร์จ: <b>CC (Bulk)</b> จ่ายกระแสคงที่ตามที่ตั้ง แรงดันแบตค่อย ๆ ขึ้น → <b>CV (Absorption)</b> คุมแรงดันคงที่ กระแสลดลงเรื่อย ๆ → <b>Float</b> ลดแรงดันลงเลี้ยงแบตเต็ม · <b>ต่อแบตเข้าคอนโทรลเลอร์ก่อน แล้วจึงต่อแผง</b> (ถอดกลับลำดับ) เพื่อให้คอนโทรลเลอร์รู้แรงดันระบบ</li></ul>`,
  w(el){
   el.innerHTML=`<p class="hint tight">ใช้แผงตัวอย่าง 1 แผง (Vmp ${B0P.Vmp} V) · ตัวควบคุมรับกระแสชาร์จสูงสุด 40 A</p>${b0Sel('b6b','แบตเตอรี่',[['12','12 V (ชาร์จ ~13.8 V)'],['24','24 V (ชาร์จ ~27.6 V)'],['48','48 V (ชาร์จ ~55.2 V)']],'12')}${b0Rng('b6g','ความเข้มแสง (W/m²)',200,1100,50,1000)}<div id="b6o"></div>`;
   const run=()=>{const vb={12:13.8,24:27.6,48:55.2}[el.querySelector('#b6b').value],c=b0Curve(b0V('b6g'),45);
@@ -6764,6 +6768,7 @@ const B0T=[
     <tr><td>ใช้กำลังแผงได้</td><td>${b0f(pwmP/c.mp.P*100,0)} %</td><td>${b0f(mpP/c.mp.P*100,0)} %</td></tr></table>
     <p class="hint tight">${pwmI===0?'แรงดันชาร์จสูงกว่า Voc ของแผงเดียว PWM จึงชาร์จไม่ได้เลย ต้องต่อแผงอนุกรมเพิ่มหรือใช้ MPPT ที่รองรับ':'PWM ดึงแผงลงมาเท่าแรงดันแบต กระแสไม่เพิ่มตาม ส่วน MPPT แปลงแรงดันส่วนเกินเป็นกระแส'} (อุณหภูมิแผง 45 °C)</p>`};
   el.querySelector('#b6b').addEventListener('change',run);b0Bind(el,['b6g'],run);
+  const box=document.createElement('div');box.className='b6cc';el.append(box);b0ChgSim(box);
  },
  q:[{q:'ข้อดีหลักของ MPPT เมื่อเทียบกับ PWM คืออะไร',o:['ราคาถูกกว่าเสมอ','ให้แผงทำงานที่ Vmp และแปลงแรงดันส่วนเกินเป็นกระแสชาร์จ ได้พลังงานมากกว่า','ไม่ต้องต่อแบต','ใช้ได้เฉพาะไฟ AC'],a:1,ex:'ยิ่ง Vmp ของแผงสูงกว่าแรงดันแบตมาก MPPT ยิ่งได้เปรียบ'},
   {q:'ใช้ PWM กับแบต 12 V และแผง Vmp 41.8 V จะใช้กำลังแผงได้ราวเท่าใด',o:['เกือบ 100%','ราว 1/3','ราว 2 เท่า','ใช้ไม่ได้เลย'],a:1,ex:'แผงถูกดึงลงที่ ~13.8 V กระแสใกล้ Isc กำลังจึงเหลือราว 13.8 × 14 ≈ 190 W จาก 550 W'},
@@ -6972,6 +6977,106 @@ const B0T=[
   {q:'แผงผลิตไฟได้มากที่สุดเมื่อแสงตกกระทบแผงในลักษณะใด',o:['ขนานกับผิวแผง','ตั้งฉากกับผิวแผง (มุมตกกระทบ 0°)','เอียง 45° กับผิวแผงเสมอ','ไม่ขึ้นกับมุม'],a:1,ex:'แสงที่ตกบนแผงแปรตาม cos(มุมตกกระทบ)'},
   {q:'บ้านในประเทศไทย หลังคาทิศใต้ มุมเอียงแผงที่นิยมเพื่อพลังงานทั้งปีคือ',o:['ราว 10–15°','ราว 45°','ราว 70°','วางราบ 0° ดีที่สุดเสมอ'],a:0,ex:'ใกล้ค่าละติจูดและยังพอให้ฝนชะล้างฝุ่นได้'}]}
 ];
+
+
+/* ---- หัวข้อ 06: จำลองชาร์จคอนโทรลเลอร์ MPPT ตั้งค่าผ่านปุ่ม MENU ▲ ▼ OK แล้วดูขั้น CC → CV → Float ---- */
+const B6T={lfp:{n:'LiFePO4',ocv0:12.0,ocv1:13.45,R:.018,rec:{cv:14.2,fl:13.5,cvt:30},max:{cv:14.6,fl:13.8,c:.5},min:{cv:13.8,fl:13.2}},
+  pb:{n:'ตะกั่วกรด (AGM)',ocv0:11.9,ocv1:12.75,R:.03,rec:{cv:14.4,fl:13.6,cvt:120},max:{cv:14.8,fl:13.8,c:.25},min:{cv:14.1,fl:13.2}}};
+function b0ChgSim(el){
+  const S={type:'lfp',sys:12,imax:10,cv:14.2,cvt:30,fl:13.5,ah:100,soc0:20,pan:2,g:850,menu:-1,t:0,play:0,edited:false,seen:false};
+  const M=[['type','ชนิดแบต'],['sys','แรงดันระบบ'],['ah','ความจุแบต'],['imax','กระแสชาร์จสูงสุด (CC)'],['cv','แรงดัน CV (Absorption)'],['cvt','เวลา CV'],['fl','แรงดัน Float']];
+  const k=()=>S.sys/12,fmt=(key)=>key==='type'?B6T[S.type].n:key==='sys'?S.sys+' V':key==='ah'?S.ah+' Ah':key==='imax'?S.imax+' A':key==='cvt'?S.cvt+' นาที':b0f(S[key]*k(),1)+' V';
+  const rec=()=>{const r=B6T[S.type].rec;S.cv=r.cv;S.fl=r.fl;S.cvt=r.cvt;S.imax=Math.min(60,Math.round(S.ah*(S.type==='lfp'?.3:.15)/5)*5||5)};
+  const step=(key,d)=>{if(key==='type'){S.type=S.type==='lfp'?'pb':'lfp';rec()}else if(key==='sys'){const a=[12,24,48];S.sys=a[(a.indexOf(S.sys)+d+3)%3]}
+    else if(key==='ah')S.ah=Math.max(50,Math.min(400,S.ah+50*d));else if(key==='imax')S.imax=Math.max(5,Math.min(60,S.imax+5*d));
+    else if(key==='cvt')S.cvt=Math.max(0,Math.min(240,S.cvt+15*d));else S[key]=Math.round((S[key]+.1*d)*10)/10};
+  /* checks against the battery type */
+  const checks=()=>{const T=B6T[S.type],c=S.imax/S.ah,out=[];
+    if(S.cv>T.max.cv)out.push(['err',`CV ${b0f(S.cv*k(),1)} V สูงเกินสำหรับ ${T.n} (ไม่ควรเกิน ${b0f(T.max.cv*k(),1)} V) ชาร์จเกิน แบตเสื่อม${S.type==='lfp'?' BMS อาจตัด':' เดือด/บวม'}`]);
+    else if(S.cv<T.min.cv)out.push(['warn',`CV ${b0f(S.cv*k(),1)} V ต่ำไป แบตจะชาร์จไม่เต็ม`]);
+    if(S.fl>=S.cv)out.push(['err','Float ต้องต่ำกว่า CV']);else if(S.fl>T.max.fl)out.push(['warn',`Float ${b0f(S.fl*k(),1)} V สูงไป แบตถูกชาร์จค้างตลอดเวลา`]);else if(S.fl<T.min.fl)out.push(['warn',`Float ${b0f(S.fl*k(),1)} V ต่ำไป แบตจะคายประจุเองช้า ๆ`]);
+    if(c>T.max.c)out.push(['err',`กระแส ${S.imax} A = ${b0f(c,2)}C เกินที่แนะนำ (${T.max.c}C = ${b0f(T.max.c*S.ah,0)} A) แบตร้อน อายุสั้น`]);
+    if(S.type==='pb'&&S.cvt<60)out.push(['warn','ตะกั่วกรดต้องการเวลา CV นานพอ (ราว 1–3 ชม.) จึงเต็มจริง']);
+    return out};
+  /* time simulation, 1-minute steps over 8 h */
+  const sim=()=>{const T=B6T[S.type],n=k(),Ah=S.ah,R=T.R*n*(100/Ah),c=b0Curve(S.g,45),ppv=c.mp.P*S.pan*.97;
+    let soc=S.soc0/100,st='cc',cvm=0;const out=[];
+    for(let m=0;m<=480;m++){
+      const ocv=(T.ocv0+(T.ocv1-T.ocv0)*(S.type==='pb'?Math.pow(soc,.8):(.15+.7*soc+.15*Math.pow(soc,8))))*n;
+      const Rr=R*(S.type==='pb'?1+6*Math.pow(soc,6):1+3*Math.pow(soc,10));
+      let I,V;const cvV=S.cv*n,flV=S.fl*n;
+      if(st==='cc'){I=Math.min(S.imax,ppv/Math.max(1,ocv));V=ocv+I*Rr;if(V>=cvV){st='cv';V=cvV;I=Math.max(0,(cvV-ocv)/Rr)}}
+      else if(st==='cv'){V=cvV;I=Math.max(0,Math.min(S.imax,ppv/cvV,(cvV-ocv)/Rr));cvm++;if(cvm>=S.cvt||I<Ah*.02)st='fl'}
+      if(st==='fl'){V=flV;I=Math.max(0,Math.min(S.imax,ppv/flV,(flV-ocv)/Rr))}
+      if(V<ocv)V=ocv;out.push({m,st,V,I,soc,P:V*I});
+      soc=Math.min(1,soc+I/60/Ah*(S.type==='pb'?.9:.99));
+    }
+    return{out,ppv}};
+  const SC={cc:['CC (Bulk)','#ffe2b8'],cv:['CV (Absorption)','#d7ecff'],fl:['Float','#d9f2df']};
+  el.innerHTML=`<h3 class="b6h">ตั้งค่าชาร์จคอนโทรลเลอร์ และขั้นตอนชาร์จ CC → CV → Float</h3>
+   <p class="hint tight">กด <b>MENU</b> บนเครื่องเพื่อเข้าตั้งค่า กด MENU ซ้ำเพื่อไปหัวข้อถัดไป ใช้ <b>▲ ▼</b> ปรับค่า กด <b>OK</b> เพื่อบันทึกและกลับหน้าหลัก จากนั้นกด ▶ เพื่อดูการชาร์จตามเวลา</p>
+   <div class="eqact"><button class="chip" id="b6rec" type="button">ใช้ค่าแนะนำของแบตชนิดนี้</button><button class="chip" id="b6play" type="button">▶ เล่นการชาร์จ</button><button class="chip" id="b6rst" type="button">⟲ เริ่มใหม่</button>
+    ${b0Sel('b6pan','แผง',[['1','1 แผง'],['2','2 แผง'],['3','3 แผง'],['4','4 แผง']],'2')}${b0Sel('b6soc','SOC เริ่มต้น',[['10','10%'],['20','20%'],['50','50%'],['80','80%']],'20')}${b0Sel('b6sun','แสง',[['400','400 W/m²'],['650','650 W/m²'],['850','850 W/m²'],['1000','1000 W/m²']],'850')}</div>
+   <div class="b0scn"><svg id="b6svg" viewBox="0 0 1100 470" role="img" aria-label="ชาร์จคอนโทรลเลอร์ แบตเตอรี่ และกราฟการชาร์จ"><g id="b6ch"></g><g id="b6dev"></g></svg></div>
+   <div id="b6ck"></div><p class="b0msg" id="b6msg"></p>`;
+  const $q=x=>el.querySelector(x),svg=$q('#b6svg');let R=sim();
+  const at=()=>R.out[Math.min(R.out.length-1,Math.round(S.t))];
+  function chart(){
+    const X0=48,X1=520,Y0=30,Y1=380,o=R.out,n=k(),vmin=Math.floor(11*n),vmax=Math.ceil(15.2*n),imx=Math.max(10,Math.ceil(S.imax/10)*10);
+    const X=m=>X0+m/480*(X1-X0),YV=v=>Y1-(v-vmin)/(vmax-vmin)*(Y1-Y0),YI=i=>Y1-i/imx*(Y1-Y0),YS=sc=>Y1-sc*(Y1-Y0);
+    let g=`<rect x="6" y="4" width="570" height="440" rx="10" fill="var(--surface)" stroke="var(--line)"/>`;
+    let a=0;for(let m=1;m<=o.length;m++){if(m===o.length||o[m].st!==o[a].st){g+=`<rect x="${X(a)}" y="${Y0}" width="${(X(m-1)-X(a)).toFixed(1)}" height="${Y1-Y0}" fill="${SC[o[a].st][1]}" opacity=".8"/>`;{const w=X(m-1)-X(a);if(w>14)g+=`<text x="${((X(a)+X(m-1))/2).toFixed(1)}" y="${Y0+16}" text-anchor="middle" font-size="12" font-weight="700" fill="#37474f">${w>110?SC[o[a].st][0]:o[a].st==='fl'?'Float':o[a].st.toUpperCase()}</text>`}a=m}}
+    for(let h=0;h<=8;h++)g+=`<line x1="${X(h*60)}" x2="${X(h*60)}" y1="${Y0}" y2="${Y1}" class="b0grid"/><text x="${X(h*60)}" y="${Y1+16}" text-anchor="middle" class="b0ax">${h}</text>`;
+    for(let q=0;q<=4;q++){const y=Y0+(Y1-Y0)*q/4;g+=`<text x="${X0-6}" y="${y+4}" text-anchor="end" class="b0ax">${b0f(vmax-(vmax-vmin)*q/4,1)}</text><text x="${X1+6}" y="${y+4}" class="b0ax">${b0f(imx*(4-q)/4,0)}</text>`}
+    g+=`<text x="${(X0+X1)/2}" y="${Y1+34}" text-anchor="middle" class="b0ax">เวลา (ชั่วโมง)</text><text x="14" y="${(Y0+Y1)/2}" class="b0ax" transform="rotate(-90 14 ${(Y0+Y1)/2})" text-anchor="middle">แรงดันแบต (V)</text><text x="566" y="${(Y0+Y1)/2}" class="b0ax" transform="rotate(90 566 ${(Y0+Y1)/2})" text-anchor="middle">กระแสชาร์จ (A) · SOC</text>`;
+    const pl=(f,col,d)=>`<polyline fill="none" stroke="${col}" stroke-width="2.6" ${d?'stroke-dasharray="6 4"':''} points="${o.map(p=>X(p.m).toFixed(1)+','+f(p).toFixed(1)).join(' ')}"/>`;
+    g+=`<line x1="${X0}" x2="${X1}" y1="${YV(S.cv*n)}" y2="${YV(S.cv*n)}" stroke="#1565c0" stroke-dasharray="2 3"/><text x="${X0+4}" y="${YV(S.cv*n)-4}" font-size="10" fill="#1565c0">CV ${b0f(S.cv*n,1)} V</text>`;
+    g+=`<line x1="${X0}" x2="${X1}" y1="${YV(S.fl*n)}" y2="${YV(S.fl*n)}" stroke="#2e7d32" stroke-dasharray="2 3"/><text x="${X0+4}" y="${YV(S.fl*n)+12}" font-size="10" fill="#2e7d32">Float ${b0f(S.fl*n,1)} V</text>`;
+    g+=pl(p=>YV(Math.max(vmin,Math.min(vmax,p.V))),'var(--s1)')+pl(p=>YI(Math.min(imx,p.I)),'var(--s2)',1)+pl(p=>YS(p.soc),'#43a047');
+    const c=at(),cx=X(c.m);g+=`<line x1="${cx}" x2="${cx}" y1="${Y0}" y2="${Y1}" stroke="var(--ink)" stroke-width="1.5"/><circle cx="${cx}" cy="${YV(Math.max(vmin,Math.min(vmax,c.V)))}" r="5" fill="var(--s1)"/><circle cx="${cx}" cy="${YI(Math.min(imx,c.I))}" r="5" fill="var(--s2)"/>`;
+    g+=`<g transform="translate(${X0+6} ${Y1-58})" font-size="11"><rect x="-4" y="-12" width="250" height="20" rx="4" fill="var(--surface)" opacity=".85"/><line x1="0" x2="18" y1="-2" y2="-2" stroke="var(--s1)" stroke-width="3"/><text x="22" y="2">แรงดัน</text><line x1="70" x2="88" y1="-2" y2="-2" stroke="var(--s2)" stroke-width="3" stroke-dasharray="5 3"/><text x="92" y="2">กระแส</text><line x1="140" x2="158" y1="-2" y2="-2" stroke="#43a047" stroke-width="3"/><text x="162" y="2">SOC (0–100%)</text></g>`;
+    g+=`<rect id="b6track" x="${X0}" y="${Y0}" width="${X1-X0}" height="${Y1-Y0}" fill="transparent" style="cursor:ew-resize"/>`;
+    $q('#b6ch').innerHTML=g}
+  function device(){
+    const c=at(),n=k(),T=B6T[S.type],lcd=S.menu<0?[`${SC[c.st][0]}`,`BAT ${b0f(c.V,1)} V  ${b0f(c.I,1)} A`,`SOC ${b0f(c.soc*100,0)}%  PV ${b0f(R.ppv,0)} W`,`เวลา ${Math.floor(c.m/60)}:${String(c.m%60).padStart(2,'0')} ชม.`]
+      :[`ตั้งค่า ${S.menu+1}/${M.length}`,M[S.menu][1],`▲▼  ${fmt(M[S.menu][0])}`,'MENU = ถัดไป · OK = บันทึก'];
+    const flow=c.I>0.2,sun=B0G.sun(640,52,22,S.g/1000);
+    let g=`${sun}${B0G.panel(686,40,70,96)}${S.pan>1?B0G.panel(762,40,70,96):''}${S.pan>2?B0G.panel(838,40,70,96):''}${S.pan>3?B0G.panel(914,40,70,96):''}
+     <path d="M720 136V170H780" fill="none" stroke="#d62828" stroke-width="5" ${R.ppv>0?'stroke-dasharray="8 6"':''}/><path d="M734 136V160H780" fill="none" stroke="#2b3138" stroke-width="5"/><text x="660" y="190" font-size="11" fill="var(--muted)">PV ${b0f(R.ppv,0)} W</text>
+     <rect x="780" y="140" width="210" height="226" rx="14" fill="#1f3b5a" stroke="#0f2236" stroke-width="3"/><text x="885" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="#cfe3f7">MPPT CHARGE CONTROLLER</text>
+     <rect x="796" y="168" width="178" height="92" rx="6" fill="#3a8be0" stroke="#0f2236" stroke-width="2"/>
+     ${lcd.map((l,i)=>`<text x="806" y="${188+i*21}" font-size="${i?12.5:14}" font-weight="${i?500:700}" font-family="monospace" fill="#fff">${esc(l)}</text>`).join('')}
+     <circle cx="808" cy="276" r="6" fill="${c.st!=='fl'&&flow?'#66ff8a':'#3b4b5c'}"/><text x="818" y="280" font-size="10" fill="#cfe3f7">CHG</text><circle cx="860" cy="276" r="6" fill="${c.st==='fl'?'#66ff8a':'#3b4b5c'}"/><text x="870" y="280" font-size="10" fill="#cfe3f7">FLOAT</text>
+     ${[['MENU',812],['▲',864],['▼',912],['OK',958]].map(([t,x])=>`<g class="b6btn" data-b="${t}" role="button" tabindex="0" aria-label="ปุ่ม ${t}"><rect x="${x-22}" y="298" width="44" height="34" rx="8" fill="#e8eef4" stroke="#0f2236" stroke-width="2"/><text x="${x}" y="320" text-anchor="middle" font-size="${t.length>2?11:15}" font-weight="700" fill="#0f2236">${t}</text></g>`).join('')}
+     <text x="885" y="356" text-anchor="middle" font-size="10" fill="#9fb8d1">PV ⎓ · BAT ⎓ · LOAD</text>
+     <path d="M870 366V392H900" fill="none" stroke="#d62828" stroke-width="5" ${flow?'stroke-dasharray="8 6"':''}/><path d="M900 366V384H920" fill="none" stroke="#2b3138" stroke-width="5"/>
+     ${B0G.battery(920,350,120,100,c.soc,c.soc>.8?'#43c46b':c.soc>.4?'#f0c330':'#ef6c4c')}<text x="980" y="412" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">${b0f(c.soc*100,0)}%</text>
+     <text x="980" y="466" text-anchor="middle" font-size="11" fill="var(--muted)">${T.n} ${S.sys} V ${S.ah} Ah</text>`;
+    $q('#b6dev').innerHTML=g}
+  function report(){
+    const ck=checks(),o=R.out,fl=o.find(p=>p.st==='fl'),cv=o.find(p=>p.st==='cv'),n=k();
+    $q('#b6ck').innerHTML=`<ul class="checks">${(ck.length?ck:[['ok',`ค่าที่ตั้งเหมาะกับ ${B6T[S.type].n}: CC ${S.imax} A (${b0f(S.imax/S.ah,2)}C) · CV ${b0f(S.cv*n,1)} V · Float ${b0f(S.fl*n,1)} V`]]).map(([l,t])=>`<li><span class="b ${l}">${l==='ok'?'✓':l==='warn'?'!':'✗'}</span><span>${esc(t)}</span></li>`).join('')}</ul>`;
+    const good=!ck.some(c=>c[0]==='err')&&!!fl,ok=good&&S.edited&&S.seen,txt=!cv?`ใน 8 ชม. ยังไม่ถึง CV (PV ${b0f(R.ppv,0)} W ไม่พอ หรือกระแสตั้งไว้ต่ำ) ลองเพิ่มแผง แสง หรือกระแส`:
+      !fl?`เข้า CV ที่ ${(cv.m/60).toFixed(1)} ชม. แต่ยังไม่เข้า Float ใน 8 ชม.`:`เข้า CV ที่ ${(cv.m/60).toFixed(1)} ชม. (SOC ${b0f(cv.soc*100,0)}%) และเข้า Float ที่ ${(fl.m/60).toFixed(1)} ชม. (SOC ${b0f(fl.soc*100,0)}%)`;
+    b0Msg($q('#b6msg'),ok?true:ck.some(c=>c[0]==='err')?false:null,txt+(ok?' · ภารกิจสำเร็จ':ck.some(c=>c[0]==='err')?' · แก้ค่าที่ผิดก่อน ภารกิจจึงผ่าน':!S.edited?' · ภารกิจ: ตั้งค่าผ่านปุ่ม MENU ▲ ▼ แล้วกด OK':good&&!S.seen?' · กด ▶ เล่นการชาร์จให้ถึงช่วง Float':''));
+    if(ok)b0Task('t6',true)}
+  const all=()=>{R=sim();chart();device();report()};
+  const resetSeen=()=>{S.seen=false};
+  const view=()=>{chart();device();const o=R.out.find(p=>p.st==='fl');if(o&&S.t>=o.m&&!S.seen){S.seen=true;report()}};
+  const press=b=>{if(b==='MENU'){S.menu=(S.menu+1)%M.length}else if(b==='OK'){if(S.menu>=0&&S.dirty)S.edited=true;S.dirty=false;S.menu=-1;S.t=0;S.seen=false;all();return}else if(S.menu>=0){step(M[S.menu][0],b==='▲'?1:-1);S.dirty=true;S.t=0;S.seen=false;all();return}view()};
+  svg.addEventListener('click',e=>{const g=e.target.closest('.b6btn');if(g)press(g.dataset.b)});
+  svg.addEventListener('keydown',e=>{const g=e.target.closest('.b6btn');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();press(g.dataset.b);const n=svg.querySelector(`.b6btn[data-b="${g.dataset.b}"]`);if(n)n.focus()}});
+  const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
+  let scrub=false;const scrubTo=e=>{const x=pt(e).x;S.t=Math.max(0,Math.min(480,(x-48)/(520-48)*480));view()};
+  svg.addEventListener('pointerdown',e=>{if(e.target.id!=='b6track')return;scrub=true;try{svg.setPointerCapture(e.pointerId)}catch(_){}scrubTo(e)});
+  svg.addEventListener('pointermove',e=>{if(scrub)scrubTo(e)});svg.addEventListener('pointerup',()=>{scrub=false});
+  const tick=()=>{if(!S.play)return;S.t+=3;if(S.t>=480){S.t=480;S.play=0;$q('#b6play').textContent='▶ เล่นการชาร์จ'}view();if(S.play)S.play=requestAnimationFrame(tick)};
+  $q('#b6play').addEventListener('click',()=>{if(S.play){cancelAnimationFrame(S.play);S.play=0;$q('#b6play').textContent='▶ เล่นการชาร์จ';return}if(S.t>=480)S.t=0;S.menu=-1;$q('#b6play').textContent='⏸ หยุด';S.play=requestAnimationFrame(tick)});
+  $q('#b6rst').addEventListener('click',()=>{S.t=0;view()});
+  $q('#b6rec').addEventListener('click',()=>{rec();S.edited=true;S.t=0;S.seen=false;all()});
+  [['b6pan','pan'],['b6soc','soc0'],['b6sun','g']].forEach(([id,key])=>$q('#'+id).addEventListener('change',e=>{S[key]=+e.target.value;S.t=0;S.seen=false;all()}));
+  all();
+}
 
 /* ---- state ----
    B0.ans[id][i] = คำตอบที่ "ส่ง" แล้ว (ไม่ใช่ตัวที่กำลังเลือก) · B0.tries[id] = จำนวนครั้งที่ส่ง

@@ -727,3 +727,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b4sl{cursor:pointer;outline:none}.b4sl:focus-visible>rect:first-child{stroke:var(--accent);stroke-width:2}
 /* menu 00 uses wide simulation scenes */
 body[data-tab="basics"] .wrap{max-width:1280px}
+.b6cc{display:flex;flex-direction:column;gap:10px;margin-top:8px;padding-top:12px;border-top:1px dashed var(--line)}
+.b6h{margin:0;font-size:15px}
+.b6btn{cursor:pointer;outline:none}.b6btn:hover rect,.b6btn:focus-visible rect{fill:#fff4c2}
+.b6cc .eqact{align-items:center}
