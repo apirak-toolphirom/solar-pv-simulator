@@ -3,20 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="8a28406d8e">
+<meta name="build" content="e8bd6441b7">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='8a28406d8e'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='e8bd6441b7'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=b7ba676c">
+<link rel="stylesheet" href="css/styles.css?v=7f9a1909">
 </head>
 <body>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
+    <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
     <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
     <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
     <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
@@ -33,6 +34,14 @@ if(m&&m[1]!=='8a28406d8e'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   </nav>
   <main class="main"><div class="wrap">
   <section class="accbar" id="accbar" hidden></section>
+
+  <section class="tab" id="tab-basics" hidden>
+    <header><h1>แบบฝึกพื้นฐาน</h1><p class="sub">15 หัวข้อพื้นฐานระบบผลิตไฟฟ้าพลังงานแสงอาทิตย์ แตะหัวข้อเพื่อเปิด อ่านสรุป ลองแบบจำลอง แล้วตอบคำถาม ใช้แผงตัวอย่างของเมนูนี้เอง ไม่เกี่ยวกับอุปกรณ์ที่เลือกในเมนู 01–10</p></header>
+    <div class="panelbox b0head"><div id="b0prog" class="b0prog"></div><div class="eqact"><button class="chip" id="b0exp">เปิดทุกหัวข้อ</button><button class="chip" id="b0col">ปิดทุกหัวข้อ</button><button class="chip" id="b0reset">ล้างคำตอบแบบฝึก 00</button></div>
+      <p class="hint tight">หัวข้อจะ "ผ่าน" เมื่อตอบคำถามถูกทุกข้อ และทำภารกิจในแบบจำลองสำเร็จ (ถ้ามี) คำตอบบันทึกไปกับโปรเจ็คอัตโนมัติ ส่งผลได้ที่เมนู 11 ใบงาน W00</p></div>
+    <div id="b0list" class="b0list"></div>
+    <p class="hint">ค่าของแผงตัวอย่างเป็นค่าสมมติเพื่อการเรียนรู้ ตัวเลขในแบบจำลองเป็นการประมาณ งานจริงให้ตรวจกับดาต้าชีต มาตรฐาน และผู้ได้รับอนุญาตทุกครั้ง</p>
+  </section>
 
   <section class="tab" id="tab-equip" hidden>
     <header><h1>อุปกรณ์</h1><p class="sub">เลือกรุ่นแผง อินเวอร์เตอร์ และแบตที่ใช้จำลอง รุ่นที่เลือกจะถูกใช้ในทุกแท็บ การเพิ่ม แก้ไข ลบ และนำเข้ารุ่นทำได้เฉพาะผู้สอน</p></header>
@@ -535,10 +544,11 @@ if(m&&m[1]!=='8a28406d8e'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/events.js?v=50b85166"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
 <script src="js/benchui.js?v=266c0de5"></script>
+<script src="js/basics.js?v=c29d2efa"></script>
 <script src="js/submit.js?v=9c033448"></script>
-<script src="js/worksheets.js?v=1caf6898"></script>
-<script src="js/access.js?v=8f712e15"></script>
-<script src="js/ctx.js?v=c2d1f26b"></script>
-<script src="js/app.js?v=1b53cfa9"></script>
+<script src="js/worksheets.js?v=08f14f14"></script>
+<script src="js/access.js?v=dc054e3f"></script>
+<script src="js/ctx.js?v=2f7b3e6c"></script>
+<script src="js/app.js?v=6f6dfa0f"></script>
 </body>
 </html>

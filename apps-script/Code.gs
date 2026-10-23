@@ -21,6 +21,7 @@ var HEADERS = ['เวลาที่รับ', 'รหัสใบส่งง
 var WS_SHEET = 'ใบงาน';
 var WS_HEAD = ['รหัส', 'ชื่อใบงาน', 'เมนู', 'เปิดวันที่', 'ปิดวันที่', 'สถานะ', 'เกณฑ์', 'คำถาม', 'ภาพ'];
 var WS_DEF = [
+  ['W00', 'แบบฝึกพื้นฐาน 15 หัวข้อ', 'basics', '', '', 'ปิด', 'basics_done>=15', '', 'none'],
   ['W1', 'อุปกรณ์และต่อสาย DC', 'equip,wiring', '', '', 'ปิด', 'dc_pass;panels>=8;dcac=0.9-1.5', 'ทำไมต่ออนุกรมเกินจำนวนที่ระบบแนะนำไม่ได้|ต่อขนานกับต่ออนุกรมให้แรงดันและกระแสต่างกันอย่างไร', 'dc'],
   ['W2', 'ต่อสาย AC และพอร์ตอินเวอร์เตอร์', 'ac', '', '', 'ปิด', 'ac_pass', 'ทำไมห้ามต่อพอร์ต BACKUP เข้าตู้เมนที่มีไฟกริด', 'ac'],
   ['W3', 'กำลังผลิตและเงา', 'pv,site', '', '', 'ปิด', 'pv_sim;site_pv;site_on;shade<=15', 'แผงของคุณถูกบังช่วงเวลาไหน เพราะอะไร และจะแก้อย่างไร', 'site'],
@@ -39,6 +40,11 @@ function wsSheet_() {
     sh.setFrozenRows(1);
     sh.getRange(2, 4, WS_DEF.length, 2).setNumberFormat('yyyy-mm-dd');
     sh.getRange(2, 6, 50, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['auto', 'เปิด', 'ปิด'], true).build());
+  } else {
+    // ใบงานใหม่ที่เพิ่มในโค้ดภายหลัง (เช่น W00) ถูกเพิ่มต่อท้ายถ้ายังไม่มีในแผ่น · ใบงานที่ผู้สอนลบเองจะไม่ถูกเพิ่มกลับ ยกเว้น W00 ครั้งแรก
+    var n = sh.getLastRow() - 1, have = n > 0 ? sh.getRange(2, 1, n, 1).getValues().map(function (r) { return String(r[0]).trim(); }) : [];
+    var p = PropertiesService.getScriptProperties();
+    if (have.indexOf('W00') < 0 && p.getProperty('WS_W00_ADDED') !== '1') { sh.appendRow(WS_DEF[0]); p.setProperty('WS_W00_ADDED', '1'); }
   }
   return sh;
 }
@@ -68,9 +74,9 @@ function wsSet_(d, props) {
 // สถานะ: auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ซ่อน ยกเว้นเมนูที่ผู้เยี่ยมชมเห็น) · ส่งงาน auto = เปิดเมื่อมีใบงานเปิดอยู่ · เปิด · ดูอย่างเดียว · ปิด
 var MENU_SHEET = 'เมนู';
 var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
-var MENU_DEF = [['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
+var MENU_DEF = [['basics', '00 แบบฝึกพื้นฐาน'], ['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
   ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน']]
-  .map(function (m) { return [m[0], m[1], 'auto', m[0] === 'backup' ? 'ใช่' : 'ไม่']; });
+  .map(function (m) { return [m[0], m[1], 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
 function menuSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MENU_SHEET);
   if (!sh) {
@@ -80,6 +86,10 @@ function menuSheet_() {
     sh.setFrozenRows(1);
     sh.getRange(2, 3, 20, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['auto', 'เปิด', 'ดูอย่างเดียว', 'ปิด'], true).build());
     sh.getRange(2, 4, 20, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['ใช่', 'ไม่'], true).build());
+  } else {
+    // แผ่นที่สร้างไว้ก่อนมีเมนูใหม่ (เช่น 00 แบบฝึกพื้นฐาน): เพิ่มแถวที่ยังไม่มีต่อท้าย
+    var n = sh.getLastRow() - 1, have = n > 0 ? sh.getRange(2, 1, n, 1).getValues().map(function (r) { return String(r[0]).trim(); }) : [];
+    MENU_DEF.forEach(function (m) { if (have.indexOf(m[0]) < 0) sh.appendRow(m); });
   }
   return sh;
 }

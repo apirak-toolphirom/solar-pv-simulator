@@ -1,13 +1,13 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit'];
-let curTab='equip',loadedState=false,saveTimer=0,dirtyCat=false;
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit'];
+let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
   const mob=window.matchMedia('(max-width:760px)').matches,nav=$('#nav');
   document.documentElement.style.setProperty('--navh',mob?nav.offsetHeight+'px':'0px');
 }
 function showTab(t,fromHash){
-  if(!TABS.includes(t))t='equip';
+  if(!TABS.includes(t))t='basics';
   if(typeof accAllowed==='function'&&!accAllowed(t))t=accFirst();
   curTab=t;document.body.dataset.tab=t;if(typeof ctxSchedule==='function')ctxSchedule();
   if(typeof fsOn!=='undefined'&&fsOn&&t!=='wiring')setFs(false);
@@ -51,7 +51,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM,micro:MICRO},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),sy:SY,site:siSnapshot()};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),sy:SY,site:siSnapshot(),b0:typeof B0!=='undefined'?B0:null};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -126,6 +126,7 @@ function restoreProject(p){
   }
 }
 function restoreExtra(p){
+  if(p.b0&&typeof b0Restore==='function')b0Restore(p.b0);
   const num=(v,d,lo,hi)=>clamp(fin(v,d),lo,hi);
   if(p.ev&&typeof p.ev==='object'){
     const c=p.ev.cloud||{},u=p.ev.dust||{},t=p.ev.tree||{};
@@ -202,7 +203,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
-  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initEvents();initSubmit();initWorksheets();initAccess();initReset();initFile();initCloud();initConfirm();
+  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
@@ -212,7 +213,7 @@ function initReset(){
   window.addEventListener('hashchange',()=>showTab(location.hash.slice(1),true));
   window.addEventListener('resize',()=>{setNavH();drawLoadChart();drawBackup()});
   const h=(location.hash||'').slice(1);
-  showTab(TABS.includes(h)?h:'equip',true);
+  showTab(TABS.includes(h)?h:'basics',true);
   render();runSim();
   setSt('กำลังโหลดข้อมูลที่บันทึกไว้…');
   (async()=>{

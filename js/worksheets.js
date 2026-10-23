@@ -2,6 +2,7 @@
    The list comes from the "ใบงาน" sheet through the Apps Script web app (teacher edits it there or in dashboard.html).
    WS_DEFAULT is used when no web app is set or it cannot be reached. Criteria are written as keys separated by ";". */
 const WS_DEFAULT=[
+  {id:'W00',name:'แบบฝึกพื้นฐาน 15 หัวข้อ',tabs:'basics',crit:'basics_done>=15',q:'',img:'none'},
   {id:'W1',name:'อุปกรณ์และต่อสาย DC',tabs:'equip,wiring',crit:'dc_pass;panels>=8;dcac=0.9-1.5',q:'ทำไมต่ออนุกรมเกินจำนวนที่ระบบแนะนำไม่ได้|ต่อขนานกับต่ออนุกรมให้แรงดันและกระแสต่างกันอย่างไร',img:'dc'},
   {id:'W2',name:'ต่อสาย AC และพอร์ตอินเวอร์เตอร์',tabs:'ac',crit:'ac_pass',q:'ทำไมห้ามต่อพอร์ต BACKUP เข้าตู้เมนที่มีไฟกริด',img:'ac'},
   {id:'W3',name:'กำลังผลิตและเงา',tabs:'pv,site',crit:'pv_sim;site_pv;site_on;shade<=15',q:'แผงของคุณถูกบังช่วงเวลาไหน เพราะอะไร และจะแก้อย่างไร',img:'site'},
@@ -12,7 +13,7 @@ const WS_DEFAULT=[
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
-const TAB_NAME={equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC',ac:'03 ต่อสาย AC',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 การไหลของไฟ',systems:'08 ระบบ 4 แบบ',events:'09 เหตุการณ์',bench:'10 วงจร DC'};
+const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC',ac:'03 ต่อสาย AC',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 การไหลของไฟ',systems:'08 ระบบ 4 แบบ',events:'09 เหตุการณ์',bench:'10 วงจร DC'};
 let WS=WS_DEFAULT.slice(),WSSEL=null,WSSRC='default',WS_MINE=null;
 window.SY_SEEN=false;
 
@@ -36,6 +37,7 @@ function wsCrit(key){
     case'bk_ok':{if(typeof backupRun==='function')backupRun();const b=window.lastBK;return['ไฟดับแล้วโหลดที่เลือกไม่ขาดไฟ',!!(b&&b.mode!=='grid'&&(b.unmet||0)<=0.005)]}
     case'sys_seen':return['เปิดดูแท็บระบบ 4 แบบ',!!window.SY_SEEN];
     case'ev_any':return['เปิดเหตุการณ์อย่างน้อย 1 อย่าง',typeof evActive==='function'&&evActive()];
+    case'basics_done':{const c=typeof b0Count==='function'?b0Count():0,ms=typeof b0Missing==='function'?b0Missing():[];return[`แบบฝึก 00 ผ่านอย่างน้อย ${n} หัวข้อ (ตอนนี้ ${c}${ms.length&&c<n?' · ยังไม่ผ่าน '+ms.join(', '):''})`,c>=n]}
     case'bench_pass':{const b=window.lastBN;return['ต่อวงจร DC ผ่าน ไม่มีข้อผิดพลาด',!!(b&&b.lvl==='ok')]}
   }
   return[`${key} (ผู้สอนตรวจเอง)`,null];

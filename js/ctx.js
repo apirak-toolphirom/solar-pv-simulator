@@ -1,6 +1,6 @@
 /* ---- context strip: a small bar under each tab's heading showing which data that tab is using and where it comes from.
    Each chip links to its source tab. Colors: ok = taken from another tab, idle = stand-in value (example panels, not ticked), warn = source not ready ---- */
-const CTX_NO={equip:'01',wiring:'02',ac:'03',pv:'04',site:'05',load:'06',backup:'07',systems:'08',events:'09',bench:'10',submit:'11'};
+const CTX_NO={basics:'00',equip:'01',wiring:'02',ac:'03',pv:'04',site:'05',load:'06',backup:'07',systems:'08',events:'09',bench:'10',submit:'11'};
 let ctxRaf=0;
 function ctxSchedule(){if(ctxRaf)return;ctxRaf=requestAnimationFrame(()=>{ctxRaf=0;try{ctxRender()}catch(e){}})}
 function ctxInit(){
@@ -56,6 +56,7 @@ function ctxChips(t){
     }
     case'site':{const n=SITE.objs.length,k=c=>SITE.objs.filter(o=>o.t===c).length;
       return[C('ok','พิกัด',`${f(SIM.lat,3)}, ${f(SIM.lon,3)}`,'pv'),C(n?'ok':'warn','ผัง',n?`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')}`:'ยังว่าง',null),C(EV.site.on&&k('pv')?'ok':'idle','ส่งต่อ',EV.site.on?(k('pv')?`เงาบนแผง ${k('pv')} ชุด → 04, 07, 08, 09`:'ยังไม่มีแผงบนผัง'):'ปิดอยู่ (เปิดที่แท็บ 04, 08 หรือ 09)',null),C(k('pv')?'ok':'idle','แผงบนผัง',k('pv')+' ชุด',null)]}
+    case'basics':{const n=typeof b0Count==='function'?b0Count():0;return[C('idle','อิสระ','แผงตัวอย่าง 550 W ของเมนูนี้ ไม่ใช้อุปกรณ์จากเมนู 01–10',null),C(n===15?'ok':'idle','ความคืบหน้า',`ผ่าน ${n} / 15 หัวข้อ → ใบงาน W00 (เมนู 11)`,n===15?'submit':null)]}
     case'bench':return[C('idle','อิสระ','ไม่ใช้ข้อมูลจากแท็บอื่น (ระบบ 12 / 24 / 48 V)',null)];
     case'submit':{
       const lv=x=>x==='ok'?'ok':x==='err'||x==='warn'?'warn':'idle',lab=x=>x==='ok'?'ผ่าน':x==='warn'?'มีข้อควรระวัง':x==='err'?'ไม่ผ่าน':'ยังไม่ได้ทำ';
