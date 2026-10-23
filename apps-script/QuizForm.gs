@@ -5,6 +5,7 @@
  *   1) เปิด https://script.google.com → New project → วางโค้ดนี้ทั้งไฟล์ → Save
  *   2) เลือกฟังก์ชัน createBothQuizzes (หรือ createSaturdayQuiz / createSundayQuiz ทีละวัน) แล้วกด Run (ครั้งแรกจะขอสิทธิ์ Forms/Sheets ให้กดอนุญาต)
  *   3) ดูลิงก์ฟอร์มที่ View → Logs (Execution log) หรือในไดรฟ์ของคุณ
+ * Pre-test / Post-test (โจทย์ชุดเดิม สลับลำดับข้อและตัวเลือก): createPrePostSaturday · createPrePostSunday · createAllPrePost (4 ฟอร์ม ชีตเดียว)
  * ปรับค่าได้ใน CONFIG ด้านล่าง · รันซ้ำจะได้ฟอร์มใหม่ทุกครั้ง (ฟอร์มเดิมไม่ถูกแก้)
  */
 var CONFIG = {
@@ -16,6 +17,9 @@ var CONFIG = {
   // ข้อที่ไม่ใช้ในฟอร์ม (หัวข้อ-ข้อที่ ตามลำดับในเมนู 00) ให้เหลือวันละ 20 ข้อ · เว็บเมนู 00 ยังมีครบทุกข้อ
   // เสาร์ 21 → 20: ตัด 01-3 (ชื่อปรากฏการณ์) · อาทิตย์ 23 → 20: ตัด 09-2 (สีสายดิน), 12-3 (IR กับกระจก), 13-3 (Fill Factor)
   SKIP: ['01-3', '09-2', '12-3', '13-3'],
+  // Pre-test / Post-test: เลขสุ่มตั้งต้น (seed) เปลี่ยนเลขได้ถ้าอยากได้ลำดับใหม่ · ลำดับเดิมทุกครั้งที่รันด้วยเลขเดียวกัน
+  SEED: { pre: 2569, post: 1024 },
+  PRE_SHOW_ANSWERS: false,    // false = Pre-test ไม่ใส่คำอธิบายเฉลย (กันจำเฉลยไปตอบ Post-test)
   DESCRIPTION: 'หลักสูตรพัฒนาสมรรถนะบุคลากรด้านการผลิตไฟฟ้าพลังงานแสงอาทิตย์ เพื่อประยุกต์ใช้ในครัวเรือน · กิจกรรมที่ 2 อบรมเชิงปฏิบัติการ 24–25 ตุลาคม 2569 ณ มหาวิทยาลัยราชภัฏศรีสะเกษ\n' +
     'ข้อละ 1 คะแนน · ค่าของแผงตัวอย่างในคำถามเป็นค่าสมมติเพื่อการเรียนรู้',
   ONE_PAGE_PER_TOPIC: true,   // true = แยกหน้าตามหัวข้อ 01–15 · false = ทุกข้ออยู่หน้าเดียว
@@ -687,3 +691,62 @@ function doGet() {
   return HtmlService.createHtmlOutput(html).setTitle('แบบทดสอบโซลาร์เซลล์');
 }
 function resetQuizLinks() { PropertiesService.getScriptProperties().deleteProperty('QUIZ_LINKS'); }
+
+
+// ---- Pre-test / Post-test ----
+function rng_(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle_(arr, r) { var a = arr.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function dayQuestions_(day) {
+  var out = [];
+  TOPICS.forEach(function (t) {
+    if (+t.no < day.from || +t.no > day.to) return;
+    t.q.forEach(function (q, i) { var id = t.no + '-' + (i + 1); if (CONFIG.SKIP.indexOf(id) < 0) out.push({ id: id, topic: t.no + ' ' + t.title, q: q }); });
+  });
+  return out;
+}
+function buildPrePost_(day, kind, ss, keyRows) {
+  var isPre = kind === 'pre', name = isPre ? 'ก่อนเรียน (Pre-test)' : 'หลังเรียน (Post-test)';
+  var dk = day.key === 'sun' ? 7 : 3, r = rng_(CONFIG.SEED[kind] * dk);
+  var qs = shuffle_(dayQuestions_(day), r);
+  var range = ('0' + day.from).slice(-2) + '–' + ('0' + day.to).slice(-2);
+  var form = FormApp.create(CONFIG.TITLE + ' · ' + name + ' · ' + day.label + ' (หัวข้อ ' + range + ')');
+  form.setIsQuiz(true).setDescription(CONFIG.DESCRIPTION + '\n' + name + ' · ' + day.label + ' · หัวข้อ ' + range + ' · ' + qs.length + ' ข้อ ' + qs.length + ' คะแนน')
+      .setProgressBar(true).setCollectEmail(CONFIG.COLLECT_EMAIL).setLimitOneResponsePerUser(CONFIG.ONE_RESPONSE)
+      .setShuffleQuestions(false).setConfirmationMessage('ส่งคำตอบแล้ว ขอบคุณครับ/ค่ะ');
+  try { form.setPublishingSummary(false); } catch (e) {}
+  CONFIG.ID_FIELDS.forEach(function (label) { form.addTextItem().setTitle(label).setRequired(true); });
+  form.addPageBreakItem().setTitle(name).setHelpText('ตอบทุกข้อ ข้อละ 1 คะแนน');
+  var feedback = !isPre || CONFIG.PRE_SHOW_ANSWERS;
+  qs.forEach(function (x, n) {
+    var q = x.q, ord = shuffle_(q.o.map(function (o, k) { return k; }), r), it = form.addMultipleChoiceItem();
+    it.setTitle((n + 1) + '. ' + q.q).setPoints(1).setRequired(true)
+      .setChoices(ord.map(function (k) { return it.createChoice(q.o[k], k === q.a); }));
+    if (feedback) it.setFeedbackForCorrect(FormApp.createFeedback().setText('ถูกต้อง · ' + q.ex).build())
+      .setFeedbackForIncorrect(FormApp.createFeedback().setText('คำตอบที่ถูกคือ "' + q.o[q.a] + '" · ' + q.ex).build());
+    if (keyRows) keyRows.push([name + ' ' + day.label, n + 1, x.id, x.topic, q.q, String.fromCharCode(65 + ord.indexOf(q.a)) + '. ' + q.o[q.a]]);
+  });
+  if (CONFIG.LINK_SHEET) {
+    var own = !ss; if (own) ss = SpreadsheetApp.create(form.getTitle() + ' (คำตอบ)');
+    form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+    if (own) Logger.log('ชีตคำตอบ: ' + ss.getUrl());
+  }
+  Logger.log('[' + name + ' · ' + day.label + '] ' + qs.length + ' ข้อ (สลับลำดับข้อและตัวเลือก)');
+  Logger.log('  ลิงก์ให้ผู้เรียนตอบ: ' + form.getPublishedUrl());
+  Logger.log('  ลิงก์แก้ไขฟอร์ม: ' + form.getEditUrl());
+  return form.getPublishedUrl();
+}
+// แผ่น "เทียบข้อ": ข้อที่ในแต่ละฟอร์ม ↔ รหัสข้อเดิม (หัวข้อ-ข้อ) ใช้เทียบคะแนน Pre/Post รายข้อ
+function writeKey_(ss, rows) {
+  var sh = ss.getSheetByName('เทียบข้อ') || ss.insertSheet('เทียบข้อ');
+  sh.clear(); var head = [['ฟอร์ม', 'ข้อที่ในฟอร์ม', 'รหัสข้อเดิม', 'หัวข้อ', 'คำถาม', 'คำตอบที่ถูก']];
+  sh.getRange(1, 1, 1, 6).setValues(head).setFontWeight('bold'); if (rows.length) sh.getRange(2, 1, rows.length, 6).setValues(rows); sh.setFrozenRows(1);
+}
+function prePost_(days, title) {
+  var ss = CONFIG.LINK_SHEET ? SpreadsheetApp.create(CONFIG.TITLE + ' · ' + title + ' (คำตอบ)') : null, rows = [];
+  days.forEach(function (d) { buildPrePost_(d, 'pre', ss, rows); buildPrePost_(d, 'post', ss, rows); });
+  if (ss) { writeKey_(ss, rows); var s1 = ss.getSheetByName('Sheet1') || ss.getSheetByName('ชีต1'); if (s1 && ss.getSheets().length > 1) try { ss.deleteSheet(s1); } catch (e) {} Logger.log('ชีตคำตอบ + แผ่น "เทียบข้อ": ' + ss.getUrl()); }
+  if (!CONFIG.PRE_SHOW_ANSWERS) Logger.log('แนะนำ: ในฟอร์ม Pre-test → การตั้งค่า → แบบทดสอบ → ปิด "คำตอบที่ถูกต้อง" และ "คำถามที่ตอบผิด" ที่ผู้ตอบเห็นได้');
+}
+function createPrePostSaturday() { prePost_([CONFIG.DAYS[0]], 'Pre/Post วันเสาร์'); }
+function createPrePostSunday() { prePost_([CONFIG.DAYS[1]], 'Pre/Post วันอาทิตย์'); }
+function createAllPrePost() { prePost_(CONFIG.DAYS, 'Pre/Post 2 วัน'); }

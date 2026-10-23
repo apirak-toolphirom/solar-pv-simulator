@@ -97,4 +97,5 @@ SUBMIT_URL:'https://script.google.com/macros/s/xxxxxxxx/exec',
 ## แบบทดสอบ Google Form (คำถามชุดเดียวกับเมนู 00)
 `QuizForm.gs` สร้าง Google Form แบบทดสอบ 2 ฟอร์ม: วันเสาร์ หัวข้อ 01–07 และวันอาทิตย์ หัวข้อ 08–15 วันละ 20 ข้อ (ข้อที่ตัดออกตั้งใน `CONFIG.SKIP`) ข้อละ 1 คะแนน มีเฉลยและคำอธิบาย คำตอบเก็บในชีตเดียวแยกแท็บ
 เปิด script.google.com → New project → วางไฟล์นี้ → Run `createBothQuizzes` (หรือ `createSaturdayQuiz` / `createSundayQuiz`) → ดูลิงก์ใน Execution log · ตั้งค่าได้ที่ `CONFIG` · ไม่ต้องใช้ร่วมกับ Code.gs
+Pre-test / Post-test: Run `createPrePostSaturday` / `createPrePostSunday` หรือ `createAllPrePost` (โจทย์ชุดเดิม สลับลำดับข้อและตัวเลือกด้วย seed คงที่ · ชีตคำตอบมีแผ่น "เทียบข้อ" ไว้เทียบคะแนนรายข้อ)
 ถ้าแก้คำถามใน `js/basics.js` ให้สร้างไฟล์นี้ใหม่เพื่อให้คำถามตรงกัน
