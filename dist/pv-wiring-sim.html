@@ -6488,7 +6488,7 @@ const B0T=[
   /* ฉากลากได้: แผง + สาย +/− ขั้ว MC4 · สายลัดผ่านสวิตช์ DC · แคลมป์มิเตอร์ปุ่มหมุนแบบ Fluke 325 (ลากตัวเครื่องไปคล้องสาย) · ปลายสายวัดแดง/ดำ (ลากไปแตะขั้ว) */
   const POS=[['off','OFF','ปิด'],['adc','A⎓','กระแส DC (ปากคีบ)'],['aac','A~','กระแส AC (ปากคีบ)'],['vdc','V⎓','แรงดัน DC (สายวัด)'],['vac','V~','แรงดัน AC (สายวัด)'],['ohm','Ω •)))','ความต้านทาน / ความต่อเนื่อง'],['cap','⊣⊢','ความจุไฟฟ้า'],['tmp','°C','อุณหภูมิ']];
   const ang=k=>-120+k*240/(POS.length-1),SC=.55,JX=130*SC,JY=70*SC;
-  const TP={pos:[318,372],neg:[318,428]};                       /* MC4 tips: probes touch here */
+  const TP={pos:[318,372],neg:[408,452]};   /* + and − staggered so the two probes never overlap */                       /* MC4 tips: probes touch here */
   const ZN={red:[95,330,'สาย + (แดง)'],blk:[150,330,'สาย − (ดำ)'],pair:[222,400,'สาย + และ − พร้อมกัน'],sh:[420,346,'สายลัด']};
   const S={pos:4,mx:560,my:150,pr:[600,520],pb:[690,520],jaw:null,lead:false,sw:false,warn:''};
   const dial=POS.map((p,k)=>{const r=(ang(k)-90)*Math.PI/180,x=130+Math.cos(r)*74,y=300+Math.sin(r)*74;return`<g class="b0dp" data-k="${k}" tabindex="0" role="button" aria-label="${p[2]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="transparent"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="${p[0]==='off'?'#ff8a80':'#fff'}">${p[1]}</text></g>`}).join('');
@@ -6499,7 +6499,7 @@ const B0T=[
     <g id="b3sun"></g>
     <g>${B0G.panel(20,60,190,230)}<rect x="96" y="290" width="60" height="22" rx="3" fill="#2b3138"/><text x="126" y="305" text-anchor="middle" font-size="10" fill="#cfd8dc">J-Box</text></g>
     <path d="M110 312V352Q95 360 95 372V384Q95 394 120 394H200Q210 394 214 394H262Q290 394 290 372H314" fill="none" stroke="#d62828" stroke-width="7" stroke-linejoin="round"/>
-    <path d="M142 312V352Q150 360 150 372V396Q150 406 170 406H262Q290 406 290 428H314" fill="none" stroke="#2b3138" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M142 312V352Q150 360 150 372V396Q150 406 170 406H262Q290 406 290 430V440Q290 452 310 452H380" fill="none" stroke="#2b3138" stroke-width="7" stroke-linejoin="round"/>
     ${mc4(TP.pos[0]+6,TP.pos[1],'#ff8a80','+')}${mc4(TP.neg[0]+6,TP.neg[1],'#cfd8dc','−')}
     <g id="b3short"></g>
     <g id="b3zones"></g>
@@ -6526,8 +6526,8 @@ const B0T=[
   const shortOn=()=>S.lead&&S.sw;
   function draw(){
    const g=b0V('b3g');$q('#b3sun').innerHTML=B0G.sun(250,40,22,g/1100);
-   $q('#b3short').innerHTML=S.lead?`<path d="M324 372H380Q392 372 392 360V346H448Q470 346 470 372V382" fill="none" stroke="#d62828" stroke-width="6"/><path d="M324 428H448Q470 428 470 418V410" fill="none" stroke="#2b3138" stroke-width="6"/>
-     <rect id="b3swg" x="446" y="378" width="48" height="36" rx="5" fill="#eceff1" stroke="#455a64" stroke-width="2" style="cursor:pointer"/><path d="M458 396H${S.sw?'482':'478'}" stroke="${S.sw?'#2e7d32':'#e53935'}" stroke-width="5" stroke-linecap="round" transform="${S.sw?'':'rotate(-35 458 396)'}"/><text x="470" y="428" text-anchor="middle" font-size="11" fill="var(--muted)" dy="14">สวิตช์ DC ${S.sw?'ON':'OFF'}</text>`:'';
+   $q('#b3short').innerHTML=S.lead?`<path d="M324 372H380Q392 372 392 360V346H448Q470 346 470 372V382" fill="none" stroke="#d62828" stroke-width="6"/><path d="M414 452H452Q470 452 470 434V414" fill="none" stroke="#2b3138" stroke-width="6"/>
+     <rect id="b3swg" x="446" y="378" width="48" height="36" rx="5" fill="#eceff1" stroke="#455a64" stroke-width="2" style="cursor:pointer"/><path d="M458 396H${S.sw?'482':'478'}" stroke="${S.sw?'#2e7d32':'#e53935'}" stroke-width="5" stroke-linecap="round" transform="${S.sw?'':'rotate(-35 458 396)'}"/><text x="502" y="400" text-anchor="start" font-size="11" fill="var(--muted)">สวิตช์ DC ${S.sw?'ON':'OFF'}</text>`:'';
    const sw=$q('#b3swg');if(sw)sw.addEventListener('click',toggleSw);
    $q('#b3zones').innerHTML=Object.keys(ZN).filter(k=>k!=='sh'||S.lead).map(k=>`<circle cx="${ZN[k][0]}" cy="${ZN[k][1]}" r="${S.jaw===k?0:9}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3" opacity=".8"/>`).join('');
    $q('#b3m').setAttribute('transform',`translate(${S.mx} ${S.my}) scale(${SC})`);$q('#b3gap').setAttribute('visibility',S.jaw?'hidden':'visible');
