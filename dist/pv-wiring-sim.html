@@ -6490,7 +6490,7 @@ const B0T=[
   const ang=k=>-120+k*240/(POS.length-1),SC=.55,JX=130*SC,JY=70*SC;
   const TP={pos:[318,372],neg:[408,452]};   /* + and − staggered so the two probes never overlap */                       /* MC4 tips: probes touch here */
   const ZN={red:[95,330,'สาย + (แดง)'],blk:[150,330,'สาย − (ดำ)'],pair:[222,400,'สาย + และ − พร้อมกัน'],sh:[420,346,'สายลัด']};
-  const S={pos:4,mx:560,my:150,pr:[600,520],pb:[690,520],jaw:null,lead:false,sw:false,warn:''};
+  const S={pos:4,mx:560,my:150,pr:[610,500],pb:[690,500],jaw:null,lead:false,sw:false,warn:''};
   const dial=POS.map((p,k)=>{const r=(ang(k)-90)*Math.PI/180,x=130+Math.cos(r)*74,y=300+Math.sin(r)*74;return`<g class="b0dp" data-k="${k}" tabindex="0" role="button" aria-label="${p[2]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="transparent"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="${p[0]==='off'?'#ff8a80':'#fff'}">${p[1]}</text></g>`}).join('');
   const mc4=(x,y,col,lab)=>`<rect x="${x-34}" y="${y-9}" width="30" height="18" rx="4" fill="#20252a"/><rect x="${x-6}" y="${y-6}" width="12" height="12" rx="2" fill="#20252a"/><circle cx="${x+6}" cy="${y}" r="3.2" fill="#c9ccd0"/><text x="${x-19}" y="${y+4}" text-anchor="middle" font-size="12" font-weight="700" fill="${col}">${lab}</text>`;
   el.innerHTML=`<p class="hint tight">ลาก<b>ปลายสายวัดแดง/ดำ</b>ไปแตะขั้ว MC4 เพื่อวัดแรงดัน · ลาก<b>แคลมป์มิเตอร์</b> (จับที่ปากคีบหรือตัวเครื่อง) ไปคล้องสาย เพื่อวัดกระแส · แตะสัญลักษณ์รอบปุ่มเพื่อหมุนย่าน · วัด Isc ต้องต่อสายลัดและปิดสวิตช์ DC</p>
@@ -6520,7 +6520,8 @@ const B0T=[
    ${b0Rng('b3g','ความเข้มแสงขณะวัด (W/m²)',200,1100,50,900)}${b0Rng('b3t','อุณหภูมิแผง (°C)',20,70,1,45,' °C')}
    <p class="b0msg" id="b3msg"></p><div class="b0done" id="b3d"></div>`;
   const st={voc:false,isc:false},$q=x=>el.querySelector(x),svg=$q('#b3svg');
-  const probe=(x,y,col)=>`<path d="M${x} ${y}l-5 16h10z" fill="#c9ccd0"/><rect x="${x-7}" y="${y+16}" width="14" height="44" rx="5" fill="${col}" stroke="#111" stroke-width="1.2"/><circle cx="${x}" cy="${y+38}" r="24" fill="transparent"/>`;
+  /* red probe points DOWN onto its terminal (handle above), black probe points UP (handle below): the two never overlap */
+  const probe=(x,y,col,d)=>`<path d="M${x} ${y}l-5 ${16*d}h10z" fill="#c9ccd0" stroke="#7d8a96" stroke-width=".8"/><rect x="${x-7}" y="${d>0?y+16:y-60}" width="14" height="44" rx="5" fill="${col}" stroke="#111" stroke-width="1.2"/><rect x="${x-9}" y="${d>0?y+18:y-24}" width="18" height="6" rx="2" fill="${col}" stroke="#111" stroke-width="1"/><circle cx="${x}" cy="${y+38*d}" r="24" fill="transparent"/>`;
   const near=(p,q,r)=>Math.hypot(p[0]-q[0],p[1]-q[1])<=r;
   const on=p=>near(p,TP.pos,16)?'pos':near(p,TP.neg,16)?'neg':null;
   const shortOn=()=>S.lead&&S.sw;
@@ -6533,9 +6534,9 @@ const B0T=[
    $q('#b3m').setAttribute('transform',`translate(${S.mx} ${S.my}) scale(${SC})`);$q('#b3gap').setAttribute('visibility',S.jaw?'hidden':'visible');
    $q('#b3knob').setAttribute('transform',`rotate(${ang(S.pos)} 130 300)`);el.querySelectorAll('.b0dp').forEach(d=>d.classList.toggle('on',+d.dataset.k===S.pos));
    const jr=[S.mx+96*SC,S.my+388*SC],jb=[S.mx+164*SC,S.my+388*SC];
-   const lead=(j,p,col)=>`<path d="M${j[0]} ${j[1]}C${j[0]} ${j[1]+90} ${p[0]} ${p[1]+150} ${p[0]} ${p[1]+60}" fill="none" stroke="${col}" stroke-width="4"/>`;
-   $q('#b3leads').innerHTML=lead(jr,S.pr,'#d62828')+lead(jb,S.pb,'#2b3138');
-   $q('#b3pr').innerHTML=probe(S.pr[0],S.pr[1],'#d62828');$q('#b3pb').innerHTML=probe(S.pb[0],S.pb[1],'#2b3138');
+   const lead=(j,p,col,d)=>`<path d="M${j[0]} ${j[1]}C${j[0]} ${j[1]+90} ${p[0]} ${p[1]+150*d} ${p[0]} ${p[1]+60*d}" fill="none" stroke="${col}" stroke-width="4"/>`;
+   $q('#b3leads').innerHTML=lead(jr,S.pr,'#d62828',-1)+lead(jb,S.pb,'#2b3138',1);
+   $q('#b3pr').innerHTML=probe(S.pr[0],S.pr[1],'#d62828',-1);$q('#b3pb').innerHTML=probe(S.pb[0],S.pb[1],'#2b3138',1);
    $q('#b3sw').disabled=!S.lead;$q('#b3sw').textContent=`สวิตช์ DC: ${S.sw?'ปิดวงจร (ON)':'เปิด (OFF)'}`;$q('#b3lead').textContent=S.lead?'ถอดสายลัด':'ต่อสายลัด (ผ่านสวิตช์ DC)';
   }
   function measure(){
@@ -6570,7 +6571,7 @@ const B0T=[
   const go=k=>{S.pos=Math.max(0,Math.min(POS.length-1,k));run()};
   el.querySelectorAll('.b0dp').forEach(d=>{d.addEventListener('pointerdown',e=>e.stopPropagation());d.addEventListener('click',()=>go(+d.dataset.k));d.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go(+d.dataset.k)}})});
   $q('#b3l').addEventListener('click',()=>go(S.pos-1));$q('#b3r').addEventListener('click',()=>go(S.pos+1));
-  $q('#b3rs').addEventListener('click',()=>{Object.assign(S,{mx:560,my:150,pr:[600,520],pb:[690,520],jaw:null,warn:''});run()});
+  $q('#b3rs').addEventListener('click',()=>{Object.assign(S,{mx:560,my:150,pr:[610,500],pb:[690,500],jaw:null,warn:''});run()});
   /* dragging */
   const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return[q.x,q.y]};
   let drag=null;
@@ -6578,7 +6579,7 @@ const B0T=[
   el.querySelectorAll('#b3m .b3grab').forEach(g=>g.addEventListener('pointerdown',e=>start('m',e)));
   $q('#b3pr').addEventListener('pointerdown',e=>start('pr',e));$q('#b3pb').addEventListener('pointerdown',e=>start('pb',e));
   svg.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e),x=Math.max(0,Math.min(760,p[0]-drag.dx)),y=Math.max(-20,Math.min(600,p[1]-drag.dy));
-    if(drag.what==='m'){S.mx=Math.min(760-140*SC*2,x);S.my=y}else S[drag.what]=[x,Math.min(y,570)];draw()});
+    if(drag.what==='m'){S.mx=Math.min(760-140*SC*2,x);S.my=y}else S[drag.what]=[x,Math.max(60,Math.min(y,570))];draw()});
   const end=()=>{if(!drag)return;const w=drag.what;drag=null;
     if(w==='m'){const jc=[S.mx+JX,S.my+JY];let best=null,bd=34;Object.keys(ZN).forEach(k=>{if(k==='sh'&&!S.lead)return;const d=Math.hypot(jc[0]-ZN[k][0],jc[1]-ZN[k][1]);if(d<bd){bd=d;best=k}});
       if(best){S.jaw=best;S.mx=ZN[best][0]-JX;S.my=ZN[best][1]-JY}}
