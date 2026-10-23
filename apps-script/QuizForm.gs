@@ -667,3 +667,23 @@ function buildQuiz_(day, ss) {
   Logger.log('  ลิงก์แก้ไขฟอร์ม: ' + form.getEditUrl());
   return form.getPublishedUrl();
 }
+
+// ถ้า Deploy เป็นเว็บแอปแล้วเปิดลิงก์ /exec: สร้างฟอร์มครั้งแรกครั้งเดียว ครั้งต่อไปแสดงลิงก์เดิม (ไม่สร้างซ้ำ)
+// ต้องตั้ง Deploy → Execute as: Me · ล้างเพื่อสร้างใหม่ได้ด้วยฟังก์ชัน resetQuizLinks
+function doGet() {
+  var p = PropertiesService.getScriptProperties(), saved = p.getProperty('QUIZ_LINKS'), links;
+  if (saved) links = JSON.parse(saved);
+  else {
+    var lock = LockService.getScriptLock(); lock.waitLock(30000);
+    try {
+      saved = p.getProperty('QUIZ_LINKS');
+      if (saved) links = JSON.parse(saved);
+      else { var urls = createBothQuizzes(); links = CONFIG.DAYS.map(function (d, i) { return { label: d.label, url: urls[i] }; }); p.setProperty('QUIZ_LINKS', JSON.stringify(links)); }
+    } finally { lock.releaseLock(); }
+  }
+  var html = '<meta name="viewport" content="width=device-width,initial-scale=1"><div style="font-family:sans-serif;max-width:640px;margin:24px auto;padding:0 16px;line-height:1.6">' +
+    '<h2>แบบทดสอบโซลาร์เซลล์</h2>' + links.map(function (l) { return '<p><b>' + l.label + '</b><br><a target="_blank" href="' + l.url + '">' + l.url + '</a></p>'; }).join('') +
+    '<p style="color:#666;font-size:14px">ลิงก์แก้ไขฟอร์มและชีตคำตอบอยู่ใน Google Drive ของบัญชีเจ้าของสคริปต์</p></div>';
+  return HtmlService.createHtmlOutput(html).setTitle('แบบทดสอบโซลาร์เซลล์');
+}
+function resetQuizLinks() { PropertiesService.getScriptProperties().deleteProperty('QUIZ_LINKS'); }
