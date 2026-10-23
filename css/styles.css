@@ -725,3 +725,5 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b0drag .b3grab,#b3pr,#b3pb{cursor:grab}
 .b0vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .b4sl{cursor:pointer;outline:none}.b4sl:focus-visible>rect:first-child{stroke:var(--accent);stroke-width:2}
+/* menu 00 uses wide simulation scenes */
+body[data-tab="basics"] .wrap{max-width:1280px}

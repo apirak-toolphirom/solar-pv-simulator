@@ -731,6 +731,8 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 .b0drag .b3grab,#b3pr,#b3pb{cursor:grab}
 .b0vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .b4sl{cursor:pointer;outline:none}.b4sl:focus-visible>rect:first-child{stroke:var(--accent);stroke-width:2}
+/* menu 00 uses wide simulation scenes */
+body[data-tab="basics"] .wrap{max-width:1280px}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -6610,13 +6612,13 @@ const B0T=[
   const TP={pos:[490,323],neg:[560,467]};
   const ZN={red:[95,330,'สาย + (แดง)'],blk:[150,330,'สาย − (ดำ)'],pair:[222,400,'สาย + และ − พร้อมกัน'],red2:[400,302,'สาย + (แดง) ช่วงเข้าโหลด']};
   const H0={mx:615,my:392,pr:[430,606],pb:[505,560]};
-  const SL={g:{x:40,y:552,w:230,min:100,max:1100,step:50},r:{x:40,y:612,w:230,min:0,max:100,step:1}};  /* in-scene sliders */
+  const SL={g:{x:-316,y:396,w:282,min:100,max:1100,step:50},r:{x:-316,y:466,w:282,min:0,max:100,step:1}};  /* in-scene sliders */
   const S=Object.assign({pos:4,jaw:null,mv:null,mi:null},JSON.parse(JSON.stringify(H0)));
   const dial=POS.map((p,k)=>{const r=(ang(k)-90)*Math.PI/180,x=130+Math.cos(r)*74,y=300+Math.sin(r)*74;return`<g class="b0dp" data-k="${k}" tabindex="0" role="button" aria-label="${p[2]}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="18" fill="transparent"/><text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" text-anchor="middle" fill="${p[0]==='off'?'#ff8a80':'#fff'}">${p[1]}</text></g>`}).join('');
   const cloud=(x,y,s,o)=>`<g opacity="${o.toFixed(2)}" fill="#fff" stroke="#9aa9b6" stroke-width="2"><path d="M${x} ${y}a${s*.5} ${s*.5} 0 0 1 ${s*.45} ${-s*.42}a${s*.62} ${s*.62} 0 0 1 ${s*1.05} ${-s*.1}a${s*.48} ${s*.48} 0 0 1 ${s*.62} ${s*.52}a${s*.36} ${s*.36} 0 0 1 0 ${s*.72}H${x+s*.1}a${s*.36} ${s*.36} 0 0 1 ${-s*.1} ${-s*.72}z"/></g>`;
   el.innerHTML=`<p class="hint tight">ภารกิจ: ปรับโหลดให้แผงจ่ายกำลังสูงสุด แล้ว<b>วัดเอง</b>ทั้งแรงดัน (หมุนไป V⎓ ลากปลายสายแดงแตะขั้ว + และดำแตะขั้ว − ของโหลด) และกระแส (หมุนไป A⎓ ลากปากคีบไปคล้องสายเส้นเดียว) ที่จุดเดียวกัน</p>
    <div class="eqact"><button class="chip" id="b4l" type="button" aria-label="หมุนปุ่มซ้าย">◀ หมุน</button><button class="chip" id="b4rr" type="button" aria-label="หมุนปุ่มขวา">หมุน ▶</button><button class="chip" id="b4rs" type="button">วางเครื่องมือที่เดิม</button></div>
-   <div class="b0scn"><svg id="b4svg" viewBox="0 0 760 650" role="img" aria-label="แผงโซลาร์ต่อโหลด DC และแคลมป์มิเตอร์">
+   <div class="b0scn"><svg id="b4svg" viewBox="-356 0 1118 650" role="img" aria-label="แผงโซลาร์ต่อโหลด DC และแคลมป์มิเตอร์">
     <g id="b4sky"></g>
     <g>${B0G.panel(20,60,190,230)}<rect x="96" y="290" width="60" height="22" rx="3" fill="#2b3138"/><text x="126" y="305" text-anchor="middle" font-size="10" fill="#cfd8dc">J-Box</text></g>
     <path d="M110 312V352Q95 360 95 372V384Q95 394 120 394H262Q300 394 300 370V320Q300 302 320 302H470Q490 302 490 318V330" fill="none" stroke="#d62828" stroke-width="7" stroke-linejoin="round"/>
@@ -6688,11 +6690,11 @@ const B0T=[
    $q('#b4d').innerHTML=`<span class="${S.mv!=null?'ok':''}">${S.mv!=null?'✓':'○'} วัดแรงดัน</span><span class="${S.mi!=null?'ok':''}">${S.mi!=null?'✓':'○'} วัดกระแส</span><span class="${done?'ok':''}">${done?'✓':'○'} อยู่ที่จุดกำลังสูงสุด (≥ 98%)</span>`;
    if(done){b0Task('t4',true);b0Msg($q('#b4msg'),true,`สำเร็จ: Vmp ≈ ${b0f(S.mv,1)} V, Imp ≈ ${b0f(S.mi,2)} A, Pmax ≈ ${b0f(P,0)} W (ป้ายแผงตัวอย่าง ${B0P.Vmp} V / ${B0P.Imp} A ที่ STC)`)}
    else if(P!=null&&pct<98&&ok!==false)$q('#b4msg').textContent+=` · ได้ ${b0f(pct,0)}% ของกำลังสูงสุด ลองปรับโหลดแล้ววัดใหม่`;
-   const near=Math.abs(o.V-c.mp.V)<2.5;const ch=b0Chart({W:440,H:210,xmax:52,ymax:16,y2:true,y2max:600,xl:'แรงดัน (V)',yl:'กระแส (A)',y2l:'กำลัง (W)',aria:'เส้น I-V และ P-V พร้อมจุดทำงาน',
+   const near=Math.abs(o.V-c.mp.V)<2.5;const ch=b0Chart({W:330,H:300,xmax:52,ymax:16,y2:true,y2max:600,xl:'แรงดัน (V)',yl:'กระแส (A)',y2l:'กำลัง (W)',aria:'เส้น I-V และ P-V พร้อมจุดทำงาน',
     series:[{pts:c.pts.map(p=>[p[0],p[1]]),col:'var(--s1)'},{pts:c.pts.map(p=>[p[0],p[2]]),col:'var(--s2)',y2:true,dash:true},{pts:[[0,0],[c.voc,c.voc/R]],col:'var(--muted)'}],
-    dots:[{x:o.V,y:o.I,col:'var(--accent)',lab:near?'':'จุดทำงาน'},{x:c.mp.V,y:c.mp.P,col:'var(--s2)',lab:near?'จุดทำงาน ≈ Pmax':'Pmax',y2:true}],legend:[['I-V','var(--s1)'],['P-V','var(--s2)',1],['เส้นโหลด','var(--muted)']]});
-   const rd=`<text x="2" y="12" font-size="12.5" font-weight="700" fill="${P!=null&&pct>=98?'var(--ok)':'var(--ink)'}">วัดได้: V ${S.mv!=null?b0f(S.mv,1)+' V':'—'} · I ${S.mi!=null?b0f(S.mi,2)+' A':'—'} · P = V × I ${P!=null?b0f(P,0)+' W ('+b0f(pct,0)+'% ของสูงสุด)':'—'}</text>`;
-   $q('#b4chart').innerHTML=`<g transform="translate(312 2)"><rect x="-6" y="-4" width="452" height="238" rx="10" fill="var(--surface)" stroke="var(--line)" opacity=".96"/>`+ch.replace(/^<svg class="b0ch" viewBox="0 0 440 210"[^>]*>/,'<svg x="0" y="20" width="440" height="210" viewBox="0 0 440 210">')+rd+'</g>';
+    dots:[{x:o.V,y:o.I,col:'var(--accent)',lab:near?'':'จุดทำงาน'},{x:c.mp.V,y:c.mp.P,col:'var(--s2)',lab:near?'':'Pmax',y2:true}],legend:[['I-V','var(--s1)'],['P-V','var(--s2)',1]]});
+   const rd=`<text x="2" y="14" font-size="12" font-weight="700" fill="${P!=null&&pct>=98?'var(--ok)':'var(--ink)'}">วัดได้: V ${S.mv!=null?b0f(S.mv,1)+' V':'—'} · I ${S.mi!=null?b0f(S.mi,2)+' A':'—'}</text><text x="2" y="32" font-size="12" font-weight="700" fill="${P!=null&&pct>=98?'var(--ok)':'var(--ink)'}">P = V × I = ${P!=null?b0f(P,0)+' W ('+b0f(pct,0)+'% ของสูงสุด)':'—'}</text>`;
+   $q('#b4chart').innerHTML=`<g transform="translate(-344 10)"><rect x="-6" y="-4" width="342" height="346" rx="10" fill="var(--surface)" stroke="var(--line)" opacity=".96"/>`+ch.replace(/^<svg class="b0ch" viewBox="0 0 330 300"[^>]*>/,'<svg x="0" y="40" width="330" height="300" viewBox="0 0 330 300">')+rd+'</g>';
   }
   const run=()=>{draw();measure()};
   const reset=()=>{S.mv=null;S.mi=null};
