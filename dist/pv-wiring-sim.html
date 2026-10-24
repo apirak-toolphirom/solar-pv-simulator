@@ -759,6 +759,10 @@ body[data-tab="basics"] .wrap{max-width:1280px}
 .b0wi.b0zfull{position:fixed;inset:0;z-index:1000;background:var(--bg);padding:10px max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:6px}
 .b0wi.b0zfull .b0zo{flex:1;max-height:none;overflow:auto}
 body.b0zlock{overflow:hidden}
+.b8sl{display:flex;flex-direction:column;gap:2px;font-size:12.5px}.b8sl span{display:flex;justify-content:space-between}.b8sl input{width:100%}
+.b8evb{display:flex;flex-direction:column;gap:4px}.b8evb .chip.sm{justify-content:flex-start;text-align:left;min-height:32px;height:auto;padding:4px 10px;line-height:1.35}
+.b8evres{border:2px solid var(--accent);border-radius:10px;padding:10px 12px;background:var(--surface)}.b8evres h3{margin:0 0 6px;font-size:14.5px}
+@keyframes b8fl{0%,100%{opacity:1}50%{opacity:.35}}.b8flash{animation:b8fl .7s ease-in-out 6}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -7242,13 +7246,13 @@ const B8INV={P:5000,Iac:22.7,Vmax:600,Imppt:40,rcdA:true};
 
 function b0Combiner(el){
   const U=44,H=116,X0=460,RAIL={dc:205,ac:440},SLOTS=10,PEY=640,PEX=[470,510,550,590,630,670,710,750];
-  const S={SA:2,M:10,tmin:10,dev:[],wires:[],nid:1,sel:null,ws:4,pick:{},drag:null,ex:false};
+  const S={SA:2,M:10,tmin:10,dev:[],wires:[],nid:1,sel:null,ws:4,pick:{},drag:null,ex:false,G:1000,vg:230,load:3000,fx:null,inv:''};
   Object.keys(B8D).forEach(k=>{S.pick[k]={};Object.keys(B8D[k].opt).forEach(o=>S.pick[k][o]=B8D[k].opt[o][Math.floor(B8D[k].opt[o].length/2)])});
   const P=B0P,vocMax=()=>P.Voc*(1+P.bV/100*(S.tmin-25))*S.M,iscA=()=>P.Isc*S.SA,fuseReq=()=>(S.SA-1)*P.Isc>P.fuse;
   /* ---- fixed terminals ---- */
-  const FIX=()=>{const f={};for(let s=1;s<=3;s++){f[`S${s}+`]={x:448+(s-1)*84+0,y:92,r:'+',lab:`S${s}+`,on:s<=S.SA};f[`S${s}-`]={x:448+(s-1)*84+36,y:92,r:'-',lab:`S${s}−`,on:s<=S.SA}}
+  const FIX=()=>{const f={};for(let s=1;s<=4;s++){f[`S${s}+`]={x:448+(s-1)*84+0,y:92,r:'+',lab:`S${s}+`,on:s<=S.SA};f[`S${s}-`]={x:448+(s-1)*84+36,y:92,r:'-',lab:`S${s}−`,on:s<=S.SA}}
     Object.assign(f,{'INV+':{x:1000,y:330,r:'+',lab:'DC+'},'INV-':{x:1036,y:330,r:'-',lab:'DC−'},'INVL':{x:1090,y:330,r:'L',lab:'L'},'INVN':{x:1124,y:330,r:'N',lab:'N'},'INVPE':{x:1158,y:330,r:'PE',lab:'PE'},
-      'GL':{x:1070,y:600,r:'L',lab:'L'},'GN':{x:1110,y:600,r:'N',lab:'N'},'GPE':{x:1150,y:600,r:'PE',lab:'PE'},'FR':{x:330,y:560,r:'PE',lab:'กรอบแผง'}});
+      'GL':{x:1070,y:600,r:'L',lab:'L'},'GN':{x:1110,y:600,r:'N',lab:'N'},'GPE':{x:1150,y:600,r:'PE',lab:'PE'},'FR':{x:300,y:700,r:'PE',lab:'กรอบแผง'}});
     PEX.forEach((x,i)=>f['E'+i]={x,y:PEY,r:'PE',lab:''});return f};
   const devX=d=>X0+d.slot*U,devY=d=>RAIL[d.rail]-H/2;
   const tpos=id=>{const F=FIX();if(F[id])return F[id];const[di,t]=id.split('.'),d=S.dev.find(x=>x.id===+di);if(!d)return null;const D=B8D[d.type],x=devX(d),y=devY(d);
@@ -7329,15 +7333,25 @@ function b0Combiner(el){
     return{out,dcOk}}
   /* ---- render ---- */
   el.innerHTML=`<p class="hint tight">1) ลากอุปกรณ์จากรายการด้านซ้ายลง<b>ราง DC</b> หรือ<b>ราง AC</b> (เลือกขนาดก่อนลาก) · 2) แตะขั้วต่อ (วงกลม) จุดแรกแล้วแตะจุดที่สองเพื่อเดินสาย สีสายเลือกให้ตามขั้ว · แตะสายเพื่อลบ · ลากอุปกรณ์ออกนอกตู้เพื่อเอาออก · แตะด้ามสวิตช์/เบรกเกอร์เพื่อเปิด-ปิด</p>
-   <div class="b8wrap"><div class="b8pal" id="b8pal"></div><div class="b0scn"><svg id="b8svg" viewBox="250 0 960 720" role="img" aria-label="ตู้คอมไบเนอร์ DC และ AC จำลอง"></svg></div></div>
+   <div class="b8wrap"><div class="b8pal" id="b8pal"></div><div class="b0scn"><svg id="b8svg" viewBox="250 0 960 820" role="img" aria-label="ตู้คอมไบเนอร์ DC และ AC จำลอง"></svg></div></div>
    <div class="eqact"><button class="chip" id="b8ex" type="button">ดูตัวอย่างที่ถูกต้อง</button><button class="chip" id="b8clr" type="button">ล้างสายทั้งหมด</button><button class="chip" id="b8all" type="button">ล้างตู้ทั้งหมด</button></div>
-   <h3 class="sech" style="margin:6px 0 0">ผลการตรวจ</h3><ul class="checks" id="b8ck"></ul><p class="b0msg" id="b8msg"></p>`;
+   <div id="b8ev" class="b8evres" hidden></div><h3 class="sech" style="margin:6px 0 0">ผลการตรวจ</h3><ul class="checks" id="b8ck"></ul><p class="b0msg" id="b8msg"></p>`;
   const $q=x=>el.querySelector(x),svg=$q('#b8svg');
   function palette(){
-    $q('#b8pal').innerHTML=`<div class="b8grp"><b>แผงและสตริง</b><div class="b8row">${[1,2,3].map(n=>`<button class="chip" data-sa="${n}" aria-pressed="${S.SA===n}">${n} สตริง</button>`).join('')}</div>
+    $q('#b8pal').innerHTML=`<div class="b8grp"><b>แผงและสตริง</b><div class="b8row">${[1,2,3,4].map(n=>`<button class="chip" data-sa="${n}" aria-pressed="${S.SA===n}">${n} สตริง</button>`).join('')}</div>
       <label class="b8lab">แผงต่อสตริง <select id="b8m">${[6,8,9,10,11,12,13,14].map(n=>`<option ${n===S.M?'selected':''}>${n}</option>`).join('')}</select></label>
       <label class="b8lab">อุณหภูมิต่ำสุด <select id="b8t">${[5,10,15,20].map(n=>`<option value="${n}" ${n===S.tmin?'selected':''}>${n} °C</option>`).join('')}</select></label>
       <p class="hint tight">แผง ${P.Voc} V / Isc ${P.Isc} A · ฟิวส์สูงสุด ${P.fuse} A<br>อินเวอร์เตอร์ ${B8INV.P/1000} kW 1 เฟส ${B8INV.Iac} A · DC สูงสุด ${B8INV.Vmax} V</p></div>
+      <div class="b8grp"><b>แหล่งจ่ายและโหลด</b>
+       <label class="b8sl"><span>☀ ความเข้มแสง <b id="b8Gv">${S.G} W/m²</b></span><input type="range" id="b8G" min="0" max="1200" step="50" value="${S.G}"></label>
+       <label class="b8sl"><span>⚡ แรงดันกริด <b id="b8vgv">${S.vg} V</b></span><input type="range" id="b8vg" min="190" max="290" step="5" value="${S.vg}"></label>
+       <label class="b8sl"><span>💡 โหลดในบ้าน <b id="b8ldv">${S.load} W</b></span><input type="range" id="b8ld" min="0" max="9000" step="250" value="${S.load}"></label></div>
+      <div class="b8grp"><b>จำลองเหตุการณ์</b><div class="b8evb">
+       <button class="chip sm" data-ev="sdc">⚡ ฟ้าผ่าใกล้แผง (ไฟกระชาก DC)</button><button class="chip sm" data-ev="sac">⚡ ไฟกระชากจากสายการไฟฟ้า (AC)</button>
+       <button class="chip sm" data-ev="ovdc">❄ เช้าวันหนาว แรงดัน DC สูงสุด</button><button class="chip sm" data-ev="ovac">▲ แรงดันกริดเกิน (ตามแถบด้านบน)</button>
+       <button class="chip sm" data-ev="ocdc">🔥 ลัดวงจรในสตริง 1 (กระแสย้อน)</button><button class="chip sm" data-ev="ocac">🔥 ลัดวงจรสาย AC</button>
+       <button class="chip sm" data-ev="olac">☀ แดดแรงทั้งวัน อินเวอร์เตอร์จ่ายเต็มพิกัด</button><button class="chip sm" data-ev="leak">💧 ไฟรั่วลงโครงอินเวอร์เตอร์</button>
+       <button class="chip sm" data-ev="reset">⟲ รีเซ็ตเหตุการณ์ (เปลี่ยนฟิวส์ / ยกเบรกเกอร์)</button></div></div>
       ${Object.keys(B8D).map(k=>{const D=B8D[k];return`<div class="b8card" data-k="${k}"><div class="b8drag" data-k="${k}" title="ลากลงราง"><svg viewBox="0 0 ${D.w*U} 70" class="b8ico" style="width:${D.w*34}px">${devFace(k,{A:S.pick[k].A,V:S.pick[k].V,T:S.pick[k].T},0,0,true)}</svg><span>${D.n}<small>${D.side==='dc'?'ราง DC':'ราง AC'} · ลากไปวาง</small></span></div>
         ${Object.keys(D.opt).map(o=>`<div class="b8row">${D.opt[o].map(v=>`<button class="chip sm" data-k="${k}" data-o="${o}" data-v="${v}" aria-pressed="${S.pick[k][o]==v}">${v}${o==='A'?' A':o==='V'?' V':''}${o==='T'?' Type':''}</button>`).join('')}</div>`).join('')}</div>`}).join('')}
       <div class="b8grp"><b>ขนาดสายที่จะเดิน</b><div class="b8row">${[2.5,4,6,10,16].map(v=>`<button class="chip sm" data-ws="${v}" aria-pressed="${S.ws===v}">${v} mm²</button>`).join('')}</div></div>`;
@@ -7352,13 +7366,15 @@ function b0Combiner(el){
     const lab=[o.A?o.A+'A':'',o.V?o.V+'V'+(D.side==='dc'?'⎓':'~'):'',o.T?'Type '+o.T:''].filter(Boolean).join(' ');
     return`<rect x="${x+2}" y="${y}" width="${w}" height="${h}" rx="5" fill="${D.col}" stroke="#455a64" stroke-width="1.5"/>${sy}<text x="${cx}" y="${y+h-(mini?4:26)}" text-anchor="middle" font-size="${mini?9:10.5}" font-weight="700" fill="#263238">${lab}</text>${mini?'':`<text x="${cx}" y="${y+h-14}" text-anchor="middle" font-size="9" fill="#546e7a">${D.side==='dc'?'DC':'AC'}</text>`}`}
   function draw(){
-    const R=check(),F=FIX(),f=nets(d=>!d.on);
+    const R=check(),F=FIX(),live=d=>!d.on||d.blown||d.dmg,fl=nets(live),L=flow(fl,R);
     let g=`<defs><pattern id="b8hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#b0bec5" stroke-width="2"/></pattern></defs>`;
     /* PV array */
     g+=`<text x="262" y="24" font-size="13" font-weight="700" fill="var(--ink)">แผงโซลาร์ ${S.SA} สตริง × ${S.M} แผง</text>`;
-    for(let s=1;s<=3;s++){const y=40+(s-1)*150,on=s<=S.SA;g+=`<g opacity="${on?1:.25}">${B0G.panel(262,y,46,60)}${B0G.panel(314,y,46,60)}<text x="311" y="${y+78}" text-anchor="middle" font-size="11" fill="var(--muted)">สตริง ${s}${on?` · ${b0f(P.Voc*S.M,0)} V`:''}</text></g>`;
+    for(let s=1;s<=4;s++){const y=40+(s-1)*128,on=s<=S.SA;g+=`<g opacity="${on?1:.25}">${B0G.panel(262,y,46,60)}${B0G.panel(314,y,46,60)}<text x="311" y="${y+78}" text-anchor="middle" font-size="11" fill="var(--muted)">สตริง ${s}${on?` · ${b0f(P.Voc*S.M,0)} V`:''}</text></g>`;
       if(on){const p=F[`S${s}+`],n=F[`S${s}-`];g+=`<path d="M285 ${y+60}V${y+92}Q285 ${y+102} 300 ${y+102}H${p.x-30}Q${p.x} ${y+102} ${p.x} ${p.y+18}V${p.y+8}" fill="none" stroke="#d62828" stroke-width="3" opacity=".75"/><path d="M337 ${y+60}V${y+86}Q337 ${y+96} 352 ${y+96}H${n.x-30}Q${n.x} ${y+96} ${n.x} ${n.y+18}V${n.y+8}" fill="none" stroke="#20252a" stroke-width="3" opacity=".75"/>`}}
-    g+=`${B0G.gnd(330,580,24)}`;
+    g+=`${B0G.gnd(300,716,24)}${B0G.sun(392,26,13,S.G/1200)}<text x="392" y="58" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--ink)">${S.G} W/m²</text>`;
+    if(S.fx&&S.fx.bolt==='dc')g+=`<g class="b8flash">${B0G.bolt(352,8,40,'#ffd400')}</g>`;
+    if(S.fx&&S.fx.str)g+=`<g class="b8flash"><circle cx="311" cy="70" r="40" fill="#ff5252" opacity=".25"/><text x="311" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#c62828">ลัดวงจร!</text></g>`;
     /* enclosure */
     g+=`<rect x="420" y="40" width="${SLOTS*U+70}" height="650" rx="14" fill="#eef1f4" stroke="#78909c" stroke-width="3"/><text x="434" y="62" font-size="13" font-weight="700" fill="#37474f">ตู้คอมไบเนอร์ (Combiner box)</text>
       <rect x="436" y="78" width="${S.SA*84-10}" height="30" rx="4" fill="#cfd8dc"/><text x="${440+S.SA*84}" y="97" font-size="10" fill="#546e7a">← เทอร์มินัลสายจากแผง</text>`;
@@ -7368,19 +7384,32 @@ function b0Combiner(el){
     /* inverter & MDB */
     g+=`<rect x="980" y="150" width="200" height="164" rx="12" fill="var(--invfill)" stroke="var(--ink)" stroke-width="2"/><text x="1080" y="176" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">อินเวอร์เตอร์ ${B8INV.P/1000} kW</text>
       <text x="1018" y="300" text-anchor="middle" font-size="11" fill="#c62828" font-weight="700">DC IN</text><text x="1124" y="300" text-anchor="middle" font-size="11" fill="#6d4c41" font-weight="700">AC OUT</text>
-      <text x="1080" y="230" text-anchor="middle" font-size="12" fill="${conn('S1+','INV+',d=>!d.on)&&conn('S1-','INV-',d=>!d.on)&&R.dcOk?'var(--ok)':'var(--muted)'}">${conn('S1+','INV+',d=>!d.on)&&conn('S1-','INV-',d=>!d.on)&&R.dcOk?'● มีไฟ DC เข้า':'○ ไม่มีไฟ DC เข้า'}</text>
-      <rect x="1040" y="560" width="140" height="110" rx="10" fill="#e8eaf6" stroke="var(--ink)" stroke-width="2"/><text x="1110" y="640" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">ไปตู้ MDB</text><text x="1110" y="656" text-anchor="middle" font-size="10" fill="var(--muted)">(กริด 230 V)</text>`;
+      <text x="1080" y="204" text-anchor="middle" font-size="12" fill="${L.dc?'var(--ok)':'var(--muted)'}">${L.dc?`● DC ${b0f(L.vdc,0)} V · ${b0f(L.pdc/1000,2)} kW`:'○ ไม่มีไฟ DC เข้า'}</text>
+      <text x="1080" y="226" text-anchor="middle" font-size="12" fill="${L.ac?'var(--ok)':'var(--muted)'}">${L.ac?`● จ่าย AC ${b0f(L.pac/1000,2)} kW`:`○ ${esc(L.why)}`}</text>
+      ${S.inv==='dmg'?`<rect x="984" y="236" width="192" height="40" rx="6" fill="#ffcdd2" stroke="#c62828" stroke-width="2"/><text x="1080" y="262" text-anchor="middle" font-size="13" font-weight="700" fill="#b71c1c">✗ อินเวอร์เตอร์เสียหาย</text>`:S.inv==='trip'?`<rect x="984" y="236" width="192" height="40" rx="6" fill="#ffe0b2" stroke="#e65100" stroke-width="2"/><text x="1080" y="262" text-anchor="middle" font-size="12" font-weight="700" fill="#e65100">! หยุดจ่าย (ป้องกันตัวเอง)</text>`:''}
+      <rect x="1040" y="560" width="140" height="110" rx="10" fill="#e8eaf6" stroke="var(--ink)" stroke-width="2"/><text x="1110" y="632" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">ตู้ MDB</text>
+      <text x="1110" y="650" text-anchor="middle" font-size="10.5" fill="${L.imp>0?'#c62828':'var(--ok)'}">${L.imp>0?`ซื้อไฟ ${b0f(L.imp/1000,2)} kW`:`ขายคืน ${b0f(-L.imp/1000,2)} kW`}</text>
+      <path d="M1070 670V700M1110 670V730M1150 670V700" stroke="var(--muted)" stroke-width="2"/>
+      <g transform="translate(1036 700)">${B0G.pole(0,4,62,!L.grid)}<circle cx="34" cy="20" r="9" fill="none" stroke="var(--ink)" stroke-width="1.8"/><circle cx="34" cy="32" r="9" fill="none" stroke="var(--ink)" stroke-width="1.8"/><text x="14" y="88" font-size="11" font-weight="700" fill="${L.grid?'var(--ink)':'#c62828'}">กริด ${S.vg} V</text></g>
+      <g transform="translate(1104 730)">${B0G.house(0,0,62)}${B0G.bulb(31,44,8,S.load>0?Math.min(1,.3+S.load/6000):0)}<text x="31" y="78" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink)">โหลด ${b0f(S.load/1000,2)} kW</text></g>`;
     /* devices */
-    S.dev.forEach(d=>{const D=B8D[d.type],x=devX(d),y=devY(d);g+=`<g class="b8dev" data-id="${d.id}">${devFace(d.type,d.o,x,y)}${D.pe?'':`<rect class="b8tog" data-id="${d.id}" x="${x+D.w*U/2-12}" y="${y+22}" width="24" height="14" rx="3" fill="${d.on?'#43a047':'#e53935'}"/><text x="${x+D.w*U/2}" y="${y+32.5}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" pointer-events="none">${d.on?'ON':'OFF'}</text>`}</g>`});
+    S.dev.forEach(d=>{const D=B8D[d.type],x=devX(d),y=devY(d),w=D.w*U;const st=S.fx&&S.fx.dev[d.id];
+      g+=`<g class="b8dev" data-id="${d.id}">${st==='clamp'?`<rect class="b8flash" x="${x-4}" y="${y-6}" width="${w+4}" height="${H+12}" rx="8" fill="#ffb300" opacity=".45"/>`:''}${devFace(d.type,d.o,x,y)}${D.pe||d.type==='fuse'?'':`<rect class="b8tog" data-id="${d.id}" x="${x+w/2-14}" y="${y+22}" width="28" height="14" rx="3" fill="${d.on?'#43a047':'#e53935'}"/><text x="${x+w/2}" y="${y+32.5}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" pointer-events="none">${d.trip?'TRIP':d.on?'ON':'OFF'}</text>`}
+       ${d.blown||d.dmg?`<path d="M${x+6} ${y+40}L${x+w-6} ${y+H-30}M${x+w-6} ${y+40}L${x+6} ${y+H-30}" stroke="#c62828" stroke-width="4" stroke-linecap="round"/><rect x="${x+2}" y="${y+H/2-10}" width="${w-4}" height="18" rx="3" fill="#c62828"/><text x="${x+w/2}" y="${y+H/2+3}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${d.blown?'ขาด':'เสีย'}</text>`:''}
+       ${st==='clamp'?`<text x="${x+w/2}" y="${y+H+16}" text-anchor="middle" font-size="10" font-weight="700" fill="#e65100">จำกัดแรงดัน → ดิน</text>`:''}${st==='trip'?`<rect class="b8flash" x="${x-4}" y="${y-6}" width="${w+4}" height="${H+12}" rx="8" fill="none" stroke="#e53935" stroke-width="4"/>`:''}</g>`});
     /* wires */
     S.wires.forEach((w,i)=>{const a=tpos(w.a),b=tpos(w.b);if(!a||!b)return;const dy=Math.max(30,Math.abs(b.y-a.y)/2),up=a.y<b.y;
       const dA=role(w.a)==='PE'||w.a[0]==='E'?1:/\.t/.test(w.a)||w.a[0]==='S'||w.a.startsWith('INV')?-1:1,dB=/\.t/.test(w.b)||w.b[0]==='S'||w.b.startsWith('INV')?-1:1;
       const pth=`M${a.x} ${a.y}C${a.x} ${a.y+dA*dy} ${b.x} ${b.y+dB*dy} ${b.x} ${b.y}`;
+      if(S.fx&&S.fx.hot&&S.fx.hot.includes(i))g+=`<path class="b8flash" d="${pth}" fill="none" stroke="#ff3d00" stroke-width="${10+w.s/2}" opacity=".45" stroke-linecap="round"/>`;
+      if(S.fx&&S.fx.surge&&S.fx.surge.includes(i))g+=`<path class="b8flash" d="${pth}" fill="none" stroke="#ffd400" stroke-width="${8+w.s/2}" opacity=".55" stroke-linecap="round"/>`;
       g+=`<path d="${pth}" fill="none" stroke="${WCOL[w.r]||'#888'}" stroke-width="${2+w.s/3}" ${w.r==='PE'?'stroke-dasharray="10 4"':''} opacity=".92"/><path class="b8w" data-i="${i}" d="${pth}" fill="none" stroke="transparent" stroke-width="12"/>`;
       if(w.r==='PE')g+=`<path d="${pth}" fill="none" stroke="#f9d71c" stroke-width="${1+w.s/6}" stroke-dasharray="4 10" stroke-dashoffset="-10" pointer-events="none"/>`});
     /* terminals */
     const all=Object.keys(F).filter(k=>F[k].on!==false);S.dev.forEach(d=>all.push(...terms(d)));
     all.forEach(id=>{const p=tpos(id),r=role(id),sel=S.sel===id;g+=`<g class="b8t" data-t="${id}"><circle cx="${p.x}" cy="${p.y}" r="${sel?9:7}" fill="${sel?'#ffd400':'#fff'}" stroke="${WCOL[r]||'#607d8b'}" stroke-width="${sel?3.5:2.5}"/><circle cx="${p.x}" cy="${p.y}" r="14" fill="transparent"/>${F[id]&&F[id].lab?`<text x="${p.x}" y="${p.y-12}" text-anchor="middle" font-size="10" font-weight="700" fill="${WCOL[r]||'var(--ink)'}">${F[id].lab}</text>`:''}</g>`});
+    if(S.fx&&S.fx.bolt==='ac')g+=`<g class="b8flash">${B0G.bolt(1010,690,40,'#ffd400')}</g>`;
+    if(S.fx&&S.fx.inv)g+=`<g class="b8flash"><rect x="976" y="146" width="208" height="172" rx="14" fill="none" stroke="${S.inv==='dmg'?'#c62828':'#ff9800'}" stroke-width="5"/></g>`;
     if(S.drag&&S.drag.ghost){const gh=S.drag.ghost,D=B8D[S.drag.k];g+=`<g opacity=".7" pointer-events="none">${devFace(S.drag.k,S.drag.o,gh.x-D.w*U/2,gh.y-H/2)}</g>`;if(gh.slot!=null)g+=`<rect x="${X0+gh.slot*U}" y="${RAIL[gh.rail]-H/2}" width="${D.w*U}" height="${H}" rx="5" fill="none" stroke="${gh.ok?'var(--ok)':'var(--err)'}" stroke-width="3" pointer-events="none"/>`}
     svg.innerHTML=g;
     const ul=$q('#b8ck');ul.innerHTML=R.out.map(([l,t])=>`<li><span class="b ${l}">${l==='ok'?'✓':l==='warn'?'!':l==='idle'?'i':'✗'}</span><span>${esc(t)}</span></li>`).join('');
@@ -7389,6 +7418,66 @@ function b0Combiner(el){
     else b0Msg($q('#b8msg'),ok?true:S.wires.length?false:null,ok?`ผ่านทุกข้อ${nw?` (มีข้อควรระวัง ${nw} ข้อ)`:''} · ภารกิจสำเร็จ`:S.wires.length?`ยังไม่ผ่าน ${ne} ข้อ`:'');
     if(ok&&!S.ex)b0Task('t8',true);
   }
+  /* ---- live power flow (devices OFF / blown / damaged are open) ---- */
+  function flow(f,R){
+    const ok=s=>f(`S${s}+`)===f('INV+')&&f(`S${s}-`)===f('INV-'),n=[1,2,3,4].filter(s=>s<=S.SA&&ok(s)).length,sh=f('INV+')===f('INV-')||f('INVL')===f('INVN');
+    const c=b0Curve(S.G,45),dc=n>0&&!sh&&R.dcOk&&S.inv!=='dmg'&&S.G>0,vdc=dc?c.mp.V*S.M:0,pdc=dc?Math.min(c.mp.P*S.M*n*.98,B8INV.P*1.3):0;
+    const acPath=f('INVL')===f('GL')&&f('INVN')===f('GN')&&!sh,grid=S.vg>=207&&S.vg<=253;
+    const ac=dc&&acPath&&grid&&S.inv===''&&vdc>=150&&vdc<=B8INV.Vmax,pac=ac?Math.min(B8INV.P,pdc*.97):0;
+    const why=S.inv==='dmg'?'อินเวอร์เตอร์เสียหาย':S.inv==='trip'?'หยุดจ่าย':!dc?'ไม่มีไฟ DC':vdc>B8INV.Vmax?'DC เกินพิกัด':!acPath?'ฝั่ง AC ถูกตัด/ยังไม่ต่อ':!grid?`แรงดันกริด ${S.vg} V นอกช่วง 207–253 V`:'ไม่จ่าย';
+    return{dc,vdc,pdc,ac,pac,grid,imp:S.load-pac,why}}
+  /* ---- events: each one reads the wiring as it is now and makes devices respond ---- */
+  function event(type){
+    if(type==='reset'){S.fx=null;S.inv='';S.dev.forEach(d=>{d.blown=false;d.dmg=false;if(d.trip){d.trip=false;d.on=true}});draw();return}
+    const f=nets(),fx={dev:{},hot:[],surge:[],msgs:[],bolt:null,inv:false,str:0},say=(l,t)=>fx.msgs.push([l,t]),gnd=f('E0')===f('GPE');
+    const spdOK=k=>S.dev.filter(d=>d.type===k&&!d.dmg&&f(`${d.id}.t0`)===f(k==='dcspd'?'INV+':'INVL')&&f(`${d.id}.t1`)===f(k==='dcspd'?'INV-':'INVN')&&f(`${d.id}.pe`)===f('E0'));
+    const wiresOf=pred=>S.wires.map((w,i)=>pred(w)?i:-1).filter(i=>i>=0),vm=vocMax(),title={sdc:'ฟ้าผ่าใกล้แผง: แรงดันกระชากเหนี่ยวนำเข้าสาย DC (หลาย kV ในไม่กี่ไมโครวินาที)',sac:'ไฟกระชากจากสายการไฟฟ้า (ฟ้าผ่าสายส่ง / การสวิตช์)',ovdc:`เช้าวันหนาว ${S.tmin} °C แดดแรง: Voc สตริงสูงสุด ${b0f(vm,0)} V`,ovac:`แรงดันกริด ${S.vg} V`,ocdc:'ลัดวงจรที่สายของสตริง 1 (เช่น สายถูกหนูกัด / MC4 ชำรุด)',ocac:'ลัดวงจรที่สาย AC ระหว่างอินเวอร์เตอร์กับตู้ MDB',olac:'แดดแรงทั้งวัน อินเวอร์เตอร์จ่ายเต็มพิกัดต่อเนื่องหลายชั่วโมง',leak:'ฉนวนอินเวอร์เตอร์ชำรุด ไฟรั่วลงโครงเครื่อง'}[type];
+    if(type==='sdc'||type==='sac'){const dc=type==='sdc',sp=spdOK(dc?'dcspd':'acspd'),okV=sp.filter(d=>dc?d.o.V>=vm:d.o.V>=B8R.acUcMin);fx.bolt=dc?'dc':'ac';
+      fx.surge=wiresOf(w=>dc?['+','-'].includes(w.r):['L','N'].includes(w.r));
+      if(okV.length&&gnd){okV.forEach(d=>fx.dev[d.id]='clamp');fx.surge.push(...wiresOf(w=>w.r==='PE'));say('ok',`SPD ${dc?'DC':'AC'} ${okV.map(d=>d.o.V+' V').join(', ')} นำกระแสกระชากลงบาร์กราวด์ → หลักดิน จำกัดแรงดันที่อินเวอร์เตอร์ไว้ต่ำกว่าระดับที่ทนได้ อินเวอร์เตอร์ปลอดภัย`);
+        if(dc&&!S.dev.some(d=>d.type==='acspd'&&f(`${d.id}.pe`)===f('E0')))say('idle','กระแสกระชากบางส่วนวิ่งต่อไปฝั่ง AC ได้ ควรมี SPD ทั้งสองฝั่ง')}
+      else{S.inv='dmg';fx.inv=true;const why=!S.dev.some(d=>d.type===(dc?'dcspd':'acspd'))?`ไม่มี SPD ฝั่ง ${dc?'DC':'AC'}`:!gnd?'บาร์กราวด์ไม่ได้ต่อลงดิน (สายดินของตู้ MDB) SPD จึงระบายกระแสไม่ได้':sp.length?`SPD พิกัดต่ำเกินไป (${dc?`Ucpv < Voc ${b0f(vm,0)} V`:'Uc < 253 V'}) เสียไปก่อนแล้ว`:'SPD ต่อไม่ครบ (ขั้วไฟหรือขั้วดิน)';
+        say('err',`${why} → แรงดันกระชากเข้าอินเวอร์เตอร์โดยตรง วงจรภาค ${dc?'DC (MPPT)':'AC'} เสียหาย`)}}
+    else if(type==='ovdc'){
+      say(vm>B8INV.Vmax?'err':'ok',vm>B8INV.Vmax?`Voc ${b0f(vm,0)} V เกินพิกัดอินเวอร์เตอร์ ${B8INV.Vmax} V ภาค DC เสียหาย ลดจำนวนแผงต่อสตริง`:`Voc ${b0f(vm,0)} V ไม่เกินพิกัดอินเวอร์เตอร์ ${B8INV.Vmax} V`);if(vm>B8INV.Vmax){S.inv='dmg';fx.inv=true}
+      if(vm>B8R.vocBldMax)say('err',`เกิน ${B8R.vocBldMax} V ที่กำหนดสำหรับระบบบนอาคาร`);
+      S.dev.filter(d=>d.type==='dcspd').forEach(d=>{if(d.o.V<vm){d.dmg=true;say('err',`SPD DC ${d.o.V} V ต่ำกว่า Voc จึงนำกระแสตลอด ร้อนจนตัวตัดภายในทำงาน SPD ใช้ไม่ได้แล้ว`)}else say('ok',`SPD DC ${d.o.V} V ไม่นำกระแส (สูงกว่า Voc)`)});
+      S.dev.filter(d=>d.type==='dcsw').forEach(d=>say(d.o.V>=vm?'ok':'err',d.o.V>=vm?`สวิตช์ DC ${d.o.V} V ตัดวงจรได้ปลอดภัย`:`สวิตช์ DC ${d.o.V} V ต่ำกว่า ${b0f(vm,0)} V ถ้าสับ OFF ขณะมีกระแส อาร์ก DC อาจไม่ดับ เสี่ยงไฟไหม้`));
+      fx.surge=wiresOf(w=>['+','-'].includes(w.r))}
+    else if(type==='ovac'){
+      if(S.vg>253){S.inv='trip';fx.inv=true;say('warn',`แรงดัน ${S.vg} V เกิน 253 V (230 V + 10%) อินเวอร์เตอร์ตัดตัวเองออกจากกริด (ระบบป้องกันแรงดันเกินในเครื่อง) ไม่เสียหาย กลับมาจ่ายเมื่อแรงดันปกติ`)}
+      else if(S.vg<207){S.inv='trip';fx.inv=true;say('warn',`แรงดัน ${S.vg} V ต่ำกว่า 207 V อินเวอร์เตอร์หยุดจ่ายชั่วคราว`)}
+      else say('ok',`แรงดัน ${S.vg} V อยู่ในช่วงปกติ (207–253 V) ลองเลื่อนแถบแรงดันกริดให้สูงขึ้นแล้วกดอีกครั้ง`);
+      S.dev.filter(d=>d.type==='acspd').forEach(d=>{if(d.o.V<S.vg){d.dmg=true;say('err',`SPD AC Uc ${d.o.V} V ต่ำกว่าแรงดันกริด ${S.vg} V นำกระแสตลอด ร้อนจนเสีย`)}else say('ok',`SPD AC Uc ${d.o.V} V ทนแรงดัน ${S.vg} V ได้`)})}
+    else if(type==='ocdc'){
+      if(S.SA<2){say('idle','มีสตริงเดียว ไม่มีกระแสย้อนจากสตริงอื่น กระแสลัดวงจรเท่ากับ Isc ของสตริงนั้นเอง (แผงทนได้) เลือก 2–3 สตริงเพื่อดูผล')}
+      else{const oth=[2,3,4].filter(t=>t<=S.SA&&conn(`S${t}+`,'INV+')&&conn(`S${t}-`,'INV-')),ib=oth.length*P.Isc*S.G/1000;fx.str=1;
+        const fu=S.dev.filter(d=>d.type==='fuse'&&!d.blown&&[ '+','-'].some(pol=>!conn(`S1${pol}`,'INV'+pol,x=>x===d)&&oth.every(t=>conn(`S${t}${pol}`,'INV'+pol,x=>x===d))));
+        say('idle',`กระแสย้อนจากสตริงอื่นที่ต่ออยู่ ${oth.length} สตริง ไหลเข้าจุดลัดวงจร = ${oth.length} × ${P.Isc} A × ${S.G}/1000 = ${b0f(ib,1)} A (แผงทนได้ไม่เกิน ${P.fuse} A)`);
+        if(fu.length){const In=Math.min(...fu.map(d=>d.o.A)),r=ib/In;
+          if(r>=1.45){fu.forEach(d=>{d.blown=true;fx.dev[d.id]='blown'});say('ok',`ฟิวส์ของสตริง 1 ขาด (กระแส ${b0f(r,2)} เท่าของพิกัด ${In} A${r>=2?' ตัดภายในไม่กี่วินาที':' ตัดภายในไม่กี่นาที'}) ตัดสตริงที่เสียออก สตริงอื่นยังจ่ายไฟต่อ`)}
+          else say('ok',`กระแสย้อนเพียง ${b0f(r,2)} เท่าของฟิวส์ ${In} A ฟิวส์ gPV อาจยังไม่ขาด (ต้องราว 1.45 เท่าขึ้นไป) แต่ไม่เกิน 1.35 × ${P.fuse} A = ${b0f(1.35*P.fuse,1)} A ที่แผงผ่านการทดสอบทนกระแสย้อน (IEC 61730) แผงจึงยังปลอดภัย · ลองเลือก 4 สตริงเพื่อดูฟิวส์ทำงาน`)}
+        else if(ib>P.fuse){fx.hot=wiresOf(w=>[w.a,w.b].some(t=>t==='S1+'||t==='S1-'));say('err',`ไม่มีฟิวส์ในสตริง 1 กระแสย้อน ${b0f(ib,1)} A เกินพิกัดแผง ${P.fuse} A สายและแผงสตริง 1 ร้อนจัด เสี่ยงไฟไหม้ (สวิตช์ DC อยู่ปลายทาง ช่วยไม่ได้)`)}
+        else say('ok',`กระแสย้อน ${b0f(ib,1)} A ไม่เกินพิกัดแผง ${P.fuse} A แผงทนได้ นี่คือเหตุผลที่ ${S.SA} สตริงยังไม่บังคับฟิวส์`)}}
+    else if(type==='ocac'){
+      const brk=S.dev.filter(d=>(d.type==='mcb'||d.type==='rcbo')&&d.on&&!conn('GL','INVL',x=>x===d));
+      say('idle','กระแสลัดวงจรจากกริดไหลมาที่จุดลัด (หลายร้อย A) ส่วนอินเวอร์เตอร์จำกัดกระแสตัวเองและหยุดจ่าย');
+      if(brk.length){const d=brk[0];d.on=false;d.trip=true;fx.dev[d.id]='trip';S.inv='trip';fx.inv=true;say('ok',`${B8D[d.type].n} ${d.o.A} A ทริปทันที (ทริปแม่เหล็ก) ตัดวงจรออกจากกริด`)}
+      else{fx.hot=wiresOf(w=>['L','N'].includes(w.r));S.inv='trip';say('err','ไม่มีเบรกเกอร์ AC คั่นระหว่างกริดกับจุดลัด สาย AC ร้อนจนฉนวนละลาย ต้องรอเบรกเกอร์เมนในตู้ MDB ซึ่งพิกัดสูงกว่าสายนี้มาก')}}
+    else if(type==='olac'){const i=B8INV.Iac,br=S.dev.filter(d=>(d.type==='mcb'||d.type==='rcbo')&&d.on&&!conn('GL','INVL',x=>x===d));
+      if(!br.length)say('warn','ไม่มีเบรกเกอร์ AC ในเส้นทาง');
+      br.forEach(d=>{if(d.o.A<i){d.on=false;d.trip=true;fx.dev[d.id]='trip';say('err',`${B8D[d.type].n} ${d.o.A} A ต่ำกว่ากระแสอินเวอร์เตอร์ ${i} A ทริปเองตอนแดดแรง (ทริปความร้อน)`)}
+        else if(d.o.A<B8R.acCont*i)say('warn',`${B8D[d.type].n} ${d.o.A} A จ่ายต่อเนื่อง ${i} A นาน ๆ ร้อนและอาจทริปเองในวันร้อน ควร ≥ ${b0f(B8R.acCont*i,1)} A`);
+        else say('ok',`${B8D[d.type].n} ${d.o.A} A รับกระแสต่อเนื่อง ${i} A ได้ (≥ 1.25 เท่า)`)});
+      const thin=wiresOf(w=>['L','N'].includes(w.r)&&(B8R.ampAC[w.s]||0)<i);if(thin.length){fx.hot=thin;say('err',`สาย AC บางเส้นรับกระแสได้น้อยกว่า ${i} A ร้อนเกิน`)}
+      S.G=1100;$q('#b8G').value=1100;$q('#b8Gv').textContent='1100 W/m²'}
+    else if(type==='leak'){const rc=S.dev.filter(d=>d.type==='rcbo'&&d.on&&!conn('GL','INVL',x=>x===d)),pe=f('INVPE')===f('E0')&&gnd;
+      if(rc.length){const d=rc[0];d.on=false;d.trip=true;fx.dev[d.id]='trip';S.inv='trip';fx.inv=true;say('ok',`RCBO 30 mA ทริป ตัดไฟที่รั่ว${pe?' และสายดินพากระแสรั่วลงดิน':' (แต่ยังไม่ได้ต่อสายดิน โครงเครื่องมีไฟจนกว่า RCBO ตัด)'}`)}
+      else if(pe)say('warn','กระแสรั่วไหลลงดินผ่านสายดิน โครงเครื่องไม่มีไฟอันตราย แต่ไม่มี RCD ตัดวงจร เครื่องยังรั่วต่อไปโดยไม่มีใครรู้');
+      else{say('err','ไม่มี RCD และอินเวอร์เตอร์ไม่ได้ต่อสายดิน โครงเครื่องมีไฟ 230 V ใครสัมผัสถูกไฟดูด');fx.inv=true}}
+    S.fx=Object.assign(fx,{title});draw();
+    const box=$q('#b8ev');box.hidden=false;box.innerHTML=`<h3>เหตุการณ์: ${esc(title)}</h3><ul class="checks">${fx.msgs.map(([l,t])=>`<li><span class="b ${l}">${l==='ok'?'✓':l==='warn'?'!':l==='idle'?'i':'✗'}</span><span>${esc(t)}</span></li>`).join('')}</ul><p class="hint tight">กด "⟲ รีเซ็ตเหตุการณ์" เพื่อเปลี่ยนฟิวส์ที่ขาด ยกเบรกเกอร์ที่ทริป และซ่อมอุปกรณ์ แล้วลองเหตุการณ์อื่น</p>`;
+    box.scrollIntoView({block:'nearest',behavior:'smooth'})}
   /* ---- slot logic ---- */
   const freeAt=(rail,slot,w,skipId)=>{if(slot<0||slot+w>SLOTS)return false;return!S.dev.some(d=>d.id!==skipId&&d.rail===rail&&slot<d.slot+B8D[d.type].w&&d.slot<slot+w)};
   const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return{x:q.x,y:q.y}};
@@ -7402,14 +7491,16 @@ function b0Combiner(el){
       S.drag=null;draw()};
     document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up)};
   /* ---- events ---- */
+  $q('#b8pal').addEventListener('input',e=>{const t=e.target;if(t.id==='b8G'){S.G=+t.value;$q('#b8Gv').textContent=S.G+' W/m²'}else if(t.id==='b8vg'){S.vg=+t.value;$q('#b8vgv').textContent=S.vg+' V';if(S.inv==='trip'&&S.vg>=207&&S.vg<=253&&S.fx&&S.fx.title&&S.fx.title.startsWith('แรงดันกริด'))S.inv=''}else if(t.id==='b8ld'){S.load=+t.value;$q('#b8ldv').textContent=S.load+' W'}else return;draw()});
   $q('#b8pal').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.ev){event(b.dataset.ev);if(b.dataset.ev==='reset'){$q('#b8ev').hidden=true}return}
     if(b.dataset.sa){S.SA=+b.dataset.sa;S.ex=false;S.wires=S.wires.filter(w=>![w.a,w.b].some(t=>/^S\d/.test(t)&&+t[1]>S.SA));palette();draw();return}
     if(b.dataset.ws){S.ws=+b.dataset.ws;palette();return}
     if(b.dataset.k&&b.dataset.o){const v=isNaN(+b.dataset.v)?b.dataset.v:+b.dataset.v;S.pick[b.dataset.k][b.dataset.o]=v;palette()}});
   $q('#b8pal').addEventListener('change',e=>{if(e.target.id==='b8m')S.M=+e.target.value;if(e.target.id==='b8t')S.tmin=+e.target.value;S.ex=false;draw()});
   $q('#b8pal').addEventListener('pointerdown',e=>{const c=e.target.closest('.b8drag');if(!c)return;const k=c.dataset.k;startDrag(k,S.pick[k],e,null)});
   svg.addEventListener('pointerdown',e=>{const t=e.target.closest('.b8t');if(t)return;const tg=e.target.closest('.b8tog');if(tg)return;const dv=e.target.closest('.b8dev');if(dv){const d=S.dev.find(x=>x.id===+dv.dataset.id);startDrag(d.type,d.o,e,d)}});
-  svg.addEventListener('click',e=>{const tg=e.target.closest('.b8tog');if(tg){const d=S.dev.find(x=>x.id===+tg.dataset.id);d.on=!d.on;draw();return}
+  svg.addEventListener('click',e=>{const tg=e.target.closest('.b8tog');if(tg){const d=S.dev.find(x=>x.id===+tg.dataset.id);d.on=!d.on;if(d.on)d.trip=false;draw();return}
     const t=e.target.closest('.b8t');if(t){const id=t.dataset.t;if(!S.sel){S.sel=id}else if(S.sel===id){S.sel=null}else{const a=S.sel,b=id;S.sel=null;
       if(!S.wires.some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a))){let r=role(a)||role(b);if(!r){const f=nets(),F=FIX(),hit=Object.keys(F).find(k=>F[k].on!==false&&(f(k)===f(a)||f(k)===f(b)));r=hit?F[hit].r:'+'}S.wires.push({a,b,r,s:S.ws});S.ex=false}}draw();return}
     const w=e.target.closest('.b8w');if(w){S.wires.splice(+w.dataset.i,1);S.ex=false;draw();return}

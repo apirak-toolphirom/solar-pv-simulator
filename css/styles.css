@@ -753,3 +753,7 @@ body[data-tab="basics"] .wrap{max-width:1280px}
 .b0wi.b0zfull{position:fixed;inset:0;z-index:1000;background:var(--bg);padding:10px max(10px,env(safe-area-inset-right)) 10px max(10px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:6px}
 .b0wi.b0zfull .b0zo{flex:1;max-height:none;overflow:auto}
 body.b0zlock{overflow:hidden}
+.b8sl{display:flex;flex-direction:column;gap:2px;font-size:12.5px}.b8sl span{display:flex;justify-content:space-between}.b8sl input{width:100%}
+.b8evb{display:flex;flex-direction:column;gap:4px}.b8evb .chip.sm{justify-content:flex-start;text-align:left;min-height:32px;height:auto;padding:4px 10px;line-height:1.35}
+.b8evres{border:2px solid var(--accent);border-radius:10px;padding:10px 12px;background:var(--surface)}.b8evres h3{margin:0 0 6px;font-size:14.5px}
+@keyframes b8fl{0%,100%{opacity:1}50%{opacity:.35}}.b8flash{animation:b8fl .7s ease-in-out 6}
