@@ -480,7 +480,9 @@
 
   <section class="tab" id="tab-fusion" hidden>
     <header><h1>จำลองแอป FusionSolar (Huawei SUN2000)</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
+    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">Monitoring</button><button class="chip" data-fpg="cfg">Configuration (ตั้งค่า)</button></div>
     <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
+    <div id="fumon">
     <div class="card"><h2>ครูสร้างฟอลต์</h2><div id="fufault" class="fufl" role="group" aria-label="ชนิดฟอลต์"></div><div class="grp" id="fumode"><span class="lab">รูปแบบ</span><button class="chip" data-fm="ramp">ค่อยๆ เพิ่ม</button><button class="chip" data-fm="step">เกิดทันที</button></div><p class="hint tight" id="fuinfo"></p></div>
     <section class="bar fubar2"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
       <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
@@ -492,6 +494,12 @@
       <div class="card"><h2>สตริง PV / MPPT</h2><div id="fustr"></div></div>
       <div class="card"><h2>Alarm</h2><div id="fual"></div></div>
       <div class="card"><h2>พลังงานที่ผลิต</h2><div class="grp" id="fuviews"><button class="chip" data-fv="day">วัน</button><button class="chip" data-fv="month">เดือน</button><button class="chip" data-fv="year">ปี</button></div><div id="fubars" class="fusvg"></div><p class="hint tight" id="fuvnote"></p></div>
+    </div>
+    </div>
+    <div id="fucfg" hidden>
+      <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ★สีส้มคือค่าที่ไม่อยู่ในภาพต้นแบบ ใช้ค่าสมมุติ ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
+      <div class="card"><div id="fupbody"></div>
+        <div class="grp fupact"><span id="fupst" class="hint" role="status"></span><button class="btn sm" id="fupreset">คืนค่าเริ่มต้น</button><button class="btn sm" id="fupexport">Export</button><button class="btn sm" id="fupsave" disabled>Save</button><button class="btn sm" id="fuprefresh">Refresh</button></div></div>
     </div>
   </section>
 
