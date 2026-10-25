@@ -5,7 +5,7 @@ Open index.html in a browser to run the project from this folder."""
 import os,re,hashlib
 here=os.path.dirname(os.path.abspath(__file__))
 R=lambda p:open(os.path.join(here,p),encoding='utf-8').read()
-JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','acmicro','solar','site','loads','backup','bkanim','systems','events','bench','benchui','basics','submit','worksheets','access','ctx','app']
+JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','acmicro','solar','site','loads','backup','bkanim','systems','events','bench','benchui','basics','earth','submit','worksheets','access','ctx','app']
 TITLE='solar sim@1'
 import base64
 ICON_URI='data:image/svg+xml;base64,'+base64.b64encode(open(os.path.join(here,'img','favicon.svg'),'rb').read()).decode()

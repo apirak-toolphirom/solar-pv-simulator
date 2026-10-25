@@ -757,3 +757,13 @@ body.b0zlock{overflow:hidden}
 .b8evb{display:flex;flex-direction:column;gap:4px}.b8evb .chip.sm{justify-content:flex-start;text-align:left;min-height:32px;height:auto;padding:4px 10px;line-height:1.35}
 .b8evres{border:2px solid var(--accent);border-radius:10px;padding:10px 12px;background:var(--surface)}.b8evres h3{margin:0 0 6px;font-size:14.5px}
 @keyframes b8fl{0%,100%{opacity:1}50%{opacity:.35}}.b8flash{animation:b8fl .7s ease-in-out 6}
+
+/* menu 00 topic 09: ground rod simulation */
+.b0gtab{margin-bottom:10px}
+#geSvg{width:100%;height:auto;display:block;touch-action:none;user-select:none}#geSvg .geT,#geSvg .geW{cursor:pointer}#geSvg .geO{cursor:grab}
+.gerow{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:12px;margin-top:10px;align-items:start}@media (max-width:800px){.gerow{grid-template-columns:1fr}}
+.gemet{display:flex;flex-direction:column;gap:6px}#geMet{width:100%;height:auto;display:block}#geMet .gesw,#geMet .getest{cursor:pointer}
+.gelog{border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface);min-width:0}.geloh{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.gelogt,.gecmpt{font-size:13px}.gelogt td.ok,.gecmpt td.ok{color:var(--ok);font-weight:600}.gecmpt td.warn{color:var(--warn);font-weight:600}.gecmpt td.bad{color:var(--err)}
+.gecmpt tr.gedel td:first-child{border-left:3px solid #d9a800}.gecmpt tr.gedeep td:first-child{border-left:3px solid #2a78d6}
+.gecmp summary{cursor:pointer;font-weight:600;margin:12px 0 6px}
