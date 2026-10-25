@@ -479,7 +479,7 @@
 
   <section class="tab" id="tab-fusion" hidden>
     <header><h1>Huawei FusionSolar: จำลองแอปและอ่าน log</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
-    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button><button class="chip" data-fpg="log">อ่าน log (นำเข้าไฟล์)</button></div>
+    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button><button class="chip" data-fpg="man">คู่มือ (แปลไทย)</button><button class="chip" data-fpg="log">อ่าน log (นำเข้าไฟล์)</button></div>
     <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
     <section class="bar fubar2" id="fubar"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
       <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
@@ -498,6 +498,7 @@
       <div class="card" id="fudev"></div>
       <div class="card"><h2>สตริง PV / MPPT</h2><div id="fustr"></div></div>
     </div>
+    <div id="fupg-man" hidden></div>
     <div id="fupg-log" hidden><p class="hint">นำเข้าไฟล์ที่ส่งออกจาก FusionSolar (เว็บหรือแอป), แอป SUN2000 หรือ SmartLogger แล้วดูกำลังผลิต แรงดัน/กระแสแต่ละสตริง กริด แบต และรายการแจ้งเตือน พร้อมข้อสังเกตสำหรับวิเคราะห์ระบบจริง สำหรับผู้เรียนที่ลงชื่อแล้วและผู้สอนเท่านั้น</p>
     <div id="hwlock" class="panelbox" hidden><p class="simmsg err" style="margin:0">เมนูนี้ใช้ได้เฉพาะผู้เรียนที่ลงชื่อเข้าใช้งานแล้ว และผู้สอน</p></div>
     <div id="hwbody">

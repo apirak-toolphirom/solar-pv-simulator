@@ -848,3 +848,11 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .furev{text-align:center;margin:6px 0}
 @media(max-width:1100px){.fumain{grid-template-columns:1fr 1fr}.fuemg{grid-template-columns:1fr}}
 .fuemh h2{text-transform:none;letter-spacing:0}
+
+.fum-top{margin:0 0 .6rem;line-height:1.5}.fum-w{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:12px;margin-top:8px}
+.fum-n{display:flex;flex-direction:column;gap:4px;align-self:start;position:sticky;top:8px}.fum-n .chip{text-align:left}.fum-n .chip.on{outline:2px solid var(--accent,#3b82f6)}
+.fum-d{min-width:0;line-height:1.65}.fum-d h2{margin:.2rem 0 .5rem}.fum-d h3{margin:1rem 0 .3rem}.fum-d table{border-collapse:collapse;width:100%;font-size:.88em;display:block;overflow-x:auto}
+.fum-t th,.fum-t td{border:1px solid rgba(128,128,128,.35);padding:4px 7px;vertical-align:top;text-align:left}.fum-t th{background:rgba(128,128,128,.14)}
+.fum-nb{border-left:4px solid #ea8a00;background:rgba(234,138,0,.1);padding:6px 10px;margin:8px 0;border-radius:4px}
+.fum-fig{border:1px dashed rgba(128,128,128,.55);padding:14px;margin:8px 0;text-align:center;border-radius:6px;font-size:.88em;opacity:.8}.fum-fig::before{content:"🖼 ";}
+@media(max-width:700px){.fum-w{grid-template-columns:1fr}.fum-n{position:static;flex-direction:row;flex-wrap:wrap}}
