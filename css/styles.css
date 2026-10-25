@@ -782,3 +782,25 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .hwraw th,.hwraw td{white-space:nowrap}
 #hwmap summary{cursor:pointer;font-weight:600}
 #hwmap select{max-width:260px}
+.bw.mis{stroke-dasharray:6 4}
+.bpt{cursor:crosshair}
+
+/* FusionSolar mock */
+.fugrid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+.fugrid2 .card{min-width:0}
+.fusvg svg{width:100%;height:auto;display:block}
+.fuhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.fubig{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fubig .k{font-size:.8rem;opacity:.7}.fubig .v{font-size:1.7rem;font-weight:700}.fubig small{font-size:.9rem;font-weight:400}
+.fumx{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.fumx div{display:flex;flex-direction:column;font-size:.82rem}.fumx span{opacity:.7}.fumx b{font-size:.95rem}
+.fut{width:100%;border-collapse:collapse;font-size:.88rem}
+.fut th,.fut td{padding:4px 6px;border-bottom:1px solid rgba(128,128,128,.25);text-align:left}
+.fut td:nth-child(3){opacity:.7}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:600;border:1px solid currentColor}
+.pill.ok{color:#15803d}.pill.warn{color:#b45309}.pill.err{color:#b91c1c}.pill.idle{color:#64748b}
+.fual-i{border-left:4px solid #94a3b8;padding:6px 10px;border-radius:6px}.fual-i.act{border-color:#b91c1c;background:rgba(185,28,28,.08)}
+.fugrid{stroke:rgba(128,128,128,.3);stroke-width:1}.fuax{font-size:11px;fill:currentColor;opacity:.7}
+.fuarea{fill:rgba(234,138,0,.25)}.fuline{fill:none;stroke:#ea8a00;stroke-width:2}
+.fucur{stroke:#3b82f6;stroke-width:1;stroke-dasharray:3 3}.fudot{fill:#3b82f6}
+.fuoff{fill:rgba(128,128,128,.18)}.fubar{fill:#ea8a00;opacity:.75}.fubar.hi{fill:#3b82f6;opacity:1}

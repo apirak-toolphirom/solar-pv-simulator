@@ -788,6 +788,28 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .hwraw th,.hwraw td{white-space:nowrap}
 #hwmap summary{cursor:pointer;font-weight:600}
 #hwmap select{max-width:260px}
+.bw.mis{stroke-dasharray:6 4}
+.bpt{cursor:crosshair}
+
+/* FusionSolar mock */
+.fugrid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+.fugrid2 .card{min-width:0}
+.fusvg svg{width:100%;height:auto;display:block}
+.fuhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.fubig{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fubig .k{font-size:.8rem;opacity:.7}.fubig .v{font-size:1.7rem;font-weight:700}.fubig small{font-size:.9rem;font-weight:400}
+.fumx{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.fumx div{display:flex;flex-direction:column;font-size:.82rem}.fumx span{opacity:.7}.fumx b{font-size:.95rem}
+.fut{width:100%;border-collapse:collapse;font-size:.88rem}
+.fut th,.fut td{padding:4px 6px;border-bottom:1px solid rgba(128,128,128,.25);text-align:left}
+.fut td:nth-child(3){opacity:.7}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:600;border:1px solid currentColor}
+.pill.ok{color:#15803d}.pill.warn{color:#b45309}.pill.err{color:#b91c1c}.pill.idle{color:#64748b}
+.fual-i{border-left:4px solid #94a3b8;padding:6px 10px;border-radius:6px}.fual-i.act{border-color:#b91c1c;background:rgba(185,28,28,.08)}
+.fugrid{stroke:rgba(128,128,128,.3);stroke-width:1}.fuax{font-size:11px;fill:currentColor;opacity:.7}
+.fuarea{fill:rgba(234,138,0,.25)}.fuline{fill:none;stroke:#ea8a00;stroke-width:2}
+.fucur{stroke:#3b82f6;stroke-width:1;stroke-dasharray:3 3}.fudot{fill:#3b82f6}
+.fuoff{fill:rgba(128,128,128,.18)}.fubar{fill:#ea8a00;opacity:.75}.fubar.hi{fill:#3b82f6;opacity:1}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -805,6 +827,7 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
     <button class="navb" data-tab="hwlog"><span class="ic">12</span>อ่าน log Huawei</button>
+    <button class="navb" data-tab="fusion"><span class="ic">13</span>จำลอง FusionSolar</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -1266,6 +1289,22 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
       <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
     </div>
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  <section class="tab" id="tab-fusion" hidden>
+    <header><h1>จำลองแอป FusionSolar (Huawei SUN2000)</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
+    <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
+    <section class="bar"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
+      <div class="grp"><span class="lab">ครูสร้างฟอลต์</span><select id="fufault" aria-label="ชนิดฟอลต์"></select><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
+      <div class="grp"><span class="lab">ค่าไฟ ฿/kWh</span><input type="number" id="futar" min="0" step="0.1" style="width:5rem"><span class="lab">พลังงานสะสมเดิม kWh</span><input type="number" id="fubase" min="0" step="100" style="width:6rem"></div></section>
+    <div class="fugrid2">
+      <div class="card" id="fuov"></div>
+      <div class="card"><h2>กำลังผลิตรายวัน</h2><div id="fuchart" class="fusvg"></div></div>
+      <div class="card" id="fudev"></div>
+      <div class="card"><h2>สตริง PV / MPPT</h2><div id="fustr"></div></div>
+      <div class="card"><h2>Alarm</h2><div id="fual"></div></div>
+      <div class="card"><h2>พลังงานที่ผลิต</h2><div class="grp" id="fuviews"><button class="chip" data-fv="day">วัน</button><button class="chip" data-fv="month">เดือน</button><button class="chip" data-fv="year">ปี</button></div><div id="fubars" class="fusvg"></div><p class="hint tight" id="fuvnote"></p></div>
+    </div>
   </section>
 
   <section class="tab" id="tab-hwlog" hidden>
@@ -8867,13 +8906,217 @@ function hwExportDay(){
   hwDownload(`huawei-log-${HW.day||'day'}.csv`,'﻿'+L.map(r=>r.map(v=>/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v).join(',')).join('\r\n'));
 }
 
+/* ---- จำลองแอป FusionSolar (Huawei SUN2000) — แสดงข้อมูลจากแบบจำลองในเว็บนี้ เพื่อฝึกอ่านหน้าจอและ alarm โดยไม่ต้องมีเครื่องจริง ---- */
+const FU={m:720,play:false,fault:'none',f0:11,f1:13,tariff:4.2,base:12500,view:'day'};
+const FU_FAULTS=[['none','ปกติ (ไม่มีฟอลต์)'],['gridov','ไฟกริดสูงเกิน (Grid Overvoltage)'],['griduv','ไฟกริดต่ำเกิน (Grid Undervoltage)'],['gridf','ความถี่กริดผิดปกติ'],['insul','ความต้านทานฉนวนต่ำ (Low Insulation Resistance)'],['arc','DC Arc Fault (AFCI)'],['rev','ขั้วสตริง PV1 กลับด้าน'],['temp','อุณหภูมิสูง ลดกำลัง (Derating)'],['dongle','Smart Dongle ขาดการเชื่อมต่อคลาวด์']];
+const FU_AL={
+  gridov:{n:'Grid Overvoltage',lv:'Major',cause:'แรงดันกริดสูงเกินช่วงที่อนุญาต (ประมาณ +10% ≈ 253 V ตามเกณฑ์การไฟฟ้า) มักเกิดจากสาย AC เล็ก/ยาวเกิน หรือแรงดันหม้อแปลงสูง ตอนที่แผงเพิ่งผลิตเยอะ',fix:'วัดแรงดันที่ขั้ว AC ของอินเวอร์เตอร์ ตรวจขนาดและความยาวสาย AC และเบรกเกอร์ แจ้งการไฟฟ้าถ้าแรงดันที่เสาสูง ตรวจว่าเลือก grid code ถูกต้อง'},
+  griduv:{n:'Grid Undervoltage',lv:'Major',cause:'แรงดันกริดต่ำกว่าช่วงที่อนุญาต อาจเป็นช่วงโหลดสูง สายหลวม หรือเบรกเกอร์ AC จุดต่อเสื่อม',fix:'วัดแรงดัน L-N ตอนมีโหลด ตรวจจุดต่อสาย AC และเบรกเกอร์ที่ร้อน แจ้งการไฟฟ้าถ้าแรงดันตกที่ต้นทาง'},
+  gridf:{n:'Grid Frequency Abnormal',lv:'Major',cause:'ความถี่กริดออกนอกช่วง 50 Hz ที่ตั้งไว้ (กริดไม่เสถียร หรือเครื่องปั่นไฟต่ออยู่)',fix:'ตรวจว่ามีเครื่องปั่นไฟต่อพ่วงหรือไม่ ตรวจ grid code และรอให้กริดกลับสู่ปกติ อินเวอร์เตอร์จะเชื่อมต่อกลับเอง'},
+  insul:{n:'Low Insulation Resistance',lv:'Major',cause:'ฉนวนสาย DC หรือแผงเสื่อม น้ำเข้าหัวต่อ MC4 สายถลอกแตะโครง หรือแผงชำรุด',fix:'ปิดระบบและแยกแหล่งจ่ายก่อนเสมอ วัดความต้านทานฉนวนทีละสตริงด้วยเครื่องที่เหมาะสม ตรวจหัวต่อและสายที่ถลอก (งานนี้ควรให้ช่างไฟฟ้าผู้ได้รับอนุญาตทำ)'},
+  arc:{n:'DC Arc Fault',lv:'Major',cause:'หัวต่อ MC4 หลวม ไหม้ หรือสายขาดบางส่วน ทำให้เกิดอาร์กต่อเนื่องที่ฝั่ง DC',fix:'ห้ามถอดหัวต่อ DC ขณะมีโหลด ปิด DC switch แล้วให้ช่างตรวจและเปลี่ยนหัวต่อ/สายที่เสียหาย'},
+  rev:{n:'String Reverse Connection',lv:'Major',cause:'ต่อขั้ว + − ของสตริงกลับด้านที่หัวต่อหรือกล่องรวม',fix:'ปิด DC switch ตรวจขั้วด้วยโวลต์มิเตอร์ แล้วต่อใหม่ให้ถูกขั้ว (ไม่ควรปล่อยไว้เพราะเสี่ยงกับตัวกันกระแสย้อนและไดโอดภายใน)'},
+  temp:{n:'Abnormal Temperature (Derating)',lv:'Warning',cause:'อุณหภูมิภายในสูง ระบายอากาศไม่พอ หรือติดตั้งโดนแดดตรง อินเวอร์เตอร์จึงลดกำลังเอง (Derating)',fix:'ย้ายหรือทำที่บังแดด เว้นช่องระบายอากาศตามคู่มือ ทำความสะอาดครีบระบายความร้อน'},
+  dongle:{n:'Disconnected from Cloud',lv:'Warning',cause:'Smart Dongle หรือสัญญาณ WLAN/4G ขาด อินเวอร์เตอร์ยังผลิตไฟตามปกติ แต่แอปไม่เห็นข้อมูลช่วงนั้น',fix:'ตรวจสัญญาณ Wi-Fi/ซิม ไฟแสดงสถานะบนดองเกิล รีสตาร์ตเราเตอร์ และตั้งค่าเครือข่ายผ่านแอป SUN2000 ใหม่'}
+};
+const fuWxSeed=n=>{let t=(n*2654435761)>>>0;t^=t<<13;t>>>=0;t^=t>>>17;t^=t<<5;t>>>=0;return (t%10000)/10000};
+let fuCache={sig:'',D:null},fuMY={key:'',v:null},fuTimer=0;
+function fuBlocks(){
+  const I=curInv();let blocks=(typeof lastA!=='undefined'&&lastA)?lastA.res.map(r=>r.status==='ok'?r.blk:null):[];
+  let demo=false;
+  if(!blocks.some(Boolean)){demo=true;const ns=Math.max(1,Math.min(20,Math.round((I.lo+I.hi)/2/Math.max(PV.vmp,1))));blocks=[{n:ns,ns,mp:1},null]}
+  return{I,blocks,demo};
+}
+function fuCompute(){
+  const{I,blocks,demo}=fuBlocks();
+  const sig=JSON.stringify([FU.fault,FU.f0,FU.f1,SIM.date,SIM.lat,SIM.lon,SIM.tilt,SIM.az,SIM.sky,SIM.loss,SIM.amin,SIM.amax,blocks,I.name,I.pac,PV.pmax,typeof EV!=='undefined'?EV:0]);
+  if(fuCache.sig===sig)return fuCache.D;
+  const R=simDay(blocks,I,SIM.tilt,SIM.az,5),n=R.n,dt=5/60/1000;
+  const totN=blocks.reduce((a,b)=>a+(b?b.n:0),0)||1;
+  const D={R,I,blocks,demo,n,pac:[],st:[],pv:[[],[]],gv:[],gf:[],tmp:[],eff:[],ir:[],online:[],alarm:null,E:0,Eapp:0,Ecum:[],hour:new Array(24).fill(0)};
+  const f0=FU.f0*60/5,f1=FU.f1*60/5,fault=FU.fault,sunI=R.sun.map((v,i)=>v?i:-1).filter(i=>i>=0);
+  let acc=0,accApp=0;
+  for(let i=0;i<n;i++){
+    const h=(i+.5)*5/60,inW=fault!=='none'&&i>=f0&&i<f1&&R.g[i]>=20;
+    let p=R.pac[i],st='night',lim=false;
+    const ta=(SIM.amax+SIM.amin)/2+(SIM.amax-SIM.amin)/2*Math.cos(2*Math.PI*(h-15)/24);
+    let vg=(FU_V||230)+0.8*(p/1000)+0.5*Math.sin(i/9),fq=50+0.025*Math.sin(i/7),ir=3.1+0.15*Math.sin(i/13),derate=1,share=[1,1];
+    if(inW){
+      if(fault==='gridov'){vg=258+0.8*Math.sin(i);p=0;st='fault'}
+      else if(fault==='griduv'){vg=186+1.5*Math.sin(i);p=0;st='fault'}
+      else if(fault==='gridf'){fq=50.9;p=0;st='fault'}
+      else if(fault==='insul'){ir=0.045;p=0;st='fault'}
+      else if(fault==='arc'){p=0;st='fault'}
+      else if(fault==='rev'){const s0=blocks[0]?blocks[0].n/totN:1;p=p*(1-s0);share[0]=0;st=p>0?'ongrid':'fault'}
+      else if(fault==='temp'){derate=.6;p*=.6;st='derate'}
+    }
+    const recover=fault!=='none'&&fault!=='temp'&&fault!=='dongle'&&fault!=='rev'&&i>=f1&&i<f1+2&&R.g[i]>=20&&R.pac[i]>0;
+    if(recover){p=0;st='starting'}
+    if(!st||st==='night'){
+      if(p>0){st=R.pac[i]<(R.pot[i]*(I.eff||97)/100)-1&&R.pot[i]*(I.eff||97)/100>I.pac*.999?'limited':'ongrid'}
+      else if(R.sun[i]&&R.g[i]>=20){
+        if(R.first>=0&&i>=R.first-2&&i<R.first)st=i===R.first-1?'starting':'insul';
+        else st='detect';
+      }else st='night';
+    }
+    const load=I.pac>0?p/I.pac:0;
+    let tmp=ta+28*Math.pow(Math.max(load,0),1.2)+3;if(fault==='temp'&&inW)tmp=86;
+    const eff=p>0?(I.eff||97)/100*(1-0.05*Math.exp(-p/(0.04*I.pac))):0;
+    const pdc=eff>0?p/eff:0;
+    for(let j=0;j<2;j++){
+      const b=blocks[j],V=b&&R.vmp[j][i]!=null?R.vmp[j][i]:0;
+      const Pj=b&&pdc>0?pdc*b.n/totN*(share[j]===0?0:1)/(fault==='rev'&&inW&&j===0?1:1):0;
+      D.pv[j].push(b?{V:(fault==='rev'&&inW&&j===0)?-0.4:V,I:V>0&&Pj>0?Pj/V:0,P:Pj,on:true}:{V:0,I:0,P:0,on:false});
+    }
+    D.pac.push(p);D.st.push(st);D.gv.push(p>0||st==='starting'||st==='fault'||st==='detect'||st==='insul'?vg:(R.sun[i]?vg:vg));D.gf.push(fq);D.tmp.push(tmp);D.eff.push(eff);D.ir.push(ir);
+    const off=fault==='dongle'&&i>=f0&&i<f1;
+    D.online.push(!off);
+    acc+=p*dt;if(!off)accApp+=p*dt;D.Ecum.push([acc,accApp]);
+    D.hour[Math.min(23,Math.floor(h))]+=p*dt;
+  }
+  D.E=acc;D.Eapp=accApp;
+  D.sunI=sunI;
+  D.alarm=fault==='none'?null:Object.assign({key:fault,start:FU.f0,end:FU.f1},FU_AL[fault]);
+  fuCache={sig,D};return D;
+}
+let FU_V=230;
+function fuMonthYear(D){
+  const{blocks,I}=D,key=[SIM.date.slice(0,7),SIM.lat,SIM.lon,SIM.tilt,SIM.az,SIM.sky,SIM.loss,I.name,PV.pmax,JSON.stringify(blocks)].join('|');
+  if(fuMY.key===key)return fuMY.v;
+  const old=SIM.date,[y,m]=old.split('-').map(Number),dim=new Date(Date.UTC(y,m,0)).getUTCDate(),days=[],mon=[];
+  const season=mm=>(mm>=5&&mm<=10)?.68:.88;
+  try{
+    for(let d=1;d<=dim;d++){SIM.date=`${y}-${pad2(m)}-${pad2(d)}`;const wx=Math.max(.25,Math.min(1,season(m)*(.5+.8*fuWxSeed(y*400+m*31+d))));days.push(simDay(blocks,I,SIM.tilt,SIM.az,15,false,true).E*wx)}
+    for(let mm=1;mm<=12;mm++){SIM.date=`${y}-${pad2(mm)}-15`;const dm=new Date(Date.UTC(y,mm,0)).getUTCDate();mon.push(simDay(blocks,I,SIM.tilt,SIM.az,15,false,true).E*dm*season(mm)*.9)}
+  }finally{SIM.date=old}
+  fuMY={key,v:{days,mon,y,m}};return fuMY.v;
+}
+const FU_ST={night:['Standby: No irradiation','idle'],insul:['Standby: Detecting insulation resistance','warn'],detect:['Standby: Detecting irradiation','warn'],starting:['Starting','warn'],ongrid:['On-grid','ok'],limited:['On-grid: Power limited','ok'],derate:['On-grid: Self-derating','warn'],fault:['Shutdown: Fault','err']};
+function fuChartSVG(D,i){
+  const W=640,H=230,L=44,Rm=12,T=14,B=26,pw=W-L-Rm,ph=H-T-B,sun=D.sunI;
+  if(!sun.length)return `<svg viewBox="0 0 ${W} ${H}"><text x="${W/2}" y="${H/2}" text-anchor="middle" class="acnote">ไม่มีแสงอาทิตย์ในวันที่นี้</text></svg>`;
+  const x0=Math.max(0,Math.floor(sun[0]*5/60-.5)),x1=Math.min(24,Math.ceil((sun[sun.length-1]+1)*5/60+.5));
+  const X=h=>L+(h-x0)/(x1-x0)*pw,pmax=Math.max(D.I.pac,...D.R.pot.map(v=>v))/1000;
+  const ymax=Math.max(1,Math.ceil(Math.max(...D.pac)/1000*1.15*2)/2),Y=v=>T+ph-v/ymax*ph;
+  let s='';
+  for(let k=0;k<=4;k++){const v=ymax*k/4,y=Y(v);s+=`<line x1="${L}" x2="${W-Rm}" y1="${y}" y2="${y}" class="fugrid"/><text x="${L-6}" y="${y+4}" text-anchor="end" class="fuax">${f(v,1)}</text>`}
+  for(let h=Math.ceil(x0/2)*2;h<=x1;h+=2)s+=`<text x="${X(h)}" y="${H-8}" text-anchor="middle" class="fuax">${pad2(h)}:00</text>`;
+  s+=`<text x="${L-6}" y="10" text-anchor="end" class="fuax">kW</text>`;
+  let seg='',off='',prevOn=true,pts=[];
+  const flush=()=>{if(pts.length>1)seg+=`<path d="M${pts.map(p=>p.join(' ')).join('L')}L${pts[pts.length-1][0]} ${Y(0)}L${pts[0][0]} ${Y(0)}Z" class="fuarea"/><path d="M${pts.map(p=>p.join(' ')).join('L')}" class="fuline"/>`;pts=[]};
+  for(let k=0;k<D.n;k++){
+    const h=(k+.5)*5/60;if(h<x0||h>x1)continue;
+    if(D.online[k])pts.push([+X(h).toFixed(1),+Y(D.pac[k]/1000).toFixed(1)]);else{flush();}
+  }
+  flush();
+  const offI=D.online.map((v,k)=>v?-1:k).filter(k=>k>=0);
+  if(offI.length)off=`<rect x="${X(offI[0]*5/60)}" y="${T}" width="${X((offI[offI.length-1]+1)*5/60)-X(offI[0]*5/60)}" height="${ph}" class="fuoff"/><text x="${(X(offI[0]*5/60)+X((offI[offI.length-1]+1)*5/60))/2}" y="${T+16}" text-anchor="middle" class="fuax">ข้อมูลขาดช่วง</text>`;
+  const ch=(i+.5)*5/60,cx=X(Math.min(Math.max(ch,x0),x1)),cy=Y(D.pac[i]/1000);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="กราฟกำลังผลิต AC ตลอดวัน">${s}${off}${seg}<line x1="${cx}" x2="${cx}" y1="${T}" y2="${T+ph}" class="fucur"/><circle cx="${cx}" cy="${cy}" r="5" class="fudot"/></svg>`;
+}
+function fuBarsSVG(vals,labels,hi,unit){
+  const W=640,H=200,L=40,Rm=8,T=12,B=26,pw=W-L-Rm,ph=H-T-B,n=vals.length,mx=Math.max(...vals,.1)*1.1,bw=pw/n;
+  let s='';
+  for(let k=0;k<=3;k++){const v=mx*k/3,y=T+ph-v/mx*ph;s+=`<line x1="${L}" x2="${W-Rm}" y1="${y}" y2="${y}" class="fugrid"/><text x="${L-5}" y="${y+4}" text-anchor="end" class="fuax">${f(v,mx>20?0:1)}</text>`}
+  vals.forEach((v,k)=>{const h=v/mx*ph,x=L+k*bw;s+=`<rect x="${x+bw*.15}" y="${T+ph-h}" width="${bw*.7}" height="${h}" rx="2" class="fubar${k===hi?' hi':''}"><title>${labels[k]}: ${f(v,1)} ${unit}</title></rect>`;if(n<=14||k%Math.ceil(n/12)===0)s+=`<text x="${x+bw/2}" y="${H-8}" text-anchor="middle" class="fuax">${labels[k]}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="กราฟพลังงานที่ผลิต (${unit})">${s}</svg>`;
+}
+function fuRender(){
+  if(!document.getElementById('fuov'))return;
+  const D=fuCompute(),i=Math.min(D.n-1,Math.max(0,Math.round(FU.m/5))),q=id=>document.getElementById(id);
+  const h=i*5/60,st=D.st[i],stn=FU_ST[st],on=D.online[i],p=D.pac[i],I=D.I;
+  const[Eday,EdayApp]=D.Ecum[i],shown=on?EdayApp:EdayApp;
+  const MY=fuMonthYear(D),dayIdx=Math.max(0,parseInt(SIM.date.slice(8,10))-1);
+  const monE=MY.days.reduce((a,v,k)=>a+(k<dayIdx?v:0),0)+(D.Eapp?Eday:0),yr=MY.mon.reduce((a,v,k)=>a+(k<MY.m-1?v:0),0)+monE;
+  const tot=FU.base+yr,rev=tot*FU.tariff;
+  const kg=Eday*0.5;
+  q('fuclock').textContent=`${pad2(Math.floor(FU.m/60))}:${pad2(FU.m%60)}`;
+  q('fusl').value=FU.m;q('fuplay').textContent=FU.play?'หยุด':'เล่น';
+  q('fudemo').hidden=!D.demo;
+  q('fuov').innerHTML=`
+    <div class="fuhead"><b>โรงไฟฟ้า (จำลอง)</b><span class="pill ${on?'ok':'err'}">${on?'เชื่อมต่อ':'Disconnected'}</span></div>
+    <div class="fubig"><div><div class="k">กำลังผลิตขณะนี้</div><div class="v">${on?f(p/1000,2):'--'} <small>kW</small></div></div>
+    <div><div class="k">ผลิตวันนี้</div><div class="v">${f(shown,2)} <small>kWh</small></div></div></div>
+    <div class="fumx"><div><span>เดือนนี้</span><b>${f(monE,0)} kWh</b></div><div><span>ปีนี้</span><b>${f(yr,0)} kWh</b></div><div><span>สะสมทั้งหมด</span><b>${f(tot,0)} kWh</b></div>
+    <div><span>รายได้/ประหยัด (สะสม)</span><b>${f(rev,0)} ฿</b></div><div><span>ลด CO₂ วันนี้ (ประมาณ)</span><b>${f(kg,1)} kg</b></div><div><span>เทียบต้นไม้ (วันนี้)</span><b>${f(kg/21*365,1)} ต้น/ปี</b></div></div>
+    ${FU.fault==='dongle'&&Eday>EdayApp+.005?`<p class="hint tight">ผลิตจริง ${f(Eday,2)} kWh แต่แอปแสดง ${f(EdayApp,2)} kWh เพราะข้อมูลช่วง ${pad2(FU.f0)}:00–${pad2(FU.f1)}:00 ขาด</p>`:''}`;
+  q('fuchart').innerHTML=fuChartSVG(D,i);
+  const Pdc=p>0&&D.eff[i]>0?p/D.eff[i]:0;
+  const row=(k,v,u)=>`<tr><th>${k}</th><td>${v}</td><td>${u||''}</td></tr>`;
+  const g=on&&true;
+  q('fudev').innerHTML=`<div class="fuhead"><b>${esc(I.name)}</b><span class="pill ${stn[1]==='idle'?'idle':stn[1]}">${stn[0]}</span></div>
+    <table class="fut"><tbody>
+    ${row('Active power',f(p/1000,3),'kW')}${row('Reactive power','0.000','kVar')}${row('Power factor',p>0?'1.000':'--','')}
+    ${row('Grid voltage (L-N)',p>0||st==='fault'||st==='starting'?f(D.gv[i],1):'--','V')}${row('Grid current',p>0?f(p/Math.max(D.gv[i],1),2):'0.00','A')}${row('Grid frequency',R_f(D,i),'Hz')}
+    ${row('Internal temperature',f(D.tmp[i],1),'°C')}${row('Efficiency',p>0?f(D.eff[i]*100,2):'--','%')}${row('Insulation resistance',f(D.ir[i],D.ir[i]<1?3:2),'MΩ')}
+    ${row('Daily energy',f(Eday,2),'kWh')}${row('Input power',f(Pdc/1000,3),'kW')}${row('Rated power',f(I.pac/1000,2),'kW')}
+    </tbody></table>`;
+  q('fustr').innerHTML=`<table class="fut"><thead><tr><th>Input</th><th>แรงดัน (V)</th><th>กระแส (A)</th><th>กำลัง (W)</th></tr></thead><tbody>`+[0,1].map(j=>{const b=D.blocks[j],d=D.pv[j][i];return `<tr><th>PV${j+1}${b?` · ${b.ns} แผงอนุกรม`:''}</th>${b?`<td>${f(d.V,1)}</td><td>${f(d.I,2)}</td><td>${f(d.P,0)}</td>`:`<td colspan="3" class="hint">ไม่ได้ต่อ</td>`}</tr>`}).join('')+`</tbody></table>
+    <p class="hint tight">แสงบนแผง ${f(D.R.g[i],0)} W/m² · อุณหภูมิเซลล์ ${f(D.R.tc[i],1)} °C · ช่วง MPPT ${I.lo}–${I.hi} V</p>`;
+  const a=D.alarm;
+  let al='';
+  if(a){
+    const state=h<a.start?'ยังไม่เกิด':(h<a.end||(a.key!=='dongle'&&a.key!=='temp'&&h<a.end+10/60))?'กำลังเกิด (Active)':'แก้ไขแล้ว (Cleared)';
+    const act=state.startsWith('กำลัง');
+    al=`<div class="fual-i ${act?'act':''}"><div class="fuhead"><b>${a.n}</b><span class="pill ${a.lv==='Major'?'err':'warn'}">${a.lv}</span></div>
+      <p class="hint tight">เกิด ${pad2(Math.floor(a.start))}:00 · สิ้นสุด ${pad2(Math.floor(a.end))}:00 · สถานะ ณ เวลาที่เลือก: <b>${state}</b></p>
+      <details ${act?'open':''}><summary>สาเหตุและวิธีแก้</summary><p><b>สาเหตุที่เป็นไปได้:</b> ${esc(a.cause)}</p><p><b>วิธีตรวจ/แก้:</b> ${esc(a.fix)}</p></details></div>`;
+  }else al='<p class="hint">ไม่มี alarm — เลือกฟอลต์ด้านบนเพื่อฝึกอ่านและวิเคราะห์ alarm</p>';
+  q('fual').innerHTML=al;
+  const days=MY.days,mon=MY.mon;
+  let bars='';
+  if(FU.view==='day')bars=fuBarsSVG(D.hour,Array.from({length:24},(_,k)=>pad2(k)),Math.floor(h),'kWh');
+  else if(FU.view==='month')bars=fuBarsSVG(days,days.map((_,k)=>String(k+1)),dayIdx,'kWh');
+  else bars=fuBarsSVG(mon,['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],MY.m-1,'kWh');
+  q('fubars').innerHTML=bars;
+  q('fuviews').querySelectorAll('[data-fv]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fv===FU.view)));
+  q('fuvnote').textContent=FU.view==='day'?`พลังงานรายชั่วโมงของวันที่ ${SIM.date}`:FU.view==='month'?'รายวัน (สภาพอากาศสุ่มแบบคงที่ ฤดูฝนผลิตน้อยกว่า)':'รายเดือน (ค่าประมาณจากวันกลางเดือน ปรับตามฤดู)';
+}
+const R_f=(D,i)=>D.pac[i]>0||D.st[i]==='fault'||D.st[i]==='starting'?f(D.gf[i],2):'--';
+function fuSyncCtl(){
+  const q=id=>document.getElementById(id);
+  q('fufault').value=FU.fault;q('fuf0').value=FU.f0;q('fuf1').value=FU.f1;
+  if(document.activeElement!==q('futar'))q('futar').value=FU.tariff;
+  if(document.activeElement!==q('fubase'))q('fubase').value=FU.base;
+}
+function fuStop(){FU.play=false;clearInterval(fuTimer);fuTimer=0}
+function initFusion(){
+  const q=id=>document.getElementById(id);if(!q('fusl'))return;
+  q('fufault').innerHTML=FU_FAULTS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+  const hrs=Array.from({length:25},(_,k)=>`<option value="${k}">${pad2(k)}:00</option>`).join('');
+  q('fuf0').innerHTML=hrs;q('fuf1').innerHTML=hrs;
+  q('fusl').addEventListener('input',e=>{FU.m=Math.round(+e.target.value/5)*5;fuRender();touch()});
+  q('fuplay').addEventListener('click',()=>{
+    if(FU.play){fuStop();fuRender();return}
+    FU.play=true;if(FU.m>=1430)FU.m=0;
+    fuTimer=setInterval(()=>{if(typeof curTab==='undefined'||curTab!=='fusion'){fuStop();return}FU.m+=10;if(FU.m>=1435){FU.m=1435;fuStop()}fuRender()},120);fuRender();
+  });
+  q('fufault').addEventListener('change',e=>{FU.fault=e.target.value;if(FU.fault!=='none'&&FU.f1<=FU.f0){FU.f0=11;FU.f1=13}fuSyncCtl();fuRender();touch()});
+  const w=(id,k)=>q(id).addEventListener('change',e=>{FU[k]=+e.target.value;if(FU.f1<=FU.f0){if(k==='f0')FU.f1=Math.min(24,FU.f0+1);else FU.f0=Math.max(0,FU.f1-1)}fuSyncCtl();fuRender();touch()});
+  w('fuf0','f0');w('fuf1','f1');
+  q('futar').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){FU.tariff=Math.max(0,Math.min(50,v));fuRender();touch()}});
+  q('fubase').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){FU.base=Math.max(0,Math.min(1e7,v));fuRender();touch()}});
+  q('fuviews').addEventListener('click',e=>{const b=e.target.closest('[data-fv]');if(b){FU.view=b.dataset.fv;fuRender();touch()}});
+  fuSyncCtl();
+}
+function fuSnapshot(){return{m:FU.m,fault:FU.fault,f0:FU.f0,f1:FU.f1,tariff:FU.tariff,base:FU.base,view:FU.view}}
+function fuRestore(o){
+  if(!o||typeof o!=='object')return;
+  const n=(v,d,lo,hi)=>{v=+v;return isFinite(v)?Math.max(lo,Math.min(hi,v)):d};
+  FU.m=Math.round(n(o.m,720,0,1435)/5)*5;FU.f0=n(o.f0,11,0,23)|0;FU.f1=n(o.f1,13,1,24)|0;if(FU.f1<=FU.f0)FU.f1=Math.min(24,FU.f0+1);
+  if(FU_FAULTS.some(x=>x[0]===o.fault))FU.fault=o.fault;
+  FU.tariff=n(o.tariff,4.2,0,50);FU.base=n(o.base,12500,0,1e7);
+  if(['day','month','year'].includes(o.view))FU.view=o.view;
+  fuSyncCtl();
+}
+
 /* ---- access: visitor (no code) / student (name + student id + class code, checked against the roster) / teacher (TEACHER_CODE) ----
    Menu permissions come from the "เมนู" sheet through the Apps Script web app. Without SUBMIT_URL everything stays open (offline use).
    The page lock is a front door; anything that changes the teacher's data (submit, Drive, history) is checked again by the web app. */
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน',hwlog:'12 อ่าน log Huawei'};
+const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน',hwlog:'12 อ่าน log Huawei',fusion:'13 จำลอง FusionSolar'};
 /* menus that need a signed-in student or the teacher, whatever the sheet says (never open to visitors, nor offline) */
 const ACC_SIGNED=['hwlog'];
 function accPerm(t){
@@ -9057,7 +9300,7 @@ function ctxRender(){
 }
 
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','hwlog'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','hwlog','fusion'];
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -9085,6 +9328,7 @@ function showTab(t,fromHash){
     else if(t==='systems'){sySync();syRun()}
     else if(t==='submit')submitRefresh();
     else if(t==='hwlog')hwRender();
+    else if(t==='fusion')fuRender();
     window.scrollTo(0,0);
   });
   touch();
@@ -9110,7 +9354,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM,micro:MICRO},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),sy:SY,site:siSnapshot(),b0:typeof B0!=='undefined'?B0:null};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),fu:fuSnapshot(),sy:SY,site:siSnapshot(),b0:typeof B0!=='undefined'?B0:null};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -9217,6 +9461,7 @@ function restoreExtra(p){
     ACS.zoom=num(p.ac.zoom,1,.5,2.5);
   }
   if(p.bn)bRestore(p.bn);
+  if(p.fu)fuRestore(p.fu);
   if(p.sy)syRestore(p.sy);
   if(p.site)siRestore(p.site);
   if(p.sc&&['top','side'].includes(p.sc.view)){SC.view=p.sc.view;SC.h=num(p.sc.h,12,0,24)}
@@ -9262,7 +9507,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
-  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();initAccess();initReset();initFile();initCloud();initConfirm();
+  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
