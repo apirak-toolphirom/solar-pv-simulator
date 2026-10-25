@@ -1,9 +1,9 @@
 /* ---- FusionSolar: หน้า Details ของอินเวอร์เตอร์ (Real-Time Device Data / Basic Information / String Details) และปุ่มควบคุม ---- */
 function fuDetRender(D,i){
   const el=document.getElementById('fudet');if(!el)return;
-  const P=fuPv(),I=D.I,p=D.pac[i],st=D.st[i],on=D.online[i],h=i*5/60,tm=m=>`${SIM.date} ${pad2(Math.floor(m/60))}:${pad2(Math.round(m%60))}:00`;
+  const P=fuPv(),dv=fuDev(),I=D.I,p=D.pac[i],st=D.st[i],on=D.online[i],h=i*5/60,tm=m=>`${SIM.date} ${pad2(Math.floor(m/60))}:${pad2(Math.round(m%60))}:00`;
   const act=['fault','manual','gridwait','commshut','starting','cmdoff'].includes(st)||p>0;
-  const tri=/four|three/i.test(P.omode)&&!/single/i.test(P.omode),V=D.gv[i],ph=[V,V*1.003,V*.997];
+  const tri=dv.tri,V=D.gv[i],ph=[V,V*1.003,V*.997];
   const adj=FU.adj||{mode:'none',v:0},kW=p/1000;
   let Q=0,pf=p>0?1:0;
   if(p>0&&adj.mode==='pf'){const a=Math.abs(adj.v);Q=kW*Math.tan(Math.acos(Math.min(1,a)))*(adj.v<0?-1:1);pf=a}
@@ -18,27 +18,27 @@ function fuDetRender(D,i){
   const rows=[
     [['Inverter status',FU_ST[st][0]],['Daily energy',n(D.Ecum[i][0],2)+' kWh'],['Total yield',n(D.tot||0,2)+' kWh']],
     [['Active power',n(kW,3)+' kW'],['Output reactive power',n(Q,3)+' kvar'],['Inverter rated power',n(I.pac/1000,3)+' kW']],
-    [['Power factor',n(pf,3)],['Grid frequency',(act?n(D.gf[i],2):'0.00')+' Hz'],['Output mode',esc(P.omode)]],
-    [['Grid phase A current',n(cur,3)+' A'],['Grid phase B current',n(tri?cur:0,3)+' A'],['Grid phase C current',n(tri?cur:0,3)+' A']],
-    [['Phase A voltage',(act?n(ph[0],1):'0.0')+' V'],['Phase B voltage',(act&&tri?n(ph[1],1):'0.0')+' V'],['Phase C voltage',(act&&tri?n(ph[2],1):'0.0')+' V']],
+    [['Power factor',n(pf,3)],['Grid frequency',(act?n(D.gf[i],2):'0.00')+' Hz'],['Output mode',tri?esc(P.omode):'Single-phase']],
+    ...(tri?[[['Grid phase A current',n(cur,3)+' A'],['Grid phase B current',n(cur,3)+' A'],['Grid phase C current',n(cur,3)+' A']],
+    [['Phase A voltage',(act?n(ph[0],1):'0.0')+' V'],['Phase B voltage',(act?n(ph[1],1):'0.0')+' V'],['Phase C voltage',(act?n(ph[2],1):'0.0')+' V']]]:[[['Grid current',n(cur,3)+' A'],['Grid voltage',(act?n(ph[0],1):'0.0')+' V'],['','']]]),
     [['Inverter startup time',startT],['Inverter shutdown time',stopT],['Internal temperature',n(D.tmp[i],1)+'℃']],
     [['Insulation resistance',n(D.ir[i],3)+' MΩ'],['Active power adjustment status',pl],['Reactive power adjustment status',qs]],
     [['Device replacement status','NA'],['RS485-2 port mode','Master'],['','']]];
   const pvc=j=>{const d=D.pv[j][i];return d&&d.on&&d.V>0?[n(d.V,1),n(d.I,2)]:['0','0']};
-  const pvs=[0,1,2,3].map(j=>j<2?pvc(j):['0','0']);
+  const pvs=Array.from({length:dv.nin},(_,j)=>j<2?pvc(j):['0','0']);
   const blk=j=>D.blocks[j];
   el.innerHTML=`<div class="fudb"><label class="fusw"><input type="checkbox" id="fuonoff" ${FU.offFrom==null?'checked':''} aria-label="เปิด/ปิดอินเวอร์เตอร์"><span></span>${FU.offFrom==null?'On':'Off'}</label>
     <button class="btn sm" data-fa="reset">Reset</button><button class="btn sm pri" data-fa="opt">Optimizer Search</button><button class="btn sm" data-fa="arc">DC Arc Fault Clearance</button><button class="btn sm" data-fa="pwr">Active Power Adjustment</button><button class="btn sm" data-fa="q">Reactive Power Adjustment</button><button class="btn sm" data-fa="pf">Power factor adjustment</button></div>
     <div id="fuadjp" class="fuadjp" hidden></div><p class="hint tight" id="fuamsg" role="status"></p>
     <h3>Real-Time Device Data</h3>
-    <table class="fut fud"><tbody><tr><th>String</th>${[1,2,3,4].map(k=>`<th>PV${k}</th>`).join('')}</tr><tr><td>Input Voltage (V)</td>${pvs.map(x=>`<td>${x[0]}</td>`).join('')}</tr><tr><td>Input Current (A)</td>${pvs.map(x=>`<td>${x[1]}</td>`).join('')}</tr></tbody></table>
+    <table class="fut fud"><tbody><tr><th>String</th>${pvs.map((_,k)=>`<th>PV${k+1}</th>`).join('')}</tr><tr><td>Input Voltage (V)</td>${pvs.map(x=>`<td>${x[0]}</td>`).join('')}</tr><tr><td>Input Current (A)</td>${pvs.map(x=>`<td>${x[1]}</td>`).join('')}</tr></tbody></table>
     <table class="fut fud3"><tbody>${rows.map(r=>`<tr>${r.map(c=>c[0]?cell(c[0],c[1]):'<td></td><td></td>').join('')}</tr>`).join('')}</tbody></table>
     <h3>Basic Information</h3><table class="fut fud3"><tbody>
-    <tr>${cell('Device name',esc(FUP_ALL[0][3]))}${cell('Device type','Inverter')}${cell('SN',esc(fuPr.sn))}</tr>
-    <tr>${cell('Device replacement record','--')}${cell('Model',esc(fuPr.model))}${cell('Software version',esc(fuPr.sw))}</tr>
-    <tr>${cell('Package Name','SUN2000MB_'+esc(fuPr.sw))}${cell('Monitoring hardware version','B')}<td></td><td></td></tr></tbody></table>
+    <tr>${cell('Device name',esc('INV-'+(dv.hw?'':'DEMO-')+'0000000000'))}${cell('Device type','Inverter')}${cell('SN',esc(fuPr.sn))}</tr>
+    <tr>${cell('Device replacement record','--')}${cell('Model',esc(I.name))}${cell('Software version',dv.hw?esc(fuPr.sw):'--')}</tr>
+    <tr>${cell('Package Name',dv.hw?'SUN2000MB_'+esc(fuPr.sw):'--')}${cell('Monitoring hardware version','B')}<td></td><td></td></tr></tbody></table>
     <h3>String Details <span class="fuinfo" tabindex="0" data-tip="ข้อมูลแผงของแต่ละสตริง ดึงจากอุปกรณ์ที่เลือกในแท็บ 01">ⓘ</span></h3>
-    <table class="fut"><thead><tr><th></th><th>String</th><th>2-in-1 String</th><th>Module Manufacturer</th><th>Modules Type</th><th>Module Type</th><th>Max. Module Power (Pmax) (W)</th><th>Module Quantity</th><th>String Capacity (Wp)</th></tr></thead><tbody>${[0,1,2,3].map(j=>{const b=j<2?blk(j):null;return `<tr><td>+</td><th>PV${j+1}</th><td><input type="checkbox" disabled aria-label="2-in-1"></td><td>${b?esc(String(PV.name||'--').split(' ')[0]):'--'}</td><td>${b?'Crystalline silicon':'--'}</td><td>${b?esc(PV.name||'--'):'--'}</td><td>${b?n(PV.pmax,0):'--'}</td><td>${b?b.ns*(b.mp||1):'--'}</td><td>${b?n(b.n*PV.pmax,2):'0.00'}</td></tr>`}).join('')}</tbody></table>`;
+    <table class="fut"><thead><tr><th></th><th>String</th><th>2-in-1 String</th><th>Module Manufacturer</th><th>Modules Type</th><th>Module Type</th><th>Max. Module Power (Pmax) (W)</th><th>Module Quantity</th><th>String Capacity (Wp)</th></tr></thead><tbody>${pvs.map((_,j)=>{const b=j<2?blk(j):null;return `<tr><td>+</td><th>PV${j+1}</th><td><input type="checkbox" disabled aria-label="2-in-1"></td><td>${b?esc(String(PV.name||'--').split(' ')[0]):'--'}</td><td>${b?'Crystalline silicon':'--'}</td><td>${b?esc(PV.name||'--'):'--'}</td><td>${b?n(PV.pmax,0):'--'}</td><td>${b?b.ns*(b.mp||1):'--'}</td><td>${b?n(b.n*PV.pmax,2):'0.00'}</td></tr>`}).join('')}</tbody></table>`;
 }
 function fuAdjOpen(kind){
   const b=document.getElementById('fuadjp');if(!b)return;

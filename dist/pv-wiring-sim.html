@@ -1338,6 +1338,7 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
     </div>
     <div id="fucfg" hidden>
       <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
+      <p class="hint" id="fupnote"></p>
       <div class="card"><div id="fupbody"></div>
         <div class="grp fupact"><span id="fupst" class="hint" role="status"></span><button class="btn sm" id="fupreset">คืนค่าเริ่มต้น</button><button class="btn sm" id="fupexport">Export</button><button class="btn sm" id="fupsave" disabled>Save</button><button class="btn sm" id="fuprefresh">Refresh</button></div></div>
     </div>
@@ -9222,6 +9223,7 @@ const FUP=[
 const FUP_ALL=FUP.flatMap(s=>s[1]);
 const FUP_DEF=()=>{const o={};FUP_ALL.forEach(x=>{o[x[0]]=x[3]});return o};
 let fuPr=FUP_DEF(),fuEd={};
+function fuDev(){const I=curInv();return{I,tri:String(I.phase)==='3',micro:!!I.micro,nin:Math.max(1,Math.min(12,I.micro?(+I.nmppt||1):(+I.nmppt||2)*2)),hw:/huawei/i.test(I.brand||'')}}
 function fuPv(){const o={};FUP_ALL.forEach(x=>{o[x[0]]=x[2]==='num'?+fuPr[x[0]]:fuPr[x[0]]});return o}
 function fupErr(x,v){if(x[2]!=='num')return'';const n=parseFloat(v);if(!isFinite(n)||String(v).trim()==='')return'กรอกตัวเลข';if(n<x[4]||n>x[5])return`อยู่นอกช่วง [${fuFd(x,x[4])}~${fuFd(x,x[5])}]`;return''}
 function fupDirty(){return FUP_ALL.some(x=>x[0] in fuEd&&String(fuEd[x[0]])!==String(fuPr[x[0]]))}
@@ -9233,11 +9235,14 @@ function fupBar(){
 }
 function fupRender(){
   const box=document.getElementById('fupbody');if(!box)return;
+  const dv=fuDev(),nt=document.getElementById('fupnote');
+  if(nt)nt.innerHTML=`อินเวอร์เตอร์ที่เลือก: <b>${esc(dv.I.name)}</b> · ${dv.tri?'3 เฟส':'1 เฟส (L N)'} · ${dv.I.pac/1000} kW · ${dv.nin} อินพุต PV`+(/SUN2000-20K-MB0/.test(dv.I.name)?'':' — ช่วงค่าและค่าเริ่มต้นของพารามิเตอร์นำมาจากเครื่องตัวอย่าง SUN2000-20K-MB0 รุ่นอื่นอาจต่างกัน ตรวจกับคู่มือรุ่นนั้น');
   box.innerHTML=FUP.map(([t,items])=>`<h3>${t}</h3><div class="fucfg">${items.map(x=>{
     const k=x[0],cur=k in fuEd?fuEd[k]:(x[2]==='num'?fuFd(x,fuPr[k]):fuPr[k]),ro=x[2]==='ro',rng=x[2]==='num'?`[${fuFd(x,x[4])}~${fuFd(x,x[5])}]`:(x[4]&&typeof x[4]==='string'?x[4]:''),fx=x[2]==='sel'?x[6]:x[7],note=x[2]==='num'?x[6]:'';
     const tag=fx==='fx'?(note?'<span class="fufx a" title="ค่าสมมุติ">★</span>':'<span class="fufx" title="มีผลต่อการจำลองในแท็บนี้">★</span>'):'';
     let ctl;
-    if(ro)ctl=`<input value="${esc(cur)}" disabled aria-label="${esc(x[1])}">`;
+    if(ro){let shown=cur;if(k==='model')shown=dv.I.name;else if(!dv.hw&&['proto','sw','sup'].includes(k))shown='--';ctl=`<input value="${esc(shown)}" disabled aria-label="${esc(x[1])}">`}
+    else if(k==='omode'&&!dv.tri)ctl=`<input value="Single-phase" disabled aria-label="${esc(x[1])}">`;
     else if(x[2]==='sel')ctl=`<select data-fp="${k}" aria-label="${esc(x[1])}">${x[4].map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
     else ctl=`<input type="text" inputmode="decimal" data-fp="${k}" value="${esc(cur)}" aria-label="${esc(x[1])}" class="${fupErr(x,cur)?'bad':''}">`;
     return `<label class="fucf"><span class="fucl">${tag}${x[1]}${ro?'':':'}${FUP_INFO[k]?` <span class="fuinfo" tabindex="0" role="note" data-tip="${esc(FUP_INFO[k])}" aria-label="${esc(FUP_INFO[k])}">ⓘ</span>`:''}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
@@ -9270,9 +9275,9 @@ function fupRestore(o){
 /* ---- FusionSolar: หน้า Details ของอินเวอร์เตอร์ (Real-Time Device Data / Basic Information / String Details) และปุ่มควบคุม ---- */
 function fuDetRender(D,i){
   const el=document.getElementById('fudet');if(!el)return;
-  const P=fuPv(),I=D.I,p=D.pac[i],st=D.st[i],on=D.online[i],h=i*5/60,tm=m=>`${SIM.date} ${pad2(Math.floor(m/60))}:${pad2(Math.round(m%60))}:00`;
+  const P=fuPv(),dv=fuDev(),I=D.I,p=D.pac[i],st=D.st[i],on=D.online[i],h=i*5/60,tm=m=>`${SIM.date} ${pad2(Math.floor(m/60))}:${pad2(Math.round(m%60))}:00`;
   const act=['fault','manual','gridwait','commshut','starting','cmdoff'].includes(st)||p>0;
-  const tri=/four|three/i.test(P.omode)&&!/single/i.test(P.omode),V=D.gv[i],ph=[V,V*1.003,V*.997];
+  const tri=dv.tri,V=D.gv[i],ph=[V,V*1.003,V*.997];
   const adj=FU.adj||{mode:'none',v:0},kW=p/1000;
   let Q=0,pf=p>0?1:0;
   if(p>0&&adj.mode==='pf'){const a=Math.abs(adj.v);Q=kW*Math.tan(Math.acos(Math.min(1,a)))*(adj.v<0?-1:1);pf=a}
@@ -9287,27 +9292,27 @@ function fuDetRender(D,i){
   const rows=[
     [['Inverter status',FU_ST[st][0]],['Daily energy',n(D.Ecum[i][0],2)+' kWh'],['Total yield',n(D.tot||0,2)+' kWh']],
     [['Active power',n(kW,3)+' kW'],['Output reactive power',n(Q,3)+' kvar'],['Inverter rated power',n(I.pac/1000,3)+' kW']],
-    [['Power factor',n(pf,3)],['Grid frequency',(act?n(D.gf[i],2):'0.00')+' Hz'],['Output mode',esc(P.omode)]],
-    [['Grid phase A current',n(cur,3)+' A'],['Grid phase B current',n(tri?cur:0,3)+' A'],['Grid phase C current',n(tri?cur:0,3)+' A']],
-    [['Phase A voltage',(act?n(ph[0],1):'0.0')+' V'],['Phase B voltage',(act&&tri?n(ph[1],1):'0.0')+' V'],['Phase C voltage',(act&&tri?n(ph[2],1):'0.0')+' V']],
+    [['Power factor',n(pf,3)],['Grid frequency',(act?n(D.gf[i],2):'0.00')+' Hz'],['Output mode',tri?esc(P.omode):'Single-phase']],
+    ...(tri?[[['Grid phase A current',n(cur,3)+' A'],['Grid phase B current',n(cur,3)+' A'],['Grid phase C current',n(cur,3)+' A']],
+    [['Phase A voltage',(act?n(ph[0],1):'0.0')+' V'],['Phase B voltage',(act?n(ph[1],1):'0.0')+' V'],['Phase C voltage',(act?n(ph[2],1):'0.0')+' V']]]:[[['Grid current',n(cur,3)+' A'],['Grid voltage',(act?n(ph[0],1):'0.0')+' V'],['','']]]),
     [['Inverter startup time',startT],['Inverter shutdown time',stopT],['Internal temperature',n(D.tmp[i],1)+'℃']],
     [['Insulation resistance',n(D.ir[i],3)+' MΩ'],['Active power adjustment status',pl],['Reactive power adjustment status',qs]],
     [['Device replacement status','NA'],['RS485-2 port mode','Master'],['','']]];
   const pvc=j=>{const d=D.pv[j][i];return d&&d.on&&d.V>0?[n(d.V,1),n(d.I,2)]:['0','0']};
-  const pvs=[0,1,2,3].map(j=>j<2?pvc(j):['0','0']);
+  const pvs=Array.from({length:dv.nin},(_,j)=>j<2?pvc(j):['0','0']);
   const blk=j=>D.blocks[j];
   el.innerHTML=`<div class="fudb"><label class="fusw"><input type="checkbox" id="fuonoff" ${FU.offFrom==null?'checked':''} aria-label="เปิด/ปิดอินเวอร์เตอร์"><span></span>${FU.offFrom==null?'On':'Off'}</label>
     <button class="btn sm" data-fa="reset">Reset</button><button class="btn sm pri" data-fa="opt">Optimizer Search</button><button class="btn sm" data-fa="arc">DC Arc Fault Clearance</button><button class="btn sm" data-fa="pwr">Active Power Adjustment</button><button class="btn sm" data-fa="q">Reactive Power Adjustment</button><button class="btn sm" data-fa="pf">Power factor adjustment</button></div>
     <div id="fuadjp" class="fuadjp" hidden></div><p class="hint tight" id="fuamsg" role="status"></p>
     <h3>Real-Time Device Data</h3>
-    <table class="fut fud"><tbody><tr><th>String</th>${[1,2,3,4].map(k=>`<th>PV${k}</th>`).join('')}</tr><tr><td>Input Voltage (V)</td>${pvs.map(x=>`<td>${x[0]}</td>`).join('')}</tr><tr><td>Input Current (A)</td>${pvs.map(x=>`<td>${x[1]}</td>`).join('')}</tr></tbody></table>
+    <table class="fut fud"><tbody><tr><th>String</th>${pvs.map((_,k)=>`<th>PV${k+1}</th>`).join('')}</tr><tr><td>Input Voltage (V)</td>${pvs.map(x=>`<td>${x[0]}</td>`).join('')}</tr><tr><td>Input Current (A)</td>${pvs.map(x=>`<td>${x[1]}</td>`).join('')}</tr></tbody></table>
     <table class="fut fud3"><tbody>${rows.map(r=>`<tr>${r.map(c=>c[0]?cell(c[0],c[1]):'<td></td><td></td>').join('')}</tr>`).join('')}</tbody></table>
     <h3>Basic Information</h3><table class="fut fud3"><tbody>
-    <tr>${cell('Device name',esc(FUP_ALL[0][3]))}${cell('Device type','Inverter')}${cell('SN',esc(fuPr.sn))}</tr>
-    <tr>${cell('Device replacement record','--')}${cell('Model',esc(fuPr.model))}${cell('Software version',esc(fuPr.sw))}</tr>
-    <tr>${cell('Package Name','SUN2000MB_'+esc(fuPr.sw))}${cell('Monitoring hardware version','B')}<td></td><td></td></tr></tbody></table>
+    <tr>${cell('Device name',esc('INV-'+(dv.hw?'':'DEMO-')+'0000000000'))}${cell('Device type','Inverter')}${cell('SN',esc(fuPr.sn))}</tr>
+    <tr>${cell('Device replacement record','--')}${cell('Model',esc(I.name))}${cell('Software version',dv.hw?esc(fuPr.sw):'--')}</tr>
+    <tr>${cell('Package Name',dv.hw?'SUN2000MB_'+esc(fuPr.sw):'--')}${cell('Monitoring hardware version','B')}<td></td><td></td></tr></tbody></table>
     <h3>String Details <span class="fuinfo" tabindex="0" data-tip="ข้อมูลแผงของแต่ละสตริง ดึงจากอุปกรณ์ที่เลือกในแท็บ 01">ⓘ</span></h3>
-    <table class="fut"><thead><tr><th></th><th>String</th><th>2-in-1 String</th><th>Module Manufacturer</th><th>Modules Type</th><th>Module Type</th><th>Max. Module Power (Pmax) (W)</th><th>Module Quantity</th><th>String Capacity (Wp)</th></tr></thead><tbody>${[0,1,2,3].map(j=>{const b=j<2?blk(j):null;return `<tr><td>+</td><th>PV${j+1}</th><td><input type="checkbox" disabled aria-label="2-in-1"></td><td>${b?esc(String(PV.name||'--').split(' ')[0]):'--'}</td><td>${b?'Crystalline silicon':'--'}</td><td>${b?esc(PV.name||'--'):'--'}</td><td>${b?n(PV.pmax,0):'--'}</td><td>${b?b.ns*(b.mp||1):'--'}</td><td>${b?n(b.n*PV.pmax,2):'0.00'}</td></tr>`}).join('')}</tbody></table>`;
+    <table class="fut"><thead><tr><th></th><th>String</th><th>2-in-1 String</th><th>Module Manufacturer</th><th>Modules Type</th><th>Module Type</th><th>Max. Module Power (Pmax) (W)</th><th>Module Quantity</th><th>String Capacity (Wp)</th></tr></thead><tbody>${pvs.map((_,j)=>{const b=j<2?blk(j):null;return `<tr><td>+</td><th>PV${j+1}</th><td><input type="checkbox" disabled aria-label="2-in-1"></td><td>${b?esc(String(PV.name||'--').split(' ')[0]):'--'}</td><td>${b?'Crystalline silicon':'--'}</td><td>${b?esc(PV.name||'--'):'--'}</td><td>${b?n(PV.pmax,0):'--'}</td><td>${b?b.ns*(b.mp||1):'--'}</td><td>${b?n(b.n*PV.pmax,2):'0.00'}</td></tr>`}).join('')}</tbody></table>`;
 }
 function fuAdjOpen(kind){
   const b=document.getElementById('fuadjp');if(!b)return;

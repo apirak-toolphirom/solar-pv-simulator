@@ -46,6 +46,7 @@ const FUP=[
 const FUP_ALL=FUP.flatMap(s=>s[1]);
 const FUP_DEF=()=>{const o={};FUP_ALL.forEach(x=>{o[x[0]]=x[3]});return o};
 let fuPr=FUP_DEF(),fuEd={};
+function fuDev(){const I=curInv();return{I,tri:String(I.phase)==='3',micro:!!I.micro,nin:Math.max(1,Math.min(12,I.micro?(+I.nmppt||1):(+I.nmppt||2)*2)),hw:/huawei/i.test(I.brand||'')}}
 function fuPv(){const o={};FUP_ALL.forEach(x=>{o[x[0]]=x[2]==='num'?+fuPr[x[0]]:fuPr[x[0]]});return o}
 function fupErr(x,v){if(x[2]!=='num')return'';const n=parseFloat(v);if(!isFinite(n)||String(v).trim()==='')return'กรอกตัวเลข';if(n<x[4]||n>x[5])return`อยู่นอกช่วง [${fuFd(x,x[4])}~${fuFd(x,x[5])}]`;return''}
 function fupDirty(){return FUP_ALL.some(x=>x[0] in fuEd&&String(fuEd[x[0]])!==String(fuPr[x[0]]))}
@@ -57,11 +58,14 @@ function fupBar(){
 }
 function fupRender(){
   const box=document.getElementById('fupbody');if(!box)return;
+  const dv=fuDev(),nt=document.getElementById('fupnote');
+  if(nt)nt.innerHTML=`อินเวอร์เตอร์ที่เลือก: <b>${esc(dv.I.name)}</b> · ${dv.tri?'3 เฟส':'1 เฟส (L N)'} · ${dv.I.pac/1000} kW · ${dv.nin} อินพุต PV`+(/SUN2000-20K-MB0/.test(dv.I.name)?'':' — ช่วงค่าและค่าเริ่มต้นของพารามิเตอร์นำมาจากเครื่องตัวอย่าง SUN2000-20K-MB0 รุ่นอื่นอาจต่างกัน ตรวจกับคู่มือรุ่นนั้น');
   box.innerHTML=FUP.map(([t,items])=>`<h3>${t}</h3><div class="fucfg">${items.map(x=>{
     const k=x[0],cur=k in fuEd?fuEd[k]:(x[2]==='num'?fuFd(x,fuPr[k]):fuPr[k]),ro=x[2]==='ro',rng=x[2]==='num'?`[${fuFd(x,x[4])}~${fuFd(x,x[5])}]`:(x[4]&&typeof x[4]==='string'?x[4]:''),fx=x[2]==='sel'?x[6]:x[7],note=x[2]==='num'?x[6]:'';
     const tag=fx==='fx'?(note?'<span class="fufx a" title="ค่าสมมุติ">★</span>':'<span class="fufx" title="มีผลต่อการจำลองในแท็บนี้">★</span>'):'';
     let ctl;
-    if(ro)ctl=`<input value="${esc(cur)}" disabled aria-label="${esc(x[1])}">`;
+    if(ro){let shown=cur;if(k==='model')shown=dv.I.name;else if(!dv.hw&&['proto','sw','sup'].includes(k))shown='--';ctl=`<input value="${esc(shown)}" disabled aria-label="${esc(x[1])}">`}
+    else if(k==='omode'&&!dv.tri)ctl=`<input value="Single-phase" disabled aria-label="${esc(x[1])}">`;
     else if(x[2]==='sel')ctl=`<select data-fp="${k}" aria-label="${esc(x[1])}">${x[4].map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
     else ctl=`<input type="text" inputmode="decimal" data-fp="${k}" value="${esc(cur)}" aria-label="${esc(x[1])}" class="${fupErr(x,cur)?'bad':''}">`;
     return `<label class="fucf"><span class="fucl">${tag}${x[1]}${ro?'':':'}${FUP_INFO[k]?` <span class="fuinfo" tabindex="0" role="note" data-tip="${esc(FUP_INFO[k])}" aria-label="${esc(FUP_INFO[k])}">ⓘ</span>`:''}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
