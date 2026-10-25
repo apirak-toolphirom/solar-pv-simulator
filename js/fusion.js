@@ -1,5 +1,5 @@
 /* ---- จำลองแอป FusionSolar (Huawei SUN2000) — แสดงข้อมูลจากแบบจำลองในเว็บนี้ เพื่อฝึกอ่านหน้าจอและ alarm โดยไม่ต้องมีเครื่องจริง ---- */
-const FU={offFrom:null,pLim:100,adj:{mode:'none',v:0},startAt:null,page:'mon',mode:'ramp',m:720,play:false,fault:'none',f0:11,f1:13,tariff:4.2,base:12500,view:'day'};
+const FU={ev:'day',rv:'month',offFrom:null,pLim:100,adj:{mode:'none',v:0},startAt:null,page:'mon',mode:'ramp',m:720,play:false,fault:'none',f0:11,f1:13,tariff:4.2,base:12500,view:'day'};
 const FU_FAULTS=[['none','ปกติ (ไม่มีฟอลต์)'],['gridov','ไฟกริดสูงเกิน (Grid Overvoltage)'],['griduv','ไฟกริดต่ำเกิน (Grid Undervoltage)'],['gridf','ความถี่กริดผิดปกติ'],['insul','ความต้านทานฉนวนต่ำ (Low Insulation Resistance)'],['arc','DC Arc Fault (AFCI)'],['rev','ขั้วสตริง PV1 กลับด้าน'],['temp','อุณหภูมิสูง ลดกำลัง (Derating)'],['dongle','Smart Dongle ขาดการเชื่อมต่อคลาวด์']];
 const FU_IC={none:['✅','ปกติ'],gridov:['⚡↑','แรงดันกริดสูง'],griduv:['⚡↓','แรงดันกริดต่ำ'],gridf:['〰️','ความถี่ผิดปกติ'],insul:['🛡️','ฉนวนต่ำ'],arc:['🔥','DC Arc'],rev:['🔁','ขั้วกลับ'],temp:['🌡️','ร้อนเกิน'],dongle:['📡','ดองเกิลหลุด']};
 const FU_AL={
@@ -176,7 +176,7 @@ function fuRender(){
   if(D.commShut&&D.st[i]==='commshut')nt.push('<div class="fual-i act"><b>หยุดเครื่องเพราะสื่อสารขาดนานเกินกำหนด</b><p class="hint tight">เปิด Automatic shutdown upon communication interruption จึงหยุดหลัง Shutdown duration ที่ตั้งไว้</p></div>');
   q('fual').innerHTML=al+nt.join('');
   const sb=q('fustart');if(sb)sb.onclick=()=>{FU.startAt=FU.m;fuRender();touch()};
-  ['mon','det','alm','his','cfg'].forEach(k=>{const e=q(k==='cfg'?'fucfg':'fupg-'+k);if(e)e.hidden=FU.page!==k});D.tot=tot;fuDetRender(D,i);q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
+  ['mon','det','alm','his','cfg'].forEach(k=>{const e=q(k==='cfg'?'fucfg':'fupg-'+k);if(e)e.hidden=FU.page!==k});D.tot=tot;fuDetRender(D,i);fuOvRender(D,i);q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
   const days=MY.days,mon=MY.mon;
   let bars='';
   if(FU.view==='day')bars=fuBarsSVG(D.hour,Array.from({length:24},(_,k)=>pad2(k)),Math.floor(h),'kWh');
@@ -217,9 +217,10 @@ function initFusion(){
   q('fuviews').addEventListener('click',e=>{const b=e.target.closest('[data-fv]');if(b){FU.view=b.dataset.fv;fuRender();touch()}});
   fuSyncCtl();
 }
-function fuSnapshot(){return{pr:fupSnapshot(),page:FU.page,m:FU.m,mode:FU.mode,fault:FU.fault,f0:FU.f0,f1:FU.f1,tariff:FU.tariff,base:FU.base,view:FU.view}}
+function fuSnapshot(){return{ev:FU.ev,rv:FU.rv,pr:fupSnapshot(),page:FU.page,m:FU.m,mode:FU.mode,fault:FU.fault,f0:FU.f0,f1:FU.f1,tariff:FU.tariff,base:FU.base,view:FU.view}}
 function fuRestore(o){
   if(!o||typeof o!=='object')return;
+  if(['day','month','year','lifetime'].includes(o.ev))FU.ev=o.ev;if(['month','year','lifetime'].includes(o.rv))FU.rv=o.rv;
   fupRestore(o.pr);if(['mon','det','alm','his','cfg'].includes(o.page))FU.page=o.page;FU.startAt=null;
   const n=(v,d,lo,hi)=>{v=+v;return isFinite(v)?Math.max(lo,Math.min(hi,v)):d};
   FU.m=Math.round(n(o.m,720,0,1435)/5)*5;FU.f0=n(o.f0,11,0,23)|0;FU.f1=n(o.f1,13,1,24)|0;if(FU.f1<=FU.f0)FU.f1=Math.min(24,FU.f0+1);

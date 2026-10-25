@@ -828,3 +828,23 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fud3 td.k{font-weight:600;width:16%}.fud3 td.k i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#98a2b3;margin-right:8px}.fud3 td.v{text-align:center;width:17%}
 #fudet h3{margin:14px 0 6px;font-size:1rem}#fudet .fut{margin-bottom:8px}#fudet .fut thead th{background:rgba(128,128,128,.12)}
 #fudet .fut td{opacity:1!important}
+
+.fuplant{display:flex;align-items:center;gap:10px;margin-bottom:10px}.fuhome{width:30px;height:30px;border-radius:50%;background:rgba(128,128,128,.2);display:grid;place-items:center}
+.fukpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border:1px solid rgba(128,128,128,.3);border-radius:6px;margin-bottom:12px;background:var(--card,rgba(255,255,255,.5))}
+.fukpi>div{display:grid;grid-template-columns:48px 1fr;grid-template-rows:auto auto;column-gap:10px;padding:14px 18px;align-items:center;border-right:1px solid rgba(128,128,128,.2)}.fukpi>div:last-child{border:0}
+.fuki{grid-row:1/3;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--c);font-size:1.4rem;background:color-mix(in srgb,var(--c) 14%,transparent)}
+.fukpi b{font-size:1.35rem}.fukpi small{font-size:.75rem;font-weight:400;opacity:.7}.fukpi em{font-style:normal;font-size:.8rem;opacity:.7}
+.fumain{display:grid;grid-template-columns:minmax(260px,1.1fr) minmax(200px,1fr) minmax(220px,1fr) minmax(220px,1fr);gap:16px;border:1px solid rgba(128,128,128,.3);border-radius:6px;padding:14px;margin-bottom:12px}
+.fuflowbox{position:relative}.fulive{position:absolute;top:0;right:0;font-size:.72rem;padding:2px 10px;border-radius:12px;background:rgba(128,128,128,.18)}.fuflow{width:100%;max-width:300px;overflow:visible;margin-top:14px}.fuflv{font-size:11px;fill:#333}
+.fueco{display:flex;flex-direction:column;justify-content:space-around;gap:10px}.fueco>div{display:grid;grid-template-columns:44px 1fr;column-gap:10px}.fueco i{grid-row:1/3;font-style:normal;font-size:1.6rem;opacity:.7;align-self:center}.fueco b{font-size:1.3rem}.fueco small{font-size:.75rem;font-weight:400;opacity:.7}.fueco em{font-style:normal;font-size:.8rem;opacity:.7}
+.fualc{display:flex;flex-direction:column;gap:10px}.fualh{font-size:.9rem}.fualh b{font-size:1.3rem}.fuabar{display:grid;grid-template-columns:1fr auto;font-size:.8rem}.fuabar i{grid-column:1/3;height:5px;background:rgba(128,128,128,.25);border-radius:3px;overflow:hidden}.fuabar u{display:block;height:100%;background:#ef5b4f}.fuabar b{text-align:right}
+.fuinfo2{display:flex;flex-direction:column;justify-content:space-around;font-size:.85rem}.fuinfo2>div{display:flex;justify-content:space-between;gap:8px}.fuinfo2 span{opacity:.7}
+.fuem{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}.fuemc{padding:14px}.fuemh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.fuemh h2{margin:0;font-size:1.05rem;margin-right:auto}.fudate{border:1px solid rgba(128,128,128,.35);border-radius:3px;padding:3px 12px;font-size:.85rem}
+.futabs{display:inline-flex;border:1px solid rgba(128,128,128,.4);border-radius:3px;overflow:hidden}.futabs button{border:0;border-right:1px solid rgba(128,128,128,.3);padding:5px 14px;background:transparent;color:inherit;font:inherit;font-size:.85rem;cursor:pointer}.futabs button:last-child{border:0}.futabs button[aria-pressed=true]{background:#1e7cf5;color:#fff}
+.fuemg{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0}.fuemr{display:flex;justify-content:space-between;font-size:.8rem}.fuemr b{font-weight:600}.fuemr span b{font-size:.95rem}.fuemr small{opacity:.6}
+.fuemr2{display:flex;justify-content:space-between;font-size:1.05rem}.fuemr3{display:flex;justify-content:space-between;font-size:.72rem;opacity:.8;margin-bottom:4px}
+.fupb{display:flex;height:16px;border-radius:2px;overflow:hidden;font-size:.68rem;color:#fff}.fupb i{font-style:normal;padding:0 4px;display:flex;align-items:center;white-space:nowrap;overflow:hidden}.fupb i:last-child{justify-content:flex-end}
+.fuleg{display:flex;gap:14px;justify-content:center;font-size:.78rem;margin-top:4px}.fuleg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.furev{text-align:center;margin:6px 0}
+@media(max-width:1100px){.fumain{grid-template-columns:1fr 1fr}.fuemg{grid-template-columns:1fr}}
+.fuemh h2{text-transform:none;letter-spacing:0}

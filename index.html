@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="16ef86cfa8">
+<meta name="build" content="34817d5e99">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='16ef86cfa8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='34817d5e99'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=7337007b">
+<link rel="stylesheet" href="css/styles.css?v=925ad333">
 </head>
 <body>
 <div class="app">
@@ -501,7 +501,7 @@ if(m&&m[1]!=='16ef86cfa8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <section class="bar fubar2"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
       <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
       <div class="grp"><span class="lab">ค่าไฟ ฿/kWh</span><input type="number" id="futar" min="0" step="0.1" style="width:5rem"><span class="lab">พลังงานสะสมเดิม kWh</span><input type="number" id="fubase" min="0" step="100" style="width:6rem"></div></section>
-    <div id="fupg-mon"><div class="fugrid2">
+    <div id="fupg-mon"><div id="fuovn"></div><div hidden>
       <div class="card" id="fuov"></div>
       <div class="card"><h2>กำลังผลิตรายวัน</h2><div id="fuchart" class="fusvg"></div></div>
     </div></div>
@@ -628,11 +628,12 @@ if(m&&m[1]!=='16ef86cfa8'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/submit.js?v=9c033448"></script>
 <script src="js/worksheets.js?v=08f14f14"></script>
 <script src="js/hwlog.js?v=a4f41bc0"></script>
-<script src="js/fusion.js?v=6ba8d005"></script>
+<script src="js/fusion.js?v=0409bd73"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
 <script src="js/fusiondet.js?v=0d128f7f"></script>
+<script src="js/fusionov.js?v=4f66fbb2"></script>
 <script src="js/access.js?v=1d578a00"></script>
 <script src="js/ctx.js?v=2f7b3e6c"></script>
-<script src="js/app.js?v=d85397ce"></script>
+<script src="js/app.js?v=60d83ecc"></script>
 </body>
 </html>
