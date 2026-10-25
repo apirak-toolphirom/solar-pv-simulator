@@ -810,6 +810,9 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fuarea{fill:rgba(234,138,0,.25)}.fuline{fill:none;stroke:#ea8a00;stroke-width:2}
 .fucur{stroke:#3b82f6;stroke-width:1;stroke-dasharray:3 3}.fudot{fill:#3b82f6}
 .fuoff{fill:rgba(128,128,128,.18)}.fubar{fill:#ea8a00;opacity:.75}.fubar.hi{fill:#3b82f6;opacity:1}
+.fufl{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:8px 0}
+.fuft{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1px solid rgba(128,128,128,.4);border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:.8rem;cursor:pointer}
+.fuft .fui{font-size:1.5rem;line-height:1.2}.fuft[aria-pressed=true]{border-color:#ea8a00;background:rgba(234,138,0,.15);font-weight:600}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -1294,8 +1297,9 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
   <section class="tab" id="tab-fusion" hidden>
     <header><h1>จำลองแอป FusionSolar (Huawei SUN2000)</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
     <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
-    <section class="bar"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
-      <div class="grp"><span class="lab">ครูสร้างฟอลต์</span><select id="fufault" aria-label="ชนิดฟอลต์"></select><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
+    <div class="card"><h2>ครูสร้างฟอลต์</h2><div id="fufault" class="fufl" role="group" aria-label="ชนิดฟอลต์"></div><div class="grp" id="fumode"><span class="lab">รูปแบบ</span><button class="chip" data-fm="ramp">ค่อยๆ เพิ่ม</button><button class="chip" data-fm="step">เกิดทันที</button></div><p class="hint tight" id="fuinfo"></p></div>
+    <section class="bar fubar2"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
+      <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
       <div class="grp"><span class="lab">ค่าไฟ ฿/kWh</span><input type="number" id="futar" min="0" step="0.1" style="width:5rem"><span class="lab">พลังงานสะสมเดิม kWh</span><input type="number" id="fubase" min="0" step="100" style="width:6rem"></div></section>
     <div class="fugrid2">
       <div class="card" id="fuov"></div>
@@ -8907,8 +8911,9 @@ function hwExportDay(){
 }
 
 /* ---- จำลองแอป FusionSolar (Huawei SUN2000) — แสดงข้อมูลจากแบบจำลองในเว็บนี้ เพื่อฝึกอ่านหน้าจอและ alarm โดยไม่ต้องมีเครื่องจริง ---- */
-const FU={m:720,play:false,fault:'none',f0:11,f1:13,tariff:4.2,base:12500,view:'day'};
+const FU={mode:'ramp',m:720,play:false,fault:'none',f0:11,f1:13,tariff:4.2,base:12500,view:'day'};
 const FU_FAULTS=[['none','ปกติ (ไม่มีฟอลต์)'],['gridov','ไฟกริดสูงเกิน (Grid Overvoltage)'],['griduv','ไฟกริดต่ำเกิน (Grid Undervoltage)'],['gridf','ความถี่กริดผิดปกติ'],['insul','ความต้านทานฉนวนต่ำ (Low Insulation Resistance)'],['arc','DC Arc Fault (AFCI)'],['rev','ขั้วสตริง PV1 กลับด้าน'],['temp','อุณหภูมิสูง ลดกำลัง (Derating)'],['dongle','Smart Dongle ขาดการเชื่อมต่อคลาวด์']];
+const FU_IC={none:['✅','ปกติ'],gridov:['⚡↑','แรงดันกริดสูง'],griduv:['⚡↓','แรงดันกริดต่ำ'],gridf:['〰️','ความถี่ผิดปกติ'],insul:['🛡️','ฉนวนต่ำ'],arc:['🔥','DC Arc'],rev:['🔁','ขั้วกลับ'],temp:['🌡️','ร้อนเกิน'],dongle:['📡','ดองเกิลหลุด']};
 const FU_AL={
   gridov:{n:'Grid Overvoltage',lv:'Major',cause:'แรงดันกริดสูงเกินช่วงที่อนุญาต (ประมาณ +10% ≈ 253 V ตามเกณฑ์การไฟฟ้า) มักเกิดจากสาย AC เล็ก/ยาวเกิน หรือแรงดันหม้อแปลงสูง ตอนที่แผงเพิ่งผลิตเยอะ',fix:'วัดแรงดันที่ขั้ว AC ของอินเวอร์เตอร์ ตรวจขนาดและความยาวสาย AC และเบรกเกอร์ แจ้งการไฟฟ้าถ้าแรงดันที่เสาสูง ตรวจว่าเลือก grid code ถูกต้อง'},
   griduv:{n:'Grid Undervoltage',lv:'Major',cause:'แรงดันกริดต่ำกว่าช่วงที่อนุญาต อาจเป็นช่วงโหลดสูง สายหลวม หรือเบรกเกอร์ AC จุดต่อเสื่อม',fix:'วัดแรงดัน L-N ตอนมีโหลด ตรวจจุดต่อสาย AC และเบรกเกอร์ที่ร้อน แจ้งการไฟฟ้าถ้าแรงดันตกที่ต้นทาง'},
@@ -8929,26 +8934,32 @@ function fuBlocks(){
 }
 function fuCompute(){
   const{I,blocks,demo}=fuBlocks();
-  const sig=JSON.stringify([FU.fault,FU.f0,FU.f1,SIM.date,SIM.lat,SIM.lon,SIM.tilt,SIM.az,SIM.sky,SIM.loss,SIM.amin,SIM.amax,blocks,I.name,I.pac,PV.pmax,typeof EV!=='undefined'?EV:0]);
+  const sig=JSON.stringify([FU.fault,FU.mode,FU.f0,FU.f1,SIM.date,SIM.lat,SIM.lon,SIM.tilt,SIM.az,SIM.sky,SIM.loss,SIM.amin,SIM.amax,blocks,I.name,I.pac,PV.pmax,typeof EV!=='undefined'?EV:0]);
   if(fuCache.sig===sig)return fuCache.D;
   const R=simDay(blocks,I,SIM.tilt,SIM.az,5),n=R.n,dt=5/60/1000;
   const totN=blocks.reduce((a,b)=>a+(b?b.n:0),0)||1;
-  const D={R,I,blocks,demo,n,pac:[],st:[],pv:[[],[]],gv:[],gf:[],tmp:[],eff:[],ir:[],online:[],alarm:null,E:0,Eapp:0,Ecum:[],hour:new Array(24).fill(0)};
+  const D={R,I,blocks,demo,n,pac:[],st:[],pv:[[],[]],gv:[],gf:[],tmp:[],eff:[],ir:[],online:[],alarm:null,trip:-1,E:0,Eapp:0,Ecum:[],hour:new Array(24).fill(0)};
   const f0=FU.f0*60/5,f1=FU.f1*60/5,fault=FU.fault,sunI=R.sun.map((v,i)=>v?i:-1).filter(i=>i>=0);
   let acc=0,accApp=0;
   for(let i=0;i<n;i++){
     const h=(i+.5)*5/60,inW=fault!=='none'&&i>=f0&&i<f1&&R.g[i]>=20;
-    let p=R.pac[i],st='night',lim=false;
+    let p=R.pac[i],st='night',lim=false,tmpX=0;
     const ta=(SIM.amax+SIM.amin)/2+(SIM.amax-SIM.amin)/2*Math.cos(2*Math.PI*(h-15)/24);
     let vg=(FU_V||230)+0.8*(p/1000)+0.5*Math.sin(i/9),fq=50+0.025*Math.sin(i/7),ir=3.1+0.15*Math.sin(i/13),derate=1,share=[1,1];
+    const sev=inW?(FU.mode==='ramp'?Math.min(1,(i-f0+1)/Math.max(1,(f1-f0)*.6)):1):0,lp=(a,b)=>a+(b-a)*sev;
+    let trip=false;
     if(inW){
-      if(fault==='gridov'){vg=258+0.8*Math.sin(i);p=0;st='fault'}
-      else if(fault==='griduv'){vg=186+1.5*Math.sin(i);p=0;st='fault'}
-      else if(fault==='gridf'){fq=50.9;p=0;st='fault'}
-      else if(fault==='insul'){ir=0.045;p=0;st='fault'}
-      else if(fault==='arc'){p=0;st='fault'}
-      else if(fault==='rev'){const s0=blocks[0]?blocks[0].n/totN:1;p=p*(1-s0);share[0]=0;st=p>0?'ongrid':'fault'}
-      else if(fault==='temp'){derate=.6;p*=.6;st='derate'}
+      if(fault==='gridov'){vg=lp(vg,262);if(vg>253)trip=true}
+      else if(fault==='griduv'){vg=lp(vg,176);if(vg<195)trip=true}
+      else if(fault==='gridf'){fq=lp(fq,51.2);if(fq>50.5)trip=true}
+      else if(fault==='insul'){ir=Math.exp(lp(Math.log(ir),Math.log(0.04)));if(ir<0.1)trip=true}
+      else if(fault==='arc'){if(sev>=0.5)trip=true}
+      else if(fault==='rev'){if(sev>0){const s0=blocks[0]?blocks[0].n/totN:1;p=p*(1-s0);share[0]=0;st=p>0?'ongrid':'fault';trip=true}}
+      else if(fault==='temp'){tmpX=lp(0,1);if(sev>0){trip=true;derate=lp(1,.6)}}
+      else if(fault==='dongle'){trip=true}
+      if(fault!=='rev'&&fault!=='temp'&&fault!=='dongle'&&trip){p=0;st='fault'}
+      if(fault==='temp'&&sev>0){p*=derate;st=derate<.999?'derate':st}
+      if(trip&&D.trip<0)D.trip=i;
     }
     const recover=fault!=='none'&&fault!=='temp'&&fault!=='dongle'&&fault!=='rev'&&i>=f1&&i<f1+2&&R.g[i]>=20&&R.pac[i]>0;
     if(recover){p=0;st='starting'}
@@ -8960,7 +8971,7 @@ function fuCompute(){
       }else st='night';
     }
     const load=I.pac>0?p/I.pac:0;
-    let tmp=ta+28*Math.pow(Math.max(load,0),1.2)+3;if(fault==='temp'&&inW)tmp=86;
+    let tmp=ta+28*Math.pow(Math.max(load,0),1.2)+3;if(fault==='temp'&&inW)tmp=tmp+(86-tmp)*tmpX;
     const eff=p>0?(I.eff||97)/100*(1-0.05*Math.exp(-p/(0.04*I.pac))):0;
     const pdc=eff>0?p/eff:0;
     for(let j=0;j<2;j++){
@@ -8976,7 +8987,7 @@ function fuCompute(){
   }
   D.E=acc;D.Eapp=accApp;
   D.sunI=sunI;
-  D.alarm=fault==='none'?null:Object.assign({key:fault,start:FU.f0,end:FU.f1},FU_AL[fault]);
+  D.alarm=fault==='none'?null:Object.assign({key:fault,start:D.trip>=0?D.trip*5/60:null,end:FU.f1},FU_AL[fault]);
   fuCache={sig,D};return D;
 }
 let FU_V=230;
@@ -9056,10 +9067,10 @@ function fuRender(){
   const a=D.alarm;
   let al='';
   if(a){
-    const state=h<a.start?'ยังไม่เกิด':(h<a.end||(a.key!=='dongle'&&a.key!=='temp'&&h<a.end+10/60))?'กำลังเกิด (Active)':'แก้ไขแล้ว (Cleared)';
+    const state=a.start==null||h<a.start?'ยังไม่เกิด (ยังไม่ถึงเกณฑ์)':(h<a.end||(a.key!=='dongle'&&a.key!=='temp'&&h<a.end+10/60))?'กำลังเกิด (Active)':'แก้ไขแล้ว (Cleared)';
     const act=state.startsWith('กำลัง');
     al=`<div class="fual-i ${act?'act':''}"><div class="fuhead"><b>${a.n}</b><span class="pill ${a.lv==='Major'?'err':'warn'}">${a.lv}</span></div>
-      <p class="hint tight">เกิด ${pad2(Math.floor(a.start))}:00 · สิ้นสุด ${pad2(Math.floor(a.end))}:00 · สถานะ ณ เวลาที่เลือก: <b>${state}</b></p>
+      <p class="hint tight">เกิด ${a.start==null?'--':pad2(Math.floor(a.start))+':'+pad2(Math.round(a.start%1*60))} · สิ้นสุด ${pad2(Math.floor(a.end))}:00 · สถานะ ณ เวลาที่เลือก: <b>${state}</b></p>
       <details ${act?'open':''}><summary>สาเหตุและวิธีแก้</summary><p><b>สาเหตุที่เป็นไปได้:</b> ${esc(a.cause)}</p><p><b>วิธีตรวจ/แก้:</b> ${esc(a.fix)}</p></details></div>`;
   }else al='<p class="hint">ไม่มี alarm — เลือกฟอลต์ด้านบนเพื่อฝึกอ่านและวิเคราะห์ alarm</p>';
   q('fual').innerHTML=al;
@@ -9075,14 +9086,18 @@ function fuRender(){
 const R_f=(D,i)=>D.pac[i]>0||D.st[i]==='fault'||D.st[i]==='starting'?f(D.gf[i],2):'--';
 function fuSyncCtl(){
   const q=id=>document.getElementById(id);
-  q('fufault').value=FU.fault;q('fuf0').value=FU.f0;q('fuf1').value=FU.f1;
+  q('fufault').querySelectorAll('[data-ff]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ff===FU.fault)));q('fumode').querySelectorAll('[data-fm]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fm===FU.mode)));
+  const inf=q('fuinfo');if(inf){const a=FU_AL[FU.fault];inf.innerHTML=a?`<b>${FU_IC[FU.fault][0]} ${a.n}</b> <span class="pill ${a.lv==='Major'?'err':'warn'}">${a.lv}</span><br>${esc(a.cause)}`:'เลือกสัญลักษณ์ฟอลต์ด้านบน แล้วกำหนดช่วงเวลาและรูปแบบการเกิด';}
+  q('fuf0').value=FU.f0;q('fuf1').value=FU.f1;
   if(document.activeElement!==q('futar'))q('futar').value=FU.tariff;
   if(document.activeElement!==q('fubase'))q('fubase').value=FU.base;
 }
 function fuStop(){FU.play=false;clearInterval(fuTimer);fuTimer=0}
 function initFusion(){
   const q=id=>document.getElementById(id);if(!q('fusl'))return;
-  q('fufault').innerHTML=FU_FAULTS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');
+  q('fufault').innerHTML=FU_FAULTS.map(x=>`<button type="button" class="fuft" data-ff="${x[0]}" title="${esc(x[1])}"><span class="fui">${FU_IC[x[0]][0]}</span><span>${FU_IC[x[0]][1]}</span></button>`).join('');
+  q('fufault').addEventListener('click',e=>{const b=e.target.closest('[data-ff]');if(!b)return;FU.fault=b.dataset.ff;if(FU.fault!=='none'&&FU.f1<=FU.f0){FU.f0=11;FU.f1=13}fuSyncCtl();fuRender();touch()});
+  q('fumode').addEventListener('click',e=>{const b=e.target.closest('[data-fm]');if(!b)return;FU.mode=b.dataset.fm;fuSyncCtl();fuRender();touch()});
   const hrs=Array.from({length:25},(_,k)=>`<option value="${k}">${pad2(k)}:00</option>`).join('');
   q('fuf0').innerHTML=hrs;q('fuf1').innerHTML=hrs;
   q('fusl').addEventListener('input',e=>{FU.m=Math.round(+e.target.value/5)*5;fuRender();touch()});
@@ -9091,7 +9106,6 @@ function initFusion(){
     FU.play=true;if(FU.m>=1430)FU.m=0;
     fuTimer=setInterval(()=>{if(typeof curTab==='undefined'||curTab!=='fusion'){fuStop();return}FU.m+=10;if(FU.m>=1435){FU.m=1435;fuStop()}fuRender()},120);fuRender();
   });
-  q('fufault').addEventListener('change',e=>{FU.fault=e.target.value;if(FU.fault!=='none'&&FU.f1<=FU.f0){FU.f0=11;FU.f1=13}fuSyncCtl();fuRender();touch()});
   const w=(id,k)=>q(id).addEventListener('change',e=>{FU[k]=+e.target.value;if(FU.f1<=FU.f0){if(k==='f0')FU.f1=Math.min(24,FU.f0+1);else FU.f0=Math.max(0,FU.f1-1)}fuSyncCtl();fuRender();touch()});
   w('fuf0','f0');w('fuf1','f1');
   q('futar').addEventListener('input',e=>{const v=parseFloat(e.target.value);if(isFinite(v)){FU.tariff=Math.max(0,Math.min(50,v));fuRender();touch()}});
@@ -9099,7 +9113,7 @@ function initFusion(){
   q('fuviews').addEventListener('click',e=>{const b=e.target.closest('[data-fv]');if(b){FU.view=b.dataset.fv;fuRender();touch()}});
   fuSyncCtl();
 }
-function fuSnapshot(){return{m:FU.m,fault:FU.fault,f0:FU.f0,f1:FU.f1,tariff:FU.tariff,base:FU.base,view:FU.view}}
+function fuSnapshot(){return{m:FU.m,mode:FU.mode,fault:FU.fault,f0:FU.f0,f1:FU.f1,tariff:FU.tariff,base:FU.base,view:FU.view}}
 function fuRestore(o){
   if(!o||typeof o!=='object')return;
   const n=(v,d,lo,hi)=>{v=+v;return isFinite(v)?Math.max(lo,Math.min(hi,v)):d};
@@ -9107,6 +9121,7 @@ function fuRestore(o){
   if(FU_FAULTS.some(x=>x[0]===o.fault))FU.fault=o.fault;
   FU.tariff=n(o.tariff,4.2,0,50);FU.base=n(o.base,12500,0,1e7);
   if(['day','month','year'].includes(o.view))FU.view=o.view;
+  if(o.mode==='step'||o.mode==='ramp')FU.mode=o.mode;
   fuSyncCtl();
 }
 

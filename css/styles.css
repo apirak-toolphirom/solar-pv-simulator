@@ -804,3 +804,6 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fuarea{fill:rgba(234,138,0,.25)}.fuline{fill:none;stroke:#ea8a00;stroke-width:2}
 .fucur{stroke:#3b82f6;stroke-width:1;stroke-dasharray:3 3}.fudot{fill:#3b82f6}
 .fuoff{fill:rgba(128,128,128,.18)}.fubar{fill:#ea8a00;opacity:.75}.fubar.hi{fill:#3b82f6;opacity:1}
+.fufl{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:8px 0}
+.fuft{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1px solid rgba(128,128,128,.4);border-radius:10px;background:transparent;color:inherit;font:inherit;font-size:.8rem;cursor:pointer}
+.fuft .fui{font-size:1.5rem;line-height:1.2}.fuft[aria-pressed=true]{border-color:#ea8a00;background:rgba(234,138,0,.15);font-weight:600}
