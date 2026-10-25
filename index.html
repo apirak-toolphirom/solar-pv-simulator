@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="bde23a7d63">
+<meta name="build" content="4344e7707d">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='bde23a7d63'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='4344e7707d'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=3d1e1142">
+<link rel="stylesheet" href="css/styles.css?v=8f6f4813">
 </head>
 <body>
 <div class="app">
@@ -30,6 +30,7 @@ if(m&&m[1]!=='bde23a7d63'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
     <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
+    <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -493,6 +494,14 @@ if(m&&m[1]!=='bde23a7d63'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
   </section>
 
+  <section class="tab" id="tab-cable" hidden>
+    <header><h1>สายไฟและเบรกเกอร์</h1><p class="sub">เลือกขนาดสาย เบรกเกอร์ ฟิวส์ สายดิน แรงดันตก และท่อร้อยสาย ทั้งฝั่ง AC (ขาออกอินเวอร์เตอร์ / วงจรทั่วไป) และฝั่ง DC (สตริงแผง / แบตเตอรี่) ใช้ค่าอุปกรณ์จากเมนู 01–02 ได้</p></header>
+    <div class="chips cbtabs" id="cbtabs" role="group" aria-label="หน้าย่อย"></div>
+    <p class="simmsg ok" id="cbmsg" role="status" hidden></p>
+    <div id="cbpage"></div>
+    <p class="hint">ตัวเลขเป็นการออกแบบเบื้องต้นเพื่อการเรียนรู้ อ้างอิงวิธีติดตั้งตาม IEC 60364-5-52 (สายทองแดง) และ EN 50618 (สายโซลาร์) งานจริงต้องตรวจกับมาตรฐานการติดตั้งทางไฟฟ้าสำหรับประเทศไทย (วสท.) ฉบับที่ใช้บังคับ ข้อกำหนดของการไฟฟ้า คู่มืออุปกรณ์ และดาต้าชีตของผู้ผลิตสาย ท่อ และเบรกเกอร์ทุกครั้ง</p>
+  </section>
+
   <section class="tab" id="tab-fusion" hidden>
     <header><h1>Huawei FusionSolar: จำลองแอปและอ่าน log</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
     <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button><button class="chip" data-fpg="man">คู่มือ (แปลไทย)</button><button class="chip" data-fpg="log">อ่าน log (นำเข้าไฟล์)</button></div>
@@ -632,8 +641,9 @@ if(m&&m[1]!=='bde23a7d63'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/fusiondet.js?v=0d128f7f"></script>
 <script src="js/fusionov.js?v=4f66fbb2"></script>
 <script src="js/fusionman.js?v=d678e9c2"></script>
-<script src="js/access.js?v=57736d47"></script>
-<script src="js/ctx.js?v=2f7b3e6c"></script>
-<script src="js/app.js?v=ea995190"></script>
+<script src="js/cable.js?v=9d04dee4"></script>
+<script src="js/access.js?v=8e134218"></script>
+<script src="js/ctx.js?v=529868cd"></script>
+<script src="js/app.js?v=32b98b4f"></script>
 </body>
 </html>

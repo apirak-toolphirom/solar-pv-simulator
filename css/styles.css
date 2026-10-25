@@ -856,3 +856,22 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fum-nb{border-left:4px solid #ea8a00;background:rgba(234,138,0,.1);padding:6px 10px;margin:8px 0;border-radius:4px}
 .fum-fig{border:1px dashed rgba(128,128,128,.55);padding:14px;margin:8px 0;text-align:center;border-radius:6px;font-size:.88em;opacity:.8}.fum-fig::before{content:"🖼 ";}
 @media(max-width:700px){.fum-w{grid-template-columns:1fr}.fum-n{position:static;flex-direction:row;flex-wrap:wrap}}
+/* ---- menu 13 cables & breakers ---- */
+.cbtabs{margin-bottom:12px}
+.cbform{margin-bottom:12px;display:flex;flex-direction:column;gap:12px}
+.cbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 14px}
+.cbf{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);min-width:0}
+.cbf[hidden]{display:none}
+.cbf select{text-overflow:ellipsis}
+.cbres{display:flex;flex-direction:column;gap:12px}
+.cbres .metrics .metric .v{font-size:20px}
+.cbres .metric .s{overflow-wrap:anywhere}
+.cbok{color:var(--ok);font-family:var(--body)}.cbno{color:var(--err);font-family:var(--body)}
+table.t.cbt tr.cbdim td{opacity:.5}
+table.t.cbt td small{color:var(--muted);font-family:var(--body)}
+table.t.cbk td{text-align:center;font-size:12px;line-height:1.35}
+table.t.cbl td{font-family:var(--body);white-space:normal;text-align:left}
+.cbsteps{display:flex;flex-wrap:wrap;gap:6px}
+.cbsteps span{min-width:42px;text-align:center;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font:500 13px var(--mono)}
+.cbsteps span.lo{opacity:.4}
+.cbsteps span.on{background:var(--accentbg);border-color:var(--accent);font-weight:600}
