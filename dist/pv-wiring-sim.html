@@ -870,8 +870,7 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
     <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
-    <button class="navb" data-tab="hwlog"><span class="ic">12</span>อ่าน log Huawei</button>
-    <button class="navb" data-tab="fusion"><span class="ic">13</span>จำลอง FusionSolar</button>
+    <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -1336,10 +1335,10 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
   </section>
 
   <section class="tab" id="tab-fusion" hidden>
-    <header><h1>จำลองแอป FusionSolar (Huawei SUN2000)</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
-    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button></div>
+    <header><h1>Huawei FusionSolar: จำลองแอปและอ่าน log</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
+    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button><button class="chip" data-fpg="log">อ่าน log (นำเข้าไฟล์)</button></div>
     <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
-    <section class="bar fubar2"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
+    <section class="bar fubar2" id="fubar"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
       <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
       <div class="grp"><span class="lab">ค่าไฟ ฿/kWh</span><input type="number" id="futar" min="0" step="0.1" style="width:5rem"><span class="lab">พลังงานสะสมเดิม kWh</span><input type="number" id="fubase" min="0" step="100" style="width:6rem"></div></section>
     <div id="fupg-mon"><div id="fuovn"></div><div hidden>
@@ -1356,16 +1355,7 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
       <div class="card" id="fudev"></div>
       <div class="card"><h2>สตริง PV / MPPT</h2><div id="fustr"></div></div>
     </div>
-    <div id="fucfg" hidden>
-      <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
-      <p class="hint" id="fupnote"></p>
-      <div class="card"><div id="fupbody"></div>
-        <div class="grp fupact"><span id="fupst" class="hint" role="status"></span><button class="btn sm" id="fupreset">คืนค่าเริ่มต้น</button><button class="btn sm" id="fupexport">Export</button><button class="btn sm" id="fupsave" disabled>Save</button><button class="btn sm" id="fuprefresh">Refresh</button></div></div>
-    </div>
-  </section>
-
-  <section class="tab" id="tab-hwlog" hidden>
-    <header><h1>อ่าน log อินเวอร์เตอร์ Huawei</h1><p class="sub">นำเข้าไฟล์ที่ส่งออกจาก FusionSolar (เว็บหรือแอป), แอป SUN2000 หรือ SmartLogger แล้วดูกำลังผลิต แรงดัน/กระแสแต่ละสตริง กริด แบต และรายการแจ้งเตือน พร้อมข้อสังเกตสำหรับวิเคราะห์ระบบจริง สำหรับผู้เรียนที่ลงชื่อแล้วและผู้สอนเท่านั้น</p></header>
+    <div id="fupg-log" hidden><p class="hint">นำเข้าไฟล์ที่ส่งออกจาก FusionSolar (เว็บหรือแอป), แอป SUN2000 หรือ SmartLogger แล้วดูกำลังผลิต แรงดัน/กระแสแต่ละสตริง กริด แบต และรายการแจ้งเตือน พร้อมข้อสังเกตสำหรับวิเคราะห์ระบบจริง สำหรับผู้เรียนที่ลงชื่อแล้วและผู้สอนเท่านั้น</p>
     <div id="hwlock" class="panelbox" hidden><p class="simmsg err" style="margin:0">เมนูนี้ใช้ได้เฉพาะผู้เรียนที่ลงชื่อเข้าใช้งานแล้ว และผู้สอน</p></div>
     <div id="hwbody">
       <div class="panelbox hwtop">
@@ -1410,7 +1400,15 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
         <div class="tblwrap"><table class="t" id="hwmapt"></table></div>
         <h3 style="margin-top:12px">ตัวอย่างข้อมูล 6 แถวแรก</h3><div class="tblwrap"><table class="t hwraw" id="hwraw"></table></div></details>
     </div>
+    </div>
+    <div id="fucfg" hidden>
+      <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
+      <p class="hint" id="fupnote"></p>
+      <div class="card"><div id="fupbody"></div>
+        <div class="grp fupact"><span id="fupst" class="hint" role="status"></span><button class="btn sm" id="fupreset">คืนค่าเริ่มต้น</button><button class="btn sm" id="fupexport">Export</button><button class="btn sm" id="fupsave" disabled>Save</button><button class="btn sm" id="fuprefresh">Refresh</button></div></div>
+    </div>
   </section>
+
 
   <section class="tab" id="tab-submit" hidden>
     <header><h1>ส่งงาน</h1><p class="sub">เลือกใบงานของวันนั้น ทำตามเมนูที่ใบงานกำหนด ดูเช็กลิสต์ว่าครบเกณฑ์หรือยัง ตอบคำถามท้ายใบงาน แล้วกด "ส่งงาน" ระบบบันทึกผลสรุป คำตอบ และภาพผังของใบงานนั้นให้ผู้สอน</p></header>
@@ -8785,7 +8783,7 @@ async function hwAdd(sheets,isSample){
   hwRender();
 }
 function initHwlog(){
-  const sec=$('#tab-hwlog');if(!sec)return;
+  const sec=$('#fupg-log');if(!sec)return;
   $('#hwfile').addEventListener('change',async e=>{
     if(!hwRole()){hwMsg('ต้องลงชื่อเป็นผู้เรียนหรือผู้สอนก่อน','err');e.target.value='';return}
     const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
@@ -8813,7 +8811,7 @@ function initHwlog(){
     const b=e.target.closest('[data-hwdel]');if(b){HW.files.splice(+b.dataset.hwdel,1);HW.sel=0;HW.day=null;hwRender();return}
     if(e.target.id==='hwcsv')hwExportDay();
   });
-  window.addEventListener('resize',()=>{if(typeof curTab!=='undefined'&&curTab==='hwlog')hwCharts()});
+  window.addEventListener('resize',()=>{if(typeof curTab!=='undefined'&&curTab==='fusion'&&FU.page==='log')hwCharts()});
 }
 function hwDownload(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 let hwCfg=[];
@@ -8835,7 +8833,7 @@ const hwT=t=>t?(t.d?hwDayLbl(t.d)+' ':'')+fmtT(t.h):'—';
 function hwSevCls(s){s=String(s).toLowerCase();return/critical|major|วิกฤต|สำคัญ|ร้ายแรง|หลัก/.test(s)?'err':/minor|warning|เตือน|รอง/.test(s)?'warn':'idle'}
 
 function hwRender(){
-  const sec=$('#tab-hwlog');if(!sec)return;
+  const sec=$('#fupg-log');if(!sec)return;
   const ok=hwRole();
   $('#hwlock').hidden=ok;$('#hwbody').hidden=!ok;
   if(!ok){HW.files=[];return}
@@ -9141,7 +9139,7 @@ function fuRender(){
   if(D.commShut&&D.st[i]==='commshut')nt.push('<div class="fual-i act"><b>หยุดเครื่องเพราะสื่อสารขาดนานเกินกำหนด</b><p class="hint tight">เปิด Automatic shutdown upon communication interruption จึงหยุดหลัง Shutdown duration ที่ตั้งไว้</p></div>');
   q('fual').innerHTML=al+nt.join('');
   const sb=q('fustart');if(sb)sb.onclick=()=>{FU.startAt=FU.m;fuRender();touch()};
-  ['mon','det','alm','his','cfg'].forEach(k=>{const e=q(k==='cfg'?'fucfg':'fupg-'+k);if(e)e.hidden=FU.page!==k});D.tot=tot;fuDetRender(D,i);fuOvRender(D,i);q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
+  q('fubar').hidden=FU.page==='log'||FU.page==='cfg';['mon','det','alm','his','cfg','log'].forEach(k=>{const e=q(k==='cfg'?'fucfg':'fupg-'+k);if(k==='log'&&FU.page==='log'&&typeof hwRender==='function')hwRender();if(e)e.hidden=FU.page!==k});D.tot=tot;fuDetRender(D,i);fuOvRender(D,i);q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
   const days=MY.days,mon=MY.mon;
   let bars='';
   if(FU.view==='day')bars=fuBarsSVG(D.hour,Array.from({length:24},(_,k)=>pad2(k)),Math.floor(h),'kWh');
@@ -9186,7 +9184,7 @@ function fuSnapshot(){return{ev:FU.ev,rv:FU.rv,pr:fupSnapshot(),page:FU.page,m:F
 function fuRestore(o){
   if(!o||typeof o!=='object')return;
   if(['day','month','year','lifetime'].includes(o.ev))FU.ev=o.ev;if(['month','year','lifetime'].includes(o.rv))FU.rv=o.rv;
-  fupRestore(o.pr);if(['mon','det','alm','his','cfg'].includes(o.page))FU.page=o.page;FU.startAt=null;
+  fupRestore(o.pr);if(['mon','det','alm','his','cfg','log'].includes(o.page))FU.page=o.page;FU.startAt=null;
   const n=(v,d,lo,hi)=>{v=+v;return isFinite(v)?Math.max(lo,Math.min(hi,v)):d};
   FU.m=Math.round(n(o.m,720,0,1435)/5)*5;FU.f0=n(o.f0,11,0,23)|0;FU.f1=n(o.f1,13,1,24)|0;if(FU.f1<=FU.f0)FU.f1=Math.min(24,FU.f0+1);
   if(FU_FAULTS.some(x=>x[0]===o.fault))FU.fault=o.fault;
@@ -9453,9 +9451,9 @@ function initFuov(){
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน',hwlog:'12 อ่าน log Huawei',fusion:'13 จำลอง FusionSolar'};
+const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน',fusion:'12 Huawei FusionSolar'};
 /* menus that need a signed-in student or the teacher, whatever the sheet says (never open to visitors, nor offline) */
-const ACC_SIGNED=['hwlog'];
+const ACC_SIGNED=[];
 function accPerm(t){
   if(ACC_SIGNED.includes(t)&&ACC.role!=='student'&&ACC.role!=='teacher')return'closed';
   if(!ACC.enabled||ACC.role==='teacher')return'open';
@@ -9637,7 +9635,7 @@ function ctxRender(){
 }
 
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','hwlog','fusion'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion'];
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -9645,6 +9643,7 @@ function setNavH(){
   document.documentElement.style.setProperty('--navh',mob?nav.offsetHeight+'px':'0px');
 }
 function showTab(t,fromHash){
+  if(t==='hwlog'){t='fusion';if(typeof FU!=='undefined')FU.page='log'}
   if(!TABS.includes(t))t='basics';
   if(typeof accAllowed==='function'&&!accAllowed(t))t=accFirst();
   curTab=t;document.body.dataset.tab=t;if(typeof ctxSchedule==='function')ctxSchedule();
@@ -9664,7 +9663,6 @@ function showTab(t,fromHash){
     else if(t==='site')siRun();
     else if(t==='systems'){sySync();syRun()}
     else if(t==='submit')submitRefresh();
-    else if(t==='hwlog')hwRender();
     else if(t==='fusion')fuRender();
     window.scrollTo(0,0);
   });

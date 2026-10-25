@@ -75,10 +75,10 @@ function wsSet_(d, props) {
 var MENU_SHEET = 'เมนู';
 var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
 var MENU_DEF = [['basics', '00 แบบฝึกพื้นฐาน'], ['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
-  ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน'], ['hwlog', '12 อ่าน log Huawei'], ['fusion', '13 จำลอง FusionSolar']]
-  .map(function (m) { return [m[0], m[1], m[0] === 'hwlog' ? 'เปิด' : 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
+  ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน'], ['fusion', '12 Huawei FusionSolar']]
+  .map(function (m) { return [m[0], m[1], 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
 // เมนูที่ต้องลงชื่อ (ผู้เรียน/ผู้สอน) เสมอ: ผู้เยี่ยมชมไม่เห็นแม้ติ๊ก "ผู้เยี่ยมชม" = ใช่
-var MENU_SIGNED = ['hwlog'];
+var MENU_SIGNED = [];
 function menuSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MENU_SHEET);
   if (!sh) {

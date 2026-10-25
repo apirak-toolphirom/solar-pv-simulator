@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','hwlog','fusion'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion'];
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -7,6 +7,7 @@ function setNavH(){
   document.documentElement.style.setProperty('--navh',mob?nav.offsetHeight+'px':'0px');
 }
 function showTab(t,fromHash){
+  if(t==='hwlog'){t='fusion';if(typeof FU!=='undefined')FU.page='log'}
   if(!TABS.includes(t))t='basics';
   if(typeof accAllowed==='function'&&!accAllowed(t))t=accFirst();
   curTab=t;document.body.dataset.tab=t;if(typeof ctxSchedule==='function')ctxSchedule();
@@ -26,7 +27,6 @@ function showTab(t,fromHash){
     else if(t==='site')siRun();
     else if(t==='systems'){sySync();syRun()}
     else if(t==='submit')submitRefresh();
-    else if(t==='hwlog')hwRender();
     else if(t==='fusion')fuRender();
     window.scrollTo(0,0);
   });

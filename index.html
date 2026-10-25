@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="34817d5e99">
+<meta name="build" content="90431477ad">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='34817d5e99'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='90431477ad'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
@@ -29,8 +29,7 @@ if(m&&m[1]!=='34817d5e99'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
-    <button class="navb" data-tab="hwlog"><span class="ic">12</span>อ่าน log Huawei</button>
-    <button class="navb" data-tab="fusion"><span class="ic">13</span>จำลอง FusionSolar</button>
+    <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -495,10 +494,10 @@ if(m&&m[1]!=='34817d5e99'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   </section>
 
   <section class="tab" id="tab-fusion" hidden>
-    <header><h1>จำลองแอป FusionSolar (Huawei SUN2000)</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
-    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button></div>
+    <header><h1>Huawei FusionSolar: จำลองแอปและอ่าน log</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
+    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button><button class="chip" data-fpg="log">อ่าน log (นำเข้าไฟล์)</button></div>
     <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
-    <section class="bar fubar2"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
+    <section class="bar fubar2" id="fubar"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
       <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
       <div class="grp"><span class="lab">ค่าไฟ ฿/kWh</span><input type="number" id="futar" min="0" step="0.1" style="width:5rem"><span class="lab">พลังงานสะสมเดิม kWh</span><input type="number" id="fubase" min="0" step="100" style="width:6rem"></div></section>
     <div id="fupg-mon"><div id="fuovn"></div><div hidden>
@@ -515,16 +514,7 @@ if(m&&m[1]!=='34817d5e99'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       <div class="card" id="fudev"></div>
       <div class="card"><h2>สตริง PV / MPPT</h2><div id="fustr"></div></div>
     </div>
-    <div id="fucfg" hidden>
-      <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
-      <p class="hint" id="fupnote"></p>
-      <div class="card"><div id="fupbody"></div>
-        <div class="grp fupact"><span id="fupst" class="hint" role="status"></span><button class="btn sm" id="fupreset">คืนค่าเริ่มต้น</button><button class="btn sm" id="fupexport">Export</button><button class="btn sm" id="fupsave" disabled>Save</button><button class="btn sm" id="fuprefresh">Refresh</button></div></div>
-    </div>
-  </section>
-
-  <section class="tab" id="tab-hwlog" hidden>
-    <header><h1>อ่าน log อินเวอร์เตอร์ Huawei</h1><p class="sub">นำเข้าไฟล์ที่ส่งออกจาก FusionSolar (เว็บหรือแอป), แอป SUN2000 หรือ SmartLogger แล้วดูกำลังผลิต แรงดัน/กระแสแต่ละสตริง กริด แบต และรายการแจ้งเตือน พร้อมข้อสังเกตสำหรับวิเคราะห์ระบบจริง สำหรับผู้เรียนที่ลงชื่อแล้วและผู้สอนเท่านั้น</p></header>
+    <div id="fupg-log" hidden><p class="hint">นำเข้าไฟล์ที่ส่งออกจาก FusionSolar (เว็บหรือแอป), แอป SUN2000 หรือ SmartLogger แล้วดูกำลังผลิต แรงดัน/กระแสแต่ละสตริง กริด แบต และรายการแจ้งเตือน พร้อมข้อสังเกตสำหรับวิเคราะห์ระบบจริง สำหรับผู้เรียนที่ลงชื่อแล้วและผู้สอนเท่านั้น</p>
     <div id="hwlock" class="panelbox" hidden><p class="simmsg err" style="margin:0">เมนูนี้ใช้ได้เฉพาะผู้เรียนที่ลงชื่อเข้าใช้งานแล้ว และผู้สอน</p></div>
     <div id="hwbody">
       <div class="panelbox hwtop">
@@ -569,7 +559,15 @@ if(m&&m[1]!=='34817d5e99'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <div class="tblwrap"><table class="t" id="hwmapt"></table></div>
         <h3 style="margin-top:12px">ตัวอย่างข้อมูล 6 แถวแรก</h3><div class="tblwrap"><table class="t hwraw" id="hwraw"></table></div></details>
     </div>
+    </div>
+    <div id="fucfg" hidden>
+      <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
+      <p class="hint" id="fupnote"></p>
+      <div class="card"><div id="fupbody"></div>
+        <div class="grp fupact"><span id="fupst" class="hint" role="status"></span><button class="btn sm" id="fupreset">คืนค่าเริ่มต้น</button><button class="btn sm" id="fupexport">Export</button><button class="btn sm" id="fupsave" disabled>Save</button><button class="btn sm" id="fuprefresh">Refresh</button></div></div>
+    </div>
   </section>
+
 
   <section class="tab" id="tab-submit" hidden>
     <header><h1>ส่งงาน</h1><p class="sub">เลือกใบงานของวันนั้น ทำตามเมนูที่ใบงานกำหนด ดูเช็กลิสต์ว่าครบเกณฑ์หรือยัง ตอบคำถามท้ายใบงาน แล้วกด "ส่งงาน" ระบบบันทึกผลสรุป คำตอบ และภาพผังของใบงานนั้นให้ผู้สอน</p></header>
@@ -627,13 +625,13 @@ if(m&&m[1]!=='34817d5e99'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=9c033448"></script>
 <script src="js/worksheets.js?v=08f14f14"></script>
-<script src="js/hwlog.js?v=a4f41bc0"></script>
-<script src="js/fusion.js?v=0409bd73"></script>
+<script src="js/hwlog.js?v=86e8e2ce"></script>
+<script src="js/fusion.js?v=74c84343"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
 <script src="js/fusiondet.js?v=0d128f7f"></script>
 <script src="js/fusionov.js?v=4f66fbb2"></script>
-<script src="js/access.js?v=1d578a00"></script>
+<script src="js/access.js?v=57736d47"></script>
 <script src="js/ctx.js?v=2f7b3e6c"></script>
-<script src="js/app.js?v=60d83ecc"></script>
+<script src="js/app.js?v=ea995190"></script>
 </body>
 </html>

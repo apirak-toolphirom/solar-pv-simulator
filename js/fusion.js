@@ -176,7 +176,7 @@ function fuRender(){
   if(D.commShut&&D.st[i]==='commshut')nt.push('<div class="fual-i act"><b>หยุดเครื่องเพราะสื่อสารขาดนานเกินกำหนด</b><p class="hint tight">เปิด Automatic shutdown upon communication interruption จึงหยุดหลัง Shutdown duration ที่ตั้งไว้</p></div>');
   q('fual').innerHTML=al+nt.join('');
   const sb=q('fustart');if(sb)sb.onclick=()=>{FU.startAt=FU.m;fuRender();touch()};
-  ['mon','det','alm','his','cfg'].forEach(k=>{const e=q(k==='cfg'?'fucfg':'fupg-'+k);if(e)e.hidden=FU.page!==k});D.tot=tot;fuDetRender(D,i);fuOvRender(D,i);q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
+  q('fubar').hidden=FU.page==='log'||FU.page==='cfg';['mon','det','alm','his','cfg','log'].forEach(k=>{const e=q(k==='cfg'?'fucfg':'fupg-'+k);if(k==='log'&&FU.page==='log'&&typeof hwRender==='function')hwRender();if(e)e.hidden=FU.page!==k});D.tot=tot;fuDetRender(D,i);fuOvRender(D,i);q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
   const days=MY.days,mon=MY.mon;
   let bars='';
   if(FU.view==='day')bars=fuBarsSVG(D.hour,Array.from({length:24},(_,k)=>pad2(k)),Math.floor(h),'kWh');
@@ -221,7 +221,7 @@ function fuSnapshot(){return{ev:FU.ev,rv:FU.rv,pr:fupSnapshot(),page:FU.page,m:F
 function fuRestore(o){
   if(!o||typeof o!=='object')return;
   if(['day','month','year','lifetime'].includes(o.ev))FU.ev=o.ev;if(['month','year','lifetime'].includes(o.rv))FU.rv=o.rv;
-  fupRestore(o.pr);if(['mon','det','alm','his','cfg'].includes(o.page))FU.page=o.page;FU.startAt=null;
+  fupRestore(o.pr);if(['mon','det','alm','his','cfg','log'].includes(o.page))FU.page=o.page;FU.startAt=null;
   const n=(v,d,lo,hi)=>{v=+v;return isFinite(v)?Math.max(lo,Math.min(hi,v)):d};
   FU.m=Math.round(n(o.m,720,0,1435)/5)*5;FU.f0=n(o.f0,11,0,23)|0;FU.f1=n(o.f1,13,1,24)|0;if(FU.f1<=FU.f0)FU.f1=Math.min(24,FU.f0+1);
   if(FU_FAULTS.some(x=>x[0]===o.fault))FU.fault=o.fault;

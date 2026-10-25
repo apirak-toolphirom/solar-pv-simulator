@@ -252,7 +252,7 @@ async function hwAdd(sheets,isSample){
   hwRender();
 }
 function initHwlog(){
-  const sec=$('#tab-hwlog');if(!sec)return;
+  const sec=$('#fupg-log');if(!sec)return;
   $('#hwfile').addEventListener('change',async e=>{
     if(!hwRole()){hwMsg('ต้องลงชื่อเป็นผู้เรียนหรือผู้สอนก่อน','err');e.target.value='';return}
     const fs=[...e.target.files];e.target.value='';if(!fs.length)return;
@@ -280,7 +280,7 @@ function initHwlog(){
     const b=e.target.closest('[data-hwdel]');if(b){HW.files.splice(+b.dataset.hwdel,1);HW.sel=0;HW.day=null;hwRender();return}
     if(e.target.id==='hwcsv')hwExportDay();
   });
-  window.addEventListener('resize',()=>{if(typeof curTab!=='undefined'&&curTab==='hwlog')hwCharts()});
+  window.addEventListener('resize',()=>{if(typeof curTab!=='undefined'&&curTab==='fusion'&&FU.page==='log')hwCharts()});
 }
 function hwDownload(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv;charset=utf-8'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 let hwCfg=[];
@@ -302,7 +302,7 @@ const hwT=t=>t?(t.d?hwDayLbl(t.d)+' ':'')+fmtT(t.h):'—';
 function hwSevCls(s){s=String(s).toLowerCase();return/critical|major|วิกฤต|สำคัญ|ร้ายแรง|หลัก/.test(s)?'err':/minor|warning|เตือน|รอง/.test(s)?'warn':'idle'}
 
 function hwRender(){
-  const sec=$('#tab-hwlog');if(!sec)return;
+  const sec=$('#fupg-log');if(!sec)return;
   const ok=hwRole();
   $('#hwlock').hidden=ok;$('#hwbody').hidden=!ok;
   if(!ok){HW.files=[];return}
