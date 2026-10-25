@@ -55,7 +55,7 @@ function initFudet(){
     if(a){const k=a.dataset.fa;
       if(k==='pwr'||k==='q'||k==='pf'){fuAdjOpen(k);return}
       if(k==='reset'){FU.offFrom=null;FU.startAt=FU.m;fuRender();touch();msg('สั่ง Reset แล้ว อินเวอร์เตอร์เริ่มเครื่องใหม่');return}
-      if(k==='arc'){FU.startAt=FU.m;fuRender();touch();msg('ล้างสถานะ DC Arc Fault แล้ว (ถ้าอินเวอร์เตอร์ค้างจากอาร์ก จะเริ่มเครื่องใหม่)');return}
+      if(k==='arc'){askConfirm('Confirm','DC arc fault alarms can be cleared only after confirmation by the owner, which will trigger the automatic reset of the inverter. Are you sure you want to continue?','OK').then(ok=>{if(!ok)return;FU.startAt=FU.m;fuRender();touch();msg('ล้างสถานะ DC Arc Fault แล้ว และอินเวอร์เตอร์รีเซ็ตอัตโนมัติ')});return}
       if(k==='opt'){msg('ไม่พบ Optimizer ในระบบ (ไม่ได้ติดตั้ง) — ฟังก์ชันนี้ใช้เมื่อต่อ Optimizer กับแผงทุกแผง');return}}
     if(e.target.id==='fuadjno'){document.getElementById('fuadjp').hidden=true;return}
     if(e.target.id==='fuadjok'){
