@@ -822,6 +822,9 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fucf{font-size:.86rem;font-weight:500}.fucl{font-weight:400}.fucv input,.fucv select{padding:6px 10px;border:1px solid #d0d5dd;border-radius:3px;background:#fff;color:#1f2937;font:inherit;height:32px}
 .fucv input[disabled]{background:#f2f4f7;color:#667085;border-color:#e4e7ec;opacity:1}.fucv input:focus,.fucv select:focus{outline:none;border-color:#2d7ff9}
 .fuinfo{color:#667085;font-size:.8rem}
+.fuinfo{position:relative;cursor:help}
+.fuinfo::after{content:attr(data-tip);position:absolute;left:-8px;bottom:135%;width:240px;padding:10px 14px;border-radius:14px;background:#fff;color:#1f2937;box-shadow:0 4px 18px rgba(0,0,0,.2);font-size:.85rem;line-height:1.4;opacity:0;pointer-events:none;transition:opacity .12s;z-index:20;white-space:normal}
+.fuinfo:hover::after,.fuinfo:focus::after{opacity:1}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -9162,7 +9165,7 @@ function fuRestore(o){
    fx = มีผลต่อการจำลองในแท็บนี้ */
 const fuDec=x=>{const t=String(x[8]==null?1:x[8]);return t.includes('.')?t.split('.')[1].length:0};
 const fuFd=(x,v)=>Number(v).toFixed(fuDec(x));
-const FUP_INFO=['rcd','pid','optt','strg'];
+const FUP_INFO={rcd:'A smaller value indicates a higher probability of the inverter being shut down due to RCD protection.',pid:'Ensure that the enclosure is properly grounded. Otherwise, the PID repair function will be unavailable.',optt:'This function is valid only when optimizers are configured for all PV modules and the device supports this function.'};
 const FUP_EN=['Disable','Enable'];
 const FUP=[
  ['Device Information',[
@@ -9223,7 +9226,7 @@ function fupRender(){
     if(ro)ctl=`<input value="${esc(cur)}" disabled aria-label="${esc(x[1])}">`;
     else if(x[2]==='sel')ctl=`<select data-fp="${k}" aria-label="${esc(x[1])}">${x[4].map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
     else ctl=`<input type="text" inputmode="decimal" data-fp="${k}" value="${esc(cur)}" aria-label="${esc(x[1])}" class="${fupErr(x,cur)?'bad':''}">`;
-    return `<label class="fucf"><span class="fucl">${tag}${x[1]}${ro?'':':'}${FUP_INFO.includes(k)?' <span class="fuinfo" title="คำอธิบายพารามิเตอร์ดูได้ในคู่มือ Huawei">ⓘ</span>':''}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
+    return `<label class="fucf"><span class="fucl">${tag}${x[1]}${ro?'':':'}${FUP_INFO[k]?` <span class="fuinfo" tabindex="0" role="note" data-tip="${esc(FUP_INFO[k])}" aria-label="${esc(FUP_INFO[k])}">ⓘ</span>`:''}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
   fupBar();
 }
 function initFupar(){

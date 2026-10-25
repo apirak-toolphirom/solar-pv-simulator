@@ -3,7 +3,7 @@
    fx = มีผลต่อการจำลองในแท็บนี้ */
 const fuDec=x=>{const t=String(x[8]==null?1:x[8]);return t.includes('.')?t.split('.')[1].length:0};
 const fuFd=(x,v)=>Number(v).toFixed(fuDec(x));
-const FUP_INFO=['rcd','pid','optt','strg'];
+const FUP_INFO={rcd:'A smaller value indicates a higher probability of the inverter being shut down due to RCD protection.',pid:'Ensure that the enclosure is properly grounded. Otherwise, the PID repair function will be unavailable.',optt:'This function is valid only when optimizers are configured for all PV modules and the device supports this function.'};
 const FUP_EN=['Disable','Enable'];
 const FUP=[
  ['Device Information',[
@@ -64,7 +64,7 @@ function fupRender(){
     if(ro)ctl=`<input value="${esc(cur)}" disabled aria-label="${esc(x[1])}">`;
     else if(x[2]==='sel')ctl=`<select data-fp="${k}" aria-label="${esc(x[1])}">${x[4].map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
     else ctl=`<input type="text" inputmode="decimal" data-fp="${k}" value="${esc(cur)}" aria-label="${esc(x[1])}" class="${fupErr(x,cur)?'bad':''}">`;
-    return `<label class="fucf"><span class="fucl">${tag}${x[1]}${ro?'':':'}${FUP_INFO.includes(k)?' <span class="fuinfo" title="คำอธิบายพารามิเตอร์ดูได้ในคู่มือ Huawei">ⓘ</span>':''}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
+    return `<label class="fucf"><span class="fucl">${tag}${x[1]}${ro?'':':'}${FUP_INFO[k]?` <span class="fuinfo" tabindex="0" role="note" data-tip="${esc(FUP_INFO[k])}" aria-label="${esc(FUP_INFO[k])}">ⓘ</span>`:''}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
   fupBar();
 }
 function initFupar(){
