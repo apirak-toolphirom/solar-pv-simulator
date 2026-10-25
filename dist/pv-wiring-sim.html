@@ -825,6 +825,15 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fuinfo{position:relative;cursor:help}
 .fuinfo::after{content:attr(data-tip);position:absolute;left:-8px;bottom:135%;width:240px;padding:10px 14px;border-radius:14px;background:#fff;color:#1f2937;box-shadow:0 4px 18px rgba(0,0,0,.2);font-size:.85rem;line-height:1.4;opacity:0;pointer-events:none;transition:opacity .12s;z-index:20;white-space:normal}
 .fuinfo:hover::after,.fuinfo:focus::after{opacity:1}
+.fudb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:8px}
+.fusw{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem}.fusw input{position:absolute;opacity:0}
+.fusw span{width:40px;height:22px;border-radius:11px;background:#9aa4b2;position:relative;transition:.15s}.fusw span::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+.fusw input:checked+span{background:#3b82f6}.fusw input:checked+span::after{left:20px}.fusw input:focus-visible+span{outline:2px solid #3b82f6;outline-offset:2px}
+.fuadjp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px;border:1px dashed rgba(128,128,128,.5);border-radius:8px;margin-bottom:6px}
+.fud th,.fud td{text-align:center}.fud tr>:first-child{text-align:left}
+.fud3 td.k{font-weight:600;width:16%}.fud3 td.k i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#98a2b3;margin-right:8px}.fud3 td.v{text-align:center;width:17%}
+#fudet h3{margin:14px 0 6px;font-size:1rem}#fudet .fut{margin-bottom:8px}#fudet .fut thead th{background:rgba(128,128,128,.12)}
+#fudet .fut td{opacity:1!important}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -1308,21 +1317,24 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 
   <section class="tab" id="tab-fusion" hidden>
     <header><h1>จำลองแอป FusionSolar (Huawei SUN2000)</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
-    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">Monitoring</button><button class="chip" data-fpg="cfg">Configuration (ตั้งค่า)</button></div>
+    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button></div>
     <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
-    <div id="fumon">
-    <div class="card"><h2>ครูสร้างฟอลต์</h2><div id="fufault" class="fufl" role="group" aria-label="ชนิดฟอลต์"></div><div class="grp" id="fumode"><span class="lab">รูปแบบ</span><button class="chip" data-fm="ramp">ค่อยๆ เพิ่ม</button><button class="chip" data-fm="step">เกิดทันที</button></div><p class="hint tight" id="fuinfo"></p></div>
     <section class="bar fubar2"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
       <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
       <div class="grp"><span class="lab">ค่าไฟ ฿/kWh</span><input type="number" id="futar" min="0" step="0.1" style="width:5rem"><span class="lab">พลังงานสะสมเดิม kWh</span><input type="number" id="fubase" min="0" step="100" style="width:6rem"></div></section>
-    <div class="fugrid2">
+    <div id="fupg-mon"><div class="fugrid2">
       <div class="card" id="fuov"></div>
       <div class="card"><h2>กำลังผลิตรายวัน</h2><div id="fuchart" class="fusvg"></div></div>
+    </div></div>
+    <div id="fupg-det" hidden><div class="card" id="fudet"></div></div>
+    <div id="fupg-alm" hidden>
+    <div class="card"><h2>ครูสร้างฟอลต์</h2><div id="fufault" class="fufl" role="group" aria-label="ชนิดฟอลต์"></div><div class="grp" id="fumode"><span class="lab">รูปแบบ</span><button class="chip" data-fm="ramp">ค่อยๆ เพิ่ม</button><button class="chip" data-fm="step">เกิดทันที</button></div><p class="hint tight" id="fuinfo"></p></div>
+    <div class="card"><h2>Alarms</h2><div id="fual"></div></div></div>
+    <div id="fupg-his" hidden><div class="card" id="fuhis">
+<h2>พลังงานที่ผลิต</h2><div class="grp" id="fuviews"><button class="chip" data-fv="day">วัน</button><button class="chip" data-fv="month">เดือน</button><button class="chip" data-fv="year">ปี</button></div><div id="fubars" class="fusvg"></div><p class="hint tight" id="fuvnote"></p></div></div>
+    <div hidden>
       <div class="card" id="fudev"></div>
       <div class="card"><h2>สตริง PV / MPPT</h2><div id="fustr"></div></div>
-      <div class="card"><h2>Alarm</h2><div id="fual"></div></div>
-      <div class="card"><h2>พลังงานที่ผลิต</h2><div class="grp" id="fuviews"><button class="chip" data-fv="day">วัน</button><button class="chip" data-fv="month">เดือน</button><button class="chip" data-fv="year">ปี</button></div><div id="fubars" class="fusvg"></div><p class="hint tight" id="fuvnote"></p></div>
-    </div>
     </div>
     <div id="fucfg" hidden>
       <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
@@ -8931,7 +8943,7 @@ function hwExportDay(){
 }
 
 /* ---- จำลองแอป FusionSolar (Huawei SUN2000) — แสดงข้อมูลจากแบบจำลองในเว็บนี้ เพื่อฝึกอ่านหน้าจอและ alarm โดยไม่ต้องมีเครื่องจริง ---- */
-const FU={startAt:null,page:'mon',mode:'ramp',m:720,play:false,fault:'none',f0:11,f1:13,tariff:4.2,base:12500,view:'day'};
+const FU={offFrom:null,pLim:100,adj:{mode:'none',v:0},startAt:null,page:'mon',mode:'ramp',m:720,play:false,fault:'none',f0:11,f1:13,tariff:4.2,base:12500,view:'day'};
 const FU_FAULTS=[['none','ปกติ (ไม่มีฟอลต์)'],['gridov','ไฟกริดสูงเกิน (Grid Overvoltage)'],['griduv','ไฟกริดต่ำเกิน (Grid Undervoltage)'],['gridf','ความถี่กริดผิดปกติ'],['insul','ความต้านทานฉนวนต่ำ (Low Insulation Resistance)'],['arc','DC Arc Fault (AFCI)'],['rev','ขั้วสตริง PV1 กลับด้าน'],['temp','อุณหภูมิสูง ลดกำลัง (Derating)'],['dongle','Smart Dongle ขาดการเชื่อมต่อคลาวด์']];
 const FU_IC={none:['✅','ปกติ'],gridov:['⚡↑','แรงดันกริดสูง'],griduv:['⚡↓','แรงดันกริดต่ำ'],gridf:['〰️','ความถี่ผิดปกติ'],insul:['🛡️','ฉนวนต่ำ'],arc:['🔥','DC Arc'],rev:['🔁','ขั้วกลับ'],temp:['🌡️','ร้อนเกิน'],dongle:['📡','ดองเกิลหลุด']};
 const FU_AL={
@@ -8954,7 +8966,7 @@ function fuBlocks(){
 }
 function fuCompute(){
   const{I,blocks,demo}=fuBlocks(),P=fuPv();
-  const sig=JSON.stringify([P,FU.startAt,FU.fault,FU.mode,FU.f0,FU.f1,SIM.date,SIM.lat,SIM.lon,SIM.tilt,SIM.az,SIM.sky,SIM.loss,SIM.amin,SIM.amax,blocks,I.name,I.pac,PV.pmax,typeof EV!=='undefined'?EV:0]);
+  const sig=JSON.stringify([P,FU.offFrom,FU.pLim,FU.startAt,FU.fault,FU.mode,FU.f0,FU.f1,SIM.date,SIM.lat,SIM.lon,SIM.tilt,SIM.az,SIM.sky,SIM.loss,SIM.amin,SIM.amax,blocks,I.name,I.pac,PV.pmax,typeof EV!=='undefined'?EV:0]);
   if(fuCache.sig===sig)return fuCache.D;
   const R=simDay(blocks,I,SIM.tilt,SIM.az,5),n=R.n,dt=5/60/1000;
   const totN=blocks.reduce((a,b)=>a+(b?b.n:0),0)||1;
@@ -8984,11 +8996,13 @@ function fuCompute(){
     }
     const gridF=['gridov','griduv','gridf','insul','arc'].includes(fault)&&D.trip>=0&&!(fault==='arc'&&P.afci!=='Enable');
     let held=false;
-    if(gridF&&!inW&&i>=f1&&R.g[i]>=20&&P.auto==='Disable'&&!(FU.startAt!=null&&FU.startAt>=f1*5&&i*5>=FU.startAt))held=true;
+    if(gridF&&!inW&&i>=f1&&R.g[i]>=20&&(P.auto==='Disable'||fault==='arc')&&!(FU.startAt!=null&&FU.startAt>=f1*5&&i*5>=FU.startAt))held=true;
     if(held){p=0;st='manual';D.held=D.held<0?i:D.held}
     else if(!inW&&R.g[i]>=20&&(vg0>P.rvhi||vg0<P.rvlo||fq>P.rfhi||fq<P.rflo)){p=0;st='gridwait';D.gridwait=true}
     const recover=gridF&&!held&&i>=f1&&i<f1+2&&R.g[i]>=20&&R.pac[i]>0;
     if(recover){p=0;st='starting'}
+    if(p>0&&FU.pLim<100&&p>I.pac*FU.pLim/100){p=I.pac*FU.pLim/100;st='limited'}
+    if(FU.offFrom!=null&&i*5>=FU.offFrom&&R.g[i]>=20){p=0;st='cmdoff'}
     if(!st||st==='night'){
       if(p>0){st=R.pac[i]<(R.pot[i]*(I.eff||97)/100)-1&&R.pot[i]*(I.eff||97)/100>I.pac*.999?'limited':'ongrid'}
       else if(R.sun[i]&&R.g[i]>=20){
@@ -9028,7 +9042,7 @@ function fuMonthYear(D){
   }finally{SIM.date=old}
   fuMY={key,v:{days,mon,y,m}};return fuMY.v;
 }
-const FU_ST={manual:['Shutdown: Command (รอสั่งเริ่มเครื่อง)','err'],gridwait:['Standby: Grid parameters out of reconnection range','warn'],commshut:['Shutdown: Communication interruption','err'],night:['Standby: No irradiation','idle'],insul:['Standby: Detecting insulation resistance','warn'],detect:['Standby: Detecting irradiation','warn'],starting:['Starting','warn'],ongrid:['On-grid','ok'],limited:['On-grid: Power limited','ok'],derate:['On-grid: Self-derating','warn'],fault:['Shutdown: Fault','err']};
+const FU_ST={cmdoff:['Shutdown: Command','err'],manual:['Shutdown: Command (รอสั่งเริ่มเครื่อง)','err'],gridwait:['Standby: Grid parameters out of reconnection range','warn'],commshut:['Shutdown: Communication interruption','err'],night:['Standby: No irradiation','idle'],insul:['Standby: Detecting insulation resistance','warn'],detect:['Standby: Detecting irradiation','warn'],starting:['Starting','warn'],ongrid:['On-grid','ok'],limited:['On-grid: Power limited','ok'],derate:['On-grid: Self-derating','warn'],fault:['Shutdown: Fault','err']};
 function fuChartSVG(D,i){
   const W=640,H=230,L=44,Rm=12,T=14,B=26,pw=W-L-Rm,ph=H-T-B,sun=D.sunI;
   if(!sun.length)return `<svg viewBox="0 0 ${W} ${H}"><text x="${W/2}" y="${H/2}" text-anchor="middle" class="acnote">ไม่มีแสงอาทิตย์ในวันที่นี้</text></svg>`;
@@ -9084,7 +9098,7 @@ function fuRender(){
   q('fudev').innerHTML=`<div class="fuhead"><b>${esc(I.name)}</b><span class="pill ${stn[1]==='idle'?'idle':stn[1]}">${stn[0]}</span></div>
     <table class="fut"><tbody>
     ${row('Active power',f(p/1000,3),'kW')}${row('Reactive power','0.000','kVar')}${row('Power factor',p>0?'1.000':'--','')}
-    ${row('Grid voltage (L-N)',p>0||['fault','starting','manual','gridwait','commshut'].includes(st)?f(D.gv[i],1):'--','V')}${row('Grid current',p>0?f(p/Math.max(D.gv[i],1),2):'0.00','A')}${row('Grid frequency',R_f(D,i),'Hz')}
+    ${row('Grid voltage (L-N)',p>0||['fault','starting','manual','gridwait','commshut','cmdoff'].includes(st)?f(D.gv[i],1):'--','V')}${row('Grid current',p>0?f(p/Math.max(D.gv[i],1),2):'0.00','A')}${row('Grid frequency',R_f(D,i),'Hz')}
     ${row('Internal temperature',f(D.tmp[i],1),'°C')}${row('Efficiency',p>0?f(D.eff[i]*100,2):'--','%')}${row('Insulation resistance',f(D.ir[i],D.ir[i]<1?3:2),'MΩ')}
     ${row('Daily energy',f(Eday,2),'kWh')}${row('Input power',f(Pdc/1000,3),'kW')}${row('Rated power',f(I.pac/1000,2),'kW')}
     </tbody></table>`;
@@ -9106,7 +9120,7 @@ function fuRender(){
   if(D.commShut&&D.st[i]==='commshut')nt.push('<div class="fual-i act"><b>หยุดเครื่องเพราะสื่อสารขาดนานเกินกำหนด</b><p class="hint tight">เปิด Automatic shutdown upon communication interruption จึงหยุดหลัง Shutdown duration ที่ตั้งไว้</p></div>');
   q('fual').innerHTML=al+nt.join('');
   const sb=q('fustart');if(sb)sb.onclick=()=>{FU.startAt=FU.m;fuRender();touch()};
-  q('fumon').hidden=FU.page!=='mon';q('fucfg').hidden=FU.page!=='cfg';q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
+  ['mon','det','alm','his','cfg'].forEach(k=>{const e=q(k==='cfg'?'fucfg':'fupg-'+k);if(e)e.hidden=FU.page!==k});D.tot=tot;fuDetRender(D,i);q('fupages').querySelectorAll('[data-fpg]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.fpg===FU.page)));
   const days=MY.days,mon=MY.mon;
   let bars='';
   if(FU.view==='day')bars=fuBarsSVG(D.hour,Array.from({length:24},(_,k)=>pad2(k)),Math.floor(h),'kWh');
@@ -9150,7 +9164,7 @@ function initFusion(){
 function fuSnapshot(){return{pr:fupSnapshot(),page:FU.page,m:FU.m,mode:FU.mode,fault:FU.fault,f0:FU.f0,f1:FU.f1,tariff:FU.tariff,base:FU.base,view:FU.view}}
 function fuRestore(o){
   if(!o||typeof o!=='object')return;
-  fupRestore(o.pr);if(o.page==='cfg'||o.page==='mon')FU.page=o.page;FU.startAt=null;
+  fupRestore(o.pr);if(['mon','det','alm','his','cfg'].includes(o.page))FU.page=o.page;FU.startAt=null;
   const n=(v,d,lo,hi)=>{v=+v;return isFinite(v)?Math.max(lo,Math.min(hi,v)):d};
   FU.m=Math.round(n(o.m,720,0,1435)/5)*5;FU.f0=n(o.f0,11,0,23)|0;FU.f1=n(o.f1,13,1,24)|0;if(FU.f1<=FU.f0)FU.f1=Math.min(24,FU.f0+1);
   if(FU_FAULTS.some(x=>x[0]===o.fault))FU.fault=o.fault;
@@ -9251,6 +9265,77 @@ function fupRestore(o){
   fuPr=FUP_DEF();fuEd={};
   if(o&&typeof o==='object')FUP_ALL.forEach(x=>{if(x[2]==='ro'||!(x[0] in o))return;const v=o[x[0]];if(x[2]==='sel'){if(x[4].includes(v))fuPr[x[0]]=v}else if(!fupErr(x,v))fuPr[x[0]]=+v});
   fupRender();
+}
+
+/* ---- FusionSolar: หน้า Details ของอินเวอร์เตอร์ (Real-Time Device Data / Basic Information / String Details) และปุ่มควบคุม ---- */
+function fuDetRender(D,i){
+  const el=document.getElementById('fudet');if(!el)return;
+  const P=fuPv(),I=D.I,p=D.pac[i],st=D.st[i],on=D.online[i],h=i*5/60,tm=m=>`${SIM.date} ${pad2(Math.floor(m/60))}:${pad2(Math.round(m%60))}:00`;
+  const act=['fault','manual','gridwait','commshut','starting','cmdoff'].includes(st)||p>0;
+  const tri=/four|three/i.test(P.omode)&&!/single/i.test(P.omode),V=D.gv[i],ph=[V,V*1.003,V*.997];
+  const adj=FU.adj||{mode:'none',v:0},kW=p/1000;
+  let Q=0,pf=p>0?1:0;
+  if(p>0&&adj.mode==='pf'){const a=Math.abs(adj.v);Q=kW*Math.tan(Math.acos(Math.min(1,a)))*(adj.v<0?-1:1);pf=a}
+  else if(p>0&&adj.mode==='qs'){Q=adj.v*I.pac/1000;pf=Math.abs(kW)/Math.hypot(kW,Q)}
+  const cur=p>0?Math.hypot(kW,Q)*1000/((tri?3:1)*Math.max(V,1)):0;
+  const pl=FU.pLim<100?`P=${f(FU.pLim,1)}% (Active power derating by percentage)`:(st==='derate'?'P=60.0% (Self-derating)':'P=100.0% (No derating)');
+  const qs=adj.mode==='qs'?`Q/S=${f(adj.v,3)} (Q/S adjustment)`:adj.mode==='pf'?`PF=${f(adj.v,3)} (Power factor adjustment)`:'Q/S=0.000 (No adjustment)';
+  const first=D.R.first,last=D.R.last;
+  const startT=first>=0&&i>=first?tm(first*5):'--',stopT=last>=0&&i>last?tm((last+1)*5):'--';
+  const n=(v,d)=>f(v,d);
+  const cell=(k,v)=>`<td class="k"><i></i>${k}</td><td class="v">${v}</td>`;
+  const rows=[
+    [['Inverter status',FU_ST[st][0]],['Daily energy',n(D.Ecum[i][0],2)+' kWh'],['Total yield',n(D.tot||0,2)+' kWh']],
+    [['Active power',n(kW,3)+' kW'],['Output reactive power',n(Q,3)+' kvar'],['Inverter rated power',n(I.pac/1000,3)+' kW']],
+    [['Power factor',n(pf,3)],['Grid frequency',(act?n(D.gf[i],2):'0.00')+' Hz'],['Output mode',esc(P.omode)]],
+    [['Grid phase A current',n(cur,3)+' A'],['Grid phase B current',n(tri?cur:0,3)+' A'],['Grid phase C current',n(tri?cur:0,3)+' A']],
+    [['Phase A voltage',(act?n(ph[0],1):'0.0')+' V'],['Phase B voltage',(act&&tri?n(ph[1],1):'0.0')+' V'],['Phase C voltage',(act&&tri?n(ph[2],1):'0.0')+' V']],
+    [['Inverter startup time',startT],['Inverter shutdown time',stopT],['Internal temperature',n(D.tmp[i],1)+'℃']],
+    [['Insulation resistance',n(D.ir[i],3)+' MΩ'],['Active power adjustment status',pl],['Reactive power adjustment status',qs]],
+    [['Device replacement status','NA'],['RS485-2 port mode','Master'],['','']]];
+  const pvc=j=>{const d=D.pv[j][i];return d&&d.on&&d.V>0?[n(d.V,1),n(d.I,2)]:['0','0']};
+  const pvs=[0,1,2,3].map(j=>j<2?pvc(j):['0','0']);
+  const blk=j=>D.blocks[j];
+  el.innerHTML=`<div class="fudb"><label class="fusw"><input type="checkbox" id="fuonoff" ${FU.offFrom==null?'checked':''} aria-label="เปิด/ปิดอินเวอร์เตอร์"><span></span>${FU.offFrom==null?'On':'Off'}</label>
+    <button class="btn sm" data-fa="reset">Reset</button><button class="btn sm pri" data-fa="opt">Optimizer Search</button><button class="btn sm" data-fa="arc">DC Arc Fault Clearance</button><button class="btn sm" data-fa="pwr">Active Power Adjustment</button><button class="btn sm" data-fa="q">Reactive Power Adjustment</button><button class="btn sm" data-fa="pf">Power factor adjustment</button></div>
+    <div id="fuadjp" class="fuadjp" hidden></div><p class="hint tight" id="fuamsg" role="status"></p>
+    <h3>Real-Time Device Data</h3>
+    <table class="fut fud"><tbody><tr><th>String</th>${[1,2,3,4].map(k=>`<th>PV${k}</th>`).join('')}</tr><tr><td>Input Voltage (V)</td>${pvs.map(x=>`<td>${x[0]}</td>`).join('')}</tr><tr><td>Input Current (A)</td>${pvs.map(x=>`<td>${x[1]}</td>`).join('')}</tr></tbody></table>
+    <table class="fut fud3"><tbody>${rows.map(r=>`<tr>${r.map(c=>c[0]?cell(c[0],c[1]):'<td></td><td></td>').join('')}</tr>`).join('')}</tbody></table>
+    <h3>Basic Information</h3><table class="fut fud3"><tbody>
+    <tr>${cell('Device name',esc(FUP_ALL[0][3]))}${cell('Device type','Inverter')}${cell('SN',esc(fuPr.sn))}</tr>
+    <tr>${cell('Device replacement record','--')}${cell('Model',esc(fuPr.model))}${cell('Software version',esc(fuPr.sw))}</tr>
+    <tr>${cell('Package Name','SUN2000MB_'+esc(fuPr.sw))}${cell('Monitoring hardware version','B')}<td></td><td></td></tr></tbody></table>
+    <h3>String Details <span class="fuinfo" tabindex="0" data-tip="ข้อมูลแผงของแต่ละสตริง ดึงจากอุปกรณ์ที่เลือกในแท็บ 01">ⓘ</span></h3>
+    <table class="fut"><thead><tr><th></th><th>String</th><th>2-in-1 String</th><th>Module Manufacturer</th><th>Modules Type</th><th>Module Type</th><th>Max. Module Power (Pmax) (W)</th><th>Module Quantity</th><th>String Capacity (Wp)</th></tr></thead><tbody>${[0,1,2,3].map(j=>{const b=j<2?blk(j):null;return `<tr><td>+</td><th>PV${j+1}</th><td><input type="checkbox" disabled aria-label="2-in-1"></td><td>${b?esc(String(PV.name||'--').split(' ')[0]):'--'}</td><td>${b?'Crystalline silicon':'--'}</td><td>${b?esc(PV.name||'--'):'--'}</td><td>${b?n(PV.pmax,0):'--'}</td><td>${b?b.ns*(b.mp||1):'--'}</td><td>${b?n(b.n*PV.pmax,2):'0.00'}</td></tr>`}).join('')}</tbody></table>`;
+}
+function fuAdjOpen(kind){
+  const b=document.getElementById('fuadjp');if(!b)return;
+  const d={pwr:['Active power derating (%)',FU.pLim,0,100,'0~100'],q:['Q/S (reactive power compensation)',(FU.adj&&FU.adj.mode==='qs')?FU.adj.v:0,-0.6,0.6,'-0.600~0.600'],pf:['Power factor',(FU.adj&&FU.adj.mode==='pf')?FU.adj.v:1,-1,1,'-1.000~-0.800 หรือ 0.800~1.000']}[kind];
+  b.dataset.kind=kind;b.hidden=false;
+  b.innerHTML=`<label>${d[0]} <input type="text" inputmode="decimal" id="fuadjv" value="${d[1]}"> <small>[${d[4]}]</small></label><button class="btn sm pri" id="fuadjok">Submit</button><button class="btn sm" id="fuadjno">Cancel</button><em class="fuer" id="fuadje"></em>`;
+}
+function initFudet(){
+  const root=document.getElementById('fudet');if(!root)return;
+  const msg=t=>{const m=document.getElementById('fuamsg');if(m)m.textContent=t};
+  root.addEventListener('change',e=>{if(e.target.id!=='fuonoff')return;FU.offFrom=e.target.checked?null:FU.m;if(e.target.checked)FU.startAt=FU.startAt;fuRender();touch()});
+  root.addEventListener('click',e=>{
+    const a=e.target.closest('[data-fa]');
+    if(a){const k=a.dataset.fa;
+      if(k==='pwr'||k==='q'||k==='pf'){fuAdjOpen(k);return}
+      if(k==='reset'){FU.offFrom=null;FU.startAt=FU.m;fuRender();touch();msg('สั่ง Reset แล้ว อินเวอร์เตอร์เริ่มเครื่องใหม่');return}
+      if(k==='arc'){FU.startAt=FU.m;fuRender();touch();msg('ล้างสถานะ DC Arc Fault แล้ว (ถ้าอินเวอร์เตอร์ค้างจากอาร์ก จะเริ่มเครื่องใหม่)');return}
+      if(k==='opt'){msg('ไม่พบ Optimizer ในระบบ (ไม่ได้ติดตั้ง) — ฟังก์ชันนี้ใช้เมื่อต่อ Optimizer กับแผงทุกแผง');return}}
+    if(e.target.id==='fuadjno'){document.getElementById('fuadjp').hidden=true;return}
+    if(e.target.id==='fuadjok'){
+      const kind=document.getElementById('fuadjp').dataset.kind,v=parseFloat(document.getElementById('fuadjv').value),er=document.getElementById('fuadje');
+      let bad=!isFinite(v);
+      if(kind==='pwr')bad=bad||v<0||v>100;else if(kind==='q')bad=bad||v<-0.6||v>0.6;else bad=bad||Math.abs(v)<0.8||Math.abs(v)>1;
+      if(bad){er.textContent='ค่าอยู่นอกช่วง';return}
+      if(kind==='pwr')FU.pLim=v;else FU.adj=v===0&&kind==='q'?{mode:'none',v:0}:{mode:kind==='q'?'qs':'pf',v};
+      document.getElementById('fuadjp').hidden=true;fuRender();touch();msg('ตั้งค่าแล้ว (จำลอง)');
+    }
+  });
 }
 
 /* ---- access: visitor (no code) / student (name + student id + class code, checked against the roster) / teacher (TEACHER_CODE) ----
@@ -9650,7 +9735,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
-  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initFupar();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();initAccess();initReset();initFile();initCloud();initConfirm();
+  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initFupar();initFudet();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

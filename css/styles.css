@@ -819,3 +819,12 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fuinfo{position:relative;cursor:help}
 .fuinfo::after{content:attr(data-tip);position:absolute;left:-8px;bottom:135%;width:240px;padding:10px 14px;border-radius:14px;background:#fff;color:#1f2937;box-shadow:0 4px 18px rgba(0,0,0,.2);font-size:.85rem;line-height:1.4;opacity:0;pointer-events:none;transition:opacity .12s;z-index:20;white-space:normal}
 .fuinfo:hover::after,.fuinfo:focus::after{opacity:1}
+.fudb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:8px}
+.fusw{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem}.fusw input{position:absolute;opacity:0}
+.fusw span{width:40px;height:22px;border-radius:11px;background:#9aa4b2;position:relative;transition:.15s}.fusw span::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+.fusw input:checked+span{background:#3b82f6}.fusw input:checked+span::after{left:20px}.fusw input:focus-visible+span{outline:2px solid #3b82f6;outline-offset:2px}
+.fuadjp{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px;border:1px dashed rgba(128,128,128,.5);border-radius:8px;margin-bottom:6px}
+.fud th,.fud td{text-align:center}.fud tr>:first-child{text-align:left}
+.fud3 td.k{font-weight:600;width:16%}.fud3 td.k i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#98a2b3;margin-right:8px}.fud3 td.v{text-align:center;width:17%}
+#fudet h3{margin:14px 0 6px;font-size:1rem}#fudet .fut{margin-bottom:8px}#fudet .fut thead th{background:rgba(128,128,128,.12)}
+#fudet .fut td{opacity:1!important}

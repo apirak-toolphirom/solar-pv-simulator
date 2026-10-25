@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="bbf7d33f4c">
+<meta name="build" content="cb7b2c42de">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='bbf7d33f4c'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='cb7b2c42de'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=b1ea3faa">
+<link rel="stylesheet" href="css/styles.css?v=7337007b">
 </head>
 <body>
 <div class="app">
@@ -496,21 +496,24 @@ if(m&&m[1]!=='bbf7d33f4c'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 
   <section class="tab" id="tab-fusion" hidden>
     <header><h1>จำลองแอป FusionSolar (Huawei SUN2000)</h1><p class="sub">หน้าจอจำลองสไตล์ FusionSolar / SUN2000 สำหรับฝึกอ่านค่าและวิเคราะห์ alarm โดยไม่ต้องมีเครื่องจริง ข้อมูลมาจากการต่อสายและตั้งค่าในแท็บก่อนหน้า (วันที่ ตำแหน่ง มุมแผง อินเวอร์เตอร์ที่เลือก) ไม่ได้เชื่อมต่อ Huawei จริง และหน้าตาเป็นเพียงการเลียนแบบเพื่อการสอน</p></header>
-    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">Monitoring</button><button class="chip" data-fpg="cfg">Configuration (ตั้งค่า)</button></div>
+    <div class="grp" id="fupages"><button class="chip" data-fpg="mon">ภาพรวมโรงไฟฟ้า</button><button class="chip" data-fpg="det">Details</button><button class="chip" data-fpg="alm">Alarms</button><button class="chip" data-fpg="his">Historical Information</button><button class="chip" data-fpg="cfg">Configuration</button></div>
     <p class="hint" id="fudemo" hidden>ยังไม่มีการต่อสาย DC ที่ผ่านในแท็บ ต่อสาย DC จึงใช้ชุดแผงสมมุติให้พอดีกับอินเวอร์เตอร์ที่เลือก</p>
-    <div id="fumon">
-    <div class="card"><h2>ครูสร้างฟอลต์</h2><div id="fufault" class="fufl" role="group" aria-label="ชนิดฟอลต์"></div><div class="grp" id="fumode"><span class="lab">รูปแบบ</span><button class="chip" data-fm="ramp">ค่อยๆ เพิ่ม</button><button class="chip" data-fm="step">เกิดทันที</button></div><p class="hint tight" id="fuinfo"></p></div>
     <section class="bar fubar2"><div class="grp"><span class="lab">เวลา</span><b id="fuclock">12:00</b><input type="range" id="fusl" min="0" max="1435" step="5" value="720" aria-label="เวลาในวัน"><button class="btn sm" id="fuplay">เล่น</button></div>
       <div class="grp"><span class="lab">ช่วงที่เกิดฟอลต์</span><span class="lab">ตั้งแต่</span><select id="fuf0"></select><span class="lab">ถึง</span><select id="fuf1"></select></div>
       <div class="grp"><span class="lab">ค่าไฟ ฿/kWh</span><input type="number" id="futar" min="0" step="0.1" style="width:5rem"><span class="lab">พลังงานสะสมเดิม kWh</span><input type="number" id="fubase" min="0" step="100" style="width:6rem"></div></section>
-    <div class="fugrid2">
+    <div id="fupg-mon"><div class="fugrid2">
       <div class="card" id="fuov"></div>
       <div class="card"><h2>กำลังผลิตรายวัน</h2><div id="fuchart" class="fusvg"></div></div>
+    </div></div>
+    <div id="fupg-det" hidden><div class="card" id="fudet"></div></div>
+    <div id="fupg-alm" hidden>
+    <div class="card"><h2>ครูสร้างฟอลต์</h2><div id="fufault" class="fufl" role="group" aria-label="ชนิดฟอลต์"></div><div class="grp" id="fumode"><span class="lab">รูปแบบ</span><button class="chip" data-fm="ramp">ค่อยๆ เพิ่ม</button><button class="chip" data-fm="step">เกิดทันที</button></div><p class="hint tight" id="fuinfo"></p></div>
+    <div class="card"><h2>Alarms</h2><div id="fual"></div></div></div>
+    <div id="fupg-his" hidden><div class="card" id="fuhis">
+<h2>พลังงานที่ผลิต</h2><div class="grp" id="fuviews"><button class="chip" data-fv="day">วัน</button><button class="chip" data-fv="month">เดือน</button><button class="chip" data-fv="year">ปี</button></div><div id="fubars" class="fusvg"></div><p class="hint tight" id="fuvnote"></p></div></div>
+    <div hidden>
       <div class="card" id="fudev"></div>
       <div class="card"><h2>สตริง PV / MPPT</h2><div id="fustr"></div></div>
-      <div class="card"><h2>Alarm</h2><div id="fual"></div></div>
-      <div class="card"><h2>พลังงานที่ผลิต</h2><div class="grp" id="fuviews"><button class="chip" data-fv="day">วัน</button><button class="chip" data-fv="month">เดือน</button><button class="chip" data-fv="year">ปี</button></div><div id="fubars" class="fusvg"></div><p class="hint tight" id="fuvnote"></p></div>
-    </div>
     </div>
     <div id="fucfg" hidden>
       <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
@@ -624,10 +627,11 @@ if(m&&m[1]!=='bbf7d33f4c'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/submit.js?v=9c033448"></script>
 <script src="js/worksheets.js?v=08f14f14"></script>
 <script src="js/hwlog.js?v=a4f41bc0"></script>
-<script src="js/fusion.js?v=485cfca6"></script>
+<script src="js/fusion.js?v=6ba8d005"></script>
 <script src="js/fusionpar.js?v=f438fe79"></script>
+<script src="js/fusiondet.js?v=4a22bfff"></script>
 <script src="js/access.js?v=1d578a00"></script>
 <script src="js/ctx.js?v=2f7b3e6c"></script>
-<script src="js/app.js?v=1faf98a6"></script>
+<script src="js/app.js?v=d85397ce"></script>
 </body>
 </html>
