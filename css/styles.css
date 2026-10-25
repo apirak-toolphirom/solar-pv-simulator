@@ -854,7 +854,6 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fum-d{min-width:0;line-height:1.65}.fum-d h2{margin:.2rem 0 .5rem}.fum-d h3{margin:1rem 0 .3rem}.fum-d table{border-collapse:collapse;width:100%;font-size:.88em;display:block;overflow-x:auto}
 .fum-t th,.fum-t td{border:1px solid rgba(128,128,128,.35);padding:4px 7px;vertical-align:top;text-align:left}.fum-t th{background:rgba(128,128,128,.14)}
 .fum-nb{border-left:4px solid #ea8a00;background:rgba(234,138,0,.1);padding:6px 10px;margin:8px 0;border-radius:4px}
-.fum-fig{border:1px dashed rgba(128,128,128,.55);padding:14px;margin:8px 0;text-align:center;border-radius:6px;font-size:.88em;opacity:.8}.fum-fig::before{content:"🖼 ";}
 @media(max-width:700px){.fum-w{grid-template-columns:1fr}.fum-n{position:static;flex-direction:row;flex-wrap:wrap}}
 /* ---- menu 13 cables & breakers ---- */
 .cbtabs{margin-bottom:12px}
@@ -875,3 +874,11 @@ table.t.cbl td{font-family:var(--body);white-space:normal;text-align:left}
 .cbsteps span{min-width:42px;text-align:center;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font:500 13px var(--mono)}
 .cbsteps span.lo{opacity:.4}
 .cbsteps span.on{background:var(--accentbg);border-color:var(--accent);font-weight:600}
+.fum-pic{margin:10px 0 14px;padding:8px;background:#fff;border:1px solid var(--line);border-radius:8px;max-width:760px}
+.fum-pic a{display:block;cursor:zoom-in}
+.fum-pic img{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain;background:#fff}
+.fum-pic figcaption{margin-top:6px;font-size:13px;color:#24323e;line-height:1.45}
+.fum-pic figcaption span{display:block;font-size:12px;color:#566676}
+.fum-pic.bad a{display:none}.fum-pic.bad figcaption::before{content:"🖼 ภาพเปิดได้ในหน้าเว็บหลัก (index.html) · ";color:#566676}
+.fum-zoom{position:fixed;inset:0;z-index:90;background:rgba(10,16,22,.88);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.fum-zoom img{max-width:100%;max-height:100%;background:#fff;border-radius:6px;touch-action:pinch-zoom}

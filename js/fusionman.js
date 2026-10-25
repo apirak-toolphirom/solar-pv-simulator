@@ -1,6 +1,12 @@
 /* ---- คู่มือภาษาไทย: FusionSolar Smart PV Management System — Connection (Inverters + SDongle) User Manual, Issue 05 (2024-01-15)
    แปลเป็นไทยโดยสรุปความจากเอกสารต้นฉบับของ Huawei เพื่อใช้ในการอบรมเท่านั้น ลิขสิทธิ์ของเนื้อหาเป็นของ Huawei Digital Power Technologies Co., Ltd.
    เมื่อมีข้อสงสัยให้ยึดตามคู่มือต้นฉบับภาษาอังกฤษ */
+/* figures cropped from the English original (img/fusionman/fig-N.webp): [Thai caption, English caption, width, height, page] */
+const FUM_FIG={"1-1":["อุปกรณ์ป้องกันส่วนบุคคล (PPE)","Personal protective equipment",407,564,10],"2-1":["แผนภาพเครือข่าย","Networking description",1100,756,17],"2-2":["แผนภาพเครือข่าย","Networking description",1100,880,20],"2-3":["แผนภาพเครือข่าย (MBUS)","Networking description",1100,1010,23],"2-4":["แผนภาพเครือข่าย","Networking description",1100,583,28],"2-5":["แผนภาพเครือข่าย (MBUS)","Networking description",1081,617,31],"2-6":["การเปิด WLAN ของ Smart Dongle","Enabling the Smart Dongle WLAN",762,558,36],"2-7":["แผนภาพเครือข่าย (WLAN-FE)","Networking description (WLAN-FE)",1100,862,37],"2-8":["แผนภาพเครือข่าย (WLAN-FE)","Networking description (WLAN-FE)",1100,863,40],"2-9":["แผนภาพเครือข่าย (WLAN-FE)","Networking description (WLAN-FE)",1081,623,43],"2-10":["การเปิด WLAN ของ Smart Dongle","Enabling the Smart Dongle WLAN",761,507,45],"3-1":["การต่อสายอินเวอร์เตอร์แบบต่อเรียง (cascade)","Cable connections for cascaded inverters",875,227,46],"3-2":["ต่อสาย DTSU666-H (3 เฟส 3 สาย)","Connecting cables to the DTSU666-H (three-phase three-wire)",703,653,47],"3-3":["ต่อสาย DTSU666-H (3 เฟส 4 สาย)","Connecting cables to the DTSU666-H (three-phase four-wire)",703,693,47],"3-4":["อินเวอร์เตอร์กับ DTSU666-HW / YDS60-80 (3 เฟส 3 สาย ต่อตรง)","Connecting cables between the inverter and DTSU666-HW or",702,789,48],"3-5":["อินเวอร์เตอร์กับ DTSU666-HW / YDS60-80 (3 เฟส 3 สาย ผ่าน CT)","Connecting cables between the inverter and DTSU666-HW or",875,811,48],"3-6":["อินเวอร์เตอร์กับ DTSU666-HW / YDS60-80 (3 เฟส 4 สาย ต่อตรง)","Connecting cables between the inverter and DTSU666-HW or",721,789,49],"3-7":["อินเวอร์เตอร์กับ DTSU666-HW / YDS60-80 (3 เฟส 4 สาย ผ่าน CT)","Connecting cables between the inverter and DTSU666-HW or",875,914,49],"3-8":["การใส่ซิมการ์ด","Installing a SIM card",755,245,50],"3-9":["การติดตั้ง Smart Dongle","Installing a Smart Dongle",722,264,50],"3-10":["การใส่ซิมการ์ด","Installing a SIM card",842,468,50],"3-11":["การติดตั้ง Smart Dongle","Installing a Smart Dongle",847,257,51],"3-12":["การติดตั้ง Smart Dongle","Installing a Smart Dongle",781,264,51],"3-13":["การติดตั้ง Smart Dongle","Installing a Smart Dongle",794,447,51],"5-1":["ลงทะเบียนบัญชี","Registering an account",1100,556,57],"5-2":["สร้างโรงไฟฟ้า (PV plant)","Creating a PV plant",788,587,57],"5-3":["FusionSolar App Quick Guide (QR)","FusionSolar APP Quick Guide",194,194,57],"5-4":["ขั้นตอนการสร้างโรงไฟฟ้า","Procedure for creating a PV plant",1100,449,58],"5-5":["หน้าล็อกอิน","Login page",875,280,58],"5-6":["ลงทะเบียนบัญชี","Registering an account",875,664,59],"5-7":["สร้างโรงไฟฟ้า (วิธีที่ 1)","Creating a PV plant (method 1)",1100,414,59],"5-8":["สร้างโรงไฟฟ้า (วิธีที่ 2)","Creating a PV plant (method 2)",1100,236,59],"5-9":["ข้อมูลพื้นฐานของโรงไฟฟ้า","Basic information of the PV plant",1045,614,60],"5-10":["ใส่ SN ของอุปกรณ์","Entering the device SN",875,299,60],"5-11":["ตั้งค่ากำลังของสตริง","Setting string capacity",1045,362,61],"5-12":["ตรวจจำนวนสตริงและกำลังของสตริง","Verifying the number of PV strings and the string capacity",789,270,61],"5-13":["เพิ่มอัตราค่าไฟตามช่วงเวลา","Adding time-based prices",960,374,61],"5-14":["ข้อมูลอื่นๆ","Other information",1045,743,62],"5-15":["Device commissioning","Device commissioning",1100,540,63],"5-16":["เชื่อมต่ออินเวอร์เตอร์","Connecting to the inverter",1100,586,64],"5-17":["ตั้งค่าพารามิเตอร์","Parameter settings",875,654,64],"5-18":["หน้าล็อกอิน","Login page",875,280,69],"5-19":["ลงทะเบียนบัญชี","Registering an account",875,665,69],"5-20":["ตั้งค่าจำกัดการส่งออก (1)","Setting export limitation 1",1100,376,70],"5-21":["ตั้งค่าจำกัดการส่งออก (2)","Setting export limitation 2",703,369,70],"5-22":["Device commissioning","Device commissioning",1100,539,74],"5-23":["เชื่อมต่ออินเวอร์เตอร์","Connecting to the inverter",1100,586,74],"5-24":["ตั้งค่าพารามิเตอร์","Parameter settings",1100,494,75],"5-25":["ตั้งค่าระบบจัดการของบุคคลที่สาม","Setting the third-party management parameters",1100,650,76],"5-26":["ตั้งค่าระบบจัดการของบุคคลที่สาม","Setting the third-party management parameters",1100,378,76],"5-27":["Device commissioning","Device commissioning",1100,540,77],"5-28":["เชื่อมต่อ Smart Dongle","Connecting to the Smart Dongle",1100,557,78],"5-29":["คู่มือ Device Commissioning (QR)","FusionSolar App, SUN2000 App Device Commissioning Manual",322,322,78],"6-1":["Device commissioning","Device commissioning",1100,539,80],"6-2":["เชื่อมต่ออินเวอร์เตอร์","Connecting to the inverter",1100,586,80],"6-3":["ตั้งค่าการสื่อสารของอินเวอร์เตอร์","Inverter communication settings",1100,426,81],"6-4":["Device commissioning","Device commissioning",1100,539,82],"6-5":["เชื่อมต่ออินเวอร์เตอร์","Connecting to the inverter",1100,586,82],"6-6":["ตั้งค่าการสื่อสารของอินเวอร์เตอร์","Inverter communication settings",1100,531,83],"6-7":["Device commissioning","Device commissioning",1100,540,84],"6-8":["เชื่อมต่ออินเวอร์เตอร์","Connecting to the inverter",1100,586,85],"6-9":["ตั้งค่าการสื่อสารของอินเวอร์เตอร์","Inverter communication settings",1100,439,85],"6-10":["หน้า System Settings","System Settings page",875,394,87],"6-11":["ส่งออกและบันทึกล็อก","Exporting and saving logs",1100,1191,87],"6-12":["Device commissioning","Device commissioning",1100,539,88],"6-13":["เชื่อมต่ออินเวอร์เตอร์","Connecting to the inverter",1100,586,88],"6-14":["อัปเกรดอุปกรณ์","Upgrading a device",1100,529,89],"6-15":["Device commissioning","Device commissioning",1100,539,90],"6-16":["เชื่อมต่อ Smart Dongle","Connecting the Smart Dongle",1100,557,90],"6-17":["อัปเกรดอุปกรณ์","Upgrading a device",703,476,91],"6-18":["สร้างงานอัปเกรด","Creating an upgrade task",1100,321,91],"6-19":["อัปเกรดอุปกรณ์","Device upgrade",492,141,91],"6-20":["จัดการอุปกรณ์ (Device management)","Device management",1100,263,92],"6-21":["เปลี่ยนอุปกรณ์ (Device Replacement)","Device Replacement",1100,500,93],"6-22":["เพิ่มอุปกรณ์ (Add device)","Add device",1100,488,94],"6-23":["ตั้งค่าอินเวอร์เตอร์ต่อเรียง","Setting inverter cascading",699,616,94]};
+function fumFig(list){
+  return list.split(' ').map(n=>{const m=FUM_FIG[n];if(!m)return'';const src=`img/fusionman/fig-${n}.webp`;
+    return`<figure class="fum-pic"><a href="${src}" target="_blank" rel="noopener" data-fumz="${n}"><img src="${src}" width="${m[2]}" height="${m[3]}" loading="lazy" decoding="async" alt="รูปที่ ${n} ${m[0]}" onerror="this.closest('figure').classList.add('bad')"></a><figcaption><b>รูปที่ ${n}</b> ${m[0]}<span>${m[1]} · หน้า ${m[4]} ในต้นฉบับ</span></figcaption></figure>`}).join('');
+}
 const FUMAN=[];
 FUMAN.push({id:'0',t:'เกี่ยวกับเอกสารนี้',h:`
 <p>เอกสารนี้อธิบายวิธีเชื่อมต่ออินเวอร์เตอร์เข้ากับระบบ <b>FusionSolar Smart PV Management System</b> ผ่าน Smart Dongle (SDongleA และ SDongleB เรียกสั้นๆ ว่า Dongle) รายละเอียดการติดตั้งอุปกรณ์แต่ละชนิดให้ดูคู่มือหรือ Quick Guide ของอุปกรณ์นั้น เอกสารนี้ครอบคลุมเฉพาะการต่อสายระหว่างอุปกรณ์ การจ่ายไฟทดสอบ (commissioning) และการบำรุงรักษา</p>
@@ -20,6 +26,7 @@ FUMAN.push({id:'1',t:'1 ข้อมูลด้านความปลอด�
 <div class="fum-d"><b>DANGER</b> การทำงานผิดมาตรฐานกับอุปกรณ์ที่มีไฟอาจทำให้เกิดไฟไหม้ ไฟดูด หรือระเบิด ถึงขั้นเสียชีวิต</div>
 <div class="fum-d"><b>DANGER</b> ก่อนปฏิบัติงาน ถอดวัตถุนำไฟฟ้า เช่น นาฬิกา สร้อยข้อมือ แหวน สร้อยคอ เพื่อป้องกันไฟดูด</div>
 <div class="fum-d"><b>DANGER</b> ใช้เครื่องมือหุ้มฉนวนเฉพาะงานเพื่อป้องกันไฟดูดหรือลัดวงจร ระดับแรงดันทนฉนวนต้องเป็นไปตามกฎหมายและมาตรฐานท้องถิ่น</div>
+${fumFig('1-1')}
 <h3>ข้อกำหนดทั่วไป</h3>
 <ul><li>ห้ามหยุดการทำงานของอุปกรณ์ป้องกัน ใส่ใจคำเตือนและข้อควรระวังในเอกสารและบนอุปกรณ์</li><li>หากมีโอกาสบาดเจ็บหรืออุปกรณ์เสียหาย ให้หยุดทันที รายงานหัวหน้างาน และใช้มาตรการป้องกันที่ทำได้</li><li>ห้ามจ่ายไฟให้อุปกรณ์ก่อนที่ผู้เชี่ยวชาญจะติดตั้งหรือยืนยัน</li><li>กรณีเกิดเพลิงไหม้ ให้ออกจากอาคารหรือพื้นที่อุปกรณ์ทันที กดสัญญาณเตือนหรือโทรขอความช่วยเหลือ และห้ามเข้าไปในพื้นที่นั้น</li></ul>
 <h3>ข้อกำหนดด้านบุคลากร</h3>
@@ -65,7 +72,7 @@ FUMAN.push({id:'2',t:'2 แนะนำโซลูชัน',h:`
 
 <h2>2.1 เครือข่ายสื่อสารของ SDongleA-01 (WLAN)</h2>
 <ul><li>อินเวอร์เตอร์เชื่อมต่อเราเตอร์ผ่าน WLAN Smart Dongle แล้วเชื่อมต่อระบบ FusionSolar ผ่านเราเตอร์</li><li>อินเวอร์เตอร์เชื่อมต่อแอป FusionSolar ผ่าน WLAN ของตัวเอง ใช้แอปดูข้อมูลการทำงานและการตั้งค่าอินเวอร์เตอร์ได้</li><li>เข้าสู่ระบบ FusionSolar จากระยะไกลผ่าน WebUI หรือแอป FusionSolar</li></ul>
-<div class="fum-fig" data-fig="p17">รูปที่ 2-1 แผนภาพเครือข่าย</div>
+${fumFig('2-1')}
 <div class="fum-nb"><b>หมายเหตุ</b><ul><li>อุปกรณ์ในกรอบเส้นประเป็นตัวเลือก (optional)</li><li>รุ่นอินเวอร์เตอร์อาจเปลี่ยนแปลง รูปร่างและข้อมูลรุ่นในเอกสารใช้อ้างอิงเท่านั้น</li><li>เมื่อต่ออินเวอร์เตอร์แบบต่อเรียง (cascade) หลายตัว ต่อ Smart Dongle หรือ SmartLogger ได้เพียงตัวเดียวบนสาย RS485</li><li>ในจีน Smart Dongle ต่อเรียงอุปกรณ์ด้วย RS485 ได้ (อินเวอร์เตอร์กับอินเวอร์เตอร์หรืออุปกรณ์อื่น) สูงสุด 10 เครื่อง จำนวนอินเวอร์เตอร์ที่ต่อได้ขึ้นกับฟีเจอร์ของอินเวอร์เตอร์ ส่วนพื้นที่อื่นไม่รองรับการต่อเรียงด้วย RS485</li></ul></div>
 <table class="fum-t"><caption>ตาราง 2-3 จำนวนอินเวอร์เตอร์ที่ต่อเรียง</caption><thead><tr><th>จำนวนอุปกรณ์สูงสุดที่ต่อกับ Smart Dongle*</th><th>อินเวอร์เตอร์ลูก (slave)</th><th>อุปกรณ์อื่น (เช่น power meter)</th></tr></thead><tbody><tr><td>10</td><td>n ≤ 9</td><td>≤ 9 − n</td></tr></tbody></table>
 <p class="fum-n">* ดูจำนวนอุปกรณ์ที่ต่อได้จากฉลากบนกล่องภายนอก หากอินเวอร์เตอร์เกินจำนวน ให้ใช้ Smart Dongle หลายตัว (ติดตั้งและทดสอบเหมือนกันทุกตัว)</p>
@@ -83,7 +90,7 @@ FUMAN.push({id:'2',t:'2 แนะนำโซลูชัน',h:`
 <h2>2.2 เครือข่ายสื่อสารของ SDongleA-03 (4G)</h2>
 <ul><li>อินเวอร์เตอร์เชื่อมต่อระบบ FusionSolar ผ่าน 4G Smart Dongle</li><li>อินเวอร์เตอร์หลัก (master) เชื่อมต่อแอป FusionSolar ใช้ดูข้อมูลการทำงานและการตั้งค่าได้</li><li>เข้าสู่ระบบจากระยะไกลผ่าน WebUI หรือแอป FusionSolar</li></ul>
 <h3>เครือข่าย RS485</h3>
-<div class="fum-fig" data-fig="p20">รูปที่ 2-2 แผนภาพเครือข่าย</div>
+${fumFig('2-2')}
 <div class="fum-nb"><b>หมายเหตุ</b><ul><li>อุปกรณ์ในกรอบเส้นประเป็นตัวเลือก และรูปร่างอุปกรณ์ในเอกสารใช้อ้างอิงเท่านั้น</li><li>อินเวอร์เตอร์ที่ติดตั้ง Dongle คือ <b>master</b> ส่วนตัวอื่นเป็น <b>slave</b> ซึ่งสื่อสารกับ Dongle ผ่านการต่อเรียง</li><li>ถ้าต่ออินเวอร์เตอร์เรียงหลายตัว ให้ใช้ Dongle <u>หรือ</u> SmartLogger อย่างใดอย่างหนึ่ง ใช้สองแบบพร้อมกันไม่ได้</li><li>Smart Power Sensor ต่อกับพอร์ต RS485-2 และ RS485_2 (หรือ 485B2 และ 485A2) ของอินเวอร์เตอร์ master ส่วนพอร์ต RS485-1 และ RS485_1 (หรือ 485B1 และ 485A1) ใช้ต่อเรียงอินเวอร์เตอร์</li></ul></div>
 <table class="fum-t"><caption>ตาราง 2-5 คำอธิบายอุปกรณ์ (SDongleA-03)</caption><thead><tr><th>อุปกรณ์</th><th>คำอธิบาย</th></tr></thead><tbody>
 <tr><td>แผงโซลาร์</td><td>ลูกค้าจัดเตรียม</td></tr>
@@ -100,7 +107,7 @@ FUMAN.push({id:'2',t:'2 แนะนำโซลูชัน',h:`
 <h3>เครือข่าย MBUS</h3>
 <ul><li>อินเวอร์เตอร์เชื่อมต่อระบบ FusionSolar ผ่าน 4G Smart Dongle</li><li>อินเวอร์เตอร์เชื่อมต่อโทรศัพท์ผ่าน Smart USB-WLAN Adapter (เรียกสั้นๆ ว่าโมดูล WLAN) โมดูลบลูทูธ หรือสายข้อมูล แล้วใช้แอป SUN2000 ดูข้อมูลและตั้งค่าพารามิเตอร์อินเวอร์เตอร์ในพื้นที่</li><li>เข้าสู่ระบบ FusionSolar ระยะไกลผ่าน WebUI หรือแอป</li></ul>
 <div class="fum-nb"><b>NOTICE</b> การสื่อสาร MBUS ใช้กับการเชื่อมต่อกริดแรงดันปานกลางและกริดสาธารณะที่ไม่ใช่แรงดันต่ำ (สภาพแวดล้อมอุตสาหกรรม)</div>
-<div class="fum-fig" data-fig="p23">รูปที่ 2-3 แผนภาพเครือข่าย (MBUS)</div>
+${fumFig('2-3')}
 <p>ข้อกำหนดอุปกรณ์ (ตาราง 2-6): master = SUN2000-100KTL/110KTL/125KTL-M0 (ซอฟต์แวร์ SUN2000 V500R001C00SPC100 ขึ้นไป) · slave = SUN2000-36KTL, 50KTL/60KTL-M0, 100KTL/110KTL/125KTL-M0 · Dongle รุ่น SDongleA-03-XX · ซิมการ์ด ระบบจัดการ และแอปเช่นเดียวกับข้างต้น · ต้องมีตู้รวม AC (AC combiner box) และสถานีหม้อแปลงซึ่งลูกค้าจัดเตรียม</p>
 <h3>พารามิเตอร์ของ Smart Dongle</h3>
 <table class="fum-t"><caption>ตาราง 2-7 จำนวนอินเวอร์เตอร์ที่ต่อเรียง</caption><thead><tr><th>จำนวนอุปกรณ์สูงสุดที่ต่อกับ Smart Dongle*</th><th>กรณี</th><th>อินเวอร์เตอร์ slave</th><th>อุปกรณ์อื่น (เช่น power meter)</th></tr></thead><tbody>
@@ -119,7 +126,7 @@ FUMAN.push({id:'2',t:'2 แนะนำโซลูชัน',h:`
 <h2>2.3 เครือข่ายสื่อสารของ SDongleB-06 (4G)</h2>
 <ul><li>อินเวอร์เตอร์เชื่อมต่อระบบ FusionSolar ผ่าน 4G Smart Dongle</li><li>อินเวอร์เตอร์ master เชื่อมต่อแอป FusionSolar เพื่อดูข้อมูลและการตั้งค่า</li><li>Smart Dongle เชื่อมต่อระบบจัดการของบุคคลที่สามได้</li><li>Smart Dongle รองรับ WLAN hotspot</li><li>เข้าสู่ระบบระยะไกลผ่าน WebUI หรือแอป FusionSolar</li></ul>
 <h3>เครือข่าย RS485</h3>
-<div class="fum-fig" data-fig="p28">รูปที่ 2-4 แผนภาพเครือข่าย</div>
+${fumFig('2-4')}
 <div class="fum-nb"><b>หมายเหตุ</b> เช่นเดียวกับ 2.2: master คืออินเวอร์เตอร์ที่ติดตั้ง Dongle · ใช้ Dongle หรือ SmartLogger อย่างใดอย่างหนึ่งเมื่อต่อเรียงหลายตัว · Smart Power Sensor ต่อพอร์ต RS485-2 ส่วน RS485-1 ใช้ต่อเรียง</div>
 <table class="fum-t"><caption>ตาราง 2-10 คำอธิบายอุปกรณ์ (SDongleB-06)</caption><thead><tr><th>อุปกรณ์</th><th>คำอธิบาย</th></tr></thead><tbody>
 <tr><td>อินเวอร์เตอร์ master</td><td>รุ่นเดียวกับ SDongleA-03 เช่น SUN2000-(2KTL-5KTL)-CN/-L0, (2KTL-6KTL)-L1, (3KTL-20KTL)-M0, (3KTL-12KTL)-M1, (8KTL-20KTL)-M2, (20KTL-40KTL)-M3, 100KTL/110KTL/125KTL-M0, (100KTL, 110KTL, 115KTL)-M2, (12KTL-25KTL)-M5, (50KTL-ZHM3, 50KTL-M3), 50KTL-NHM3 ฯลฯ</td></tr>
@@ -133,7 +140,7 @@ FUMAN.push({id:'2',t:'2 แนะนำโซลูชัน',h:`
 <ul><li>อินเวอร์เตอร์เชื่อมต่อระบบ FusionSolar ผ่าน 4G Smart Dongle และเชื่อมต่อโทรศัพท์ผ่านโมดูล WLAN บลูทูธ หรือสายข้อมูล เพื่อใช้แอป SUN2000 ดูข้อมูลและตั้งค่าในพื้นที่</li><li><b>ขั้นตอน:</b>
 <ol type="a"><li>เปิดแอป FusionSolar ล็อกอินที่ intl.fusionsolar.huawei.com ด้วยบัญชีผู้ติดตั้ง (installer) เลือก <b>Me &gt; Device commissioning</b> แล้วสแกน QR code บนโมดูล WLAN หรือบาร์โค้ดบนโมดูลบลูทูธ หรือเชื่อมต่อเองผ่าน WLAN hotspot บลูทูธ หรือพอร์ต USB เพื่อเข้าหน้าทดสอบอุปกรณ์</li><li>ใส่รหัสผ่านเข้าสู่ระบบ</li><li>แตะ <b>Log in</b> เข้าหน้าจออินเวอร์เตอร์ เลือก <b>Settings &gt; Communication configuration &gt; Parallel system communication parameter settings &gt; MBUS</b> เสียบ Dongle เข้ากับอินเวอร์เตอร์ที่ตั้งค่าพารามิเตอร์การสื่อสารขนานเป็น MBUS และตรวจว่าอินเวอร์เตอร์ตัวอื่นในระบบขนานตั้งเป็น NA</li><li>เมื่อใช้ Dongle ตั้งค่าด่วน (quick settings) ให้ตั้ง <b>Networking mode</b> เป็น MBUS</li></ol></li></ul>
 <div class="fum-nb"><b>NOTICE</b> MBUS ใช้กับกริดแรงดันปานกลางและกริดที่ไม่ใช่แรงดันต่ำ (อุตสาหกรรม) · การเปิดฟังก์ชันป้องกันสัญญาณรบกวนข้าม (anti-crosstalk) ต้องโหลด whitelist และต้องมี PLC CCO เวอร์ชัน SmartMBUS V100R001C00SPC220B220 ขึ้นไป</div>
-<div class="fum-fig" data-fig="p31">รูปที่ 2-5 แผนภาพเครือข่าย (MBUS)</div>
+${fumFig('2-5')}
 <p>ข้อกำหนดเพิ่มเติม (ตาราง 2-11): master = SUN2000-(65KTL, 70KTL, 75KTL)-C1, (50KTL–75KTL)-M0, (50KTL, 65KTL, 70KTL)-M1 (ซอฟต์แวร์ V300R001C00SPC128B115 ขึ้นไป) · 100KTL/110KTL/125KTL-M0 และ 75KTL/110KTL-M1 (V500R001C00SPC129B092 ขึ้นไป) · (100KTL, 110KTL, 115KTL)-M2 (SUN2000ME V500R023C00SPC030B128 ขึ้นไป) · Dongle SDongleB-06-XX ซอฟต์แวร์ V200R022C10SPC103B016 ขึ้นไป · แอป FusionSolar 6.23.00.162 ขึ้นไป และ SUN2000 (Android) 6.23.00.153 ขึ้นไป</p>
 `});
 FUMAN.push({id:'2b',t:'2 (ต่อ) SDongleB-06 สเปก · SDongleA-05',h:`
@@ -143,12 +150,12 @@ FUMAN.push({id:'2b',t:'2 (ต่อ) SDongleB-06 สเปก · SDongleA-05',h:
 <h3>WLAN ของ Smart Dongle</h3>
 <p>ทดสอบอินเวอร์เตอร์ในพื้นที่ได้ผ่าน WLAN ของ Smart Dongle ถ้า WLAN ของ Dongle ปิดอยู่ ให้ล็อกอินแอป FusionSolar แตะชื่อโรงไฟฟ้าที่หน้า Home เพื่อเข้าหน้าโรงไฟฟ้า แตะ <b>Devices</b> แล้วแตะ SDongleB-06 จากนั้นเลือก <b>O&amp;M Authorization &gt; WLAN wakeup &gt; Confirm</b> เพื่อเปิด WLAN ของ Smart Dongle</p>
 <div class="fum-nb"><b>หมายเหตุ</b> ถ้าอินเวอร์เตอร์มีโมดูล WLAN ในตัว WLAN ของ Smart Dongle จะ <b>ปิด</b> ตามค่าเริ่มต้น ถ้าอินเวอร์เตอร์ไม่มีโมดูล WLAN จะ <b>เปิด</b> ตามค่าเริ่มต้น</div>
-<div class="fum-fig" data-fig="p36">รูปที่ 2-6 การเปิด WLAN ของ Smart Dongle</div>
+${fumFig('2-6')}
 
 <h2>2.4 เครือข่ายสื่อสารของ SDongleA-05 (WLAN-FE, 02312QMV)</h2>
 <p>Smart Dongle (BOM Number: 02312QMV)</p>
 <ul><li>อินเวอร์เตอร์เชื่อมต่อเราเตอร์ผ่าน WLAN-FE Smart Dongle แล้วเชื่อมต่อระบบ FusionSolar ผ่านเราเตอร์</li><li>อินเวอร์เตอร์ master เชื่อมต่อแอป FusionSolar ผ่าน WLAN ของตัวเองเพื่อดูข้อมูลและการตั้งค่า</li><li>เข้าสู่ระบบระยะไกลผ่าน WebUI หรือแอป FusionSolar</li></ul>
-<div class="fum-fig" data-fig="p37">รูปที่ 2-7 แผนภาพเครือข่าย (WLAN-FE)</div>
+${fumFig('2-7')}
 <div class="fum-nb"><b>หมายเหตุ</b> อุปกรณ์ในกรอบเส้นประเป็นตัวเลือก · อินเวอร์เตอร์ที่ติดตั้ง Dongle คือ master · ใช้ Dongle หรือ SmartLogger อย่างใดอย่างหนึ่ง · Smart Power Sensor ต่อพอร์ต RS485-2 ของ master ส่วน RS485-1 ใช้ต่อเรียง</div>
 <p>จำนวนที่ต่อเรียงได้ (ตาราง 2-16): ต่อได้สูงสุด 10 อุปกรณ์ (slave n ≤ 9 และอุปกรณ์อื่น ≤ 9 − n) หรือ 3 อุปกรณ์เมื่อมีระบบกักเก็บพลังงานหรือใช้อินเวอร์เตอร์ 1 เฟส (n ≤ 2) · SUN2000-(2KTL-6KTL)-L1 ต่อเรียงได้สูงสุด 3 เครื่อง · อุปกรณ์ที่ต่อเข้าพอร์ต RS485-2 ของ master ไม่นับเป็นอุปกรณ์ที่ต่อเรียง</p>
 <table class="fum-t"><caption>ตาราง 2-17 คำอธิบายอุปกรณ์ (02312QMV)</caption><thead><tr><th>อุปกรณ์</th><th>คำอธิบาย</th></tr></thead><tbody>
@@ -163,36 +170,36 @@ FUMAN.push({id:'2b',t:'2 (ต่อ) SDongleB-06 สเปก · SDongleA-05',h:
 <p>Smart Dongle (BOM Number: 02312QMV-004)</p>
 <ul><li>อินเวอร์เตอร์เชื่อมต่อเราเตอร์ผ่าน WLAN-FE Smart Dongle แล้วเชื่อมต่อระบบ FusionSolar ผ่านเราเตอร์</li><li>Smart Dongle เชื่อมต่อระบบจัดการของบุคคลที่สามได้</li><li>Smart Dongle รองรับ WLAN hotspot</li><li>อินเวอร์เตอร์ master เชื่อมต่อแอป FusionSolar ผ่าน WLAN ของตัวเอง และเข้าสู่ระบบระยะไกลผ่าน WebUI หรือแอปได้</li></ul>
 <h3>เครือข่าย RS485</h3>
-<div class="fum-fig" data-fig="p40">รูปที่ 2-8 แผนภาพเครือข่าย (WLAN-FE)</div>
+${fumFig('2-8')}
 <p>เงื่อนไขการต่อเรียงเหมือน 2.4 (ตาราง 2-18) · อินเวอร์เตอร์ master: SUN2000-(2KTL-5KTL)-L0 และ -(2KTL-6KTL)-L1 (ซอฟต์แวร์ SUN2000L V200R001C00 ขึ้นไป รองรับทุกเวอร์ชัน) · (3KTL-20KTL)-M0 · (3KTL-12KTL)-M1 · (8KTL-20KTL)-M2 · (20KTL-40KTL)-M3 · (50KTL-ZHM3, 50KTL-M3) · (12KTL-25KTL)-M5 · (100KTL, 110KTL, 115KTL)-M2 · slave: 33KTL, 29.9KTL/33KTL-A/36KTL, 50KTL/60KTL-M0, 100KTL/110KTL-M0 · Dongle ต้องเป็น SDongleA-05 · เราเตอร์ ระบบจัดการ แอป และ Smart Power Sensor ตามข้อกำหนดเดียวกับ 2.4</p>
 <h3>เครือข่าย MBUS</h3>
 <ul><li>อินเวอร์เตอร์เชื่อมต่อเราเตอร์ผ่าน WLAN-FE Smart Dongle แล้วเชื่อมต่อระบบ FusionSolar</li><li>อินเวอร์เตอร์เชื่อมต่อโทรศัพท์ผ่านโมดูล WLAN บลูทูธ หรือสายข้อมูล เพื่อใช้แอป SUN2000 ดูและตั้งค่าในพื้นที่</li><li><b>ขั้นตอน:</b> (ก) ล็อกอินแอป FusionSolar ที่ intl.fusionsolar.huawei.com ด้วยบัญชีผู้ติดตั้ง เลือก Me &gt; Device commissioning แล้วสแกน QR code ของโมดูล WLAN/บาร์โค้ดของโมดูลบลูทูธ หรือเชื่อมต่อเอง (ข) ใส่รหัสผ่าน (ค) เลือก Settings &gt; Communication configuration &gt; Parallel system communication parameter settings &gt; MBUS เสียบ Dongle กับอินเวอร์เตอร์ที่ตั้งเป็น MBUS ส่วนตัวอื่นตั้งเป็น NA (ง) เมื่อตั้งค่าด่วนด้วย Dongle ให้ตั้ง Networking mode เป็น MBUS</li></ul>
 <div class="fum-nb"><b>NOTICE</b> MBUS ใช้กับกริดแรงดันปานกลางและกริดที่ไม่ใช่แรงดันต่ำเท่านั้น · anti-crosstalk ต้องโหลด whitelist และใช้ PLC CCO SmartMBUS V100R001C00SPC220B220 ขึ้นไป</div>
-<div class="fum-fig" data-fig="p43">รูปที่ 2-9 แผนภาพเครือข่าย (WLAN-FE)</div>
+${fumFig('2-9')}
 <p>ข้อกำหนด (ตาราง 2-20): master ตระกูล SUN2000 50–125KTL (ซอฟต์แวร์ตามรุ่นที่ระบุในหัวข้อ 2.3) · Dongle SDongleA-05 ซอฟต์แวร์ SDongle V200R022C10SPC103B016 ขึ้นไป · แอป FusionSolar 6.23.00.162 ขึ้นไป · แอป SUN2000 (Android) 6.23.00.153 ขึ้นไป · ตู้รวม AC และสถานีหม้อแปลงลูกค้าจัดเตรียม</p>
 <h3>WLAN ของ Smart Dongle (SDongleA-05)</h3>
 <p>ทดสอบในพื้นที่ผ่าน WLAN ของ Smart Dongle ถ้าปิดอยู่ ให้เข้าแอป FusionSolar &gt; แตะชื่อโรงไฟฟ้า &gt; Devices &gt; SDongleA-05 &gt; <b>O&amp;M Authorization &gt; WLAN wakeup &gt; Confirm</b></p>
 <div class="fum-nb"><b>หมายเหตุ</b> อินเวอร์เตอร์ที่มีโมดูล WLAN ในตัว: WLAN ของ Dongle ปิดเป็นค่าเริ่มต้น · ไม่มีโมดูล WLAN: เปิดเป็นค่าเริ่มต้น</div>
-<div class="fum-fig" data-fig="p45">รูปที่ 2-10 การเปิด WLAN ของ Smart Dongle</div>
+${fumFig('2-10')}
 `});
 FUMAN.push({id:'3',t:'3 การต่อสาย',h:`
 <h2>3.1 การต่อสายอินเวอร์เตอร์แบบต่อเรียง (cascade)</h2>
 <p>เอกสารนี้แสดงเพียงแผนภาพการต่อเรียงอินเวอร์เตอร์ รายละเอียดนิยามพอร์ตสื่อสารและการต่อสายดูในคู่มือของอินเวอร์เตอร์แต่ละรุ่น</p>
-<div class="fum-fig" data-fig="p46">รูปที่ 3-1 การต่อสายอินเวอร์เตอร์แบบต่อเรียง</div>
+${fumFig('3-1')}
 <div class="fum-nb"><b>NOTICE</b><ul><li>ต่อชีลด์ของสาย RS485 ลงกราวด์</li><li>เดินสายสื่อสารแยกจากสายไฟ และอยู่ห่างแหล่งรบกวนรุนแรง เพื่อป้องกันการสื่อสารขาด</li></ul></div>
 <p>การต่อสายระหว่างอินเวอร์เตอร์กับมิเตอร์:</p>
 <ul><li>รูป 3-2: ต่อสายกับ DTSU666-H (3 เฟส 3 สาย)</li><li>รูป 3-3: ต่อสายกับ DTSU666-H (3 เฟส 4 สาย)</li><li>รูป 3-4: ต่อสายระหว่างอินเวอร์เตอร์กับ DTSU666-HW หรือ YDS60-80 (3 เฟส 3 สาย ต่อตรง)</li><li>รูป 3-5: DTSU666-HW หรือ YDS60-80 (3 เฟส 3 สาย ผ่าน CT)</li><li>รูป 3-6: DTSU666-HW หรือ YDS60-80 (3 เฟส 4 สาย ต่อตรง)</li><li>รูป 3-7: DTSU666-HW หรือ YDS60-80 (3 เฟส 4 สาย ผ่าน CT)</li></ul>
-<div class="fum-fig" data-fig="p47">รูปที่ 3-2 และ 3-3</div><div class="fum-fig" data-fig="p48">รูปที่ 3-4 และ 3-5</div><div class="fum-fig" data-fig="p49">รูปที่ 3-6 และ 3-7</div>
+${fumFig('3-2 3-3')}${fumFig('3-4 3-5')}${fumFig('3-6 3-7')}
 <h2>3.2 การติดตั้ง Smart Dongle แบบ 4G/WLAN</h2>
 <ol><li>ใส่ซิมการ์ด (ข้ามขั้นตอนนี้สำหรับ Dongle แบบ WLAN หรือรุ่นที่มีซิมอยู่แล้ว)</li><li>ติดตั้ง Smart Dongle เข้ากับพอร์ต USB ของอินเวอร์เตอร์ master</li></ol>
-<div class="fum-fig" data-fig="p50">รูปที่ 3-8 การใส่ซิมการ์ด และรูปที่ 3-9 การติดตั้ง Smart Dongle</div>
+${fumFig('3-8 3-9')}
 <h2>3.3 การติดตั้ง 4G (06) Smart Dongle</h2>
 <ol><li>ใส่ซิมการ์ด (ข้ามถ้ามีซิมอยู่แล้ว)</li><li>ติดตั้ง Smart Dongle เข้ากับพอร์ต USB ของอินเวอร์เตอร์ master</li></ol>
-<div class="fum-fig" data-fig="p51">รูปที่ 3-10 และ 3-11</div>
+${fumFig('3-10 3-11')}
 <h2>3.4 การติดตั้ง WLAN-FE Smart Dongle</h2>
 <h3>การสื่อสารแบบ WLAN</h3><p>ติดตั้ง Smart Dongle เข้ากับพอร์ต USB ของอินเวอร์เตอร์ master</p>
 <h3>การสื่อสารแบบ FE (สายแลน)</h3><p>ต่อสาย FE ก่อน แล้วจึงติดตั้ง Smart Dongle เข้ากับพอร์ต USB ของอินเวอร์เตอร์ master แนะนำสายแลน <b>Cat 5e ชนิดชีลด์สำหรับภายนอกอาคาร</b> (เส้นผ่านศูนย์กลางนอก &lt; 9 mm ความต้านทานภายใน ≤ 1.5 โอห์ม/10 m) และหัว RJ45 แบบชีลด์</p>
-<div class="fum-fig" data-fig="p51">รูปที่ 3-12 และ 3-13 การติดตั้ง Smart Dongle</div>
+${fumFig('3-12 3-13')}
 `});
 FUMAN.push({id:'4',t:'4 การจ่ายไฟระบบและการทดสอบ (Commissioning)',h:`
 <div class="fum-d"><b>DANGER</b><ul><li>สวมอุปกรณ์ป้องกันส่วนบุคคลและใช้เครื่องมือหุ้มฉนวนเฉพาะงาน เพื่อหลีกเลี่ยงไฟดูดหรือลัดวงจร</li><li>ห้ามใช้ผ้าเปียกเช็ดแท่งทองแดง (copper bar) หรือชิ้นส่วนนำไฟฟ้าที่เปิดโล่ง</li></ul></div>
@@ -241,11 +248,11 @@ FUMAN.push({id:'5.1',t:'5.1 การสร้างโรงไฟฟ้า (Pl
 <ol><li>ลงทะเบียนบัญชี <b>ผู้ติดตั้ง (installer)</b> ด้วยหมายเลขมือถือ (เฉพาะจีน) หรืออีเมล ถ้ามีบัญชีอยู่แล้วให้ข้าม</li>
 <li>ล็อกอินแอปด้วยบัญชีผู้ติดตั้ง แล้วแตะ <b>Setup Wizard</b> เพื่อสร้างโรงไฟฟ้า (ดูรายละเอียดใน FusionSolar APP Quick Guide ผ่าน QR code)</li></ol>
 <div class="fum-nb"><b>หมายเหตุ</b> เพื่อความปลอดภัยของบัญชี ควรเปลี่ยนรหัสผ่านเป็นระยะและจำรหัสใหม่ รหัสที่ไม่เปลี่ยนนานอาจถูกขโมยหรือเดา ถ้ารหัสหายจะเข้าถึงอุปกรณ์ไม่ได้ ผู้ใช้รับผิดชอบความเสียหายต่อโรงไฟฟ้า · ถ้าบริษัทต้องการหลายบัญชีผู้ติดตั้ง ให้ล็อกอินแอปแล้วสร้างผ่าน <b>New User</b></div>
-<div class="fum-fig" data-fig="p57">รูปที่ 5-1 ถึง 5-3 การลงทะเบียนและสร้างโรงไฟฟ้า</div>
+${fumFig('5-1 5-2 5-3')}
 <h2>5.1.2 สร้างโรงไฟฟ้าผ่าน WebUI</h2>
 <h3>เงื่อนไขก่อนทำ</h3>
 <ul><li>จับคู่อุปกรณ์กับโรงไฟฟ้าร่วมกับผู้รับเหมาติดตั้งแล้ว</li><li>อินเวอร์เตอร์และ Smart Dongle มีไฟและสื่อสารกับระบบจัดการได้ปกติ</li><li>ได้รับบัญชีและรหัสผ่านแล้ว (ถ้าไม่มีให้ลงทะเบียน)</li></ul>
-<div class="fum-fig" data-fig="p58">รูปที่ 5-4 ขั้นตอนการสร้างโรงไฟฟ้า</div>
+${fumFig('5-4')}
 <h3>ขั้นตอน</h3>
 <ol><li>เปิดเบราว์เซอร์แล้วป้อนที่อยู่ระบบจัดการ: <b>https://intl.fusionsolar.huawei.com</b>
 <div class="fum-nb"><b>หมายเหตุ</b> เบราว์เซอร์ที่แนะนำ: Chrome 67, Safari 9.0, Internet Explorer 11 หรือใหม่กว่า · ภาพหน้าจออ้างอิง SmartPVMS V500R007C00CP2101 ซึ่งอาจต่างตามเวอร์ชันซอฟต์แวร์</div></li>
@@ -263,7 +270,7 @@ FUMAN.push({id:'5.1',t:'5.1 การสร้างโรงไฟฟ้า (Pl
 <li>คลิก <b>Save</b> แล้วคลิก OK ในกล่องข้อความ โรงไฟฟ้าสร้างสำเร็จ</li></ol>
 <h3>ขั้นตอนต่อไป</h3>
 <ul><li>แก้ไขข้อมูล: ในรายการโรงไฟฟ้า คลิก <b>Modify</b></li><li>ลบโรงไฟฟ้า: เลือกโรงไฟฟ้าที่ต้องการลบแล้วคลิก <b>Delete</b></li></ul>
-<div class="fum-fig" data-fig="p59">รูปที่ 5-5 ถึง 5-14 หน้าจอการสร้างโรงไฟฟ้า (ดูหน้า 58–62 ในต้นฉบับ)</div>
+${fumFig('5-5 5-6 5-7 5-8 5-9 5-10 5-11 5-12 5-13 5-14')}
 `});
 FUMAN.push({id:'5.2',t:'5.2 การตั้งค่าพารามิเตอร์ควบคุมการเชื่อมต่อกริด',h:`
 <h2>5.2.1 ตั้งค่าพารามิเตอร์ผ่านแอป</h2>
@@ -276,7 +283,7 @@ FUMAN.push({id:'5.2',t:'5.2 การตั้งค่าพารามิเ�
 <div class="fum-nb"><b>หมายเหตุ</b> · สแกนโค้ด: แตะ <b>Connect</b> เข้าหน้าสแกน วาง QR code หรือบาร์โค้ดของอินเวอร์เตอร์ในกรอบ อุปกรณ์จะเชื่อมต่ออัตโนมัติเมื่อระบุได้ · ขณะล็อกอิน หากป้อนรหัสผ่านผิดติดต่อกัน <b>5 ครั้ง</b> (ห่างกันไม่เกิน 2 นาที) บัญชีจะถูกล็อก <b>10 นาที</b> รหัสผ่านมี 6 ตัวอักษร · เปลี่ยนรหัสผ่านเป็นระยะ จำรหัสใหม่ให้ได้ ถ้ารหัสหายจะเข้าถึงอุปกรณ์ไม่ได้ ผู้ใช้รับผิดชอบความเสียหายต่อโรงไฟฟ้า</div></li>
 <li>ตั้งพารามิเตอร์ควบคุมจุดเชื่อมต่อกริด (Grid-tied point control)
 <div class="fum-nb"><b>หมายเหตุ</b> การตั้ง Grid-tied point control ต้องใช้รหัสผ่านล็อกอินของอินเวอร์เตอร์</div></li></ol>
-<div class="fum-fig" data-fig="p63">รูปที่ 5-15 ถึง 5-17 หน้าจอตั้งค่าพารามิเตอร์ (ดูหน้า 63–64 ในต้นฉบับ)</div>
+${fumFig('5-15 5-16 5-17')}
 <h3>ตาราง 5-2 โหมดควบคุมกำลังแอ็กทีฟ (Active power control)</h3>
 <table class="fum-t"><thead><tr><th>โหมด</th><th>พารามิเตอร์</th><th>คำอธิบาย</th></tr></thead><tbody>
 <tr><td rowspan="1"><b>Unlimited</b></td><td>—</td><td>ไม่จำกัดกำลังเอาต์พุต อินเวอร์เตอร์จ่ายกำลังพิกัดเข้ากริดได้</td></tr>
@@ -311,7 +318,7 @@ FUMAN.push({id:'5.2',t:'5.2 การตั้งค่าพารามิเ�
 <li>ป้อนบัญชีและรหัสผ่าน แล้วคลิก <b>Log In</b> ถ้ายังไม่มีบัญชี คลิก <b>Installer Registration</b> กรอกข้อมูล และเปิดใช้งานด้วยรหัสยืนยันทางอีเมล</li>
 <li>ที่หน้า Home คลิกชื่อโรงไฟฟ้าเพื่อเข้าหน้าโรงไฟฟ้า เลือก <b>Device Management</b> เลือก <b>Dongle</b> แล้วคลิก <b>Set Parameters</b></li>
 <li>เลือก <b>Active Power Control</b> และตั้งพารามิเตอร์ที่เกี่ยวข้อง (ตาราง 5-3 ใช้พารามิเตอร์ชุดเดียวกับตาราง 5-2 ข้างต้น: Unlimited / Grid connection with zero power / Grid connection with limited power (kW) · ที่ WebUI พารามิเตอร์ Active power output limit for fail-safe มีชื่อว่า <b>Fail-safe power threshold</b>)</li></ol>
-<div class="fum-fig" data-fig="p70">รูปที่ 5-18 ถึง 5-21 หน้าจอล็อกอินและการตั้งค่าจำกัดการส่งออก</div>
+${fumFig('5-18 5-19 5-20 5-21')}
 <div class="fum-nb"><b>เชื่อมโยงกับตัวจำลอง:</b> Active Power Adjustment ในแท็บ Details ของเมนูนี้ทดลองการจำกัดกำลังเป็นเปอร์เซ็นต์ได้ (สถานะ <i>Power limited</i>)</div>
 `});
 FUMAN.push({id:'5.3',t:'5.3–5.4 ระบบจัดการของบุคคลที่สาม และ WLAN ของ Smart Dongle',h:`
@@ -322,7 +329,7 @@ FUMAN.push({id:'5.3',t:'5.3–5.4 ระบบจัดการของบุ�
 <h3>วิธีที่ 1: เชื่อมต่อ WLAN ในตัวอินเวอร์เตอร์เพื่อตั้งค่า</h3>
 <div class="fum-nb"><b>หมายเหตุ</b> เฉพาะรุ่น SUN2000-(12KTL-25KTL)-M5 และ SUN600-(15KTL-25KTL)-ZHM0 เท่านั้นที่ตั้งค่าผ่าน WLAN ในตัวได้</div>
 <ol><li>เปิดแอป FusionSolar เข้าหน้า Device commissioning (เฉพาะแอป FusionSolar)</li><li>เชื่อมต่ออินเวอร์เตอร์ (สแกน QR code ฯลฯ · ใส่รหัสผิด 5 ครั้งติดกันภายใน 2 นาที บัญชีถูกล็อก 10 นาที · รหัสผ่าน 6 ตัวอักษร · เปลี่ยนรหัสเป็นระยะ)</li><li>ตั้งพารามิเตอร์ระบบจัดการของบุคคลที่สาม</li></ol>
-<div class="fum-fig" data-fig="p75">รูปที่ 5-22 ถึง 5-24 หน้าจอตั้งค่า</div>
+${fumFig('5-22 5-23 5-24')}
 <h3>ตาราง 5-4 พารามิเตอร์</h3>
 <table class="fum-t"><thead><tr><th>พารามิเตอร์</th><th>คำอธิบาย</th><th>ช่วงค่า</th></tr></thead><tbody>
 <tr><td>Connect</td><td>ค่าเริ่มต้น Disable คือไม่เชื่อมต่อระบบของบุคคลที่สาม · ตั้งเป็น Enable จึงเชื่อมต่อได้</td><td>Disable / Enable</td></tr>
@@ -334,20 +341,20 @@ FUMAN.push({id:'5.3',t:'5.3–5.4 ระบบจัดการของบุ�
 <h3>วิธีที่ 2: ล็อกอินระบบ FusionSolar Smart PV Management System เพื่อตั้งค่า</h3>
 <div class="fum-nb"><b>หมายเหตุ</b> เฉพาะรุ่น SUN2000-(12KTL-25KTL)-M5, SUN600-(15KTL-25KTL)-ZHM0, SUN2000-(2KTL-6KTL)-L1, SUN2000-(8KTL-20KTL)-M2 และ SUN2000-(5KTL-12KTL)-M1</div>
 <ul><li><b>แอป FusionSolar:</b> ล็อกอิน แตะชื่อโรงไฟฟ้าที่หน้า Home เลือก <b>Devices</b> เลือก SDongle เป้าหมาย แล้วเลือก <b>Parameter settings</b></li><li><b>WebUI</b> (https://intl.fusionsolar.huawei.com): หน้า Home คลิกชื่อโรงไฟฟ้า เลือก <b>Device Management</b> เลือก SDongle เป้าหมาย คลิก <b>Set Parameter</b></li></ul>
-<div class="fum-fig" data-fig="p76">รูปที่ 5-25, 5-26</div>
+${fumFig('5-25 5-26')}
 <h3>ตาราง 5-5 พารามิเตอร์</h3>
 <p>ชุดเดียวกับตาราง 5-4: Connect (ค่าเริ่มต้น Disable), Server, Port [0, 65535], TLS encryption (Enable/Disable)</p>
 <h2>5.4 ตั้งค่าพารามิเตอร์และส่งออกล็อกผ่าน WLAN ของ Smart Dongle</h2>
 <ol><li>เปิดแอป FusionSolar เข้าหน้า Device commissioning</li><li>เชื่อมต่อ Smart Dongle เพื่อตั้งค่าและส่งออกล็อก รายละเอียดดูหัวข้อ Smart Dongle ในคู่มือ <i>FusionSolar App, SUN2000 App Device Commissioning Manual</i></li></ol>
 <div class="fum-nb"><b>หมายเหตุ</b> · ใส่รหัสติดตั้งผิด 5 ครั้งติดกันภายใน 2 นาที บัญชีถูกล็อก ให้ล็อกอินใหม่หลัง 5 นาที · ใช้รหัสเริ่มต้นตอนล็อกอินครั้งแรก แล้วเปลี่ยนทันที เปลี่ยนเป็นระยะ จำรหัสใหม่ให้ได้ ถ้ารหัสหายจะเข้าถึงอุปกรณ์ไม่ได้ ผู้ใช้รับผิดชอบความเสียหาย · เฉพาะ SDongleA-05 หรือ SDongleB-06 รองรับโหมดอัปเกรดนี้ · ภาพหน้าจอใช้อ้างอิงเท่านั้น</div>
-<div class="fum-fig" data-fig="p78">รูปที่ 5-27 ถึง 5-29</div>
+${fumFig('5-27 5-28 5-29')}
 `});
 FUMAN.push({id:'6',t:'6 การบำรุงรักษา',h:`
 <h2>6.1 แก้ไขพารามิเตอร์การสื่อสารของอินเวอร์เตอร์</h2>
 <p>เงื่อนไขก่อนทำเช่นเดียวกับบทก่อนหน้า: ใช้แอป FusionSolar เมื่อต่อ FusionSolar และใช้แอป SUN2000 เมื่อต่อระบบอื่น (แอป SUN2000 เวอร์ชัน 3.2.00.005 (Android) ขึ้นไป)</p>
 <h3>6.1.1 เครือข่ายสื่อสารแบบ WLAN</h3>
 <ol><li>เปิดแอป FusionSolar เข้าหน้า Device commissioning</li><li>เชื่อมต่ออินเวอร์เตอร์ (ข้อควรระวังเรื่องรหัสผ่านเช่นเดิม)</li><li>แตะ <b>Settings &gt; Communication configuration</b> แล้วตั้งค่า Router connection settings</li></ol>
-<div class="fum-fig" data-fig="p81">รูปที่ 6-1 ถึง 6-3</div>
+${fumFig('6-1 6-2 6-3')}
 <h4>ตาราง 6-1 คำอธิบายพารามิเตอร์ (การเชื่อมต่ออินเวอร์เตอร์เข้าเราเตอร์)</h4>
 <table class="fum-t"><thead><tr><th>พารามิเตอร์</th><th>คำอธิบาย</th></tr></thead><tbody>
 <tr><td>WLAN list</td><td>ชื่อเครือข่ายไร้สาย</td></tr>
@@ -362,32 +369,39 @@ FUMAN.push({id:'6',t:'6 การบำรุงรักษา',h:`
 <p>ไอคอนฝั่งเราเตอร์: ไม่ได้เชื่อมต่อ · รหัสผ่านไม่ถูกต้อง · เชื่อมต่อแล้ว (แสดงระดับสัญญาณ) · เชื่อมต่อล้มเหลว · ฝั่งระบบจัดการ: กำลังเชื่อมต่อ/เชื่อมต่อสำเร็จ</p>
 <h3>6.1.2 เครือข่ายสื่อสาร 4G</h3>
 <ol><li>เปิดแอป FusionSolar เข้าหน้า Device commissioning</li><li>เชื่อมต่ออินเวอร์เตอร์</li><li>แตะ <b>Settings &gt; Communication configuration</b> แล้วตั้งค่า Mobile network</li></ol>
+${fumFig('6-4 6-5 6-6')}
 <h4>ตาราง 6-3 พารามิเตอร์ 4G</h4>
 <table class="fum-t"><tbody><tr><th>APN mode, APN, APN dialup number, APN user name, APN user password, Network mode, PIN</th><td>ตั้งค่าที่เกี่ยวกับซิมการ์ดตามข้อมูลที่ผู้ให้บริการซิมกำหนด · เมื่อ APN mode เป็น <b>Manual</b> จะแสดงและตั้งค่า APN, APN dialup number, APN user name, APN user password ได้ · เมื่อเป็น <b>Automatic</b> จะไม่แสดงพารามิเตอร์เหล่านี้</td></tr></tbody></table>
 <h4>ตาราง 6-4 ความหมายของไอคอน (ซิมการ์ด)</h4>
 <p>ต้องใส่ PIN · ต้องใส่ PUK · ไม่มีซิมการ์ด · อ่านการ์ดไม่สำเร็จ (สัญญาณอ่อนหรือค้างชำระค่าบริการ) · เชื่อมต่อแล้วแสดงระดับสัญญาณ · เชื่อมต่อระบบจัดการล้มเหลว/สำเร็จ</p>
 <h3>6.1.3 เครือข่ายสื่อสารแบบ FE (Fast Ethernet)</h3>
 <ol><li>เปิดแอป FusionSolar เข้าหน้า Device commissioning</li><li>เชื่อมต่ออินเวอร์เตอร์</li><li>แตะ <b>Settings &gt; Communication configuration</b> แล้วตั้งค่า Router connection settings</li></ol>
+${fumFig('6-7 6-8 6-9')}
 <p>ตาราง 6-5: DHCP, IP address, Subnet mask, Gateway, Primary/Secondary DNS ความหมายเช่นเดียวกับตาราง 6-1 · ตาราง 6-6 ไอคอน: เชื่อมต่อล้มเหลว / กำลังเชื่อมต่อ / เชื่อมต่อสำเร็จ (ทั้งฝั่งเราเตอร์และระบบจัดการ)</p>
 <h2>6.2 ส่งออกล็อกของอินเวอร์เตอร์และ Smart Dongle</h2>
 <ol><li>ล็อกอินระบบจัดการ คลิก <b>Plants</b> แล้วเลือก <b>Log Export</b> ใต้ Device</li><li>เลือกอุปกรณ์ คลิก <b>Start Export</b> เพื่อสร้างงานส่งออก เมื่อสถานะเป็น <b>Succeeded</b> ให้เลือกล็อกที่ต้องการแล้วคลิก <b>Save Log</b> เพื่อบันทึกลงเครื่อง</li></ol>
+${fumFig('6-10 6-11')}
 <div class="fum-nb"><b>เชื่อมโยงกับตัวจำลอง:</b> ในแท็บ Details ของเมนูนี้ปุ่ม Export log และหน้า "Log" ใช้ฝึกขั้นตอนอ่านล็อกได้</div>
 <h2>6.3 อัปเกรดซอฟต์แวร์อินเวอร์เตอร์และ Smart Dongle</h2>
 <h3>เงื่อนไขก่อนทำ</h3>
 <ul><li>ติดต่อวิศวกรสนับสนุนทางเทคนิคของ Huawei ให้อัปโหลดชุดอัปเกรดซอฟต์แวร์แล้ว</li><li>ใช้แอป FusionSolar เมื่อต่อ FusionSolar และแอป SUN2000 เมื่อต่อระบบอื่น พร้อมติดตั้งแอปแล้ว</li></ul>
 <h3>เชื่อมต่ออินเวอร์เตอร์ผ่านแอป</h3>
 <ol><li>ตรวจว่า Smart Dongle ที่จะอัปเกรดเสียบอยู่ในอินเวอร์เตอร์ที่ทำงานอยู่ รอเกิน 2 นาที ถอด Smart Dongle ออก แล้วต่อโมดูล WLAN, โมดูลบลูทูธ หรือสาย USB เข้ากับอินเวอร์เตอร์ (ทำเมื่อต้องสื่อสารกับอินเวอร์เตอร์ด้วยวิธีเหล่านี้)</li><li>เปิดแอป FusionSolar เข้าหน้า Device commissioning</li><li>เชื่อมต่ออินเวอร์เตอร์</li><li>อัปเกรดอุปกรณ์ตามข้อความแจ้ง</li></ol>
+${fumFig('6-12 6-13 6-14')}
 <div class="fum-nb"><b>หมายเหตุ</b> · เตรียมชุดอัปเกรดก่อนทำ · การสั่งอัปเกรดอาจทำให้อินเวอร์เตอร์หลุดจากกริดและกระทบพลังงานที่ผลิตได้</div>
 <h3>เชื่อมต่อ Smart Dongle ผ่านแอป</h3>
 <div class="fum-nb"><b>หมายเหตุ</b> เฉพาะ SDongleA-05 หรือ SDongleB-06 รองรับโหมดนี้</div>
 <ol><li>เปิดแอป FusionSolar เข้าหน้า Device commissioning</li><li>เชื่อมต่อ Smart Dongle</li><li>อัปเกรดอุปกรณ์ตามข้อความแจ้ง (เตรียมชุดอัปเกรดก่อน)</li></ol>
+${fumFig('6-15 6-16')}
 <h3>ผ่าน WebUI</h3>
 <ol><li>ล็อกอินระบบจัดการ คลิก <b>Settings</b> มุมขวาบนเข้าหน้า System Settings เลือก <b>Upgrade Management</b> ที่แท็บ Device Upgrade คลิก <b>Create Update Task</b></li><li>ตั้ง Upgrade, Device type, Target version และ Device selection แล้วคลิก <b>OK</b> เพื่ออัปเกรด</li></ol>
+${fumFig('6-17 6-18 6-19')}
 <div class="fum-nb"><b>หมายเหตุ</b> ถ้าเลือกโหมด "update after confirmation" อุปกรณ์จะอัปเดตได้ต่อเมื่อได้รับความยินยอมจากผู้ใช้</div>
 <h2>6.4 อัปเดตรายการอุปกรณ์ (Device List)</h2>
 <p>เมื่ออุปกรณ์ที่เชื่อมต่อใน Device List ถูกลบหรือเปลี่ยน ต้องอัปเดตข้อมูลอุปกรณ์ของโรงไฟฟ้าที่หน้า Device Management</p>
 <ul><li><b>เงื่อนไข:</b> โรงไฟฟ้าสื่อสารกับ FusionSolar Smart PV Management System ได้ปกติ</li></ul>
 <ol><li>ที่หน้า Home ของระบบจัดการ เลือกโรงไฟฟ้าที่จะแก้ไขจากรายการ</li><li>ที่หน้า Device Management เลือกอุปกรณ์เป้าหมาย แล้วลบหรือเปลี่ยนอุปกรณ์</li></ol>
+${fumFig('6-20')}
 <div class="fum-nb"><b>หมายเหตุ</b> การเปลี่ยนอินเวอร์เตอร์ไม่กระทบพลังงานสะสมรวมของโรงไฟฟ้า</div>
 <h2>6.5 เปลี่ยน Smart Dongle และอินเวอร์เตอร์ตัวหลัก (Master)</h2>
 <h3>6.5.1 เปลี่ยน Smart Dongle</h3>
@@ -397,8 +411,10 @@ FUMAN.push({id:'6',t:'6 การบำรุงรักษา',h:`
 <h4>เปลี่ยน Smart Mobile-4G ที่เสียด้วย SDongleA-03</h4>
 <div class="fum-nb"><b>หมายเหตุ</b> Smart Mobile-4G-CN → SDongleA-03-CN · Smart Mobile-4G-EU → SDongleA-03-EU</div>
 <ol><li>ตรวจว่าเวอร์ชันซอฟต์แวร์ของอินเวอร์เตอร์ตัวหลักรองรับ SDongleA-03 ถ้าไม่รองรับ ให้อัปเดตซอฟต์แวร์หรือเปลี่ยนอินเวอร์เตอร์</li><li>ถอด Smart Dongle ที่เสีย</li><li>เปลี่ยนซิมการ์ด (เมื่อใช้ 4G) ตามหลักเดียวกับข้างต้น</li><li>ล็อกอินแอป FusionSolar แตะชื่อโรงไฟฟ้า แตะ <b>Devices</b> แล้วเพิ่ม Smart Dongle ตัวใหม่</li></ol>
+${fumFig('6-21')}
 <h3>6.5.2 เปลี่ยนอินเวอร์เตอร์ตัวหลัก</h3>
 <ol><li>เมื่อใช้ MBUS ในการเชื่อมโครงข่าย ให้ใช้แอปเปลี่ยนโหมดการต่อเรียงของอินเวอร์เตอร์ตัวหลักเดิมเป็น RS485 ผ่าน <b>Quick settings</b> <div class="fum-nb"><b>หมายเหตุ</b> แตะ Search for cascaded inverters แล้วออกหลัง 5 วินาที</div></li><li>ถอด Smart Dongle แล้วติดตั้งบนอินเวอร์เตอร์ตัวหลักตัวใหม่</li><li>สร้างไซต์และ commissioning อินเวอร์เตอร์ตัวหลักตัวใหม่</li></ol>
+${fumFig('6-22 6-23')}
 <h2>6.6 การแก้ปัญหาที่พบบ่อย</h2>
 <h4>ตาราง 6-7 อาการเสียที่พบบ่อยและวิธีแก้</h4>
 <table class="fum-t"><thead><tr><th>อาการ</th><th>สาเหตุ</th><th>วิธีแก้</th></tr></thead><tbody>
@@ -422,6 +438,9 @@ function fumRender(){
     el.dataset.init='1';
     el.innerHTML='<div class="fum-top"><b>คู่มือการใช้งาน (แปลไทย)</b> — FusionSolar Smart PV Management System: Connection (Inverters + SDongle) User Manual, Issue 05 (15 ม.ค. 2024)<br><span class="hint tight">เนื้อหาเป็นการแปลสรุปความจากเอกสารต้นฉบับของ Huawei Digital Power Technologies Co., Ltd. เพื่อใช้ในการอบรมเท่านั้น ลิขสิทธิ์เป็นของ Huawei · ตารางความถี่วิทยุ รูปภาพ และแผนภาพละไว้ ให้ดูหน้าที่อ้างอิงในต้นฉบับ · เมื่อมีข้อสงสัยให้ยึดฉบับภาษาอังกฤษ</span></div><div class="grp"><input type="search" id="fumq" placeholder="ค้นหาในคู่มือ…" aria-label="ค้นหาในคู่มือ"></div><div class="fum-w"><nav id="fumtoc" class="fum-n"></nav><article id="fumbody" class="fum-d"></article></div>';
     el.querySelector('#fumq').addEventListener('input',e=>{FUM_Q=e.target.value.trim().toLowerCase();fumDraw()});
+    el.addEventListener('click',e=>{const a=e.target.closest('[data-fumz]');if(!a)return;e.preventDefault();
+      const z=document.createElement('div');z.className='fum-zoom';z.setAttribute('role','dialog');z.innerHTML=`<img src="${a.getAttribute('href')}" alt="">`;
+      const close=()=>{z.remove();document.removeEventListener('keydown',esc)},esc=k=>{if(k.key==='Escape')close()};z.addEventListener('click',close);document.addEventListener('keydown',esc);document.body.appendChild(z)});
     el.querySelector('#fumtoc').addEventListener('click',e=>{const b=e.target.closest('[data-fm]');if(b){FUM_SEL=b.dataset.fm;fumDraw();document.getElementById('fumbody').scrollIntoView({block:'start'})}});
   }
   fumDraw();
