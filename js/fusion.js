@@ -38,8 +38,8 @@ function fuCompute(){
     let trip=false;const vg0=(FU_V||230)+0.5*Math.sin(i/9);
     if(inW){
       if(fault==='gridov'){vg=lp(vg,282);if(vg>Math.min(P.ov1,P.ov2))trip=true}
-      else if(fault==='griduv'){vg=lp(vg,150);if(vg<P.uv1)trip=true}
-      else if(fault==='gridf'){fq=lp(fq,52.5);if(fq>P.rfhi||fq<P.rflo)trip=true}
+      else if(fault==='griduv'){vg=lp(vg,150);if(vg<Math.max(P.uv1,P.uv2))trip=true}
+      else if(fault==='gridf'){fq=lp(fq,52.5);if(fq>P.of1||fq<P.uf1)trip=true}
       else if(fault==='insul'){ir=Math.exp(lp(Math.log(ir),Math.log(0.04)));if(ir<P.insul)trip=true}
       else if(fault==='arc'){if(sev>=0.5){if(P.afci==='Enable')trip=true;else D.arcMiss=true}}
       else if(fault==='rev'){if(sev>0){const s0=blocks[0]?blocks[0].n/totN:1;p=p*(1-s0);share[0]=0;st=p>0?'ongrid':'fault';trip=true}}

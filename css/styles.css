@@ -812,3 +812,7 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fucv small{opacity:.6;white-space:nowrap;font-size:.75rem}.fucv input[disabled]{opacity:.7}
 .fucv input.bad{border-color:#b91c1c;background:rgba(185,28,28,.08)}.fuer{color:#b91c1c;font-style:normal;font-size:.76rem}.fuas{color:#b45309;font-style:normal;font-size:.74rem}
 .fufx{color:#ea8a00;margin-right:4px}.fufx.a{color:#b45309;opacity:.7}.fupact{justify-content:flex-end;position:sticky;bottom:0;background:var(--bg,Canvas);padding:8px 0}
+.fucfg{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px 40px}
+.fucf{font-size:.86rem;font-weight:500}.fucl{font-weight:400}.fucv input,.fucv select{padding:6px 10px;border:1px solid #d0d5dd;border-radius:3px;background:#fff;color:#1f2937;font:inherit;height:32px}
+.fucv input[disabled]{background:#f2f4f7;color:#667085;border-color:#e4e7ec;opacity:1}.fucv input:focus,.fucv select:focus{outline:none;border-color:#2d7ff9}
+.fuinfo{color:#667085;font-size:.8rem}

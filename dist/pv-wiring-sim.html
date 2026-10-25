@@ -818,6 +818,10 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
 .fucv small{opacity:.6;white-space:nowrap;font-size:.75rem}.fucv input[disabled]{opacity:.7}
 .fucv input.bad{border-color:#b91c1c;background:rgba(185,28,28,.08)}.fuer{color:#b91c1c;font-style:normal;font-size:.76rem}.fuas{color:#b45309;font-style:normal;font-size:.74rem}
 .fufx{color:#ea8a00;margin-right:4px}.fufx.a{color:#b45309;opacity:.7}.fupact{justify-content:flex-end;position:sticky;bottom:0;background:var(--bg,Canvas);padding:8px 0}
+.fucfg{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px 40px}
+.fucf{font-size:.86rem;font-weight:500}.fucl{font-weight:400}.fucv input,.fucv select{padding:6px 10px;border:1px solid #d0d5dd;border-radius:3px;background:#fff;color:#1f2937;font:inherit;height:32px}
+.fucv input[disabled]{background:#f2f4f7;color:#667085;border-color:#e4e7ec;opacity:1}.fucv input:focus,.fucv select:focus{outline:none;border-color:#2d7ff9}
+.fuinfo{color:#667085;font-size:.8rem}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -1318,7 +1322,7 @@ table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:le
     </div>
     </div>
     <div id="fucfg" hidden>
-      <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ★สีส้มคือค่าที่ไม่อยู่ในภาพต้นแบบ ใช้ค่าสมมุติ ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
+      <p class="hint">หน้าตั้งค่าอุปกรณ์จำลองตามจอ Configuration ของ SUN2000 (ค่าเริ่มต้นและช่วงค่าตามเครื่องจริง ชื่อเครื่อง/SN/IP เป็นค่าสมมุติ) ลองแก้ค่าแล้วกด Save จากนั้นกลับไปหน้า Monitoring เพื่อดูผลร่วมกับตัวสร้างฟอลต์ ค่าที่มีเครื่องหมาย ★ มีผลต่อการจำลอง ค่าอื่นเป็นเพียงการฝึกตั้งค่า ไม่มีผลต่อการจำลอง</p>
       <div class="card"><div id="fupbody"></div>
         <div class="grp fupact"><span id="fupst" class="hint" role="status"></span><button class="btn sm" id="fupreset">คืนค่าเริ่มต้น</button><button class="btn sm" id="fupexport">Export</button><button class="btn sm" id="fupsave" disabled>Save</button><button class="btn sm" id="fuprefresh">Refresh</button></div></div>
     </div>
@@ -8963,8 +8967,8 @@ function fuCompute(){
     let trip=false;const vg0=(FU_V||230)+0.5*Math.sin(i/9);
     if(inW){
       if(fault==='gridov'){vg=lp(vg,282);if(vg>Math.min(P.ov1,P.ov2))trip=true}
-      else if(fault==='griduv'){vg=lp(vg,150);if(vg<P.uv1)trip=true}
-      else if(fault==='gridf'){fq=lp(fq,52.5);if(fq>P.rfhi||fq<P.rflo)trip=true}
+      else if(fault==='griduv'){vg=lp(vg,150);if(vg<Math.max(P.uv1,P.uv2))trip=true}
+      else if(fault==='gridf'){fq=lp(fq,52.5);if(fq>P.of1||fq<P.uf1)trip=true}
       else if(fault==='insul'){ir=Math.exp(lp(Math.log(ir),Math.log(0.04)));if(ir<P.insul)trip=true}
       else if(fault==='arc'){if(sev>=0.5){if(P.afci==='Enable')trip=true;else D.arcMiss=true}}
       else if(fault==='rev'){if(sev>0){const s0=blocks[0]?blocks[0].n/totN:1;p=p*(1-s0);share[0]=0;st=p>0?'ongrid':'fault';trip=true}}
@@ -9155,7 +9159,10 @@ function fuRestore(o){
 
 /* ---- FusionSolar: หน้า Configuration (Device Information / Grid / Protection / Feature Parameter) ----
    ค่าเริ่มต้นและช่วงค่าตามหน้าจอ SUN2000-20K-MB0 จริง (ผ่านดองเกิล WLAN) ชื่อเครื่อง/SN/IP ถูกแทนด้วยค่าสมมุติ
-   fx = มีผลต่อการจำลองในแท็บนี้ ('a' = ค่าที่ไม่เห็นในภาพ ใช้ค่าสมมุติ) */
+   fx = มีผลต่อการจำลองในแท็บนี้ */
+const fuDec=x=>{const t=String(x[8]==null?1:x[8]);return t.includes('.')?t.split('.')[1].length:0};
+const fuFd=(x,v)=>Number(v).toFixed(fuDec(x));
+const FUP_INFO=['rcd','pid','optt','strg'];
 const FUP_EN=['Disable','Enable'];
 const FUP=[
  ['Device Information',[
@@ -9167,7 +9174,7 @@ const FUP=[
  ['Grid Parameter',[
   ['gcode','Grid code','ro','TAI-PEA'],['vlev','Voltage level (V)','ro','220','[0~1000]'],['flev','Frequency level (Hz)','ro','50','[50~60]'],
   ['omode','Output mode','sel','Three-phase four-wire system',['Three-phase four-wire system','Three-phase three-wire system']],
-  ['iso','Isolation configuration','sel','Input not grounded, with a transformer',['Input not grounded, with a transformer','Input not grounded, without a transformer']],
+  ['iso','Isolation configuration','sel','Input not grounded, with a transformer',['Input grounded with transformer','Input not grounded, without a transformer','Input not grounded, with a transformer']],
   ['auto','Automatic startup upon grid recovery','sel','Disable',FUP_EN,'','fx'],
   ['rec','On-grid recovery time (s)','num',10,0,7200,'','',1],['qst','Quick startup for short-time grid disconnection','sel','Disable',FUP_EN],
   ['rvhi','Grid reconnection voltage upper limit (V)','num',255,220,299.2,'','fx',.1],['rvlo','Grid reconnection voltage lower limit (V)','num',210,99,220,'','fx',.1],
@@ -9178,7 +9185,11 @@ const FUP=[
   ['ov10','10 minute OV protection threshold (V)','num',264,220,330,'','',.1],['ov10t','10 minute OV protection time (ms)','num',200,50,18000000,'','',1],
   ['ov1','Level-1 OV protection threshold (V)','num',264,220,330,'','fx',.1],['ov1t','Level-1 OV protection time (ms)','num',1000,20,18000000,'','',1],
   ['ov2','Level-2 OV protection threshold (V)','num',264,220,330,'','fx',.1],
-  ['uv1','Level-1 UV protection threshold (V)','num',176,50,230,'ค่าไม่อยู่ในภาพ ใช้ค่าสมมุติ','fx',.1]]],
+  ['ov2t','Level-2 OV protection time (ms)','num',160,20,18000000,'','',1],
+  ['uv1','Level-1 UV protection threshold (V)','num',202.6,0,220,'','fx',.1],['uv1t','Level-1 UV protection time (ms)','num',2000,20,18000000,'','',1],
+  ['uv2','Level-2 UV protection threshold (V)','num',110,0,220,'','',.1],['uv2t','Level-2 UV protection time (ms)','num',300,20,18000000,'','',1],
+  ['of1','Level-1 OF protection threshold (Hz)','num',52,50,60,'','fx',.01],['of1t','Level-1 OF protection time (ms)','num',100,50,18000000,'','',1],
+  ['uf1','Level-1 UF protection threshold (Hz)','num',47,40,50,'','fx',.01],['uf1t','Level-1 UF protection time (ms)','num',100,50,18000000,'','',1]]],
  ['Feature Parameter',[
   ['cmin','Shutdown duration during communication failure (min)','num',10,1,120,'','fx',1],['cshut','Automatic shutdown upon communication interruption','sel','Disable',FUP_EN,'','fx'],
   ['cfs','Communication disconnection fail-safe','sel','Disable',FUP_EN],['soft','Soft start time (s)','num',20,1,1800,'','',1],
@@ -9188,14 +9199,14 @@ const FUP=[
   ['gfd','Grounding failure detection','sel','Disable',FUP_EN],['strg','Automatic recovery of PV string-to-ground short circuit protection','sel','Disable',FUP_EN],
   ['pid','PID operation mode','sel','Repair',['Disable','Repair']],['pidn','PID nighttime off-grid repair','sel','Disable',FUP_EN],
   ['hvrt','HVRT','sel','Disable',FUP_EN],['lvrt','LVRT','sel','Disable',FUP_EN],['vrs','Voltage rise suppression','sel','Disable',FUP_EN],
-  ['optt','Overtemperature Protection on Optimizer Terminal','sel','Disable',FUP_EN],['emm','Energy measurement mode','sel','Balanced measurement',['Balanced measurement','Unbalanced measurement']],
+  ['optt','Overtemperature Protection on Optimizer Terminal','sel','Disable',FUP_EN],['emm','Energy measurement mode','sel','Balanced beasurement',['Balanced beasurement','Unbalanced measurement']],
   ['offg','Off-grid mode','sel','Disable',FUP_EN],['dry','Dry contact function','sel','NC',['NC','NO']]]]
 ];
 const FUP_ALL=FUP.flatMap(s=>s[1]);
 const FUP_DEF=()=>{const o={};FUP_ALL.forEach(x=>{o[x[0]]=x[3]});return o};
 let fuPr=FUP_DEF(),fuEd={};
 function fuPv(){const o={};FUP_ALL.forEach(x=>{o[x[0]]=x[2]==='num'?+fuPr[x[0]]:fuPr[x[0]]});return o}
-function fupErr(x,v){if(x[2]!=='num')return'';const n=parseFloat(v);if(!isFinite(n)||String(v).trim()==='')return'กรอกตัวเลข';if(n<x[4]||n>x[5])return`อยู่นอกช่วง [${x[4]}~${x[5]}]`;return''}
+function fupErr(x,v){if(x[2]!=='num')return'';const n=parseFloat(v);if(!isFinite(n)||String(v).trim()==='')return'กรอกตัวเลข';if(n<x[4]||n>x[5])return`อยู่นอกช่วง [${fuFd(x,x[4])}~${fuFd(x,x[5])}]`;return''}
 function fupDirty(){return FUP_ALL.some(x=>x[0] in fuEd&&String(fuEd[x[0]])!==String(fuPr[x[0]]))}
 function fupInvalid(){return FUP_ALL.some(x=>x[0] in fuEd&&fupErr(x,fuEd[x[0]]))}
 function fupBar(){
@@ -9206,13 +9217,13 @@ function fupBar(){
 function fupRender(){
   const box=document.getElementById('fupbody');if(!box)return;
   box.innerHTML=FUP.map(([t,items])=>`<h3>${t}</h3><div class="fucfg">${items.map(x=>{
-    const k=x[0],cur=k in fuEd?fuEd[k]:fuPr[k],ro=x[2]==='ro',rng=x[2]==='num'?`[${x[4]}~${x[5]}]`:(x[4]&&typeof x[4]==='string'?x[4]:''),fx=x[2]==='sel'?x[6]:x[7],note=x[2]==='num'?x[6]:'';
+    const k=x[0],cur=k in fuEd?fuEd[k]:(x[2]==='num'?fuFd(x,fuPr[k]):fuPr[k]),ro=x[2]==='ro',rng=x[2]==='num'?`[${fuFd(x,x[4])}~${fuFd(x,x[5])}]`:(x[4]&&typeof x[4]==='string'?x[4]:''),fx=x[2]==='sel'?x[6]:x[7],note=x[2]==='num'?x[6]:'';
     const tag=fx==='fx'?(note?'<span class="fufx a" title="ค่าสมมุติ">★</span>':'<span class="fufx" title="มีผลต่อการจำลองในแท็บนี้">★</span>'):'';
     let ctl;
     if(ro)ctl=`<input value="${esc(cur)}" disabled aria-label="${esc(x[1])}">`;
     else if(x[2]==='sel')ctl=`<select data-fp="${k}" aria-label="${esc(x[1])}">${x[4].map(o=>`<option${o===cur?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
     else ctl=`<input type="text" inputmode="decimal" data-fp="${k}" value="${esc(cur)}" aria-label="${esc(x[1])}" class="${fupErr(x,cur)?'bad':''}">`;
-    return `<label class="fucf"><span class="fucl">${tag}${x[1]}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
+    return `<label class="fucf"><span class="fucl">${tag}${x[1]}${ro?'':':'}${FUP_INFO.includes(k)?' <span class="fuinfo" title="คำอธิบายพารามิเตอร์ดูได้ในคู่มือ Huawei">ⓘ</span>':''}</span><span class="fucv">${ctl}<small>${ro&&x[4]?x[4]:rng}</small></span>${x[2]==='num'&&fupErr(x,cur)?`<em class="fuer">${fupErr(x,cur)}</em>`:''}${note?`<em class="fuas">${note}</em>`:''}</label>`}).join('')}</div>`).join('');
   fupBar();
 }
 function initFupar(){
