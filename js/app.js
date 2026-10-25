@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','hwlog'];
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -26,6 +26,7 @@ function showTab(t,fromHash){
     else if(t==='site')siRun();
     else if(t==='systems'){sySync();syRun()}
     else if(t==='submit')submitRefresh();
+    else if(t==='hwlog')hwRender();
     window.scrollTo(0,0);
   });
   touch();
@@ -203,7 +204,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
-  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();initAccess();initReset();initFile();initCloud();initConfirm();
+  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

@@ -4,8 +4,11 @@
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน'};
+const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน',hwlog:'12 อ่าน log Huawei'};
+/* menus that need a signed-in student or the teacher, whatever the sheet says (never open to visitors, nor offline) */
+const ACC_SIGNED=['hwlog'];
 function accPerm(t){
+  if(ACC_SIGNED.includes(t)&&ACC.role!=='student'&&ACC.role!=='teacher')return'closed';
   if(!ACC.enabled||ACC.role==='teacher')return'open';
   const m=ACC.menus&&ACC.menus.find(x=>x.tab===t);
   if(ACC.role==='student')return m?m.student:'open';
@@ -44,6 +47,7 @@ function accForget(all){
 function accMsg(t,cls){const m=document.getElementById('accmsg');if(!m)return;m.textContent=t;m.className='simmsg'+(cls?' '+cls:'');m.hidden=!t}
 function accApply(){
   accBar();
+  if(typeof HW!=='undefined'&&typeof hwRole==='function'&&!hwRole()){HW.files=[];HW.day=null}
   document.querySelectorAll('.navb[data-tab]').forEach(b=>{b.hidden=!accAllowed(b.dataset.tab)});
   TABS.forEach(t=>{
     const sec=document.getElementById('tab-'+t);if(!sec)return;
@@ -80,7 +84,7 @@ function accTeacher(on){
 async function accRefreshMenus(){try{const j=await accPost({action:'menus'});if(j&&j.ok&&Array.isArray(j.menus)){ACC.menus=j.menus;accApply()}}catch(e){}}
 async function initAccess(){
   ACC.enabled=false;accBar();
-  if(!CFG.SUBMIT_URL)return;
+  if(!CFG.SUBMIT_URL){accApply();return}
   /* locked from the first paint: a visitor sees only the default menu (07) even while the web app is slow or unreachable */
   ACC.enabled=true;
   const s=(()=>{try{return JSON.parse(localStorage.getItem(ACC_KEY)||'{}')}catch(e){return{}}})();

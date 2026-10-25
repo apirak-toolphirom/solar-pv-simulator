@@ -767,3 +767,18 @@ body.b0zlock{overflow:hidden}
 .gelogt,.gecmpt{font-size:13px}.gelogt td.ok,.gecmpt td.ok{color:var(--ok);font-weight:600}.gecmpt td.warn{color:var(--warn);font-weight:600}.gecmpt td.bad{color:var(--err)}
 .gecmpt tr.gedel td:first-child{border-left:3px solid #d9a800}.gecmpt tr.gedeep td:first-child{border-left:3px solid #2a78d6}
 .gecmp summary{cursor:pointer;font-weight:600;margin:12px 0 6px}
+/* 12 Huawei log */
+.hwtop{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.hwpick{display:inline-flex;align-items:center;cursor:pointer}
+.hwkwp{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}.hwkwp input{width:96px}
+.hwfiles{display:flex;flex-wrap:wrap;gap:6px}
+.hwf{display:inline-flex;align-items:center;gap:6px;min-height:32px;font-size:12.5px;max-width:100%;overflow-wrap:anywhere}
+.hwx{border:0;background:none;font-size:16px;line-height:1;padding:0 2px;color:var(--muted);cursor:pointer}.hwx:hover{color:var(--err)}
+.hwhow summary{cursor:pointer;font-size:13.5px;font-weight:500}.hwhow ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.hwdaybar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px}.hwdaybar label{display:flex;flex-direction:column;gap:4px;font-size:13px}
+#hwiv>.card,#hwrp,#hwal,#hwmap{margin-bottom:12px}
+.hwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,640px),1fr));gap:12px;margin-bottom:12px}
+table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:left}.hwalt td,.hwraw td{font-size:12.5px;vertical-align:top}.hwalt td:last-child,.hwalt td:nth-child(5){white-space:normal;min-width:200px}
+.hwraw th,.hwraw td{white-space:nowrap}
+#hwmap summary{cursor:pointer;font-weight:600}
+#hwmap select{max-width:260px}

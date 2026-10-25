@@ -75,8 +75,10 @@ function wsSet_(d, props) {
 var MENU_SHEET = 'เมนู';
 var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
 var MENU_DEF = [['basics', '00 แบบฝึกพื้นฐาน'], ['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
-  ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน']]
-  .map(function (m) { return [m[0], m[1], 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
+  ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน'], ['hwlog', '12 อ่าน log Huawei']]
+  .map(function (m) { return [m[0], m[1], m[0] === 'hwlog' ? 'เปิด' : 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
+// เมนูที่ต้องลงชื่อ (ผู้เรียน/ผู้สอน) เสมอ: ผู้เยี่ยมชมไม่เห็นแม้ติ๊ก "ผู้เยี่ยมชม" = ใช่
+var MENU_SIGNED = ['hwlog'];
 function menuSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(MENU_SHEET);
   if (!sh) {
@@ -100,6 +102,7 @@ function menus_() {
   var conv = function (st) { return st === 'เปิด' ? 'open' : st === 'ดูอย่างเดียว' ? 'view' : st === 'ปิด' ? 'closed' : ''; };
   return rows.filter(function (r) { return String(r[0]).trim(); }).map(function (r) {
     var k = String(r[0]).trim(), st = String(r[2] || 'auto').trim(), c = conv(st);
+    if (MENU_SIGNED.indexOf(k) >= 0) r[3] = 'ไม่';
     return { tab: k, name: String(r[1]), status: st, visitorOn: String(r[3]).trim() === 'ใช่',
       student: c || (used[k] || (k === 'submit' && anyOpen) || String(r[3]).trim() === 'ใช่' ? 'open' : 'closed'), visitor: String(r[3]).trim() === 'ใช่' ? (c === 'closed' ? 'closed' : c === 'view' ? 'view' : 'open') : 'closed' };
   });

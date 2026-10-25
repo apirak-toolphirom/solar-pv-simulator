@@ -13,6 +13,7 @@
     <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
     <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
+    <button class="navb" data-tab="hwlog"><span class="ic">12</span>อ่าน log Huawei</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -474,6 +475,54 @@
       <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
     </div>
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  <section class="tab" id="tab-hwlog" hidden>
+    <header><h1>อ่าน log อินเวอร์เตอร์ Huawei</h1><p class="sub">นำเข้าไฟล์ที่ส่งออกจาก FusionSolar (เว็บหรือแอป), แอป SUN2000 หรือ SmartLogger แล้วดูกำลังผลิต แรงดัน/กระแสแต่ละสตริง กริด แบต และรายการแจ้งเตือน พร้อมข้อสังเกตสำหรับวิเคราะห์ระบบจริง สำหรับผู้เรียนที่ลงชื่อแล้วและผู้สอนเท่านั้น</p></header>
+    <div id="hwlock" class="panelbox" hidden><p class="simmsg err" style="margin:0">เมนูนี้ใช้ได้เฉพาะผู้เรียนที่ลงชื่อเข้าใช้งานแล้ว และผู้สอน</p></div>
+    <div id="hwbody">
+      <div class="panelbox hwtop">
+        <div class="eqact">
+          <label class="btn pri hwpick">เลือกไฟล์ log (CSV / XLSX / XLS)<input id="hwfile" type="file" accept=".csv,.txt,.xlsx,.xlsm,.xls,.ods,text/csv" multiple hidden></label>
+          <button class="btn" id="hwsample" type="button">ใช้ข้อมูลตัวอย่าง</button>
+          <button class="chip" id="hwdlsample" type="button">ดาวน์โหลดไฟล์ตัวอย่าง CSV</button>
+          <button class="chip" id="hwclear" type="button" hidden>ล้างข้อมูลทั้งหมด</button>
+          <label class="hwkwp">ขนาดติดตั้ง (kWp)<input id="hwkwp" type="number" min="0" step="0.01" placeholder="ไม่ระบุ" inputmode="decimal"></label>
+        </div>
+        <div id="hwfiles" class="hwfiles"></div>
+        <p class="simmsg" id="hwmsg" role="status" hidden></p>
+        <details class="hwhow"><summary>ส่งออกไฟล์จาก Huawei อย่างไร</summary>
+          <ul class="hint tight">
+            <li><b>ข้อมูลรายช่วงเวลา (5 นาที):</b> FusionSolar → เลือกโรงไฟฟ้า → อุปกรณ์ (Devices) → อินเวอร์เตอร์ → ข้อมูลประวัติ (Historical data) → เลือกค่าที่ต้องการ แล้วส่งออก (Export)</li>
+            <li><b>รายงานรายวัน/รายเดือน:</b> FusionSolar → รายงาน (Report) → รายงานโรงไฟฟ้าหรืออินเวอร์เตอร์ → ส่งออก</li>
+            <li><b>แจ้งเตือน:</b> FusionSolar → แจ้งเตือน (Alarms) → เลือกช่วงเวลา (รวมที่หายแล้ว) → ส่งออก</li>
+            <li>ชื่อเมนูอาจต่างตามเวอร์ชันแอปและสิทธิ์บัญชี นำเข้าได้หลายไฟล์พร้อมกัน ถ้าหัวคอลัมน์เป็นภาษาอื่น ให้จับคู่คอลัมน์เองในส่วน "ตรวจคอลัมน์"</li>
+            <li>ไฟล์อ่านในเบราว์เซอร์นี้เท่านั้น ไม่ส่งไปที่ใด และไม่บันทึกไปกับโปรเจ็ค ล้างเองเมื่อออกจากระบบหรือโหลดหน้าใหม่</li>
+          </ul></details>
+      </div>
+      <p id="hwempty" class="hint">ลองกด "ใช้ข้อมูลตัวอย่าง" เพื่อดูหน้าตาผลวิเคราะห์ก่อนนำเข้า log จริง (ข้อมูลตัวอย่างสังเคราะห์ขึ้น ไม่ใช่ log จริง)</p>
+      <div id="hwiv" hidden>
+        <div class="panelbox hwdaybar" id="hwdaybox"><label>วันที่<select id="hwday"></select></label><button class="chip" id="hwcsv" type="button">ส่งออก CSV ของวันนี้ (จัดเรียงแล้ว)</button></div>
+        <div id="hwmx" class="metrics"></div>
+        <section class="card"><h3>ข้อสังเกตอัตโนมัติ</h3><ul id="hwchk" class="checks"></ul><p class="hint tight">เกณฑ์เป็นค่าประมาณเพื่อการเรียนรู้ ใช้ชี้จุดที่ควรตรวจ ไม่ใช่ผลวินิจฉัย</p></section>
+        <div class="hwgrid">
+          <section class="card"><h3>กำลังไฟฟ้าตลอดวัน</h3><div id="hwcPL" class="legend"></div><div id="hwcP" class="chart"></div></section>
+          <section class="card"><h3>แรงดันสตริง (PV)</h3><div id="hwcVL" class="legend"></div><div id="hwcV" class="chart"></div></section>
+          <section class="card"><h3>กระแสสตริง (PV)</h3><div id="hwcIL" class="legend"></div><div id="hwcI" class="chart"></div></section>
+          <section class="card"><h3>แรงดันกริด</h3><div id="hwcGL" class="legend"></div><div id="hwcG" class="chart"></div></section>
+          <section class="card"><h3>SOC แบตและอุณหภูมิ</h3><div id="hwcTL" class="legend"></div><div id="hwcT" class="chart"></div></section>
+        </div>
+      </div>
+      <section class="card" id="hwrp" hidden><h3>พลังงานรายวัน / รายเดือน</h3><div id="hwrpmx" class="metrics"></div><div id="hwrpL" class="legend"></div><div id="hwcR" class="chart"></div></section>
+      <section class="card tbl" id="hwal" hidden><h3>รายการแจ้งเตือน (Alarm)</h3>
+        <div class="eqact"><label>ระดับ<select id="hwsev"><option value="all">ทั้งหมด</option><option value="err">ร้ายแรง (Critical/Major)</option><option value="warn">เตือน (Minor/Warning)</option><option value="idle">อื่น ๆ</option></select></label></div>
+        <p class="hint tight" id="hwalsum"></p><div class="tblwrap"><table class="t hwalt" id="hwalt"></table></div>
+        <p class="hint tight">แนวทางตรวจเป็นคำแนะนำทั่วไปเพื่อการเรียนรู้ ตรวจกับคู่มือของรุ่นนั้นทุกครั้ง งานที่ต้องเปิดฝาหรือปลดสายให้ผู้ได้รับอนุญาตทำ</p></section>
+      <details class="card tbl" id="hwmap" hidden><summary>ตรวจคอลัมน์ที่ระบบจับคู่ (แก้ได้)</summary>
+        <div class="row3"><label>ไฟล์<select id="hwsel"></select></label><label>ชนิดข้อมูล<select id="hwkind"><option value="auto">อัตโนมัติ</option><option value="interval">รายช่วงเวลา (ในวัน)</option><option value="report">รายงานรายวัน/เดือน</option><option value="alarm">แจ้งเตือน</option></select></label></div>
+        <div class="tblwrap"><table class="t" id="hwmapt"></table></div>
+        <h3 style="margin-top:12px">ตัวอย่างข้อมูล 6 แถวแรก</h3><div class="tblwrap"><table class="t hwraw" id="hwraw"></table></div></details>
+    </div>
   </section>
 
   <section class="tab" id="tab-submit" hidden>
