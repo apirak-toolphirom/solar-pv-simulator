@@ -15,6 +15,7 @@
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
     <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
     <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
+    <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -476,6 +477,11 @@
       <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
     </div>
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  <section class="tab" id="tab-library" hidden>
+    <header><h1>คลังความรู้</h1><p class="sub">บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น อ่านประกอบการจำลอง แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน</p></header>
+    <div id="kbhost"></div>
   </section>
 
   <section class="tab" id="tab-cable" hidden>

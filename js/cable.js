@@ -483,7 +483,7 @@ function cbRenderBrk(){
     ${cbMetric('กระแสใช้งาน',`${cbN(r.I,1)} A`,r.cont?`× 1.25 = ${cbN(r.need,1)} A`:'')}
     ${cbMetric('พิกัดเบรกเกอร์ In',r.In?`${r.In} A`:'–',esc(r.kind||''))}
     ${cbMetric('จำนวนขั้ว',esc(r.poles),r.ph3?'3 เฟส':'1 เฟส')}
-    ${cbMetric('Curve',esc(r.curve),'B = ต้านทาน / แสงสว่าง · C = ทั่วไป · D = มอเตอร์กระชากสูง')}
+    ${cbMetric('Curve',esc(r.curve),'B = ต้านทาน / แสงสว่าง · C = ทั่วไป · D = มอเตอร์กระชากสูง · <a href="#library/mcb-curves" data-kblink="mcb-curves">อ่านเรื่อง curve</a>')}
     ${cbMetric('พิกัดตัดกระแส Icu',`≥ ${r.icu} kA`,'ต้องไม่ต่ำกว่ากระแสลัดวงจรที่จุดติดตั้ง')}
     ${cbMetric('กันไฟรั่ว',esc(r.rcd),'')}
   </div>${cbChecks(r.ck)}${cbBrkTable('ac',r.need)}`;

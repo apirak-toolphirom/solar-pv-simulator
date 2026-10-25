@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="5e76d1373f">
+<meta name="build" content="d21eef0bbd">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='5e76d1373f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='d21eef0bbd'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=93344f29">
+<link rel="stylesheet" href="css/styles.css?v=21e42b43">
 </head>
 <body>
 <div class="app">
@@ -31,6 +31,7 @@ if(m&&m[1]!=='5e76d1373f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
     <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
     <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
+    <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -494,6 +495,11 @@ if(m&&m[1]!=='5e76d1373f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
   </section>
 
+  <section class="tab" id="tab-library" hidden>
+    <header><h1>คลังความรู้</h1><p class="sub">บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น อ่านประกอบการจำลอง แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน</p></header>
+    <div id="kbhost"></div>
+  </section>
+
   <section class="tab" id="tab-cable" hidden>
     <header><h1>สายไฟและเบรกเกอร์</h1><p class="sub">เลือกขนาดสาย เบรกเกอร์ ฟิวส์ สายดิน แรงดันตก และท่อร้อยสาย ทั้งฝั่ง AC (ขาออกอินเวอร์เตอร์ / วงจรทั่วไป) และฝั่ง DC (สตริงแผง / แบตเตอรี่) ใช้ค่าอุปกรณ์จากเมนู 01–02 ได้</p></header>
     <div class="chips cbtabs" id="cbtabs" role="group" aria-label="หน้าย่อย"></div>
@@ -641,9 +647,10 @@ if(m&&m[1]!=='5e76d1373f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/fusiondet.js?v=0d128f7f"></script>
 <script src="js/fusionov.js?v=4f66fbb2"></script>
 <script src="js/fusionman.js?v=11536347"></script>
-<script src="js/cable.js?v=9d04dee4"></script>
-<script src="js/access.js?v=8e134218"></script>
+<script src="js/cable.js?v=ad83f3df"></script>
+<script src="js/library.js?v=d5ebfec6"></script>
+<script src="js/access.js?v=fa65a20f"></script>
 <script src="js/ctx.js?v=529868cd"></script>
-<script src="js/app.js?v=32b98b4f"></script>
+<script src="js/app.js?v=ffb6e805"></script>
 </body>
 </html>

@@ -882,3 +882,31 @@ table.t.cbl td{font-family:var(--body);white-space:normal;text-align:left}
 .fum-pic.bad a{display:none}.fum-pic.bad figcaption::before{content:"🖼 ภาพเปิดได้ในหน้าเว็บหลัก (index.html) · ";color:#566676}
 .fum-zoom{position:fixed;inset:0;z-index:90;background:rgba(10,16,22,.88);display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
 .fum-zoom img{max-width:100%;max-height:100%;background:#fff;border-radius:6px;touch-action:pinch-zoom}
+/* 14 knowledge library */
+.kbbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.kbbar input[type=search]{width:100%;max-width:520px}
+.kbcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.kbcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;font:inherit;color:inherit;cursor:pointer}
+.kbcard:hover{border-color:var(--accent)}.kbcard b{font-size:15px;line-height:1.4}
+.kbnav{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.kbart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.kbart .kbh{font-size:20px;letter-spacing:0;text-transform:none;color:inherit;margin:0 0 4px}
+.kbart>.sub{margin:0 0 6px}
+.kbsec{border-top:1px solid var(--line);padding-top:14px;margin-top:14px;min-width:0}
+.kbsec>h2{font-size:15px;letter-spacing:0;text-transform:none;color:inherit;margin:0 0 8px}
+.kbsec p,.kbsec li{line-height:1.7;max-width:80ch}.kbsec ul{padding-left:20px;margin:6px 0}
+.kbsec h3{margin:16px 0 6px;font-size:14px}
+table.kbt th,table.kbt td{text-align:left;white-space:normal;vertical-align:top}table.kbt td:first-child{white-space:nowrap}
+.kbmcb{display:flex;flex-direction:column;gap:10px;min-width:0}
+.kbmctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.kbchk{display:inline-flex;gap:6px;align-items:center;font-size:13.5px}
+.kbchart svg{display:block}
+.kbmx{display:flex;flex-wrap:wrap;gap:10px;align-items:end}.kbmx label,.kbmform label{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.kbmx input{width:110px}
+.kbsum{margin:0;font-size:14px}
+.kbq{margin:10px 0}.kbq>p:first-child{margin:0 0 6px;font-weight:500}
+.kbq .chip{height:auto;min-height:38px;text-align:left;padding:6px 12px}
+.chip.kbok{border-color:var(--ok);background:var(--okbg)}.chip.kbno{border-color:var(--err);background:var(--errbg)}
+.kbqx{margin:8px 0 0}
+.kbsrc a{overflow-wrap:anywhere}
+table.kbt td,table.kbt th{font-family:var(--body);font-size:13px}table.kbt td.mono{font-family:var(--mono)}table.kbt.kbwide{min-width:640px}

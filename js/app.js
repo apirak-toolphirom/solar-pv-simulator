@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library'];
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -7,6 +7,8 @@ function setNavH(){
   document.documentElement.style.setProperty('--navh',mob?nav.offsetHeight+'px':'0px');
 }
 function showTab(t,fromHash){
+  let sub='';if(typeof t==='string'&&t.includes('/')){sub=t.slice(t.indexOf('/')+1);t=t.slice(0,t.indexOf('/'))}
+  if(t==='library'&&typeof KB!=='undefined'&&(sub||fromHash))KB.open=sub;
   if(t==='hwlog'){t='fusion';if(typeof FU!=='undefined')FU.page='log'}
   if(!TABS.includes(t))t='basics';
   if(typeof accAllowed==='function'&&!accAllowed(t))t=accFirst();
@@ -14,7 +16,7 @@ function showTab(t,fromHash){
   if(typeof fsOn!=='undefined'&&fsOn&&t!=='wiring')setFs(false);
   TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t});
   document.querySelectorAll('.navb').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
-  if(!fromHash){try{history.replaceState(null,'','#'+t)}catch(e){}}
+  if(!fromHash){try{history.replaceState(null,'','#'+t+(t==='library'&&typeof KB!=='undefined'&&KB.open?'/'+KB.open:''))}catch(e){}}
   setNavH();
   requestAnimationFrame(()=>{
     if(t==='wiring')render();
@@ -29,6 +31,7 @@ function showTab(t,fromHash){
     else if(t==='submit')submitRefresh();
     else if(t==='fusion')fuRender();
     else if(t==='cable')cbRender();
+    else if(t==='library')kbRender();
     window.scrollTo(0,0);
   });
   touch();
@@ -208,7 +211,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
-  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initFupar();initFudet();initFuov();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();initAccess();initReset();initFile();initCloud();initConfirm();
+  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initFupar();initFudet();initFuov();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();if(typeof initLibrary==='function')initLibrary();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
@@ -218,7 +221,7 @@ function initReset(){
   window.addEventListener('hashchange',()=>showTab(location.hash.slice(1),true));
   window.addEventListener('resize',()=>{setNavH();drawLoadChart();drawBackup()});
   const h=(location.hash||'').slice(1);
-  showTab(TABS.includes(h)?h:'basics',true);
+  showTab(TABS.includes(h.split('/')[0])?h:'basics',true);
   render();runSim();
   setSt('กำลังโหลดข้อมูลที่บันทึกไว้…');
   (async()=>{
