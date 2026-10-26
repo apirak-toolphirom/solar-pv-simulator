@@ -10,10 +10,11 @@ const WS_DEFAULT=[
   {id:'W5',name:'เลือกระบบ On-grid / Off-grid / Hybrid',tabs:'systems',crit:'sys_seen',q:'บ้านตัวอย่างควรใช้ระบบแบบไหน เพราะอะไร',img:'none'},
   {id:'W6',name:'จำลองเหตุการณ์',tabs:'events',crit:'ev_any',q:'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร',img:'none'},
   {id:'W7',name:'วงจร DC 12 / 24 / 48 V',tabs:'bench',crit:'bench_pass',q:'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์',img:'bench'},
+  {id:'W8',name:'Commissioning Solis Hybrid',tabs:'solis',crit:'solis_done>=1;solis_diag>=1',q:'ทำไมต้องวัดแรงดันและขั้ว PV ก่อนเปิด DC switch|ถ้า CT ติดกลับทิศ ค่าบนจอและการชาร์จแบตจะผิดอย่างไร',img:'none',open:false,status:'ปิด'},
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
-const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC',ac:'03 ต่อสาย AC',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 การไหลของไฟ',systems:'08 ระบบ 4 แบบ',events:'09 เหตุการณ์',bench:'10 วงจร DC'};
+const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC',ac:'03 ต่อสาย AC',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 การไหลของไฟ',systems:'08 ระบบ 4 แบบ',events:'09 เหตุการณ์',bench:'10 วงจร DC',solis:'15 Solis Commissioning'};
 let WS=WS_DEFAULT.slice(),WSSEL=null,WSSRC='default',WS_MINE=null;
 window.SY_SEEN=false;
 
@@ -38,6 +39,8 @@ function wsCrit(key){
     case'sys_seen':return['เปิดดูแท็บระบบ 4 แบบ',!!window.SY_SEEN];
     case'ev_any':return['เปิดเหตุการณ์อย่างน้อย 1 อย่าง',typeof evActive==='function'&&evActive()];
     case'basics_done':{const c=typeof b0Count==='function'?b0Count():0,ms=typeof b0Missing==='function'?b0Missing():[];return[`แบบฝึก 00 ผ่านอย่างน้อย ${n} หัวข้อ (ตอนนี้ ${c}${ms.length&&c<n?' · ยังไม่ผ่าน '+ms.join(', '):''})`,c>=n]}
+    case'solis_done':{const c=typeof slDoneCount==='function'?slDoneCount():0;return[`Commissioning Solis ผ่านครบอย่างน้อย ${n} ระบบ (ตอนนี้ ${c}/4)`,c>=n]}
+    case'solis_diag':{const c=typeof SL!=='undefined'?SL.diagOk:0;return[`โจทย์หาข้อผิดพลาด Solis ผ่านอย่างน้อย ${n} โจทย์ (ตอนนี้ ${c})`,c>=n]}
     case'bench_pass':{const b=window.lastBN;return['ต่อวงจร DC ผ่าน ไม่มีข้อผิดพลาด',!!(b&&b.lvl==='ok')]}
   }
   return[`${key} (ผู้สอนตรวจเอง)`,null];

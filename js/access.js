@@ -4,14 +4,16 @@
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน',fusion:'12 Huawei FusionSolar',cable:'13 สายไฟและเบรกเกอร์',library:'14 คลังความรู้'};
+const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'01 อุปกรณ์',wiring:'02 ต่อสาย DC แผง',ac:'03 ต่อสาย AC ระบบ',pv:'04 จำลองแผง',site:'05 ไซต์และเงา',load:'06 จำลองโหลด',backup:'07 จำลองการไหลของไฟ',systems:'08 จำลองระบบ 4 แบบ',events:'09 จำลองเหตุการณ์',bench:'10 ชุดทดลองวงจร DC',submit:'11 ส่งงาน',fusion:'12 Huawei FusionSolar',cable:'13 สายไฟและเบรกเกอร์',library:'14 คลังความรู้',solis:'15 Solis Commissioning'};
+/* menus the teacher opens on purpose: hidden from students until the "เมนู" sheet has a row that opens them (also before an older Code.gs adds the row) */
+const ACC_HIDDEN=['solis'];
 /* menus that need a signed-in student or the teacher, whatever the sheet says (never open to visitors, nor offline) */
 const ACC_SIGNED=[];
 function accPerm(t){
   if(ACC_SIGNED.includes(t)&&ACC.role!=='student'&&ACC.role!=='teacher')return'closed';
   if(!ACC.enabled||ACC.role==='teacher')return'open';
   const m=ACC.menus&&ACC.menus.find(x=>x.tab===t);
-  if(ACC.role==='student')return m?m.student:'open';
+  if(ACC.role==='student')return m?m.student:ACC_HIDDEN.includes(t)?'closed':'open';
   if(m)return m.visitor;
   return t==='backup'||t==='basics'?'open':'closed';/* before the list arrives (or an older sheet without this row): default visitor menus */
 }

@@ -16,6 +16,7 @@
     <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
     <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
     <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
+    <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -477,6 +478,12 @@
       <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
     </div>
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
+  </section>
+
+  <section class="tab" id="tab-solis" hidden>
+    <header><h1>Solis Hybrid: ติดตั้งและ Commissioning</h1><p class="sub">ฝึกต่อพอร์ต ตรวจวัดก่อนเปิดเครื่อง Power ON/OFF ตั้งค่าหน้าจอเครื่อง และทดสอบการทำงานของ Solis S6-EH1P6K-L-PLUS ตามคู่มือผู้ผลิต (V1.3, 04/2026) ทั้งระบบ On-grid, Hybrid, Off-grid และ AC coupling</p></header>
+    <div id="slhost"></div>
+    <p class="hint">ขั้นตอนและข้อความบนจออ้างอิงคู่มือ Solis S6-EH1P(3-8)K-L-PLUS ข้อ 3–5 และตาราง 7.1 ส่วนค่าแผง โหลด และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง</p>
   </section>
 
   <section class="tab" id="tab-library" hidden>

@@ -13,6 +13,7 @@
 7. **ส่งงาน**: กรอกชื่อ (หรือ Google Sign-in) ส่งผลสรุปไป Google Sheets ของผู้สอน และสร้างภาพรายงาน PNG ตั้งค่าตาม `apps-script/README.md`
 8. **อ่าน log Huawei (เมนู 12)**: เฉพาะผู้เรียนที่ลงชื่อแล้วและผู้สอน ดูหัวข้อด้านล่าง
 9. **สายไฟและเบรกเกอร์ (เมนู 13)**: เลือกขนาดสาย เบรกเกอร์ ฟิวส์ สายดิน แรงดันตก ท่อ ทั้ง AC และ DC ดูหัวข้อด้านล่าง
+10. **Solis Commissioning (เมนู 15)**: ฝึกติดตั้งและตั้งค่า Solis S6-EH1P6K-L-PLUS ตามคู่มือผู้ผลิต ผู้สอนเปิด/ปิดเมนูนี้เอง ดูหัวข้อด้านล่าง
 
 ## โครงสร้าง
 `css/` `js/` (config, catalog, model, engine, wiring, solar, loads, backup, systems, submit, ctx, app) · `apps-script/` ตัวรับงานฝั่ง Google Sheets · `app.html` · `build.py` · `dist/` ไฟล์รวมหน้าเดียว · `archive/` เวอร์ชันเก่า
@@ -95,3 +96,16 @@ LUNA2000 ทำงาน 450 V กับอินเวอร์เตอร์ 
 - เมนู 13 หน้า "เลือกเบรกเกอร์" มีลิงก์ "อ่านเรื่อง curve" มาที่บทความนี้ ลิงก์จากหน้าอื่นใช้ `<a data-kblink="<id>">`
 - เพิ่มบทความ: เพิ่ม `kbAdd({id, cat, title, summary, tags, upd, body, init, related, src})` ใน `js/library.js` (หรือไฟล์ใหม่ที่ใส่ต่อจาก `'library'` ใน `build.py`) แล้ว `python3 build.py` หมวดอยู่ใน `KB_CATS` หมวดที่ยังไม่มีบทความจะไม่แสดง
 - สิทธิ์: ค่าเริ่มต้นในแผ่น "เมนู" = เปิดให้ผู้เรียน ผู้เยี่ยมชมเห็นถ้าผู้สอนติ๊ก
+
+## เมนู 15 Solis Commissioning (Hybrid / On-grid / Off-grid / AC coupling)
+จำลองการติดตั้งและ commissioning อินเวอร์เตอร์ Solis S6-EH1P6K-L-PLUS อ้างอิงคู่มือ S6-EH1P(3-8)K-L-PLUS User Manual V1.3 (04/2026) ใน Drive `PV Datasheets/01 อินเวอร์เตอร์/Solis` (`js/solis.js`)
+- **ระบบ 4 แบบ** แต่ละแบบมีใบสั่งงาน: On-grid ไม่มีแบต (PEA ขายไฟ ≤ 5 kW) · Hybrid กริด + Backup (PEA ห้ามขายไฟ สำรองแบต ≥ 30%) · Off-grid (ไม่มี CT/มิเตอร์) · AC coupling (อินเวอร์เตอร์ออนกริดเดิม 3 kW ที่พอร์ต GEN, MEA)
+- **1 ใบสั่งงานและการต่อพอร์ต**: เลือกสิ่งที่ต่อเข้า PV1/PV2, BAT, AC-GRID, AC-BACKUP, AC-GEN, CT (ตำแหน่ง ทิศลูกศร สายขาว/ดำ), BMS (CAN), METER พร้อมผังระบบ ตรวจข้อห้ามตามคู่มือ เช่น ห้ามต่อ BACKUP เข้ากริด
+- **2 ตรวจวัดและ Power ON/OFF**: เช็กลิสต์ 5.1, สวิตช์แบต / DC switch / OCPD / เบรกเกอร์ Backup, มัลติมิเตอร์ (PV, BAT, L–N, L–PE, N–PE, Backup, ความต่อเนื่อง PE, ตรวจ CT และหัว CAN ด้วยตา) และ LED POWER / OPERATION / ALARM ระบบตรวจลำดับตามข้อ 5.2 (วัด PV ก่อนเปิด DC switch, วัด AC แล้วปิด OCPD, เปิด DC ก่อน OCPD, เปิด Backup หลัง commissioning) และลำดับปิดเครื่องตามข้อ 5.3
+- **3 หน้าจอเครื่อง**: จอ 7 นิ้วพร้อมปุ่ม ESC ▲ ▼ ENTER: Quick Setting 5 ขั้น (เวลา → Meter → Grid code → Storage mode → Battery) แล้วเข้า HOME: Plant / Alarm Information, System Setting (Storage Mode + Time of use, Battery, Smart Port, Grid Port, Parallel, Basic) ตามผัง 5.4.2
+- **4 แดชบอร์ด**: หน้า Devices Status (แผง แบต กริด โหลดกริด โหลด Backup AC coupled) เลื่อนเวลา/เล่น ตั้งไฟดับ เมฆ และโหลด Backup เพิ่ม กราฟทั้งวันและสรุป kWh ผลจำลองเปลี่ยนตามการตั้งค่าจริง เช่น Self-use / Selling first / Off grid, Allow export, Max export, Battery reserve, Over discharge, Allow grid charging, Peak shaving, Smart Port (AC couple input ใช้ Freq-Watt ลดกำลังเครื่องเดิมตอนไฟดับ)
+- **5 โจทย์หาข้อผิดพลาด**: สุ่มความผิดพลาดหน้างาน 2 จุด (CT กลับทิศ/สายสลับ/หลุด, PV เกิน 500 V, PV2 กลับขั้ว, ฟิวส์แบตขาด, CAN pin ไม่ตรง, BACKUP ต่อเข้าตู้เมน, L/N สลับ, ไม่ต่อ PE) ให้ผู้เรียนหาด้วยการวัดและ alarm ผู้สอนกำหนดโจทย์เองได้ (ส่วนนี้ผู้เรียนไม่เห็น)
+- Alarm ที่จำลอง: OV-DC01, OV-Vbackup, NO-Battery, CAN Fail, BatName-FAIL, MET-SLT-Fail, NO-Grid, Over-Load, OV-Vbatt (ชื่อตามตาราง 7.1 / FAQ)
+- **สิทธิ์**: แผ่น "เมนู" ตั้งค่าเริ่มเมนูนี้เป็น "ปิด" ผู้เรียนและผู้เยี่ยมชมไม่เห็นจนกว่าผู้สอนเลือก "เปิด" ที่ dashboard (ต้องวาง `Code.gs` ล่าสุดแล้ว Deploy → New version) ถ้าชีตยังไม่มีแถวนี้ หน้าเว็บก็ซ่อนเมนูจากผู้เรียนไว้ก่อน
+- **ใบงาน W8** (ค่าเริ่ม = ปิด): เกณฑ์ `solis_done>=1` (ทำระบบใดระบบหนึ่งผ่านครบ) และ `solis_diag>=1` (หาข้อผิดพลาดถูก 1 โจทย์)
+- ค่าแผง (Voc 49.5 V, 650 W) โหลด และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง

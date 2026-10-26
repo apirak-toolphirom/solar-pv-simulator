@@ -29,6 +29,7 @@ var WS_DEF = [
   ['W5', 'เลือกระบบ On-grid / Off-grid / Hybrid', 'systems', '', '', 'ปิด', 'sys_seen', 'บ้านตัวอย่างควรใช้ระบบแบบไหน เพราะอะไร', 'none'],
   ['W6', 'จำลองเหตุการณ์', 'events', '', '', 'ปิด', 'ev_any', 'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร', 'none'],
   ['W7', 'วงจร DC 12 / 24 / 48 V', 'bench', '', '', 'ปิด', 'bench_pass', 'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์', 'bench'],
+  ['W8', 'Commissioning Solis Hybrid', 'solis', '', '', 'ปิด', 'solis_done>=1;solis_diag>=1', 'ทำไมต้องวัดแรงดันและขั้ว PV ก่อนเปิด DC switch|ถ้า CT ติดกลับทิศ ค่าบนจอและการชาร์จแบตจะผิดอย่างไร', 'none'],
   ['W0', 'ส่งรวม (ทุกเมนู)', '', '', '', 'ปิด', '', '', 'dc']
 ];
 function wsSheet_() {
@@ -45,6 +46,7 @@ function wsSheet_() {
     var n = sh.getLastRow() - 1, have = n > 0 ? sh.getRange(2, 1, n, 1).getValues().map(function (r) { return String(r[0]).trim(); }) : [];
     var p = PropertiesService.getScriptProperties();
     if (have.indexOf('W00') < 0 && p.getProperty('WS_W00_ADDED') !== '1') { sh.appendRow(WS_DEF[0]); p.setProperty('WS_W00_ADDED', '1'); }
+    if (have.indexOf('W8') < 0 && p.getProperty('WS_W8_ADDED') !== '1') { WS_DEF.forEach(function (w) { if (w[0] === 'W8') sh.appendRow(w); }); p.setProperty('WS_W8_ADDED', '1'); }
   }
   return sh;
 }
@@ -75,9 +77,10 @@ function wsSet_(d, props) {
 var MENU_SHEET = 'เมนู';
 var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
 var MENU_DEF = [['basics', '00 แบบฝึกพื้นฐาน'], ['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
-  ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน'], ['fusion', '12 Huawei FusionSolar'], ['cable', '13 สายไฟและเบรกเกอร์'], ['library', '14 คลังความรู้']]
+  ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน'], ['fusion', '12 Huawei FusionSolar'], ['cable', '13 สายไฟและเบรกเกอร์'], ['library', '14 คลังความรู้'], ['solis', '15 Solis Commissioning']]
   // 13 สายไฟและเบรกเกอร์ เป็นเครื่องมืออ้างอิง: เปิดให้ผู้เรียนเป็นค่าเริ่มต้น
-  .map(function (m) { return [m[0], m[1], m[0] === 'cable' || m[0] === 'library' ? 'เปิด' : 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
+  .map(function (m) { return [m[0], m[1], m[0] === 'cable' || m[0] === 'library' ? 'เปิด' : m[0] === 'solis' ? 'ปิด' : 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
+// 15 Solis Commissioning: ค่าเริ่ม = ปิด (ซ่อนจากผู้เรียน) ผู้สอนเปิดเองที่ dashboard เมื่อถึงคาบที่ใช้
 // เมนูที่ต้องลงชื่อ (ผู้เรียน/ผู้สอน) เสมอ: ผู้เยี่ยมชมไม่เห็นแม้ติ๊ก "ผู้เยี่ยมชม" = ใช่
 var MENU_SIGNED = [];
 function menuSheet_() {

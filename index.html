@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="d21eef0bbd">
+<meta name="build" content="13676a900b">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='d21eef0bbd'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='13676a900b'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=21e42b43">
+<link rel="stylesheet" href="css/styles.css?v=3dac212b">
 </head>
 <body>
 <div class="app">
@@ -32,6 +32,7 @@ if(m&&m[1]!=='d21eef0bbd'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
     <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
     <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
+    <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -495,6 +496,12 @@ if(m&&m[1]!=='d21eef0bbd'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
   </section>
 
+  <section class="tab" id="tab-solis" hidden>
+    <header><h1>Solis Hybrid: ติดตั้งและ Commissioning</h1><p class="sub">ฝึกต่อพอร์ต ตรวจวัดก่อนเปิดเครื่อง Power ON/OFF ตั้งค่าหน้าจอเครื่อง และทดสอบการทำงานของ Solis S6-EH1P6K-L-PLUS ตามคู่มือผู้ผลิต (V1.3, 04/2026) ทั้งระบบ On-grid, Hybrid, Off-grid และ AC coupling</p></header>
+    <div id="slhost"></div>
+    <p class="hint">ขั้นตอนและข้อความบนจออ้างอิงคู่มือ Solis S6-EH1P(3-8)K-L-PLUS ข้อ 3–5 และตาราง 7.1 ส่วนค่าแผง โหลด และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง</p>
+  </section>
+
   <section class="tab" id="tab-library" hidden>
     <header><h1>คลังความรู้</h1><p class="sub">บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น อ่านประกอบการจำลอง แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน</p></header>
     <div id="kbhost"></div>
@@ -640,7 +647,7 @@ if(m&&m[1]!=='d21eef0bbd'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/basics.js?v=4e54be74"></script>
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=9c033448"></script>
-<script src="js/worksheets.js?v=08f14f14"></script>
+<script src="js/worksheets.js?v=ae02799f"></script>
 <script src="js/hwlog.js?v=86e8e2ce"></script>
 <script src="js/fusion.js?v=5382422e"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
@@ -649,8 +656,9 @@ if(m&&m[1]!=='d21eef0bbd'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/fusionman.js?v=11536347"></script>
 <script src="js/cable.js?v=ad83f3df"></script>
 <script src="js/library.js?v=d5ebfec6"></script>
-<script src="js/access.js?v=fa65a20f"></script>
+<script src="js/solis.js?v=49dca9e9"></script>
+<script src="js/access.js?v=826dc276"></script>
 <script src="js/ctx.js?v=529868cd"></script>
-<script src="js/app.js?v=ffb6e805"></script>
+<script src="js/app.js?v=d85fc302"></script>
 </body>
 </html>

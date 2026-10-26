@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis'];
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -32,6 +32,7 @@ function showTab(t,fromHash){
     else if(t==='fusion')fuRender();
     else if(t==='cable')cbRender();
     else if(t==='library')kbRender();
+    else if(t==='solis')slRenderTab();
     window.scrollTo(0,0);
   });
   touch();
@@ -57,7 +58,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM,micro:MICRO},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),fu:fuSnapshot(),sy:SY,site:siSnapshot(),b0:typeof B0!=='undefined'?B0:null,cb:typeof cbSnapshot==='function'?cbSnapshot():null};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),fu:fuSnapshot(),sy:SY,site:siSnapshot(),b0:typeof B0!=='undefined'?B0:null,cb:typeof cbSnapshot==='function'?cbSnapshot():null,sl:typeof slSnapshot==='function'?slSnapshot():null};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -133,6 +134,7 @@ function restoreProject(p){
 }
 function restoreExtra(p){
   if(p.b0&&typeof b0Restore==='function')b0Restore(p.b0);
+  if(p.sl&&typeof slRestore==='function')slRestore(p.sl);
   if(p.cb&&typeof cbRestore==='function'){cbRestore(p.cb);if(typeof cbRenderPage==='function')cbRenderPage()}
   const num=(v,d,lo,hi)=>clamp(fin(v,d),lo,hi);
   if(p.ev&&typeof p.ev==='object'){
