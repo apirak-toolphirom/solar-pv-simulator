@@ -961,7 +961,7 @@ ul.slchk li.err{color:var(--err)}ul.slchk li.err::before{content:"✕";color:var
 .hmibar{display:flex;justify-content:space-between;gap:8px;background:#3c4f9f;color:#fff;padding:4px 10px;font:500 11.5px var(--mono)}
 .hmibody{flex:1;overflow:auto;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
 .hmibody.grid2{display:grid;grid-template-columns:1fr 1fr;align-content:center;gap:8px;padding:12px 18px}
-.hmibody.flow{padding:0;align-items:center;justify-content:center}.hmibody.flow svg{max-height:100%}
+.hmibody.flow{padding:0;align-items:center;justify-content:center;background:#fff;cursor:pointer}.hmibody.flow svg{max-height:100%}
 .hmiitem{display:flex;gap:8px;align-items:center;min-height:34px;padding:0 10px;border:1px solid #d3d8e2;border-radius:6px;background:#fff;color:#1e2a36;font-size:12px;text-align:left}
 .hmiitem i{font-style:normal;color:#3c4f9f;width:16px;text-align:center}
 .hmifoot{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-top:1px solid #dde2ea;font:500 11px var(--mono);color:#5b6672}
@@ -983,7 +983,15 @@ ul.slchk li.err{color:var(--err)}ul.slchk li.err::before{content:"✕";color:var
 .slkeys{display:flex;gap:8px;justify-content:center}
 .slkey{min-width:64px;min-height:38px;border-radius:19px;border:1px solid #9aa4ae;background:#f7f8f9;color:#1e2a36;font:600 12px var(--mono)}
 .slkey:active{background:#dfe3e7}
-.slflowbig{background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+.slflowbig{background:#fff;border:6px solid #20262d;border-radius:10px;overflow:hidden;max-width:980px}
+.slds{display:block;width:100%;height:auto;font-family:Arial,'IBM Plex Sans Thai',sans-serif}
+.slft{font-size:15px;fill:#222831}
+.slcom{fill:none;stroke:#2c3036;stroke-width:1.4}
+.sli-pv{fill:#b8d4ee;stroke:#2f3a48;stroke-width:1.8}.sli-pvl{stroke:#2f3a48;stroke-width:1}.sli-leg{stroke:#2f3a48;stroke-width:2.2}
+.slseg{fill:#fff;stroke:#8c939c;stroke-width:1.2}
+.slseg.on{animation:slseg 1.2s linear infinite}
+@keyframes slseg{0%,40%{fill:#fff}50%,90%{fill:#f6b27a}}
+.slarr.off .slseg{stroke:#c9ced4}
 .slfn{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
 .slscr .slfn{fill:#fff;stroke:#c9d0db}.slscr .svgt{fill:#1e2a36}.slscr .svgt.mut{fill:#5b6672}.slscr .slinv{fill:#fff;stroke:#3c4f9f}
 .slfl{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:8 6}
@@ -998,7 +1006,7 @@ ul.slchk li.err{color:var(--err)}ul.slchk li.err::before{content:"✕";color:var
 #slalm li{padding:6px 10px;border-radius:6px;font-size:13px}#slalm li.err{background:var(--errbg);color:var(--err)}#slalm li.warn{background:var(--warnbg);color:var(--warn)}
 .slteach{border-style:dashed}
 .simmsg.ok{color:var(--ok)}.simmsg.err{color:var(--err)}
-@media (prefers-reduced-motion:reduce){.slfl.on,.slled.fl i{animation:none}}
+@media (prefers-reduced-motion:reduce){.slfl.on,.slled.fl i,.slseg.on{animation:none}.slseg.on{fill:#f6b27a}}
 @media (max-width:520px){.hmibody.grid2{grid-template-columns:1fr;padding:8px}.slkey{min-width:56px}.slscr{aspect-ratio:auto;min-height:280px}}
 </style>
 <div class="app">
@@ -11300,7 +11308,7 @@ const slChk=(path,v,t)=>`<label class="slck"><input class="hn" type="checkbox" d
 const slRow=(l,c)=>`<div class="slrow"><span>${l}</span><span>${c}</span></div>`;
 function slScreen(){
   const P=slPhys(SL.dash.t/60),H=SL.hmi,S=SL.set,today=new Date();
-  const dt=S.time?`${today.getFullYear()}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')} ${slHM(SL.dash.t)}`:'2000/01/01 00:00';
+  const dt=slDT();
   const bar=t=>`<div class="hmibar"><span>${t}</span><span>${dt}</span></div>`;
   if(!P.powered)return `<div class="hmioff">จอดับ: เครื่องยังไม่มีไฟเลี้ยง<br><small>เปิดได้จาก PV อย่างเดียว แบตอย่างเดียว หรือกริดอย่างเดียว (ข้อ 5.2)</small></div>`;
   if(!H.qdone){
@@ -11316,7 +11324,7 @@ function slScreen(){
   }
   const scr=H.scr,go=(k,t,ic)=>`<button class="hn hmiitem" data-slgo="${k}"><i>${ic||'›'}</i>${t}</button>`;
   switch(scr){
-    case'home':return bar('Devices Status')+`<div class="hmibody flow">${slFlow(true)}</div><div class="hmifoot c"><button class="hn slb" data-slgo="menu">MENU = ENTER</button><button class="hn slb" data-slgo="energy">MONTHLY ENERGY = ESC</button></div>`;
+    case'home':return bar('Devices Status')+`<div class="hmibody flow" data-slgo="menu" title="แตะเพื่อเข้า MENU (ENTER)">${slFlow(true)}</div>`;
     case'energy':{const T=slDay().T;return bar('MONTHLY ENERGY')+`<div class="hmibody">${slRow('PV (วันนี้)',slF(T.pv,1)+' kWh')+slRow('Load',slF(T.load,1)+' kWh')+slRow('Grid import',slF(T.imp,1)+' kWh')+slRow('Grid export',slF(T.exp,1)+' kWh')+slRow('Battery charge / discharge',slF(T.chg,1)+' / '+slF(T.dis,1)+' kWh')}</div>`}
     case'menu':return bar('HOME')+`<div class="hmibody grid2">${go('plant','PLANT INFORMATION','▤')}${go('alarm','ALARM INFORMATION','⚠')}${go('sys','SYSTEM SETTING','⚙')}${go('pro','PROFESSIONAL SETTING','✎')}</div>`;
     case'plant':{const r=slNow(),T=slDay().T,pt=H.pt;const tabs=[['pv','PV'],['bat','BATTERY'],['grid','GRID'],['load','LOAD'],['more','MORE']].map(([k,t])=>`<button class="hn slb ${pt===k?'pri':''}" data-slpt="${k}">${t}</button>`).join('');
@@ -11346,30 +11354,73 @@ function slStorage(full){
   if(full&&S.mode!=='off'){const T=S.tou;h+=`<div class="hmisub">Time of use</div>`+slRow('Charge',slChk('tou.c.on',T.c.on,'')+slNum('tou.c.s',T.c.s,0,23,1,'h')+slNum('tou.c.e',T.c.e,0,24,1,'h')+slNum('tou.c.a',T.c.a,0,135,1,'A')+slNum('tou.c.soc',T.c.soc,10,100,1,'%'))+slRow('Discharge',slChk('tou.d.on',T.d.on,'')+slNum('tou.d.s',T.d.s,0,23,1,'h')+slNum('tou.d.e',T.d.e,0,24,1,'h')+slNum('tou.d.a',T.d.a,0,135,1,'A')+slNum('tou.d.soc',T.d.soc,5,100,1,'%'))}
   return h;
 }
-/* ---- หน้า Devices Status: แผง / แบต / กริด / โหลด (คล้ายหน้าจอหลักในคู่มือข้อ 5.4.3) ---- */
+/* ---- หน้า Devices Status: วางตำแหน่งและไอคอนตามภาพหน้าจอในคู่มือข้อ 5.4.3 (แผง → อินเวอร์เตอร์ → บ้าน → มิเตอร์ → เสาไฟ, หลอดไฟ = Backup, เครื่องปั่นไฟ = GEN, แบตแบบแท่ง) ---- */
+function slDT(){const t=new Date();return SL.set.time?`${t.getFullYear()}/${String(t.getMonth()+1).padStart(2,'0')}/${String(t.getDate()).padStart(2,'0')} ${slHM(SL.dash.t)}:00`:'2000/01/01 00:00:00'}
+const slKW=w=>(Math.abs(w)/1000).toFixed(2).padStart(5,'0')+'kW';
+/* ลูกศรแบบหน้าจอจริง: กล่องเล็ก 4 ช่องต่อด้วยหัวลูกศรสีส้ม (แนวนอนหรือแนวตั้งเท่านั้น) */
+function slArrow(x1,y1,x2,y2,p,id){
+  const on=Math.abs(p)>20,f=p<0;if(f){[x1,x2]=[x2,x1];[y1,y2]=[y2,y1]}
+  const hz=y1===y2,L=hz?Math.abs(x2-x1):Math.abs(y2-y1),s=hz?Math.sign(x2-x1):Math.sign(y2-y1);
+  const at=d=>hz?[x1+s*d,y1]:[x1,y1+s*d];let g='';
+  for(let i=0;i<4;i++){const[cx,cy]=at(7+i*16),w=hz?13:8,h=hz?8:13;g+=`<rect x="${cx-w/2}" y="${cy-h/2}" width="${w}" height="${h}" class="slseg ${on?'on':''}" style="animation-delay:${(s>0?i:3-i)*.18}s"/>`}
+  if(on){const a=at(L*.58),b=at(L-14),c=at(L);
+    g+=hz?`<rect x="${Math.min(a[0],b[0])}" y="${y1-5}" width="${Math.abs(b[0]-a[0])}" height="10" fill="url(#slag${s>0?'r':'l'})"/><path d="M${b[0]} ${y1-10} L${c[0]} ${y1} L${b[0]} ${y1+10}Z" fill="#ef8a3c"/>`
+         :`<rect x="${x1-5}" y="${Math.min(a[1],b[1])}" width="10" height="${Math.abs(b[1]-a[1])}" fill="url(#slag${s>0?'d':'u'})"/><path d="M${x1-10} ${b[1]} L${x1} ${c[1]} L${x1+10} ${b[1]}Z" fill="#ef8a3c"/>`}
+  return `<g class="slarr${on?'':' off'}">${g}</g>`;
+}
+function slIcPV(x,y){let g='';[[0,0],[58,-14]].forEach(([dx,dy])=>{const A=[x+dx-58,y+dy+34],B=[x+dx-26,y+dy-12],C=[x+dx+26,y+dy+2],D=[x+dx-6,y+dy+48];
+  g+=`<line x1="${A[0]+8}" y1="${A[1]}" x2="${A[0]+8}" y2="${A[1]+16}" class="sli-leg"/><line x1="${D[0]-6}" y1="${D[1]}" x2="${D[0]-6}" y2="${D[1]+12}" class="sli-leg"/><polygon points="${[A,B,C,D].map(p=>p.join(',')).join(' ')}" class="sli-pv"/>`;
+  const lerp=(P,Q,t)=>[P[0]+(Q[0]-P[0])*t,P[1]+(Q[1]-P[1])*t];
+  for(let i=1;i<4;i++){const p=lerp(A,B,i/4),q=lerp(D,C,i/4);g+=`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" class="sli-pvl"/>`}
+  for(let i=1;i<5;i++){const p=lerp(A,D,i/5),q=lerp(B,C,i/5);g+=`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" class="sli-pvl"/>`}});return g}
+function slIcInv(x,y,w,h,st){return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="22" fill="url(#slinvg)" stroke="#b7bcc3" stroke-width="2"/><circle cx="${x+w/2-24}" cy="${y+48}" r="6" fill="#ef8a3c"/><text x="${x+w/2-14}" y="${y+53}" font-size="15" font-weight="700" fill="#e0701b" font-family="Arial,sans-serif">solis</text>
+  <rect x="${x+w/2-34}" y="${y+h-92}" width="68" height="48" rx="6" fill="#59606b"/><rect x="${x+w/2-27}" y="${y+h-85}" width="54" height="34" rx="3" fill="#e3e8ef"/><text x="${x+w/2}" y="${y+h-64}" text-anchor="middle" font-size="8.5" fill="#3c4f9f" font-family="Arial,sans-serif">${esc(st)}</text>${[-18,-6,6,18].map(d=>`<circle cx="${x+w/2+d}" cy="${y+h-88.5}" r="1.6" fill="#c9ced6"/><circle cx="${x+w/2+d}" cy="${y+h-47.5}" r="1.6" fill="#c9ced6"/>`).join('')}`}
+function slIcHouse(x,y){return `<rect x="${x-4}" y="${y-30}" width="58" height="46" fill="#c7cacf" stroke="#6a6f76"/><rect x="${x+32}" y="${y-66}" width="9" height="20" fill="#7a5134"/><polygon points="${x-14},${y-28} ${x+25},${y-62} ${x+64},${y-28}" fill="#7a5134"/>
+  <rect x="${x-38}" y="${y-8}" width="46" height="34" fill="#e4e6e9" stroke="#6a6f76"/><polygon points="${x-46},${y-6} ${x-15},${y-34} ${x+16},${y-6}" fill="#8d6040"/><rect x="${x-22}" y="${y+6}" width="12" height="20" fill="#8b9097"/>`}
+function slIcBulb(x,y){return `${[[-30,-14,-22,-10],[30,-14,22,-10],[-20,-34,-15,-28],[20,-34,15,-28],[0,-44,0,-36]].map(([a,b,c,d])=>`<line x1="${x+a}" y1="${y+b}" x2="${x+c}" y2="${y+d}" stroke="#ef8a3c" stroke-width="3" stroke-linecap="round"/>`).join('')}<circle cx="${x}" cy="${y-12}" r="15" fill="#f6c443" stroke="#c99a1a" stroke-width="1.5"/><path d="M${x-7} ${y+2} L${x+7} ${y+2} L${x+6} ${y+10} L${x-6} ${y+10}Z" fill="#f6c443"/><rect x="${x-8}" y="${y+10}" width="16" height="10" rx="2" fill="#6b7079"/><line x1="${x-8}" y1="${y+15}" x2="${x+8}" y2="${y+15}" stroke="#c7cbd1"/>`}
+function slIcGen(x,y){return `<rect x="${x-36}" y="${y-22}" width="72" height="44" rx="4" fill="#e8eaed" stroke="#6a6f76" stroke-width="1.5"/><rect x="${x-34}" y="${y+22}" width="10" height="5" fill="#6a6f76"/><rect x="${x+24}" y="${y+22}" width="10" height="5" fill="#6a6f76"/>${[-8,-2,4].map(d=>`<line x1="${x-24}" y1="${y+d}" x2="${x-6}" y2="${y+d}" stroke="#6a6f76" stroke-width="2"/>`).join('')}<path d="M${x+12} ${y-14} L${x+4} ${y+2} L${x+11} ${y+2} L${x+7} ${y+15} L${x+19} ${y-3} L${x+12} ${y-3} L${x+16} ${y-14}Z" fill="#ef8a3c"/>`}
+function slIcMeter(x,y){return `<rect x="${x-10}" y="${y-30}" width="20" height="6" fill="#6a6f76"/><rect x="${x-10}" y="${y+24}" width="20" height="6" fill="#6a6f76"/><rect x="${x-26}" y="${y-25}" width="52" height="50" rx="9" fill="#f2f3f5" stroke="#6a6f76" stroke-width="2"/><rect x="${x-16}" y="${y-15}" width="32" height="26" rx="3" fill="#59606b"/><rect x="${x-12}" y="${y-11}" width="24" height="18" rx="2" fill="#f08a2c"/>`}
+function slIcTower(x,y,h){const t=y-h,arm=(yy,w)=>`<line x1="${x-w}" y1="${yy}" x2="${x+w}" y2="${yy}"/><line x1="${x-w}" y1="${yy}" x2="${x-w}" y2="${yy+5}"/><line x1="${x+w}" y1="${yy}" x2="${x+w}" y2="${yy+5}"/>`;
+  let g=`<line x1="${x-h*.2}" y1="${y}" x2="${x-2}" y2="${t}"/><line x1="${x+h*.2}" y1="${y}" x2="${x+2}" y2="${t}"/>`+arm(t+8,h*.3)+arm(t+20,h*.22);
+  for(let i=0;i<5;i++){const a=t+24+i*(h-24)/5,b=a+(h-24)/5,wa=2+(a-t)/h*h*.18,wb=2+(b-t)/h*h*.18;g+=`<line x1="${x-wa}" y1="${a}" x2="${x+wb}" y2="${b}"/><line x1="${x+wa}" y1="${a}" x2="${x-wb}" y2="${b}"/>`}
+  return `<g stroke="#2c3036" stroke-width="1.6" fill="none">${g}</g>`}
+function slIcBat(x,y,soc,on){const n=on?Math.max(0,Math.min(5,Math.ceil(soc/20))):0;let g=`<rect x="${x-9}" y="${y-58}" width="18" height="7" rx="2" fill="#4b5158"/><rect x="${x-22}" y="${y-52}" width="44" height="100" rx="8" fill="#f4f5f6" stroke="#4b5158" stroke-width="3"/>`;
+  for(let i=0;i<5;i++){const yy=y+30-i*17;g+=`<rect x="${x-14}" y="${yy}" width="28" height="12" rx="2" fill="${i<n?'#4b5158':'none'}" stroke="#4b5158" stroke-width="1.6"/>`}return g}
 function slFlow(small){
-  const r=slNow(),P=r.P,W=small?520:720,k=W/720,H=Math.round(360*k);
-  const node=(x,y,ic,t,v)=>`<g transform="translate(${x*k},${y*k})"><circle r="${30*k}" class="slfn"/><text y="${7*k}" text-anchor="middle" font-size="${22*k}">${ic}</text><text y="${48*k}" text-anchor="middle" class="svgt b" font-size="${12.5*Math.max(k,.85)}">${t}</text><text y="${64*k}" text-anchor="middle" class="svgt m" font-size="${12*Math.max(k,.85)}">${v}</text></g>`;
-  const ln=(x1,y1,x2,y2,p,inv)=>{const on=Math.abs(p)>20;return`<path d="M${x1*k} ${y1*k} L${x2*k} ${y2*k}" class="slfl ${on?'on':''} ${on&&(p<0)!==!!inv?'rev':''}"/>`};
-  const cx=360,cy=165,s=r.st;
-  const stTxt={off:'Off',init:'Initializing',stop:'Fault',grid:'Normal (On-grid)',island:'Off-grid / Backup',lowbat:'Backup off: SOC ต่ำ'}[s]||s;
-  const gridV=P.sc.grid?(P.gridAt?slF(r.gridSeen)+' W':'NO-Grid'):'—';
-  let g=ln(120,70,cx-40,cy-20,r.pv)+ln(120,265,cx-40,cy+20,-r.bat)+ln(cx+40,cy-20,600,70,-r.grid)+ln(cx+40,cy+40,450,245,r.lb);
-  if(P.sc.grid)g+=ln(630,95,630,240,r.lg);
-  if(P.a.gen==='gt')g+=ln(270,245,cx-30,cy+50,r.ac);
-  g+=`<rect x="${(cx-42)*k}" y="${(cy-55)*k}" width="${84*k}" height="${110*k}" rx="${10*k}" class="slinv"/><text x="${cx*k}" y="${(cy-8)*k}" text-anchor="middle" class="svgt b" font-size="${13*Math.max(k,.85)}">solis</text><text x="${cx*k}" y="${(cy+12)*k}" text-anchor="middle" class="svgt mut" font-size="${11*Math.max(k,.85)}">${stTxt}</text>`;
-  g+=node(90,60,'☀','PV',slF(r.pv)+' W')+node(90,275,'▮','Battery',`${slF(Math.abs(r.bat))} W · ${slF(r.soc)}%`)+node(630,60,'⚡','Grid',gridV)+node(450,275,'⌂','Backup load',slF(r.lb)+' W');
-  if(P.sc.grid)g+=node(630,275,'🏠','Grid load',slF(r.lg)+' W');
-  if(P.a.gen==='gt')g+=node(270,275,'⇄','AC coupled',slF(r.ac)+' W'+(r.freq>50.05?' · '+slF(r.freq,2)+' Hz':''));
-  g+=`<text x="${8*k}" y="${(H-6)}" class="svgt mut" font-size="${11*Math.max(k,.85)}">CT/Meter: ${esc(P.ctTxt)} · BMS: ${P.batOn?(P.canOk?'OK':'Fail'):'—'} · ${slHM(SL.dash.t)}</text>`;
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Devices Status">${g}</svg>`;
+  const r=slNow(),P=r.P,S=SL.set,W=980,H=470;
+  const stTxt={off:'Off',init:'Initializing',stop:'Fault',grid:'Normal',island:'Off-grid',lowbat:'Low SOC'}[r.st]||r.st;
+  const hasGrid=P.sc.grid,hasGen=P.a.gen!=='none',hasBat=P.batIn,meterOk=P.ctS!==0,bmsOk=P.batOn&&P.canOk;
+  const lab=(x,y,t,a)=>`<text x="${x}" y="${y}" text-anchor="${a||'middle'}" class="slft">${t}</text>`;
+  let g=`<defs><linearGradient id="slinvg" x1="0" x2="1"><stop offset="0" stop-color="#f7f8f9"/><stop offset="1" stop-color="#dfe2e6"/></linearGradient>
+    <linearGradient id="slagr" x1="0" x2="1"><stop offset="0" stop-color="#fbe3cf"/><stop offset="1" stop-color="#ef8a3c"/></linearGradient><linearGradient id="slagl" x1="1" x2="0"><stop offset="0" stop-color="#fbe3cf"/><stop offset="1" stop-color="#ef8a3c"/></linearGradient>
+    <linearGradient id="slagd" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fbe3cf"/><stop offset="1" stop-color="#ef8a3c"/></linearGradient><linearGradient id="slagu" x1="0" x2="0" y1="1" y2="0"><stop offset="0" stop-color="#fbe3cf"/><stop offset="1" stop-color="#ef8a3c"/></linearGradient></defs>
+    <rect width="${W}" height="${H}" fill="#ffffff"/>`;
+  /* สายสื่อสาร Meter / BMS */
+  if(hasGrid)g+=`<path d="M410 128 V96 H880 V150" class="slcom"/><rect x="560" y="86" width="140" height="20" fill="#fff"/>`+lab(630,101,`Meter Comm. ${meterOk?'OK':'Fail'}`);
+  if(hasBat)g+=`<path d="M110 290 V262 H330" class="slcom"/><rect x="150" y="252" width="128" height="20" fill="#fff"/>`+lab(214,267,`BMS Comm. ${bmsOk?'OK':'Fail'}`);
+  /* ไอคอน */
+  g+=`<g transform="translate(110 150)">${slIcPV(0,0)}</g>`+slIcInv(340,128,150,276,stTxt);
+  g+=`<g opacity="${hasGrid?1:.3}">${slIcHouse(690,200)}${slIcMeter(880,180)}${slIcTower(860,440,78)}${slIcTower(902,430,62)}</g>`;
+  g+=`<g opacity="${P.a.backup==='bpanel'?1:.3}">${slIcBulb(690,310)}</g><g opacity="${hasGen?1:.3}">${slIcGen(690,398)}</g><g opacity="${hasBat?1:.3}">${slIcBat(110,355,r.soc,hasBat)}</g>`;
+  /* ลูกศรและค่า */
+  g+=slArrow(195,185,322,185,r.pv)+lab(258,170,slKW(r.pv));
+  g+=slArrow(498,195,630,195,hasGrid?r.lg:0)+lab(690,250,slKW(r.lg));
+  g+=slArrow(748,195,846,195,hasGrid?-r.grid:0);
+  g+=slArrow(498,305,640,305,r.lb)+lab(566,290,slKW(r.lb));
+  g+=slArrow(640,400,498,400,hasGen?r.ac:0)+lab(566,385,slKW(r.ac));
+  g+=slArrow(322,400,172,400,hasBat?r.bat:0)+lab(250,385,slKW(r.bat));
+  g+=hasGrid?slArrow(880,320,880,222,r.grid)+lab(852,318,hasGrid&&P.gridAt?slKW(r.gridSeen):'NO-Grid','end'):'';
+  g+=lab(110,432,hasBat?`${slF(P.vb,1)}V · ${slF(r.soc)}%`:'--');
+  if(r.freq>50.05)g+=lab(690,442,`${slF(r.freq,2)} Hz (Freq-Watt)`);
+  g+=lab(490,460,'MENU=&lt;ENTER&gt;  MONTHLY ENERGY=&lt;ESC&gt;');
+  return `<svg viewBox="0 0 ${W} ${H}" class="slds" role="img" aria-label="Devices Status: แผง ${slKW(r.pv)}, โหลด Backup ${slKW(r.lb)}, แบต ${slKW(r.bat)}">${g}</svg>`;
 }
 function slPgDash(s){
   const D=SL.dash,T=slDay().T;
   return `<div class="card"><div class="bar"><div class="grp"><span class="lab">เวลา</span><b id="sldt">${slHM(D.t)}</b><input type="range" min="0" max="1435" step="5" value="${D.t}" data-sltime id="sltime-d" aria-label="เวลา"><button class="btn sm" data-slact="play">${slPlayT?'หยุด':'เล่น'}</button></div>
     <div class="grp">${slChk('dash.out',D.out,'ไฟดับ')}${slNum('dash.o0',D.o0,0,23,1,'–')}${slNum('dash.o1',D.o1,1,24,1,'น.')}</div>
     <div class="grp"><span class="lab">เมฆ</span>${slNum('dash.cloud',D.cloud,0,90,10,'%')}<span class="lab">โหลด Backup เพิ่ม</span>${slNum('dash.extra',D.extra,0,9000,500,'W')}<span class="lab">SOC ตอนเที่ยงคืน</span><b>${slF(slDay().soc00)}%</b></div></div>
-    <div class="slflowbig" id="slflow">${slFlow(false)}</div><div id="slalm"></div></div>
+    <div class="slflowbig"><div class="hmibar"><span>Devices Status</span><span id="sldsdt">${slDT()}</span></div><div id="slflow">${slFlow(false)}</div></div><div id="slalm"></div></div>
    <div class="cards"><div class="card"><h3>ทั้งวัน</h3><div class="tblwrap" id="slchart">${slChart()}</div>
     <table class="t"><tbody><tr><th>ผลิตจากแผง</th><td>${slF(T.pv,1)} kWh</td><th>โหลดรวม</th><td>${slF(T.load,1)} kWh</td></tr><tr><th>ซื้อไฟ</th><td>${slF(T.imp,1)} kWh</td><th>ขายไฟ</th><td>${slF(T.exp,1)} kWh</td></tr><tr><th>ชาร์จแบต</th><td>${slF(T.chg,1)} kWh</td><th>จ่ายแบต</th><td>${slF(T.dis,1)} kWh</td></tr><tr><th>ตัดกำลังแผง</th><td>${slF(T.cut,1)} kWh</td><th>โหลด Backup ขาดไฟ</th><td>${slF(T.unsB,1)} kWh</td></tr>${T.ac?`<tr><th>AC coupled</th><td>${slF(T.ac,1)} kWh</td><th></th><td></td></tr>`:''}</tbody></table></div>
    <div class="card"><h3>ผลทดสอบการทำงาน</h3>${slList(s.c.dash)}<p class="hint tight">ค่าบนหน้าจอเครื่องมาจาก CT/มิเตอร์ ถ้า CT ติดกลับ ค่ากริดบนจอจะกลับเครื่องหมายและเครื่องจะชาร์จ/จ่ายแบตผิดทาง (FAQ ข้อ Q4)</p></div></div>`;
@@ -11403,7 +11454,7 @@ function slLive(){
   const led=(c,t,on,fl)=>`<span class="slled ${c} ${on?'on':''} ${fl?'fl':''}"><i></i>${t}</span>`;
   document.querySelectorAll('#slleds').forEach(e=>e.innerHTML=led('pw','POWER',P.powered)+led('op','OPERATION',opOn,opFl)+led('al','ALARM',aOn,aFl));
   const scr=document.getElementById('slscr');if(scr){scr.innerHTML=slScreen();const it=[...scr.querySelectorAll('.hn')];SL.hmi.nav=Math.min(SL.hmi.nav,Math.max(0,it.length-1));if(it[SL.hmi.nav])it[SL.hmi.nav].classList.add('hf')}
-  const f=document.getElementById('slflow');if(f)f.innerHTML=slFlow(false);
+  const f=document.getElementById('slflow');if(f)f.innerHTML=slFlow(false);const fd=document.getElementById('sldsdt');if(fd)fd.textContent=slDT();
   const a=document.getElementById('slalm');if(a){const cur=r?r.al:[];a.innerHTML=cur.length?`<ul class="msgs">${cur.map(x=>`<li class="${x.sev==='stop'?'err':'warn'}"><b>${esc(x.c)}</b> ${esc(x.d)}</li>`).join('')}</ul>`:''}
   const n=document.getElementById('slnowln');if(n){const W=640,L=40,R=36,x=L+(W-L-R)*(SL.dash.t/5)/287;n.setAttribute('x1',x);n.setAttribute('x2',x)}
   ['sldt','sltimep'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=slHM(SL.dash.t)});
