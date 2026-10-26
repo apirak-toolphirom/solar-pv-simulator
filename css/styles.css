@@ -1002,3 +1002,8 @@ ul.slchk li.err{color:var(--err)}ul.slchk li.err::before{content:"✕";color:var
 .simmsg.ok{color:var(--ok)}.simmsg.err{color:var(--err)}
 @media (prefers-reduced-motion:reduce){.slfl.on,.slled.fl i,.slseg.on{animation:none}.slseg.on{fill:#f6b27a}}
 @media (max-width:520px){.hmibody.grid2{grid-template-columns:1fr;padding:8px}.slkey{min-width:56px}.slscr{aspect-ratio:auto;min-height:280px}}
+/* library: RCD vs MCB drawing */
+.kbbrk{fill:var(--surface);stroke:var(--muted);stroke-width:1.5}
+.kbscr{fill:var(--band);stroke:var(--muted);stroke-width:1.2}
+.kbtest{fill:#f2c230;stroke:#b8860b;stroke-width:1.5}
+ol.kbol,ul.kbol{margin:8px 0;padding-left:22px;display:grid;gap:6px;line-height:1.6;max-width:72ch}
