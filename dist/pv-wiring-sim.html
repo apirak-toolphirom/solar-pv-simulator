@@ -6889,12 +6889,28 @@ const B0T=[
  intro:`<ul><li><b>เซลล์ (Cell)</b> หน่วยเล็กสุด แรงดันวงจรเปิดราว 0.6–0.7 V ต่อเซลล์</li><li><b>โมดูล / แผง (Module)</b> เซลล์หลายสิบเซลล์ต่ออนุกรมในกรอบเดียว เช่น 60, 72 เซลล์ หรือแบบครึ่งเซลล์ 120 / 144 (ต่ออนุกรมจริง 60 / 72 ชุด)</li>
  <li><b>สตริง (String)</b> แผงหลายแผงต่ออนุกรม แรงดันรวมกัน กระแสเท่าแผงเดียว</li><li><b>อาร์เรย์ (Array)</b> หลายสตริงต่อขนานกัน กระแสรวมกัน กำลังรวมทั้งระบบ</li></ul>`,
  w(el){
-  el.innerHTML=`${b0Sel('b2c','ชนิดแผง',[['60','60 เซลล์'],['72','72 เซลล์'],['120','ครึ่งเซลล์ 120'],['144','ครึ่งเซลล์ 144']],'144')}${b0Rng('b2n','แผงต่อสตริง',1,16,1,8,' แผง')}${b0Rng('b2s','จำนวนสตริง',1,4,1,2,' สตริง')}<div id="b2o"></div><div id="b2g" class="b0grid2"></div>`;
-  b0Bind(el,['b2n','b2s'],()=>{const c=+el.querySelector('#b2c').value,ser=c>100?c/2:c,vcell=0.69,vmod=ser*vcell,n=b0V('b2n'),s=b0V('b2s');
-   const wmod=Math.round(ser*vcell*0.8*(c>100?13.2:10.5)/5)*5;
-   el.querySelector('#b2o').innerHTML=b0Kv([['เซลล์ต่ออนุกรมในแผง',ser+' ชุด'],['Voc ต่อแผง ≈ '+ser+' × 0.69 V',b0f(vmod,1)+' V'],['Voc ต่อสตริง',b0f(vmod*n,0)+' V'],['กระแสรวม (เท่าจำนวนสตริง)','× '+s],['จำนวนแผงทั้งหมด',n*s+' แผง'],['กำลังรวมโดยประมาณ',b0f(n*s*wmod/1000,2)+' kWp ('+wmod+' W/แผง)']]);
-   el.querySelector('#b2g').innerHTML=Array.from({length:s},(_,k)=>`<div class="b0str"><span>สตริง ${k+1}</span>${'<i></i>'.repeat(n)}</div>`).join('')+`<p class="hint tight">แต่ละแถว = 1 สตริง (แผงต่ออนุกรม) · ทุกแถวต่อขนานกันเป็น 1 อาร์เรย์</p>`},[' แผง',' สตริง']);
-  el.querySelector('#b2c').addEventListener('change',()=>el.querySelector('#b2n').dispatchEvent(new Event('input')));
+  el.innerHTML=`${b0Sel('b2c','ชนิดแผง',[['60','60 เซลล์'],['72','72 เซลล์'],['120','ครึ่งเซลล์ 120'],['144','ครึ่งเซลล์ 144']],'144')}
+   <div class="b0fig"><svg id="b2svg" viewBox="0 0 640 222" class="b0ill" role="img" aria-label="แผงต่ออนุกรมเป็นสตริง หลายสตริงต่อขนานเป็นอาร์เรย์ พร้อมแถบปรับจำนวน"><g id="b2arr"></g><g id="b2ctl"></g></svg></div>
+   <p class="hint tight">ลากแถบขึ้น-ลงในภาพ · แต่ละแถว = 1 สตริง (แผงต่ออนุกรม เส้นแดงเชื่อม + ของแผงหนึ่งไป − ของแผงถัดไป) · ปลายสตริงทุกแถวต่อขนานเข้าบัส + และ − เป็น 1 อาร์เรย์</p><div id="b2o"></div>`;
+  const S={n:8,s:2},$q=x=>el.querySelector(x);
+  const scene=(n,st)=>{const X0=118,X1=512,g=n>10?7:12,pw=Math.min(40,(X1-X0-(n-1)*g)/n),ph=28,tot=n*pw+(n-1)*g,x0=(X0+X1-tot)/2,dy=46,y0=114-st*dy/2+12,BN=100,BP=530;
+   let w='',p='',lab='';
+   for(let r=0;r<st;r++){const y=y0+r*dy,cy=y+ph/2;lab+=`<text x="${x0}" y="${y-5}" class="b0ax">สตริง ${r+1}</text>`;
+    for(let k=0;k<n;k++){const x=x0+k*(pw+g);p+=B0G.panel(x,y,pw,ph);if(k<n-1)w+=`<path d="M${(x+pw-1).toFixed(1)} ${cy}H${(x+pw+g+1).toFixed(1)}" stroke="var(--pos)" stroke-width="3" stroke-linecap="round"/>`}
+    w+=`<path d="M${x0} ${cy}H${BN}" stroke="var(--neg)" stroke-width="2.5"/><path d="M${(x0+tot).toFixed(1)} ${cy}H${BP}" stroke="var(--pos)" stroke-width="2.5"/><circle cx="${BN}" cy="${cy}" r="3" fill="var(--neg)"/><circle cx="${BP}" cy="${cy}" r="3" fill="var(--pos)"/>`}
+   const yt=y0+ph/2,yb=y0+(st-1)*dy+ph/2;
+   w+=`<path d="M${BN} ${yt-6}V${yb+6}" stroke="var(--neg)" stroke-width="4" stroke-linecap="round"/><path d="M${BP} ${yt-6}V${yb+6}" stroke="var(--pos)" stroke-width="4" stroke-linecap="round"/>
+    <text x="${BN}" y="${yb+24}" text-anchor="middle" class="b0lab" fill="var(--neg)">−</text><text x="${BP}" y="${yb+24}" text-anchor="middle" class="b0lab" fill="var(--pos)">+</text>`;
+   return w+p+lab};
+  const draw=()=>{const c=+$q('#b2c').value,ser=c>100?c/2:c,vcell=0.69,vmod=ser*vcell,n=S.n,s=S.s,wmod=Math.round(ser*vcell*0.8*(c>100?13.2:10.5)/5)*5;
+   $q('#b2o').innerHTML=b0Kv([['เซลล์ต่ออนุกรมในแผง',ser+' ชุด'],['Voc ต่อแผง ≈ '+ser+' × 0.69 V',b0f(vmod,1)+' V'],['Voc ต่อสตริง',b0f(vmod*n,0)+' V'],['กระแสรวม (เท่าจำนวนสตริง)','× '+s],['จำนวนแผงทั้งหมด',n*s+' แผง'],['กำลังรวมโดยประมาณ',b0f(n*s*wmod/1000,2)+' kWp ('+wmod+' W/แผง)']]);
+   $q('#b2arr').innerHTML=scene(n,s)};
+  const pic=B0G.panel(2,6,9,12)+B0G.panel(13,6,9,12);
+  b0SvgCtl($q('#b2svg'),$q('#b2ctl'),[
+    {k:'n',lab:'แผงต่อสตริง',min:1,max:16,step:1,v:S.n,fmt:v=>v+' แผง',ic:pic+`<path d="M11 12h2" stroke="#d62828" stroke-width="2"/>`,vt:1,x:42,y:62,h:124},
+    {k:'s',lab:'จำนวนสตริง',min:1,max:4,step:1,v:S.s,fmt:v=>v+' สตริง',ic:pic,vt:1,x:596,y:62,h:124}],
+   [],(k,v)=>{S[k]=v;draw()});
+  $q('#b2c').addEventListener('change',draw);draw();
  },
  q:[{q:'"สตริง (String)" หมายถึงข้อใด',o:['เซลล์หลายเซลล์ในกรอบเดียว','แผงหลายแผงต่ออนุกรมกัน','สายไฟ AC จากอินเวอร์เตอร์','แผงหลายแผงต่อขนานกันทั้งหมด'],a:1,ex:'สตริง = แผงต่ออนุกรม แรงดันรวมกัน หลายสตริงขนานกันจึงเป็นอาร์เรย์'},
   {q:'เซลล์ซิลิคอนหนึ่งเซลล์มีแรงดันวงจรเปิดประมาณเท่าใด',o:['0.6–0.7 V','1.5 V','12 V','40 V'],a:0,ex:'ต้องนำเซลล์หลายสิบเซลล์มาต่ออนุกรมจึงได้แรงดันแผงราว 40–50 V'},
