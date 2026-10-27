@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="cf4e377d3f">
+<meta name="build" content="e289a9a12c">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='cf4e377d3f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='e289a9a12c'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=a0baf8e2">
+<link rel="stylesheet" href="css/styles.css?v=7957faa8">
 </head>
 <body>
 <div class="app">
@@ -33,6 +33,7 @@ if(m&&m[1]!=='cf4e377d3f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
     <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
     <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
+    <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -502,6 +503,12 @@ if(m&&m[1]!=='cf4e377d3f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p class="hint">ขั้นตอนและข้อความบนจออ้างอิงคู่มือ Solis S6-EH1P(3-8)K-L-PLUS ข้อ 3–5 และตาราง 7.1 ส่วนค่าแผง โหลด และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง</p>
   </section>
 
+  <section class="tab" id="tab-lfp" hidden>
+    <header><h1>แบตเตอรี่ LiFePO4 + JK-BMS</h1><p class="sub">จัดวางเซลล์ 280 / 314 Ah ลงตู้ (มุมบน ด้านข้าง ไอโซเมตริก) ต่อบัสบาร์ 4S / 8S / 16S วัดด้วยมัลติมิเตอร์ ต่อสายและตั้งค่า JK-BMS ทดสอบการป้องกัน และขนานแบตหลายตู้เข้าอินเวอร์เตอร์</p></header>
+    <iframe id="lfpframe" class="lfpframe" title="จำลองแพ็กแบตเตอรี่ LiFePO4" loading="lazy"></iframe>
+    <p class="hint">ค่าเริ่มต้น การป้องกัน DIP switch และพอร์ตอ้างอิงคู่มือ JK-PB1A16S/PB2A16S V24.0.1 และ JK ESS BMS V15 ขนาดเซลล์เป็นค่าประมาณ ตรวจกับดาต้าชีตของล็อตที่ซื้อจริงก่อนใช้งาน</p>
+  </section>
+
   <section class="tab" id="tab-library" hidden>
     <header><h1>คลังความรู้</h1><p class="sub">บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น อ่านประกอบการจำลอง แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน</p></header>
     <div id="kbhost"></div>
@@ -626,6 +633,7 @@ if(m&&m[1]!=='cf4e377d3f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   </div></main>
 </div>
 
+<script>var LFP_V='02a389ba'</script>
 <script src="js/config.js?v=396a084b"></script>
 <script src="js/catalog.js?v=9b5d6a62"></script>
 <script src="js/pdfimport.js?v=e4c2f177"></script>
@@ -647,7 +655,7 @@ if(m&&m[1]!=='cf4e377d3f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/basics.js?v=ac1a2edf"></script>
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=9c033448"></script>
-<script src="js/worksheets.js?v=ae02799f"></script>
+<script src="js/worksheets.js?v=a0271889"></script>
 <script src="js/hwlog.js?v=86e8e2ce"></script>
 <script src="js/fusion.js?v=5382422e"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
@@ -658,8 +666,9 @@ if(m&&m[1]!=='cf4e377d3f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/library.js?v=d5ebfec6"></script>
 <script src="js/kb_rcd.js?v=98dcfe12"></script>
 <script src="js/solis.js?v=eff4270e"></script>
-<script src="js/access.js?v=826dc276"></script>
+<script src="js/lfp.js?v=1c23ccfc"></script>
+<script src="js/access.js?v=fcf5de94"></script>
 <script src="js/ctx.js?v=529868cd"></script>
-<script src="js/app.js?v=d85fc302"></script>
+<script src="js/app.js?v=e7c87201"></script>
 </body>
 </html>

@@ -1,0 +1,1444 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){}
+if(window.self!==window.top)document.documentElement.classList.add('embed');</script>
+<title>จำลองแพ็กแบต LiFePO4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: workshop bench — config strip on top, step tabs, each step a working surface (drawing + side panel) */
+:root{
+  --bg:#e9edf1; --surface:#ffffff; --surface-2:#dfe5ec; --ink:#16202b; --muted:#566476; --line:#c4cdd8;
+  --accent:#1f5fa8; --accent-ink:#ffffff; --copper:#b5652a; --copper-hi:#e09a5c;
+  --pos:#c5302a; --neg:#20262e; --ok:#1d8048; --warn:#a86c12; --bad:#c5302a; --comm:#2a72c4;
+  --cell-side:#2d68ad; --cell-side-2:#24578f; --cell-top:#2a3a4d; --cell-top-hi:#3a4e66; --vent:#7d8ea3;
+  --pcb:#1f6b47; --pcb-hi:#2f8a5d; --box:#8796a8; --box-fill:rgba(120,140,165,.10); --grid:rgba(60,80,110,.08);
+  --phone:#0f2236; --phone-2:#173352; --phone-ink:#e8f0f8; --phone-mute:#8fa6bf; --phone-acc:#3fa9f5;
+  --f-display:"Chakra Petch","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141b; --surface:#151e28; --surface-2:#1c2733; --ink:#e4eaf1; --muted:#93a2b3; --line:#2c3a4a;
+  --accent:#5b9ce3; --accent-ink:#0b1420; --copper:#cf8549; --copper-hi:#efb07a;
+  --pos:#ee5a50; --neg:#0a0d11; --ok:#43b874; --warn:#e0a640; --bad:#ee5a50; --comm:#5aa2ee;
+  --cell-side:#2b62a2; --cell-side-2:#214f84; --cell-top:#1d2a39; --cell-top-hi:#2b3c50; --vent:#6b7c90;
+  --pcb:#1d6a45; --pcb-hi:#2c875a; --box:#6c7d91; --box-fill:rgba(140,165,195,.07); --grid:rgba(160,185,215,.07);
+  --phone:#0a1828; --phone-2:#13304d; --phone-ink:#e8f0f8; --phone-mute:#8fa6bf; --phone-acc:#3fa9f5;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141b; --surface:#151e28; --surface-2:#1c2733; --ink:#e4eaf1; --muted:#93a2b3; --line:#2c3a4a;
+  --accent:#5b9ce3; --accent-ink:#0b1420; --copper:#cf8549; --copper-hi:#efb07a;
+  --pos:#ee5a50; --neg:#0a0d11; --ok:#43b874; --warn:#e0a640; --bad:#ee5a50; --comm:#5aa2ee;
+  --cell-side:#2b62a2; --cell-side-2:#214f84; --cell-top:#1d2a39; --cell-top-hi:#2b3c50; --vent:#6b7c90;
+  --pcb:#1d6a45; --pcb-hi:#2c875a; --box:#6c7d91; --box-fill:rgba(140,165,195,.07); --grid:rgba(160,185,215,.07);
+  --phone:#0a1828; --phone-2:#13304d; --phone-ink:#e8f0f8; --phone-mute:#8fa6bf; --phone-acc:#3fa9f5;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px;max-width:1500px;margin:0 auto;display:grid;gap:14px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:1.55rem;font-weight:700}
+h2{font-size:1.1rem;font-weight:600}
+h3{font-size:.95rem;font-weight:600}
+p{margin:0}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.lbl{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-family:var(--f-display);font-weight:600}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 24px;align-items:end}
+.top .sub{color:var(--muted);font-size:.9rem}
+.cfg{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:end}
+.field{display:grid;gap:3px}
+.field select,.field input{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px 8px;min-width:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;padding:6px 12px;font-family:var(--f-mono);font-weight:600}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.specs{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 22px;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.spec{display:grid}
+.spec b{font-family:var(--f-mono);font-weight:600;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.spec span{font-size:.72rem;color:var(--muted)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);scrollbar-width:thin}
+.tabs button{border:0;background:transparent;padding:9px 14px 8px;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;display:flex;gap:8px;align-items:center;font-family:var(--f-display);font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs .step{font-family:var(--f-mono);font-size:.75rem;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line)}
+.tabs .step.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.tabs .step.bad{border-color:var(--bad);color:var(--bad)}
+
+/* common */
+.pane{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:grid;grid-template-rows:auto auto;min-width:0;overflow:hidden}
+.pane>figcaption,.pane>.cap{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-size:.85rem}
+.pane svg{display:block;width:100%;height:auto;max-height:78vh;touch-action:none;user-select:none;-webkit-user-select:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:6px 11px;display:inline-flex;gap:6px;align-items:center}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:3px 8px;font-size:.82rem}
+.inline-num{width:76px}
+.checks{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+.checks li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;font-size:.88rem;align-items:start}
+.checks li::before{content:"";width:12px;height:12px;border-radius:50%;margin-top:5px;background:var(--line)}
+.checks li.ok::before{background:var(--ok)}
+.checks li.warn::before{background:var(--warn);border-radius:2px}
+.checks li.bad::before{background:var(--bad);border-radius:2px;transform:rotate(45deg)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;gap:10px;min-width:0}
+.alert{border:1.5px solid var(--bad);color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,var(--surface));border-radius:var(--r);padding:8px 12px;font-weight:600}
+.note{font-size:.82rem;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:20px;padding:2px 9px;font-family:var(--f-mono);font-size:.8rem;background:var(--surface);cursor:pointer}
+.chip.ok{border-color:var(--ok);color:var(--ok)}
+.chip.bad{border-color:var(--bad);color:var(--bad)}
+.chip.sel{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+section[role="tabpanel"]{display:grid;gap:12px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;color:var(--muted);font-size:.78rem;letter-spacing:.03em}
+td.n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.tscroll{overflow-x:auto}
+
+/* layout tab */
+.lay-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:12px;align-items:start}
+.lay-side{display:grid;gap:12px;min-width:0}
+.sel-box{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+/* wire tab */
+.wire-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;align-items:start}
+
+.wire-side{display:grid;gap:12px;align-content:start;min-width:0}
+.meter{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;background:#1b2128;color:#cfe8cf;border-radius:var(--r);padding:10px 12px;font-family:var(--f-mono)}
+.meter .disp{font-size:1.7rem;text-align:right;letter-spacing:.04em;color:#b8f5b0}
+/* bms tab */
+.bms-grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:14px;align-items:start}
+.phone{background:var(--phone);color:var(--phone-ink);border-radius:28px;padding:12px;border:6px solid #000;box-shadow:0 8px 30px rgba(0,0,0,.25);display:grid;gap:8px;max-width:360px;width:100%}
+.phone .ph-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-display);font-size:.9rem;padding:2px 4px}
+.phone .ph-tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--phone-2);border-radius:8px;overflow:hidden}
+.phone .ph-tabs button{border:0;background:transparent;color:var(--phone-mute);padding:7px 2px;font-size:.85rem}
+.phone .ph-tabs button[aria-pressed="true"]{background:var(--phone-acc);color:#04121f;font-weight:600}
+.phone .ph-body{min-height:520px;max-height:640px;overflow-y:auto;display:grid;gap:8px;align-content:start;padding:2px}
+.ph-card{background:var(--phone-2);border-radius:10px;padding:10px;display:grid;gap:6px}
+.ph-kv{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ph-kv div{display:grid}
+.ph-kv b{font-family:var(--f-mono);font-size:.95rem;font-variant-numeric:tabular-nums}
+.ph-kv span{font-size:.68rem;color:var(--phone-mute)}
+.cellgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.cellgrid div{background:rgba(255,255,255,.06);border-radius:5px;padding:3px 4px;font-family:var(--f-mono);font-size:.74rem;display:flex;justify-content:space-between;gap:3px}
+.cellgrid div i{font-style:normal;color:var(--phone-mute)}
+.cellgrid .hi{background:rgba(63,169,245,.35)}
+.cellgrid .lo{background:rgba(238,90,80,.4)}
+.ph-row{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:6px;align-items:center;font-size:.8rem;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.ph-row input,.ph-row select{background:#0b1a2b;color:var(--phone-ink);border:1px solid #2a4a6b;border-radius:5px;padding:3px 5px;width:100%;font-family:var(--f-mono);font-size:.8rem}
+.ph-row.bad span{color:#ff8a80}
+.ph-row.warn span{color:#ffd27a}
+.ph-btn{border:0;border-radius:8px;padding:8px;background:var(--phone-acc);color:#04121f;font-weight:600}
+.ph-sw{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.07)}
+.tog{width:44px;height:24px;border-radius:12px;background:#33465c;border:0;position:relative}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.tog[aria-pressed="true"]{background:#2fb36b}
+.tog[aria-pressed="true"]::after{left:23px}
+.ph-alarm{background:#5a1d1d;color:#ffd2cc;border-radius:8px;padding:6px 8px;font-size:.8rem}
+.simctl{display:grid;gap:12px;min-width:0}
+.ctlgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 16px}
+.ctlgrid .field input[type=range]{width:100%}
+.chart{width:100%;height:240px;display:block}
+.log{max-height:200px;overflow:auto;font-family:var(--f-mono);font-size:.78rem;display:grid;gap:2px}
+.log div.b{color:var(--bad)} .log div.w{color:var(--warn)} .log div.o{color:var(--ok)}
+/* parallel */
+.par-svg-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.par-svg-wrap svg{display:block;max-width:none;height:auto}
+.par-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}}
+.ref-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.ref-grid ol{margin:0;padding-left:1.2em;display:grid;gap:4px}
+a{color:var(--accent)}
+@media (max-width:1100px){.wire-grid,.bms-grid,.par-grid{grid-template-columns:minmax(0,1fr)}.lay-grid{grid-template-columns:minmax(0,1fr)}.phone{justify-self:center}}
+@media (max-width:640px){.top{grid-template-columns:minmax(0,1fr)}h1{font-size:1.3rem}}
+/* embedded as menu 16 of the PV simulator: the app shows the title, the page follows the app theme */
+.embed .top>div:first-child{display:none}
+.embed .wrap{padding-block:4px 24px}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>จำลองแพ็กแบตเตอรี่ LiFePO4</h1>
+      <p class="sub">เซลล์ 280 / 314 Ah · วางเซลล์ลงกล่อง · ต่อบัสบาร์ 4S / 8S / 16S · ต่อสายและตั้งค่า JK‑BMS · ขนานแบตหลายตู้</p>
+    </div>
+    <div class="cfg">
+      <label class="field"><span class="lbl">เซลล์</span>
+        <select id="cfgCell"></select></label>
+      <div class="field"><span class="lbl">จำนวนอนุกรม</span>
+        <div class="seg" id="cfgS"><button data-s="4">4S</button><button data-s="8">8S</button><button data-s="16">16S</button></div></div>
+      <label class="field"><span class="lbl">BMS</span>
+        <select id="cfgBms"></select></label>
+    </div>
+    <div class="specs" id="specs"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="layout"><span class="step" id="st-layout">1</span>จัดวางลงกล่อง</button>
+    <button role="tab" data-tab="wire"><span class="step" id="st-wire">2</span>ต่อบัสบาร์ &amp; สาย BMS</button>
+    <button role="tab" data-tab="bms"><span class="step" id="st-bms">3</span>ตั้งค่า JK‑BMS &amp; ทดสอบ</button>
+    <button role="tab" data-tab="par"><span class="step" id="st-par">4</span>ขนานแบต &amp; อินเวอร์เตอร์</button>
+    <button role="tab" data-tab="ref"><span class="step">i</span>คู่มือย่อ</button>
+  </nav>
+
+  <!-- 1 LAYOUT -->
+  <section role="tabpanel" id="tab-layout">
+    <div class="toolbar">
+      <label class="field"><span class="lbl">รูปแบบการจัดวาง</span><select id="arrSel"></select></label>
+      <button class="btn" id="btnGen">จัดเรียงใหม่ตามรูปแบบ</button>
+      <label class="field"><span class="lbl">กล่องภายใน ยาว (มม.)</span><input class="inline-num num" type="number" id="boxL" step="5"></label>
+      <label class="field"><span class="lbl">กว้าง</span><input class="inline-num num" type="number" id="boxW" step="5"></label>
+      <label class="field"><span class="lbl">สูง</span><input class="inline-num num" type="number" id="boxH" step="5"></label>
+      <button class="btn" id="btnFit">ปรับกล่องพอดีเซลล์</button>
+      <div class="sel-box" id="selBox"></div>
+    </div>
+    <div class="lay-grid">
+      <figure class="pane lay-top">
+        <figcaption><span><b id="topCap">มุมบน (Top view)</b> <span class="muted">ลากเซลล์เพื่อย้าย · ดับเบิลคลิกหรือกด R เพื่อหมุน 90° · F กลับขั้ว 180° · ลูกศรเลื่อนทีละ 1 มม.</span></span></figcaption>
+        <svg id="svgTop" aria-label="มุมมองด้านบนของการจัดวางเซลล์ในกล่อง"></svg>
+      </figure>
+      <div class="lay-side">
+        <figure class="pane">
+          <figcaption><b>ด้านข้าง (Side view)</b>
+            <span class="seg" id="sideSeg"><button data-v="front">ด้านหน้า</button><button data-v="end">ด้านปลาย</button></span></figcaption>
+          <svg id="svgSide" aria-label="มุมมองด้านข้าง"></svg>
+        </figure>
+        <figure class="pane">
+          <figcaption><b>ไอโซเมตริก</b>
+            <span class="toolbar"><input type="range" id="azRange" min="0" max="359" step="1" aria-label="หมุนมุมมอง"><span class="num" id="azVal"></span>
+            <button class="btn sm" id="isoReset">ISO</button></span></figcaption>
+          <svg id="svgIso" aria-label="มุมมองไอโซเมตริก ลากเพื่อหมุน"></svg>
+        </figure>
+      </div>
+    </div>
+    <div class="card"><h3>ตรวจการจัดวาง</h3><ul class="checks" id="layChecks"></ul></div>
+  </section>
+
+  <!-- 2 WIRING -->
+  <section role="tabpanel" id="tab-wire" hidden>
+    <div class="wire-grid">
+      <figure class="pane wire-svg">
+        <figcaption><span id="wireHint"><b>ต่อสาย</b></span><span class="seg" id="toolSeg">
+          <button data-tool="link">บัสบาร์</button><button data-tool="harness">สาย BMS</button><button data-tool="meter">มิเตอร์</button><button data-tool="erase">ลบ</button></span></figcaption>
+        <svg id="svgWire" aria-label="แผงต่อสายมุมบน"></svg>
+      </figure>
+      <aside class="wire-side">
+        <div class="card">
+          <h3>ขั้นตอน</h3>
+          <div class="toolbar">
+            <button class="btn" id="autoLinks">ต่อบัสบาร์ให้ดู</button>
+            <button class="btn" id="autoHarness">ต่อสาย BMS ให้ดู</button>
+            <button class="btn danger" id="clearWire">ล้างสายทั้งหมด</button>
+          </div>
+          <div id="harnessBox"></div>
+        </div>
+        <div class="meter" aria-live="polite"><span>DC V</span><span class="disp" id="meterDisp">----</span><span class="muted" style="color:#8fb38a">โพรบ</span><span id="meterInfo" style="font-size:.8rem">ลากโพรบที่มิเตอร์ในแผงต่อสายไปแตะขั้ว</span></div>
+        <div class="card"><h3>ผลตรวจวงจร</h3><div id="wireAlert"></div><ul class="checks" id="wireChecks"></ul></div>
+        <div class="card"><h3>วัดสาย Sense ก่อนเสียบปลั๊ก</h3><div class="tscroll" id="senseTable"></div>
+          <div class="toolbar"><button class="btn pri" id="btnPlug">เสียบปลั๊ก Sense เข้า BMS</button><button class="btn" id="btnActivate">กดปุ่มเปิด BMS (Activate)</button><button class="btn sm" id="btnUnplug">ถอดปลั๊ก/รีเซ็ต BMS</button></div>
+          <div id="plugMsg"></div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 3 BMS -->
+  <section role="tabpanel" id="tab-bms" hidden>
+    <div class="bms-grid">
+      <div class="phone" id="phone"></div>
+      <div class="simctl">
+        <div class="card">
+          <div class="toolbar" style="justify-content:space-between"><h3>ทดสอบใช้งานจริง</h3>
+            <div class="toolbar"><button class="btn pri" id="simRun">▶ เริ่ม</button><button class="btn" id="simReset">รีเซ็ตเซลล์</button><button class="btn danger" id="simShort">จำลองลัดวงจรขั้ว P</button></div></div>
+          <div class="ctlgrid">
+            <label class="field"><span class="lbl">กระแส (+ชาร์จ / −จ่าย) <b class="num" id="iVal"></b></span><input type="range" id="iRange" min="-250" max="250" step="5"></label>
+            <label class="field"><span class="lbl">อุณหภูมิแวดล้อม <b class="num" id="tVal"></b></span><input type="range" id="tRange" min="-25" max="65" step="1"></label>
+            <label class="field"><span class="lbl">ความเร็วเวลา</span><select id="spdSel"><option value="1">×1 (จริง)</option><option value="60">×60</option><option value="600" selected>×600</option><option value="3600">×3600</option></select></label>
+            <label class="field"><span class="lbl">เซลล์ไม่สมดุลเริ่มต้น <b class="num" id="spVal"></b></span><input type="range" id="spRange" min="0" max="10" step="0.5"></label>
+            <label class="field" style="grid-template-columns:auto 1fr;align-items:center;gap:8px"><input type="checkbox" id="cvChk"><span>อินเวอร์เตอร์ชาร์จ CC/CV ตามค่า RCV (ลดกระแสเมื่อเต็ม)</span></label>
+          </div>
+          <div class="toolbar"><span class="lbl">ปุ่มลัด</span>
+            <button class="btn sm" data-preset="157">ชาร์จ 0.5C</button><button class="btn sm" data-preset="60">ชาร์จ 60A</button>
+            <button class="btn sm" data-preset="-100">จ่ายโหลด 5 kW</button><button class="btn sm" data-preset="-220">จ่ายเกิน 220A</button><button class="btn sm" data-preset="0">หยุด</button></div>
+          <canvas class="chart" id="chart" aria-label="กราฟแรงดันเซลล์และกระแส"></canvas>
+          <p class="note"><span style="color:var(--accent)">━</span> แรงดันเซลล์สูงสุด · <span style="color:var(--pos)">━</span> ต่ำสุด · <span style="color:var(--copper)">┅</span> กระแส (แกนขวา) · เส้นประเทา = ค่า OVP / UVP ที่ตั้งไว้</p>
+        </div>
+        <div class="card"><h3>ตรวจค่าตั้งเทียบกับแพ็กจริง</h3><ul class="checks" id="setChecks"></ul></div>
+        <div class="card"><h3>บันทึกเหตุการณ์ BMS</h3><div class="log" id="log"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 PARALLEL -->
+  <section role="tabpanel" id="tab-par" hidden>
+    <div class="toolbar">
+      <label class="field"><span class="lbl">จำนวนแพ็กขนาน</span><select id="parN"></select></label>
+      <label class="field"><span class="lbl">ยี่ห้ออินเวอร์เตอร์</span><select id="invBrand">
+        <option value="deye">Deye</option><option value="growatt">Growatt</option><option value="voltronic">Voltronic</option><option value="srne">SRNE</option><option value="goodwe">GoodWe</option><option value="victron">Victron / INVT</option></select></label>
+      <label class="field"><span class="lbl">สื่อสารกับอินเวอร์เตอร์</span><select id="invComm"><option value="CAN">CAN</option><option value="RS485">RS485‑1</option></select></label>
+      <label class="field"><span class="lbl">กำลังอินเวอร์เตอร์ (+จ่าย/−ชาร์จ) <b class="num" id="pVal"></b></span><input type="range" id="pRange" min="-10000" max="15000" step="250"></label>
+      <label class="field" style="grid-template-columns:auto 1fr;align-items:center;gap:6px"><input type="checkbox" id="limChk"><span>เปิดฟังก์ชันจำกัดกระแสขนาน 10A</span></label>
+      <button class="btn" id="parAuto">ต่อให้ดูทั้งหมด</button><button class="btn danger" id="parClear">ล้างสาย</button>
+      <button class="btn pri" id="parRun">▶ จำลองเวลา</button>
+    </div>
+    <div class="par-svg-wrap"><svg id="svgPar" aria-label="ผังขนานแบตเตอรี่"></svg></div>
+    <p class="note" id="parHint">คลิกสวิตช์ DIP เพื่อตั้งแอดเดรส · คลิกพอร์ตแล้วคลิกพอร์ตปลายทางเพื่อเสียบสาย LAN · คลิกขั้ว + / − ของแพ็กแล้วคลิกบัสบาร์เพื่อต่อสายไฟ · คลิกเบรกเกอร์เพื่อเปิด/ปิด</p>
+    <div class="par-grid">
+      <div class="card"><h3>แพ็กแต่ละตู้ (ปรับ SOC ก่อนขนานเพื่อดูกระแสไหลเข้าหากัน)</h3><div class="tscroll" id="parTable"></div></div>
+      <div class="card"><h3>ตรวจระบบขนาน</h3><div id="parAlert"></div><ul class="checks" id="parChecks"></ul>
+        <h3>ตั้งค่าที่อินเวอร์เตอร์</h3><div id="invSteps"></div></div>
+    </div>
+  </section>
+
+  <!-- 5 REF -->
+  <section role="tabpanel" id="tab-ref" hidden>
+    <div class="ref-grid" id="refGrid"></div>
+  </section>
+</div>
+
+<script>
+(()=>{
+"use strict";
+/* ---------- data ---------- */
+const CELLS={
+  'EVE-LF280K':{name:'EVE LF280K 280Ah',ah:280,L:173.7,T:72.0,H:204.0,Ht:207.2,kg:5.49,ir:0.25,cyc:'6,000'},
+  'EVE-MB31':{name:'EVE MB31 314Ah',ah:314,L:173.7,T:71.7,H:204.0,Ht:207.2,kg:5.60,ir:0.18,cyc:'8,000'},
+  'GOTION-314':{name:'Gotion 314Ah',ah:314,L:173.9,T:71.8,H:204.5,Ht:207.5,kg:5.65,ir:0.20,cyc:'6,000'}
+};
+const BMS={
+  'PB2A16S20P':{name:'JK-PB2A16S-20P',kind:'ess',sMin:7,sMax:16,cont:200,bal:2,dim:'300×100×24'},
+  'PB2A16S15P':{name:'JK-PB2A16S-15P',kind:'ess',sMin:7,sMax:16,cont:150,bal:2,dim:'300×100×24'},
+  'PB1A16S10P':{name:'JK-PB1A16S-10P',kind:'ess',sMin:7,sMax:16,cont:100,bal:1,dim:'300×100×24'},
+  'BD6A24S10P':{name:'JK-BD6A24S-10P',kind:'smart',sMin:8,sMax:24,cont:100,bal:0.6,dim:'—'},
+  'B2A8S20P':{name:'JK-B2A8S20P',kind:'smart',sMin:4,sMax:8,cont:200,bal:2,ext:true,dim:'—'},
+  'B2A16STH':{name:'JK-B2A16S-TH (Active Balancer)',kind:'bal',sMin:2,sMax:16,cont:0,bal:2,dim:'157.6×99×18.5'},
+  'B2A24S':{name:'JK-B2A24S (Active Balancer)',kind:'bal',sMin:2,sMax:24,cont:0,bal:2,dim:'157.6×99×18.5'}
+};
+const TERM_D=48, TIER_GAP=30, PANEL_GAP=90;
+const OCV=[[0,2.5],[.02,2.88],[.05,3.06],[.1,3.2],[.2,3.25],[.3,3.272],[.4,3.288],[.5,3.298],[.6,3.31],[.7,3.322],[.8,3.332],[.9,3.338],[.95,3.355],[.98,3.40],[.995,3.5],[1,3.6]];
+function ocv(s){s=Math.max(0,Math.min(1,s));for(let i=1;i<OCV.length;i++){if(s<=OCV[i][0]){const[a,va]=OCV[i-1],[b,vb]=OCV[i];return va+(vb-va)*(s-a)/(b-a);}}return 3.6;}
+function rnd(seed){let x=seed*9301+49297;return()=>{x=(x*9301+49297)%233280;return x/233280;};}
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=(v,d=2)=>Number(v).toFixed(d);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- state ---------- */
+const KEY='lfp-pack-sim-v2';
+let S=null;
+function defaults(){
+  return {cell:'EVE-MB31',s:16,bms:'PB2A16S20P',arr:'F-2-8',style:'front',tiers:1,box:{L:350,W:210,H:684},cells:[],links:[],
+    h:{},hOrder:[],plugged:false,damaged:false,active:false,sel:null,az:35,side:'front',tab:'layout',tool:'link',
+    set:null,spread:3,amb:30,Ireq:0,spd:600,cv:true,
+    par:{n:2,brand:'deye',comm:'CAN',P:3000,lim:true,packs:[],power:[],comm:[],invLink:null}};
+}
+function load(){try{const t=localStorage.getItem(KEY);if(t){const o=JSON.parse(t);if(o&&o.cells)return Object.assign(defaults(),o);}}catch(e){}return null;}
+let saveT=0;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}},400);}
+const cm=()=>CELLS[S.cell], bm=()=>BMS[S.bms];
+
+/* ---------- layout generation ---------- */
+const FRONT=()=>S.style==='front';
+const BMS_BAY=150;
+function edH(){return FRONT()?S.box.H:S.box.W;}
+function arrOptions(s){
+  const F=s===4?[['F-2-2','ตู้ตั้ง · เซลล์นอนหันขั้วออกหน้า 2 คอลัมน์ × 2 ชั้น']]:s===8?[['F-2-4','ตู้ตั้ง · เซลล์นอนหันขั้วออกหน้า 2 คอลัมน์ × 4 ชั้น']]:[['F-2-8','ตู้ตั้ง WH Energy (ตามรูป) · เซลล์นอน 2 คอลัมน์ × 8 ชั้น']];
+  if(s===4)return F.concat([['1-1-4','กล่องนอน · แถวเดียว 4 เซลล์'],['1-2-2','กล่องนอน · 2 แถว × 2']]);
+  if(s===8)return F.concat([['1-1-8','กล่องนอน · แถวเดียว 8 เซลล์'],['1-2-4','กล่องนอน · 2 แถว × 4'],['2-1-4','เซลล์ตั้ง 2 ชั้น · ชั้นละ 4']]);
+  return F.concat([['1-2-8','กล่องนอน 1 ชั้น · 2 แถว × 8'],['2-1-8','เซลล์ตั้ง 2 ชั้น · ชั้นละ 8'],['1-4-4','กล่องนอน · 4 แถว × 4'],['2-2-4','เซลล์ตั้ง 2 ชั้น · 2 แถว × 4'],['1-1-16','กล่องนอน · แถวเดียว 16']]);
+}
+function cellZ(c){return FRONT()?0:c.tier*(cm().Ht+TIER_GAP);}
+function foot(c){const m=cm();return (c.rot%180===0)?{w:m.L,h:m.T}:{w:m.T,h:m.L};}
+function termRaw(c,rot,t){const lx=t==='+'?-TERM_D:TERM_D,a=rot*Math.PI/180;return{x:c.x+lx*Math.cos(a),y:c.y+lx*Math.sin(a),z:FRONT()?0:cellZ(c)+cm().Ht};}
+const term=(c,t)=>termRaw(c,c.rot,t);
+const d3=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,a.z-b.z);
+/* 3D: x across, y depth from front (door) to back, z up. FRONT = cells lying on their side, terminal face toward the door */
+function cell3D(c){const m=cm(),f=foot(c);
+  if(FRONT())return{x0:c.x-f.w/2,x1:c.x+f.w/2,y0:3,y1:3+m.H,z0:S.box.H-(c.y+f.h/2),z1:S.box.H-(c.y-f.h/2)};
+  const z0=cellZ(c);return{x0:c.x-f.w/2,x1:c.x+f.w/2,y0:c.y-f.h/2,y1:c.y+f.h/2,z0,z1:z0+m.H};}
+function term3D(c,t){const p=term(c,t);return FRONT()?{x:p.x,y:0,z:S.box.H-p.y}:p;}
+function genLayout(code){
+  const m=cm(),gap=2;
+  if(code.startsWith('F-')){
+    const[,cols,lay]=code.split('-').map(Number);S.style='front';S.az=35;S.tiers=1;S.arr=code;
+    const bayW=cols*(m.L+gap)-gap;
+    S.box=(cols===2&&lay===8)?{L:Math.max(350,Math.ceil(bayW+0.6)),W:210,H:684}:{L:Math.ceil((bayW+2)/5)*5,W:210,H:Math.ceil((lay*(m.T+gap)+40)/5)*5};
+    const mx=(S.box.L-bayW)/2,pos=[];
+    for(let col=0;col<cols;col++)for(let k=0;k<lay;k++){const layer=col%2===0?k:lay-1-k;
+      pos.push({tier:0,x:mx+col*(m.L+gap)+m.L/2,y:S.box.H-6-layer*(m.T+gap)-m.T/2});}
+    S.cells=pos.map((p,i)=>({id:i,tier:0,x:+p.x.toFixed(1),y:+p.y.toFixed(1),rot:0}));
+    chooseRot();S.sel=null;return;}
+  S.style='top';S.az=35;
+  const [tiers,rows,cols]=code.split('-').map(Number),rowGap=24,mg=15;
+  const pos=[];
+  for(let t=0;t<tiers;t++){const list=[];
+    for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){const col=r%2===0?k:cols-1-k;list.push({tier:t,x:mg+col*(m.T+gap)+m.T/2,y:mg+r*(m.L+rowGap)+m.L/2});}
+    if(t%2===1)list.reverse();pos.push(...list);}
+  S.arr=code;S.tiers=tiers;
+  S.cells=pos.map((p,i)=>({id:i,tier:p.tier,x:+p.x.toFixed(1),y:+p.y.toFixed(1),rot:90}));
+  chooseRot();fitBox();S.sel=null;
+}
+function chooseRot(){
+  let best=null;const O=FRONT()?[0,180]:[90,270];
+  for(const r0 of O){const rots=[r0];let tot=0;
+    for(let i=1;i<S.cells.length;i++){const pp=termRaw(S.cells[i-1],rots[i-1],'+');let br=O[0],bd=1e9;
+      for(const r of O){const d=d3(termRaw(S.cells[i],r,'-'),pp);if(d<bd-0.01){bd=d;br=r;}}rots.push(br);tot+=bd;}
+    if(!best||tot<best.tot)best={tot,rots};}
+  S.cells.forEach((c,i)=>c.rot=best.rots[i]);
+}
+function fitBox(){
+  let mx=0,my=0;
+  S.cells.forEach(c=>{const f=foot(c);mx=Math.max(mx,c.x+f.w/2);my=Math.max(my,c.y+f.h/2);});
+  if(FRONT()){S.box={L:Math.ceil((mx+1)/5)*5,W:Math.max(S.box.W||210,Math.ceil(cm().Ht+2)),H:Math.max(S.box.H,Math.ceil((my+6)/5)*5)};return;}
+  const mg=15;
+  S.box={L:Math.ceil((mx+mg)/5)*5,W:Math.ceil((my+mg)/5)*5,H:Math.ceil((S.tiers*(cm().Ht+TIER_GAP)+(bm().kind==='bal'?60:130))/5)*5};
+}
+function layoutIssues(){
+  const out=new Set(),hit=new Set(),EH=edH();
+  S.cells.forEach((c,i)=>{const f=foot(c);if(c.x-f.w/2<-0.5||c.y-f.h/2<-0.5||c.x+f.w/2>S.box.L+0.5||c.y+f.h/2>EH+0.5)out.add(i);
+    S.cells.forEach((o,j)=>{if(j<=i||o.tier!==c.tier)return;const g=foot(o);
+      if(Math.abs(c.x-o.x)<(f.w+g.w)/2-0.5&&Math.abs(c.y-o.y)<(f.h+g.h)/2-0.5){hit.add(i);hit.add(j);}});});
+  const tooLow=FRONT()?S.box.W<cm().Ht:S.box.H<S.tiers*(cm().Ht+TIER_GAP)+20;
+  return{out,hit,tooLow};
+}
+
+/* ---------- circuit analysis ---------- */
+function netsOf(){
+  const parent={};S.cells.forEach((c,i)=>{parent[i+'+']=i+'+';parent[i+'-']=i+'-';});
+  const f=k=>parent[k]===k?k:(parent[k]=f(parent[k]));
+  S.links.forEach(l=>{const a=f(l.a),b=f(l.b);if(a!==b)parent[a]=b;});
+  const net={};Object.keys(parent).forEach(k=>net[k]=f(k));return net;
+}
+function analyze(){
+  const n=S.cells.length,net=netsOf(),V=SIM.cells.map(c=>c.v);
+  const r={shorts:[],conflict:false,ok:false,pot:{},order:null,reversed:[],packV:0,net,parallel:false,comps:0,dirs:[]};
+  for(let i=0;i<n;i++)if(net[i+'+']===net[i+'-'])r.shorts.push(i);
+  const adj={};
+  for(let i=0;i<n;i++){const p=net[i+'+'],m=net[i+'-'];if(p===m)continue;(adj[m]=adj[m]||[]).push([p,V[i],i]);(adj[p]=adj[p]||[]).push([m,-V[i],i]);}
+  const pot={};
+  for(const k of new Set(Object.values(net))){if(pot[k]!==undefined)continue;r.comps++;pot[k]=0;const q=[k];
+    while(q.length){const u=q.shift();for(const[w,dv]of(adj[u]||[])){if(pot[w]===undefined){pot[w]=pot[u]+dv;q.push(w);}else if(Math.abs(pot[w]-(pot[u]+dv))>0.05)r.conflict=true;}}}
+  r.pot=pot;
+  const deg={};Object.values(net).forEach(k=>deg[k]=(deg[k]||0)+1);
+  const nl=Object.keys(deg),ends=nl.filter(k=>deg[k]===1);r.parallel=nl.some(k=>deg[k]>2);
+  if(r.comps===1&&!r.shorts.length&&!r.conflict&&!r.parallel&&ends.length===2){
+    let cur=ends[0],prev=-1;const seq=[cur],dirs=[];
+    for(let s=0;s<n;s++){const e=(adj[cur]||[]).find(x=>x[2]!==prev);if(!e)break;dirs.push({i:e[2],fwd:e[1]>0});cur=e[0];prev=e[2];seq.push(cur);}
+    if(dirs.filter(d=>d.fwd).length<dirs.length/2){seq.reverse();dirs.reverse();dirs.forEach(d=>d.fwd=!d.fwd);}
+    r.order=seq;r.dirs=dirs;r.reversed=dirs.filter(d=>!d.fwd).map(d=>d.i);
+    r.packV=pot[seq[seq.length-1]]-pot[seq[0]];r.ok=!r.reversed.length&&dirs.length===n;
+  }
+  return r;
+}
+function harnessList(){
+  const k=bm().kind,s=S.s,L=[];
+  if(k!=='bal')L.push('B-');
+  for(let i=0;i<=s;i++)L.push('B'+i);
+  if(k==='ess')L.push('BAT+');
+  if(k!=='bal')L.push('P-');
+  L.push('MAIN+');if(k==='bal')L.push('MAIN-');
+  if(k!=='bal')L.push('NTC1','NTC2');
+  return L;
+}
+const HDESC={'B-':'สายลบหลัก B− (สีน้ำเงิน) → ขั้วลบรวมของแพ็ก','BAT+':'สาย BAT+ (แดง) → ขั้วบวกรวม (จ่ายไฟเลี้ยงบอร์ด)','P-':'สาย P− (ดำ) → ขั้วลบอินเวอร์เตอร์/โหลด','MAIN+':'สายบวกหลักผ่านเบรกเกอร์ DC → ขั้วบวกรวม','MAIN-':'สายลบหลัก → ขั้วลบรวม (Balancer ไม่มี MOS ตัดวงจร)','NTC1':'เซนเซอร์อุณหภูมิ 1 → ติดข้างเซลล์','NTC2':'เซนเซอร์อุณหภูมิ 2 → ติดข้างเซลล์'};
+function hDesc(w){if(HDESC[w])return HDESC[w];const k=+w.slice(1);return k===0?'B0 → ขั้วลบเซลล์ 1 (ลบรวม)':`B${k} → ขั้วบวกเซลล์ ${k}`;}
+function harnessCheck(r){
+  const res={},s=S.s,ord=r.order;
+  harnessList().forEach(w=>{
+    const at=S.h[w];
+    if(at==null){res[w]='missing';return;}
+    if(w==='P-'){res[w]=at==='LOAD'?'ok':'wrong';return;}
+    if(w.startsWith('NTC')){res[w]=typeof at==='number'?'ok':'wrong';return;}
+    if(!ord){res[w]='unknown';return;}
+    const nt=r.net[at];
+    let exp=null;
+    if(w==='B-'||w==='MAIN-')exp=ord[0];else if(w==='BAT+'||w==='MAIN+')exp=ord[s];else exp=ord[+w.slice(1)];
+    res[w]=nt===exp?'ok':'wrong';
+  });
+  // channel voltages
+  const ch=[];
+  for(let k=1;k<=s;k++){const a=S.h['B'+(k-1)],b=S.h['B'+k];
+    if(a==null||b==null||typeof a!=='string'||typeof b!=='string'){ch.push(null);continue;}
+    const pa=r.pot[r.net[a]],pb=r.pot[r.net[b]];
+    if(pa===undefined||pb===undefined||!sameComp(r,a,b)){ch.push(NaN);continue;}
+    ch.push(pb-pa);}
+  return{res,ch};
+}
+function sameComp(r,a,b){ // potentials only comparable within one component
+  if(r.comps===1)return true;
+  const net=r.net,adjN={};
+  S.cells.forEach((c,i)=>{const p=net[i+'+'],m=net[i+'-'];(adjN[p]=adjN[p]||[]).push(m);(adjN[m]=adjN[m]||[]).push(p);});
+  const st=net[a],tg=net[b],seen=new Set([st]),q=[st];
+  while(q.length){const u=q.shift();if(u===tg)return true;for(const w of adjN[u]||[])if(!seen.has(w)){seen.add(w);q.push(w);}}
+  return false;
+}
+
+/* ---------- simulation state ---------- */
+const SIM={cells:[],run:false,t:0,I:0,Tc:30,Tm:30,socB:50,prot:{},tmr:{},log:[],hist:[],scp:false,off:false};
+function initSimCells(){
+  const m=cm(),R=rnd(S.s*7+(S.cell.length));
+  SIM.cells=[];for(let i=0;i<S.s;i++){const sp=S.spread/100;SIM.cells.push({soc:0.55+(R()-0.5)*sp*2,cap:m.ah*(1+(R()-0.5)*0.03),v:0});}
+  SIM.cells.forEach(c=>c.v=ocv(c.soc));
+  SIM.socB=Math.round(SIM.cells.reduce((a,c)=>a+c.soc,0)/S.s*100);SIM.prot={};SIM.tmr={};SIM.hist=[];SIM.t=0;SIM.I=0;SIM.Tc=S.amb;SIM.Tm=S.amb;SIM.scp=false;SIM.off=false;
+}
+function defaultSettings(){
+  const b=bm();
+  return{cells:16,cap:280,balTrig:0.010,balMax:b.bal,balStart:3.0,ovp:3.60,ovpr:3.54,uvp:2.60,uvpr:2.65,off:2.50,soc0:2.60,soc100:3.50,
+    chgI:b.cont||100,chgDly:3,chgRel:60,dsgI:b.cont||100,dsgDly:300,dsgRel:60,scpDly:5,scpRel:30,
+    cotp:70,cotpr:60,dotp:70,dotpr:60,cutp:-20,cutpr:-10,mosotp:100,mosotpr:80,pre:3,rcv:3.45,rfv:3.40,
+    swChg:true,swDsg:true,swBal:true,swHeat:false,type:'LFP',unlocked:false,proto:'CAN'};
+}
+const TYPE_DEF={LFP:{ovp:3.6,ovpr:3.54,uvp:2.6,uvpr:2.65,off:2.5,soc0:2.6,soc100:3.5,balStart:3.0},
+  NMC:{ovp:4.2,ovpr:4.17,uvp:2.82,uvpr:2.85,off:2.8,soc0:2.9,soc100:4.18,balStart:3.0},
+  LTO:{ovp:2.7,ovpr:2.64,uvp:1.8,uvpr:1.85,off:1.7,soc0:1.85,soc100:2.65,balStart:2.0}};
+
+/* ---------- header / config ---------- */
+function renderCfg(){
+  $('#cfgCell').innerHTML=Object.entries(CELLS).map(([k,c])=>`<option value="${k}" ${k===S.cell?'selected':''}>${c.name}</option>`).join('');
+  $('#cfgBms').innerHTML=Object.entries(BMS).map(([k,b])=>{const okS=S.s>=b.sMin&&S.s<=b.sMax;return`<option value="${k}" ${k===S.bms?'selected':''}>${b.name} · ${b.sMin}–${b.sMax}S${b.cont?' · '+b.cont+'A':''}${okS?'':' ✕ ไม่รองรับ '+S.s+'S'}</option>`;}).join('');
+  $$('#cfgS button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.s===S.s));
+  renderSpecs();
+}
+function renderSpecs(){
+  const m=cm(),s=S.s,n=S.par.n,kwh=s*3.2*m.ah/1000,b=bm();
+  const okS=s>=b.sMin&&s<=b.sMax;
+  const ext=FRONT()?{L:S.box.L+40,W:S.box.W+40,H:S.box.H+BMS_BAY+90}:{L:S.box.L+50,W:S.box.W+50,H:S.box.H+40};
+  $('#specs').innerHTML=[
+    [`${fmt(s*3.2,1)} V`,'แรงดันระบุ (Nominal)'],
+    [`${fmt(s*2.5,1)}–${fmt(s*3.65,1)} V`,'ช่วงแรงดันใช้งาน'],
+    [`${fmt(kwh,2)} kWh`,`พลังงานต่อแพ็ก (${m.ah} Ah)`],
+    [`${fmt(kwh*n,1)} kWh`,`รวม ${n} แพ็กขนาน`],
+    [`${fmt(s*m.kg,1)} kg`,'น้ำหนักเซลล์ต่อแพ็ก'],
+    [`${m.L}×${m.T}×${m.Ht}`,'ขนาดเซลล์ ยาว×หนา×สูง (มม.)'],
+    [`${ext.L}×${ext.W}×${ext.H}`,'ขนาดตู้ภายนอกโดยประมาณ (มม.)'],
+    [okS?`${b.cont?b.cont+' A':'ไม่มี MOS'}`:'ไม่รองรับ',okS?`${b.name} · Balance ${b.bal} A`:`${b.name} ใช้ได้ ${b.sMin}–${b.sMax}S`]
+  ].map(([v,l],i)=>`<div class="spec"><b ${i===7&&!okS?'style="color:var(--bad)"':''}>${v}</b><span>${l}</span></div>`).join('');
+}
+
+/* ---------- SVG helpers ---------- */
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function panelX(t){return 0;}
+function panelY(t){return t*(edH()+PANEL_GAP);}
+function topSceneW(){return S.box.L;}
+function topSceneH(){return S.tiers*edH()+(S.tiers-1)*PANEL_GAP;}
+function fitSvg(svg,w,h){svg.setAttribute('viewBox',`${w[0]} ${w[1]} ${w[2]} ${w[3]}`);svg.style.aspectRatio=`${w[2]} / ${w[3]}`;}
+
+function cellSVG(c,i,opts){
+  const m=cm(),f=foot(c),sel=opts.sel===i,iss=opts.iss;
+  const bad=iss&&(iss.out.has(i)||iss.hit.has(i)),short=opts.shorts&&opts.shorts.includes(i),rev=opts.rev&&opts.rev.includes(i);
+  const oy=panelY(c.tier),cx=c.x,cy=c.y+oy;
+  const tp0=term(c,'+'),tn0=term(c,'-'),tp={x:tp0.x,y:tp0.y+oy},tn={x:tn0.x,y:tn0.y+oy};const px=tp.x,nx=tn.x;
+  const big=opts.mode==='wire'?15:12;
+  let s=`<g class="cell" data-cell="${i}">`;
+  s+=`<rect x="${cx-f.w/2}" y="${cy-f.h/2}" width="${f.w}" height="${f.h}" rx="4" fill="var(--cell-side)" stroke="${bad||short?'var(--bad)':sel?'var(--accent)':'var(--cell-side-2)'}" stroke-width="${bad||short||sel?4:1.5}"/>`;
+  s+=`<rect x="${cx-f.w/2+4}" y="${cy-f.h/2+4}" width="${f.w-8}" height="${f.h-8}" rx="3" fill="var(--cell-top)"/>`;
+  // vent
+  const vertical=f.h>f.w;
+  s+=vertical?`<ellipse cx="${cx}" cy="${cy}" rx="9" ry="16" fill="var(--vent)" opacity=".7"/>`:`<ellipse cx="${cx}" cy="${cy}" rx="16" ry="9" fill="var(--vent)" opacity=".7"/>`;
+  // terminals
+  s+=`<circle cx="${px}" cy="${tp.y}" r="${big}" fill="#c9ccd1" stroke="var(--pos)" stroke-width="4"/><text x="${px}" y="${tp.y+5}" text-anchor="middle" font-size="16" font-weight="700" fill="var(--pos)" font-family="var(--f-mono)">+</text>`;
+  s+=`<circle cx="${nx}" cy="${tn.y}" r="${big}" fill="#c9ccd1" stroke="var(--neg)" stroke-width="4"/><text x="${nx}" y="${tn.y+5}" text-anchor="middle" font-size="18" font-weight="700" fill="var(--neg)" font-family="var(--f-mono)">−</text>`;
+  // number label sits between vent and + side
+  const lx=cx+(tp.x-c.x)*0.0,ly=cy+(vertical?(tp.y>cy?-26:26):0),lxx=vertical?cx:cx+(tp.x>cx?-30:30);
+  s+=`<text x="${vertical?lx:lxx}" y="${(vertical?ly:cy)+5}" text-anchor="middle" font-size="15" font-weight="600" fill="#e6eef7" font-family="var(--f-mono)">${i+1}</text>`;
+  if(rev)s+=`<text x="${cx}" y="${cy-f.h/2-6}" text-anchor="middle" font-size="14" fill="var(--bad)" font-weight="700">กลับขั้ว</text>`;
+  if(opts.mode==='wire'){
+    s+=`<circle class="hit" data-term="${i}+" cx="${px}" cy="${tp.y}" r="22" fill="transparent" style="cursor:crosshair"/>`;
+    s+=`<circle class="hit" data-term="${i}-" cx="${nx}" cy="${tn.y}" r="22" fill="transparent" style="cursor:crosshair"/>`;
+  }
+  s+='</g>';return s;
+}
+function tpos(key){const i=parseInt(key),t=key.slice(-1),c=S.cells[i],p=term(c,t);return{x:p.x,y:p.y+panelY(c.tier),tier:c.tier};}
+function linkSVG(l,idx){
+  const a=tpos(l.a),b=tpos(l.b),len=Math.hypot(a.x-b.x,a.y-b.y);
+  const sameCell=parseInt(l.a)===parseInt(l.b);
+  if(a.tier!==b.tier){
+    const mx=Math.max(a.x,b.x)+(S.box.L-Math.max(a.x,b.x))+25;
+    return`<path data-link="${idx}" d="M${a.x},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}" fill="none" stroke="var(--copper)" stroke-width="8" stroke-linecap="round"/><text x="${mx-4}" y="${(a.y+b.y)/2}" text-anchor="end" font-size="13" fill="var(--copper)">สายข้ามชั้น</text>`;
+  }
+  if(len<=130&&!sameCell){
+    return`<g data-link="${idx}"><line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--copper)" stroke-width="22" stroke-linecap="round" opacity=".92"/><line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="var(--copper-hi)" stroke-width="4" stroke-linecap="round" opacity=".7"/><circle cx="${a.x}" cy="${a.y}" r="5" fill="#666"/><circle cx="${b.x}" cy="${b.y}" r="5" fill="#666"/></g>`;
+  }
+  const mx=(a.x+b.x)/2,my=(a.y+b.y)/2-30;
+  return`<path data-link="${idx}" d="M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}" fill="none" stroke="${sameCell?'var(--bad)':'var(--copper)'}" stroke-width="10" stroke-linecap="round"/>`+
+    (sameCell?`<text x="${mx}" y="${my-6}" text-anchor="middle" font-size="22" font-weight="700" fill="var(--bad)">⚡ SHORT</text>`:'');
+}
+function boxPanelsSVG(){
+  let s='';
+  const EH=edH();
+  for(let t=0;t<S.tiers;t++){const x=0,y=panelY(t);
+    s+=`<rect x="${x-8}" y="${y-8}" width="${S.box.L+16}" height="${EH+16}" rx="6" fill="none" stroke="var(--box)" stroke-width="3"/>`;
+    s+=`<rect x="${x}" y="${y}" width="${S.box.L}" height="${EH}" fill="var(--box-fill)" stroke="var(--box)" stroke-dasharray="6 5"/>`;
+    for(let gx=50;gx<S.box.L;gx+=50)s+=`<line x1="${x+gx}" y1="${y}" x2="${x+gx}" y2="${y+EH}" stroke="var(--grid)"/>`;
+    for(let gy=50;gy<EH;gy+=50)s+=`<line x1="${x}" y1="${y+gy}" x2="${x+S.box.L}" y2="${y+gy}" stroke="var(--grid)"/>`;
+    s+=`<text x="${x}" y="${y-18}" font-size="16" fill="var(--muted)" font-family="var(--f-display)" font-weight="600">${S.tiers>1?'ชั้น '+(t+1)+(t===0?' (ล่าง)':' (บน)')+' · ':''}${FRONT()?`หน้าตู้ ${S.box.L}×${S.box.H} ลึก ${S.box.W} มม.`:`ภายใน ${S.box.L} × ${S.box.W} มม.`}</text>`;
+  }
+  return s;
+}
+
+/* ---------- TOP view (layout) ---------- */
+function renderTop(){
+  const iss=layoutIssues(),W=topSceneW();
+  $('#topCap').textContent=FRONT()?'ด้านหน้า (Front view) · เซลล์นอนตะแคง ขั้วหันออกประตู':'มุมบน (Top view)';
+  const svg=$('#svgTop'),TH=topSceneH();fitSvg(svg,[-30,-45,W+60,TH+90]);
+  let s=boxPanelsSVG();
+  S.cells.forEach((c,i)=>s+=cellSVG(c,i,{mode:'layout',sel:S.sel,iss}));
+  S.links.forEach((l,i)=>s+=`<g opacity=".55" pointer-events="none">${linkSVG(l,i)}</g>`);
+  s+=`<g font-family="var(--f-mono)" font-size="13" fill="var(--muted)"><line x1="0" y1="${TH+22}" x2="${S.box.L}" y2="${TH+22}" stroke="var(--muted)" marker-start="url(#ar)" marker-end="url(#ar)"/><text x="${S.box.L/2}" y="${TH+38}" text-anchor="middle">${S.box.L} มม.</text></g>`;
+  svg.innerHTML=`<defs><marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10z" fill="var(--muted)"/></marker></defs>`+s;
+  renderSelBox();renderLayChecks(iss);
+}
+function renderSelBox(){
+  const b=$('#selBox');
+  if(S.sel==null){b.innerHTML=`<span class="note">คลิกเลือกเซลล์เพื่อหมุนหรือย้ายชั้น</span>`;return;}
+  const c=S.cells[S.sel];
+  b.innerHTML=`<span class="lbl">เซลล์ ${S.sel+1}</span><span class="num muted">x ${fmt(c.x,0)} y ${fmt(c.y,0)} · ${c.rot}°</span>
+   <button class="btn sm" data-sa="r90">หมุน 90°</button><button class="btn sm" data-sa="r180">กลับขั้ว 180°</button>
+   ${S.tiers>1?`<button class="btn sm" data-sa="tier">ย้ายไปชั้น ${c.tier===0?2:1}</button>`:''}`;
+}
+function renderLayChecks(iss){
+  const L=[];
+  L.push(iss.out.size?['bad',`เซลล์ ${[...iss.out].map(i=>i+1).join(', ')} ล้นออกนอกกล่อง`]:['ok','เซลล์ทุกก้อนอยู่ภายในกล่อง']);
+  L.push(iss.hit.size?['bad',`เซลล์ ${[...iss.hit].map(i=>i+1).join(', ')} ทับกัน ต้องเว้นระยะหรือมีแผ่นฉนวนคั่น`]:['ok','ไม่มีเซลล์ทับกัน (เผื่อแผ่นฉนวนคั่นเซลล์ 2 มม.)']);
+  if(FRONT()){
+    L.push(iss.tooLow?['bad',`ความลึกตู้ ${S.box.W} มม. น้อยกว่าความสูงเซลล์ ${cm().Ht} มม. (เซลล์นอน ความสูงจะกลายเป็นความลึก)`]:['ok',`ความลึก ${S.box.W} มม. พอสำหรับเซลล์ยาว ${cm().Ht} มม. เหลือ ${fmt(S.box.W-cm().Ht,1)} มม.`]);
+    const used=S.cells.length?Math.max(...S.cells.map(c=>c.y+foot(c).h/2))-Math.min(...S.cells.map(c=>c.y-foot(c).h/2)):0;
+    L.push(['ok',`ซ้อนเซลล์สูงรวม ${fmt(used,0)} มม. จากช่องสูง ${S.box.H} มม. · ช่องด้านบน ${BMS_BAY} มม. สำหรับ BMS และเบรกเกอร์`]);
+    if(S.box.L<2*cm().L+1)L.push(['warn',`กว้าง ${S.box.L} มม. แคบกว่าเซลล์ 2 ก้อนวางชน (${fmt(2*cm().L,1)} มม.)`]);
+    L.push(['warn','ตู้ในรูประบุกว้าง 346 มม. (วัดด้วยมือ คลาดเคลื่อนได้) ตัวจำลองตั้ง 350 มม. ให้เซลล์ 2 ก้อน 173.7 มม. วางได้ ตรวจขนาดจริงอีกครั้งก่อนสั่ง']);
+  }else L.push(iss.tooLow?['bad',`ความสูงกล่อง ${S.box.H} มม. ไม่พอสำหรับ ${S.tiers} ชั้น (เซลล์สูง ${cm().Ht} มม.)`]:['ok',`ความสูงกล่องพอ เหลือที่ด้านบน ${Math.round(S.box.H-S.tiers*(cm().Ht+TIER_GAP))} มม. สำหรับบัสบาร์/BMS`]);
+  const vol=S.box.L*S.box.W*(S.box.H+(FRONT()?BMS_BAY:0))/1e6,kwh=S.s*3.2*cm().ah/1000;
+  L.push(['ok',`ความหนาแน่นพลังงานตู้ ≈ ${fmt(kwh/vol*1000,0)} Wh/ลิตร · ปริมาตรภายใน ${fmt(vol,1)} ลิตร`]);
+  L.push(['warn','เซลล์ 280 Ah และ 314 Ah รุ่นนี้ใช้ขนาดเดียวกัน (71173207) จึงใช้กล่องและบัสบาร์ชุดเดียวกันได้ แต่ห้ามผสมความจุในแพ็กเดียว']);
+  $('#layChecks').innerHTML=L.map(([k,t])=>`<li class="${k}">${t}</li>`).join('');
+}
+
+/* ---------- SIDE view ---------- */
+function renderSide(){
+  if(FRONT())return renderSideFront();
+  $$('#sideSeg button').forEach(b=>b.textContent=b.dataset.v==='front'?'ด้านหน้า':'ด้านปลาย');
+  const m=cm(),front=S.side==='front',B=S.box;
+  const W=front?B.L:B.W;
+  const svg=$('#svgSide');fitSvg(svg,[-60,-B.H-30,W+120,B.H+75]);
+  const items=S.cells.map((c,i)=>{const f=foot(c);return{i,c,a0:front?c.x-f.w/2:c.y-f.h/2,a1:front?c.x+f.w/2:c.y+f.h/2,d:front?c.y:-c.x,z:cellZ(c)};}).sort((p,q)=>q.d-p.d);
+  let s=`<rect x="0" y="${-B.H}" width="${W}" height="${B.H}" fill="var(--box-fill)" stroke="var(--box)" stroke-width="3"/>`;
+  for(let t=1;t<S.tiers;t++){const z=t*(m.Ht+TIER_GAP)-TIER_GAP/2;s+=`<rect x="0" y="${-z-4}" width="${W}" height="8" fill="var(--box)" opacity=".6"/>`;}
+  const dmin=Math.min(...items.map(x=>x.d)),dmax=Math.max(...items.map(x=>x.d));
+  items.forEach(it=>{const far=dmax>dmin?(it.d-dmin)/(dmax-dmin):0;
+    s+=`<rect x="${it.a0}" y="${-it.z-m.H}" width="${it.a1-it.a0}" height="${m.H}" fill="var(--cell-side)" stroke="var(--cell-side-2)" opacity="${1-far*0.45}"/>`;
+    ['+','-'].forEach(t=>{const p=term(it.c,t),a=front?p.x:p.y;s+=`<rect x="${a-8}" y="${-it.z-m.Ht}" width="16" height="${m.Ht-m.H}" fill="${t==='+'?'var(--pos)':'var(--neg)'}" opacity="${1-far*0.45}"/>`;});
+    if(far===0||!(dmax>dmin))s+=`<text x="${(it.a0+it.a1)/2}" y="${-it.z-m.H/2+5}" text-anchor="middle" font-size="14" fill="#e6eef7" font-family="var(--f-mono)">${it.i+1}</text>`;});
+  // busbars
+  S.links.forEach(l=>{const a=term(S.cells[parseInt(l.a)],l.a.slice(-1)),b=term(S.cells[parseInt(l.b)],l.b.slice(-1));
+    const x0=front?a.x:a.y,x1=front?b.x:b.y;
+    if(Math.abs(a.z-b.z)>1)s+=`<path d="M${x0},${-a.z} C${x0+80},${-a.z} ${x1+80},${-b.z} ${x1},${-b.z}" fill="none" stroke="var(--copper)" stroke-width="7"/>`;
+    else s+=`<rect x="${Math.min(x0,x1)-10}" y="${-a.z-4}" width="${Math.abs(x1-x0)+20}" height="5" fill="var(--copper)"/>`;});
+  // BMS
+  if(bm().kind!=='bal'||true){const bz=S.tiers*(m.Ht+TIER_GAP)+30,bw=front?300:100;const bx=W/2-bw/2;
+    if(bz+24<B.H)s+=`<rect x="${bx}" y="${-bz-24}" width="${bw}" height="24" fill="var(--pcb)" stroke="var(--pcb-hi)"/><text x="${W/2}" y="${-bz-7}" text-anchor="middle" font-size="13" fill="#e6f5ec" font-family="var(--f-mono)">BMS</text>`;}
+  // dims
+  s+=`<g font-family="var(--f-mono)" font-size="14" fill="var(--muted)" stroke="var(--muted)">
+   <line x1="-25" y1="0" x2="-25" y2="${-B.H}" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="-32" y="${-B.H/2}" text-anchor="middle" transform="rotate(-90 -32 ${-B.H/2})">${B.H} มม.</text>
+   <line x1="${W+18}" y1="0" x2="${W+18}" y2="${-m.Ht}" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="${W+34}" y="${-m.Ht/2}" text-anchor="middle" transform="rotate(-90 ${W+34} ${-m.Ht/2})">เซลล์ ${m.Ht}</text>
+   <line x1="0" y1="22" x2="${W}" y2="22" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="${W/2}" y="40" text-anchor="middle">${W} มม. (${front?'ยาว':'กว้าง'})</text></g>`;
+  svg.innerHTML=`<defs><marker id="ar2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10z" fill="var(--muted)"/></marker></defs>`+s;
+  $$('#sideSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.side));
+}
+
+function renderSideFront(){
+  const m=cm(),B=S.box,HT=B.H+BMS_BAY,end=S.side==='end',svg=$('#svgSide');
+  $$('#sideSeg button').forEach(b=>{b.textContent=b.dataset.v==='front'?'มุมบน':'ด้านข้าง';b.setAttribute('aria-pressed',b.dataset.v===S.side);});
+  let s='';const mk=`<defs><marker id="ar2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10z" fill="var(--muted)"/></marker></defs>`;
+  if(end){
+    fitSvg(svg,[-70,-HT-35,B.W+150,HT+80]);
+    s+=`<rect x="0" y="${-HT}" width="${B.W}" height="${HT}" fill="var(--box-fill)" stroke="var(--box)" stroke-width="3"/><rect x="0" y="${-B.H-4}" width="${B.W}" height="8" fill="var(--box)" opacity=".6"/>`;
+    s+=`<line x1="-3" y1="0" x2="-3" y2="${-HT}" stroke="var(--box)" stroke-width="2" stroke-dasharray="8 6"/><text x="-8" y="${-HT+14}" text-anchor="end" font-size="12" fill="var(--muted)">ประตู</text>`;
+    const seen=new Set();
+    S.cells.forEach((c,i)=>{const b=cell3D(c),key=Math.round(b.z0);if(seen.has(key))return;seen.add(key);
+      s+=`<rect x="${b.y0}" y="${-b.z1}" width="${b.y1-b.y0}" height="${b.z1-b.z0}" fill="var(--cell-side)" stroke="var(--cell-side-2)"/>`;});
+    S.cells.forEach(c=>['+','-'].forEach(t=>{const p=term3D(c,t);s+=`<rect x="-6" y="${-p.z-9}" width="9" height="18" fill="${t==='+'?'var(--pos)':'var(--neg)'}"/>`;}));
+    S.links.forEach(l=>{const a=term3D(S.cells[parseInt(l.a)],l.a.slice(-1)),b=term3D(S.cells[parseInt(l.b)],l.b.slice(-1));
+      s+=`<rect x="-12" y="${-Math.max(a.z,b.z)-10}" width="6" height="${Math.abs(a.z-b.z)+20}" fill="var(--copper)"/>`;});
+    s+=`<rect x="20" y="${-B.H-58}" width="${B.W-40}" height="18" fill="var(--pcb)" stroke="var(--pcb-hi)"/><text x="${B.W/2}" y="${-B.H-45}" text-anchor="middle" font-size="12" fill="#e6f5ec" font-family="var(--f-mono)">BMS</text>`;
+    s+=`<g font-family="var(--f-mono)" font-size="14" fill="var(--muted)" stroke="var(--muted)">
+     <line x1="${B.W+20}" y1="0" x2="${B.W+20}" y2="${-B.H}" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="${B.W+38}" y="${-B.H/2}" text-anchor="middle" transform="rotate(-90 ${B.W+38} ${-B.H/2})">ช่องเซลล์ ${B.H}</text>
+     <line x1="${B.W+20}" y1="${-B.H}" x2="${B.W+20}" y2="${-HT}" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="${B.W+38}" y="${-B.H-BMS_BAY/2}" text-anchor="middle" transform="rotate(-90 ${B.W+38} ${-B.H-BMS_BAY/2})">BMS ${BMS_BAY}</text>
+     <line x1="0" y1="22" x2="${B.W}" y2="22" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="${B.W/2}" y="40" text-anchor="middle">ลึก ${B.W} มม.</text></g>`;
+  }else{
+    fitSvg(svg,[-60,-40,B.L+120,B.W+95]);
+    s+=`<rect x="0" y="0" width="${B.L}" height="${B.W}" fill="var(--box-fill)" stroke="var(--box)" stroke-width="3"/><text x="${B.L/2}" y="-10" text-anchor="middle" font-size="13" fill="var(--muted)">หน้าตู้ (ประตู) · ขั้วเซลล์หันมาทางนี้</text>`;
+    const top=Math.min(...S.cells.map(c=>c.y));
+    S.cells.filter(c=>Math.abs(c.y-top)<foot(c).h/2).forEach(c=>{const b=cell3D(c);
+      s+=`<rect x="${b.x0}" y="${b.y0}" width="${b.x1-b.x0}" height="${b.y1-b.y0}" fill="var(--cell-side)" stroke="var(--cell-side-2)"/>`;
+      ['+','-'].forEach(t=>{const p=term3D(c,t);s+=`<rect x="${p.x-9}" y="-4" width="18" height="8" fill="${t==='+'?'var(--pos)':'var(--neg)'}"/>`;});});
+    s+=`<g font-family="var(--f-mono)" font-size="14" fill="var(--muted)" stroke="var(--muted)">
+     <line x1="0" y1="${B.W+22}" x2="${B.L}" y2="${B.W+22}" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="${B.L/2}" y="${B.W+40}" text-anchor="middle">กว้าง ${B.L} มม.</text>
+     <line x1="-22" y1="0" x2="-22" y2="${B.W}" marker-start="url(#ar2)" marker-end="url(#ar2)"/><text stroke="none" x="-30" y="${B.W/2}" text-anchor="middle" transform="rotate(-90 -30 ${B.W/2})">ลึก ${B.W}</text></g>`;
+  }
+  svg.innerHTML=mk+s;
+}
+
+/* ---------- ISO view ---------- */
+function renderIso(){
+  const m=cm(),B=S.box,a=S.az*Math.PI/180,el=30*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),se=Math.sin(el),ce=Math.cos(el);
+  const cx=B.L/2,cy=B.W/2;
+  const P=(x,y,z)=>{const X=x-cx,Y=y-cy,u=X*ca-Y*sa,v=-(X*sa+Y*ca);return[u,v*se-z*ce,v*ce+z*se];};
+  const poly=(pts,fill,stroke,extra='')=>`<polygon points="${pts.map(p=>{const q=P(...p);return q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ')}" fill="${fill}" stroke="${stroke||'none'}" ${extra}/>`;
+  const nv=(nx,ny)=>-(nx*sa+ny*ca);
+  const cuboid=(x0,x1,y0,y1,z0,z1,c)=>{let s='';
+    const faces=[[-1,0,[[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[x0,y0,z1]],c.s1],[1,0,[[x1,y0,z0],[x1,y1,z0],[x1,y1,z1],[x1,y0,z1]],c.s1],
+      [0,-1,[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],c.s2],[0,1,[[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],c.s2]];
+    faces.forEach(([nx,ny,pts,f])=>{if(nv(nx,ny)>0)s+=poly(pts,f,c.e,'stroke-width="1"');});
+    s+=poly([[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]],c.t,c.e,'stroke-width="1"');return s;};
+  const depth=(x,y,z)=>P(x,y,z)[2];
+  const H=FRONT()?B.H+BMS_BAY:B.H,items=[];
+  // box floor + far walls
+  let pre=poly([[0,0,0],[B.L,0,0],[B.L,B.W,0],[0,B.W,0]],'var(--box-fill)','var(--box)','stroke-width="1.5"');
+  const walls=[[1,0,[[0,0,0],[0,B.W,0],[0,B.W,H],[0,0,H]]],[-1,0,[[B.L,0,0],[B.L,B.W,0],[B.L,B.W,H],[B.L,0,H]]],[0,1,[[0,0,0],[B.L,0,0],[B.L,0,H],[0,0,H]]],[0,-1,[[0,B.W,0],[B.L,B.W,0],[B.L,B.W,H],[0,B.W,H]]]];
+  let post='';
+  walls.forEach(([nx,ny,pts])=>{if(FRONT()&&ny===1)return;if(nv(nx,ny)>0)pre+=poly(pts,'var(--box-fill)','var(--box)','stroke-width="1.5"');else post+=poly(pts,'none','var(--box)','stroke-width="1.5" stroke-dasharray="5 4" opacity=".8"');});
+  for(let t=1;t<S.tiers;t++){const z=t*(m.Ht+TIER_GAP)-TIER_GAP/2;items.push({k:t*1e6-5e5,s:poly([[0,0,z],[B.L,0,z],[B.L,B.W,z],[0,B.W,z]],'var(--box)','var(--box)','opacity=".35"')});}
+  const FR=FRONT();
+  if(FR)items.push({k:5e6,s:poly([[0,0,B.H],[B.L,0,B.H],[B.L,B.W,B.H],[0,B.W,B.H]],'var(--box)','var(--box)','opacity=".3"')});
+  S.cells.forEach((c,i)=>{const b=cell3D(c);
+    let s=cuboid(b.x0,b.x1,b.y0,b.y1,b.z0,b.z1,FR?{s1:'var(--cell-side-2)',s2:'var(--cell-top)',t:'var(--cell-side)',e:'var(--cell-side-2)'}:{s1:'var(--cell-side)',s2:'var(--cell-side-2)',t:'var(--cell-top)',e:'var(--cell-side-2)'});
+    const showT=!FR||nv(0,-1)>0;
+    if(showT)['+','-'].forEach(t=>{const p=term3D(c,t),r=11,pts=[];for(let k=0;k<12;k++){const an=k/12*Math.PI*2;pts.push(FR?[p.x+Math.cos(an)*r,p.y+2,p.z+Math.sin(an)*r]:[p.x+Math.cos(an)*r,p.y+Math.sin(an)*r,p.z]);}
+      s+=poly(pts,t==='+'?'var(--pos)':'#3a4048','none');});
+    const lp=FR?P(c.x,0,(b.z0+b.z1)/2):P(c.x,c.y,b.z1);if(showT)s+=`<text x="${lp[0]}" y="${lp[1]+4}" text-anchor="middle" font-size="13" fill="#e6eef7" font-family="var(--f-mono)">${i+1}</text>`;
+    items.push({k:c.tier*1e6+depth((b.x0+b.x1)/2,(b.y0+b.y1)/2,(b.z0+b.z1)/2),s});});
+  // stacking order: sort by tier first via z boost for overlapping vertical stacks
+  items.sort((p,q)=>p.k-q.k);
+  // links over cells
+  let ls='';
+  S.links.forEach(l=>{const A=term3D(S.cells[parseInt(l.a)],l.a.slice(-1)),Bp=term3D(S.cells[parseInt(l.b)],l.b.slice(-1));
+    const pa=P(A.x,A.y,A.z+3),pb=P(Bp.x,Bp.y,Bp.z+3);
+    if(FR){if(nv(0,-1)<=0)return;const dx=Bp.x-A.x,dz=Bp.z-A.z,L=Math.hypot(dx,dz)||1,wx=-dz/L*10,wz=dx/L*10;
+      ls+=poly([[A.x+wx,-2,A.z+wz],[Bp.x+wx,-2,Bp.z+wz],[Bp.x-wx,-2,Bp.z-wz],[A.x-wx,-2,A.z-wz]],'var(--copper)','var(--copper-hi)','stroke-width="1"');}
+    else if(Math.abs(A.z-Bp.z)>1){const mid=P((A.x+Bp.x)/2+(A.x<B.L/2?-60:60),(A.y+Bp.y)/2,(A.z+Bp.z)/2);ls+=`<path d="M${pa[0]},${pa[1]} Q${mid[0]},${mid[1]} ${pb[0]},${pb[1]}" fill="none" stroke="var(--copper)" stroke-width="5"/>`;}
+    else{const dx=Bp.x-A.x,dy=Bp.y-A.y,L=Math.hypot(dx,dy)||1,wx=-dy/L*10,wy=dx/L*10;
+      ls+=poly([[A.x+wx,A.y+wy,A.z+3],[Bp.x+wx,Bp.y+wy,Bp.z+3],[Bp.x-wx,Bp.y-wy,Bp.z+3],[A.x-wx,A.y-wy,A.z+3]],'var(--copper)','var(--copper-hi)','stroke-width="1"');}});
+  // BMS board + sense wires
+  let bs='';const bz=FR?B.H+40:S.tiers*(m.Ht+TIER_GAP)+30;
+  if(bz+20<H){bs+=cuboid(B.L/2-150,B.L/2+150,B.W/2-50,B.W/2+50,bz,bz+18,{s1:'var(--pcb)',s2:'var(--pcb)',t:'var(--pcb-hi)',e:'var(--pcb)'});
+    const lp=P(B.L/2,B.W/2,bz+18);bs+=`<text x="${lp[0]}" y="${lp[1]+4}" text-anchor="middle" font-size="13" fill="#eafff2" font-family="var(--f-mono)">${esc(bm().name.split(' ')[0])}</text>`;
+    Object.entries(S.h).forEach(([w,at],k)=>{if(typeof at!=='string')return;const i=parseInt(at),c=S.cells[i];if(!c)return;const p=term3D(c,at.slice(-1));
+      const q0=P(B.L/2-140+(k%18)*16,B.W/2-50,bz),q1=P(p.x,p.y,p.z+3);
+      const col=w==='B-'?'var(--comm)':w==='BAT+'||w==='MAIN+'?'var(--pos)':w==='P-'?'var(--neg)':'var(--muted)';
+      bs+=`<line x1="${q0[0]}" y1="${q0[1]}" x2="${q1[0]}" y2="${q1[1]}" stroke="${col}" stroke-width="${w.startsWith('B')&&w!=='B-'&&w!=='BAT+'?1.2:3}"/>`;});}
+  const all=pre+items.map(x=>x.s).join('')+ls+bs+post;
+  // bounds
+  const corners=[];[0,B.L].forEach(x=>[0,B.W].forEach(y=>[0,H].forEach(z=>corners.push(P(x,y,z)))));
+  const xs=corners.map(p=>p[0]),ys=corners.map(p=>p[1]),pad=30;
+  const svg=$('#svgIso');fitSvg(svg,[Math.min(...xs)-pad,Math.min(...ys)-pad,Math.max(...xs)-Math.min(...xs)+pad*2,Math.max(...ys)-Math.min(...ys)+pad*2]);
+  svg.innerHTML=all;$('#azRange').value=S.az;$('#azVal').textContent=S.az+'°';
+}
+function renderLayoutAll(){renderTop();renderSide();renderIso();renderSpecs();updateSteps();}
+let rafL=0;function scheduleLayout(){if(rafL)return;rafL=requestAnimationFrame(()=>{rafL=0;renderLayoutAll();});}
+
+/* ---------- layout interactions ---------- */
+function svgPt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+let drag=null;
+$('#svgTop').addEventListener('pointerdown',e=>{
+  const g=e.target.closest('[data-cell]');const svg=$('#svgTop');
+  if(!g){S.sel=null;renderTop();return;}
+  const i=+g.dataset.cell,c=S.cells[i],p=svgPt(svg,e);S.sel=i;
+  drag={i,dx:p.x-c.x,dy:p.y-(c.y+panelY(c.tier))};svg.setPointerCapture(e.pointerId);renderTop();
+});
+$('#svgTop').addEventListener('pointermove',e=>{
+  if(!drag)return;const svg=$('#svgTop'),p=svgPt(svg,e),c=S.cells[drag.i];
+  const gy=p.y-drag.dy;let t=Math.floor((gy+PANEL_GAP/2)/(edH()+PANEL_GAP));t=Math.max(0,Math.min(S.tiers-1,t));
+  c.tier=t;c.x=Math.round(p.x-drag.dx);c.y=Math.round(gy-panelY(t));scheduleLayout();
+});
+const endDrag=()=>{if(drag){drag=null;save();resetElectrical(false);}};
+$('#svgTop').addEventListener('pointerup',endDrag);$('#svgTop').addEventListener('pointercancel',endDrag);
+$('#svgTop').addEventListener('dblclick',e=>{const g=e.target.closest('[data-cell]');if(g){rotSel(+g.dataset.cell,90);}});
+function rotSel(i,deg){const c=S.cells[i];c.rot=(c.rot+deg)%360;S.sel=i;save();renderLayoutAll();renderWire();}
+$('#selBox').addEventListener('click',e=>{const b=e.target.closest('[data-sa]');if(!b||S.sel==null)return;const a=b.dataset.sa;
+  if(a==='r90')rotSel(S.sel,90);if(a==='r180')rotSel(S.sel,180);
+  if(a==='tier'){const c=S.cells[S.sel];c.tier=c.tier?0:1;save();renderLayoutAll();renderWire();}});
+document.addEventListener('keydown',e=>{
+  if(S.tab!=='layout'||S.sel==null||/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
+  const c=S.cells[S.sel],st=e.shiftKey?10:1;let h=true;
+  if(e.key==='r'||e.key==='R')rotSel(S.sel,90);else if(e.key==='f'||e.key==='F')rotSel(S.sel,180);
+  else if(e.key==='ArrowLeft')c.x-=st;else if(e.key==='ArrowRight')c.x+=st;else if(e.key==='ArrowUp')c.y-=st;else if(e.key==='ArrowDown')c.y+=st;else h=false;
+  if(h){e.preventDefault();save();renderLayoutAll();}
+});
+let isoDrag=null;
+$('#svgIso').addEventListener('pointerdown',e=>{isoDrag={x:e.clientX,az:S.az};$('#svgIso').setPointerCapture(e.pointerId);});
+$('#svgIso').addEventListener('pointermove',e=>{if(!isoDrag)return;S.az=((Math.round(isoDrag.az+(e.clientX-isoDrag.x)*0.6))%360+360)%360;renderIso();});
+$('#svgIso').addEventListener('pointerup',()=>{isoDrag=null;save();});
+$('#azRange').addEventListener('input',e=>{S.az=+e.target.value;renderIso();save();});
+$('#isoReset').addEventListener('click',()=>{S.az=35;renderIso();save();});
+$('#sideSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.side=b.dataset.v;renderSide();save();});
+$('#btnGen').addEventListener('click',()=>{genLayout($('#arrSel').value);S.links=[];S.h={};S.hOrder=[];resetElectrical(true);syncBoxInputs();renderAll();});
+$('#btnFit').addEventListener('click',()=>{fitBox();syncBoxInputs();save();renderLayoutAll();});
+['L','W','H'].forEach(k=>$('#box'+k).addEventListener('change',e=>{S.box[k]=Math.max(50,+e.target.value||0);save();renderLayoutAll();renderWire();}));
+function syncBoxInputs(){$('#boxL').value=S.box.L;$('#boxW').value=S.box.W;$('#boxH').value=S.box.H;
+  $('#arrSel').innerHTML=arrOptions(S.s).map(([k,l])=>`<option value="${k}" ${k===S.arr?'selected':''}>${l}</option>`).join('');}
+
+/* ---------- WIRING ---------- */
+let pend=null,selChip=null;
+/* ---- multimeter with draggable probes ---- */
+const PR={red:{x:null,y:null,key:null,lab:''},black:{x:null,y:null,key:null,lab:''},next:'red'};
+let pdrag=null,clickBlockUntil=0,rafW=0;
+function meterGeom(){const g=wireBmsGeom();return{x:g.loadX+175,y:g.y-70,w:160,h:240};}
+function jackPos(c){const m=meterGeom();return c==='red'?{x:m.x+m.w-42,y:m.y+m.h-28}:{x:m.x+42,y:m.y+m.h-28};}
+function parkPos(c){const m=meterGeom();return c==='red'?{x:m.x+m.w+40,y:m.y+m.h+40}:{x:m.x+m.w+80,y:m.y+m.h+40};}
+function probeTargets(){
+  const T=[];S.cells.forEach((c,i)=>['+','-'].forEach(t=>{const p=tpos(i+t);T.push({x:p.x,y:p.y,key:i+t,lab:`เซลล์ ${i+1} ขั้ว ${t==='+'?'+':'−'}`});}));
+  harnessList().forEach(w=>{const at=S.h[w];if(typeof at==='string'&&at!=='LOAD'&&!w.startsWith('MAIN')){const p=pinPos(w);T.push({x:p.x,y:p.y,key:at,lab:'ขา '+w+' บน BMS'});}});
+  const g=wireBmsGeom();
+  if(typeof S.h['MAIN+']==='string')T.push({x:g.loadX+20,y:g.loadY,key:S.h['MAIN+'],lab:'BAT+ อินเวอร์เตอร์'});
+  if(S.h['P-']==='LOAD'&&S.active&&!S.damaged&&typeof S.h['B-']==='string')T.push({x:g.loadX+90,y:g.loadY,key:S.h['B-'],lab:'BAT− อินเวอร์เตอร์ (ผ่าน MOS)'});
+  return T;}
+function syncProbes(){const T=probeTargets();['red','black'].forEach(c=>{const p=PR[c];
+  if(p.key){const t=T.find(t=>t.key===p.key&&t.lab===p.lab)||T.find(t=>t.key===p.key);if(t){p.x=t.x;p.y=t.y;p.lab=t.lab;}else{p.key=null;}}
+  if(!p.key&&(p.x==null||pdrag==null)){if(p.x==null||!p.free){const q=parkPos(c);p.x=q.x;p.y=q.y;}}});}
+function snapProbe(c,x,y){const T=probeTargets();let best=null,bd=30;T.forEach(t=>{const d=Math.hypot(t.x-x,t.y-y);if(d<bd){bd=d;best=t;}});
+  const p=PR[c];if(best){p.x=best.x;p.y=best.y;p.key=best.key;p.lab=best.lab;p.free=false;}else{p.x=x;p.y=y;p.key=null;p.lab='';p.free=true;}}
+function meterRead(){
+  const r=WIRE||analyze(),a=PR.red.key,b=PR.black.key;
+  if(!a||!b)return{ok:false,v:0,txt:' 0.00',note:!a&&!b?'ลากปลายโพรบแดงและดำไปแตะขั้วที่ต้องการวัด':!a?'โพรบแดงยังลอยอยู่':'โพรบดำยังลอยอยู่'};
+  const lab=`แดง: ${PR.red.lab} · ดำ: ${PR.black.lab}`;
+  if(r.net[a]===r.net[b])return{ok:true,v:0,txt:' 0.000',note:lab+' (จุดเดียวกันทางไฟฟ้า)'};
+  if(r.pot[r.net[a]]===undefined||r.pot[r.net[b]]===undefined||!sameComp(r,a,b))return{ok:false,v:0,txt:' 0.00',note:lab+' · สองจุดไม่ได้ต่อถึงกัน ค่าลอย'};
+  const v=r.pot[r.net[a]]-r.pot[r.net[b]],av=Math.abs(v),t=(av<19.995?av.toFixed(3):av.toFixed(2));
+  return{ok:true,v,txt:(v<-0.0005?'-':' ')+t,note:lab+(v<-0.0005?' · ค่าติดลบ = สลับโพรบ หรือขั้วกลับ':'')};}
+function meterSVG(){
+  const m=meterGeom(),rd=meterRead(),cx=m.x+m.w/2;let s='';
+  s+=`<g><rect x="${m.x}" y="${m.y}" width="${m.w}" height="${m.h}" rx="16" fill="#e5a11a" stroke="#9c6500" stroke-width="3"/>
+   <rect x="${m.x+9}" y="${m.y+9}" width="${m.w-18}" height="${m.h-18}" rx="10" fill="#26292d"/>
+   <rect x="${m.x+18}" y="${m.y+20}" width="${m.w-36}" height="58" rx="4" fill="#b7c6a3" stroke="#6d7a5e"/>
+   <text x="${m.x+24}" y="${m.y+32}" font-size="9" fill="#2a3322" font-family="var(--f-mono)">AUTO  DC</text>
+   <text x="${m.x+m.w-22}" y="${m.y+68}" text-anchor="end" font-size="30" font-weight="600" fill="#1b2216" font-family="var(--f-mono)" letter-spacing="1">${rd.txt}</text>
+   <text x="${m.x+m.w-22}" y="${m.y+32}" text-anchor="end" font-size="11" fill="#2a3322" font-family="var(--f-mono)">V⎓</text>
+   <circle cx="${cx}" cy="${m.y+132}" r="34" fill="#17191b" stroke="#4a4f55" stroke-width="3"/>
+   <line x1="${cx}" y1="${m.y+132}" x2="${cx-22}" y2="${m.y+110}" stroke="#f0f0f0" stroke-width="5" stroke-linecap="round"/>
+   <g font-size="10" fill="#e8e8e8" font-family="var(--f-mono)"><text x="${cx-48}" y="${m.y+104}" fill="#ffd34d">V⎓</text><text x="${cx+30}" y="${m.y+104}">V~</text><text x="${cx+38}" y="${m.y+150}">Ω</text><text x="${cx-56}" y="${m.y+150}">OFF</text><text x="${cx-6}" y="${m.y+92}">mA</text></g>
+   <circle cx="${jackPos('black').x}" cy="${jackPos('black').y}" r="11" fill="#111" stroke="#666" stroke-width="3"/><text x="${jackPos('black').x}" y="${jackPos('black').y-16}" text-anchor="middle" font-size="9" fill="#ddd" font-family="var(--f-mono)">COM</text>
+   <circle cx="${jackPos('red').x}" cy="${jackPos('red').y}" r="11" fill="#111" stroke="#d33" stroke-width="3"/><text x="${jackPos('red').x}" y="${jackPos('red').y-16}" text-anchor="middle" font-size="9" fill="#ddd" font-family="var(--f-mono)">VΩ</text></g>`;
+  ['black','red'].forEach(c=>{const p=PR[c],J=jackPos(c),col=c==='red'?'#d22':'#151515',hx=p.x+18,hy=p.y-34;
+    s+=`<path d="M${J.x},${J.y} C${J.x},${J.y+90} ${hx+40},${hy-90} ${hx+16},${hy-30}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" opacity=".95"/>`;
+    s+=`<g data-probe="${c}" style="cursor:grab">
+      <line x1="${p.x}" y1="${p.y}" x2="${p.x+9}" y2="${p.y-17}" stroke="#d9dde2" stroke-width="3" stroke-linecap="round"/>
+      <polygon points="${p.x+5},${p.y-12} ${p.x+13},${p.y-22} ${p.x+34},${p.y-62} ${p.x+22},${p.y-68} ${p.x+2},${p.y-28}" fill="${col}" stroke="${c==='red'?'#7a0d0d':'#555'}" stroke-width="1.5"/>
+      <circle cx="${p.x+20}" cy="${p.y-40}" r="34" fill="transparent"/>
+      ${p.key?`<circle cx="${p.x}" cy="${p.y}" r="17" fill="none" stroke="${c==='red'?'#ff4d4d':'#9aa3ad'}" stroke-width="3"/>`:''}</g>`;});
+  return s;}
+function updMeter(){const rd=meterRead();$('#meterDisp').textContent=rd.txt.trim()+' V';$('#meterInfo').textContent=rd.note;}
+function wireBmsGeom(){const W=topSceneW(),y=topSceneH()+70;return{x:Math.max(0,W/2-210),y,w:300,h:100,loadX:Math.max(0,W/2-210)+340,loadY:y};}
+function pinPos(w){const g=wireBmsGeom();
+  if(/^B\d+$/.test(w)){const k=+w.slice(1);return{x:g.x+14+k*(Math.min(16,272/(S.s+1))),y:g.y};}
+  if(w==='B-')return{x:g.x+g.w-40,y:g.y};if(w==='BAT+')return{x:g.x+g.w-10,y:g.y+60};
+  if(w==='P-')return{x:g.x+g.w,y:g.y+82};if(w==='NTC1')return{x:g.x,y:g.y+30};if(w==='NTC2')return{x:g.x,y:g.y+55};
+  if(w==='MAIN+')return{x:g.loadX+20,y:g.loadY};if(w==='MAIN-')return{x:g.loadX+90,y:g.loadY};return{x:g.x,y:g.y};}
+function renderWire(){
+  const r=analyze();WIRE=r;
+  const g=wireBmsGeom(),W=topSceneW();
+  const svg=$('#svgWire'),mg=meterGeom();fitSvg(svg,[-30,-45,Math.max(W,mg.x+mg.w+130)+60,Math.max(g.y+g.h+80,mg.y+mg.h+100)+45]);
+  let s=boxPanelsSVG();
+  S.cells.forEach((c,i)=>s+=cellSVG(c,i,{mode:'wire',shorts:r.shorts,rev:r.reversed}));
+  S.links.forEach((l,i)=>s+=linkSVG(l,i));
+  // BMS board
+  const kind=bm().kind;
+  s+=`<g><rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx="5" fill="var(--pcb)" stroke="${S.damaged?'var(--bad)':'var(--pcb-hi)'}" stroke-width="${S.damaged?5:2}"/>
+    <text x="${g.x+g.w/2}" y="${g.y+55}" text-anchor="middle" font-size="17" fill="#eafff2" font-family="var(--f-mono)" font-weight="600">${esc(bm().name)}</text>
+    <text x="${g.x+g.w/2}" y="${g.y+76}" text-anchor="middle" font-size="12" fill="#cfeedd">${S.damaged?'⚠ ช่องวัดเสียหาย':S.active?'● ทำงาน':S.plugged?'เสียบปลั๊กแล้ว · รอกดเปิด':'ยังไม่เสียบปลั๊ก sense'}</text></g>`;
+  // pins
+  harnessList().forEach(w=>{const p=pinPos(w);if(w.startsWith('MAIN'))return;
+    s+=`<rect x="${p.x-5}" y="${p.y-5}" width="10" height="10" fill="${w==='B-'?'var(--comm)':w==='BAT+'?'var(--pos)':w==='P-'?'var(--neg)':'#ddd'}" stroke="#333"/>`;
+    if(/^B\d+$/.test(w)&&(+w.slice(1)%2===0||S.s<=8))s+=`<text x="${p.x}" y="${p.y+20}" text-anchor="middle" font-size="9" fill="#eafff2" font-family="var(--f-mono)">${w}</text>`;});
+  // load block
+  s+=`<g data-load="1" style="cursor:pointer"><rect x="${g.loadX}" y="${g.loadY}" width="120" height="${g.h}" rx="5" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/>
+    <text x="${g.loadX+60}" y="${g.loadY+38}" text-anchor="middle" font-size="14" fill="var(--ink)" font-family="var(--f-display)">อินเวอร์เตอร์</text>
+    <text x="${g.loadX+60}" y="${g.loadY+58}" text-anchor="middle" font-size="12" fill="var(--muted)">BAT+ ‧ BAT−</text>
+    <circle cx="${g.loadX+20}" cy="${g.loadY}" r="8" fill="var(--pos)"/><circle cx="${g.loadX+90}" cy="${g.loadY}" r="8" fill="var(--neg)" stroke="#888"/>
+    <rect data-load="1" x="${g.loadX}" y="${g.loadY}" width="120" height="${g.h}" fill="transparent"/></g>`;
+  // harness wires
+  const hc=harnessCheck(r).res;
+  Object.entries(S.h).forEach(([w,at])=>{
+    if(at==null)return;const p=pinPos(w);let q;
+    if(at==='LOAD')q={x:g.loadX+90,y:g.loadY};
+    else if(typeof at==='number'){const c=S.cells[at];q={x:c.x+foot(c).w/2-8,y:c.y+panelY(c.tier)};}
+    else q=tpos(at);
+    if(w==='P-'){q={x:g.loadX+90,y:g.loadY+g.h};}
+    const col=w==='B-'||w==='MAIN-'?'var(--comm)':w==='BAT+'||w==='MAIN+'?'var(--pos)':w==='P-'?'var(--neg)':w.startsWith('NTC')?'var(--warn)':'#d7d7d7';
+    const wd=/^B\d+$/.test(w)||w.startsWith('NTC')?2.2:7;
+    const bad=hc[w]==='wrong';
+    if(w==='P-'){s+=`<path d="M${p.x},${p.y} C${p.x+60},${p.y} ${q.x},${q.y+30} ${q.x},${q.y}" fill="none" stroke="var(--neg)" stroke-width="7"/>`;return;}
+    if(w==='MAIN+'||w==='MAIN-'){s+=`<path d="M${q.x},${q.y} C${q.x},${q.y+120} ${p.x},${p.y-120} ${p.x},${p.y}" fill="none" stroke="${col}" stroke-width="7" opacity=".9"/>`;}
+    else s+=`<path d="M${p.x},${p.y} C${p.x},${p.y-70} ${q.x},${q.y+70} ${q.x},${q.y}" fill="none" stroke="${bad?'var(--bad)':col}" stroke-width="${wd}" opacity=".95"/>`;
+    s+=`<g><rect x="${q.x+8}" y="${q.y-24}" width="${w.length*8+10}" height="17" rx="8" fill="${bad?'var(--bad)':'var(--surface)'}" stroke="${bad?'var(--bad)':'var(--line)'}"/><text x="${q.x+13}" y="${q.y-11}" font-size="12" font-family="var(--f-mono)" fill="${bad?'#fff':'var(--ink)'}">${w}</text></g>`;
+  });
+  // pending / probes
+  if(pend){const p=tpos(pend);s+=`<circle cx="${p.x}" cy="${p.y}" r="24" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="6 4"/>`;}
+  syncProbes();s+=meterSVG();
+  svg.innerHTML=s;updMeter();
+  $$('#toolSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===S.tool));
+  const hints={link:'<b>บัสบาร์</b> คลิกขั้ว + ของเซลล์หนึ่ง แล้วคลิกขั้ว − ของเซลล์ถัดไป',harness:'<b>สาย BMS</b> เลือกสายทางขวา แล้วคลิกขั้วเซลล์ (P− คลิกที่กล่องอินเวอร์เตอร์ · NTC คลิกตัวเซลล์)',meter:'<b>มิเตอร์</b> ลากปลายโพรบแดง/ดำไปแตะขั้ว หรือคลิกขั้ว (สลับแดง → ดำ)',erase:'<b>ลบ</b> คลิกบัสบาร์หรือป้ายสายที่ต้องการลบ'};
+  $('#wireHint').innerHTML=hints[S.tool];
+  renderHarnessBox(r);renderWireChecks(r);renderSense(r);updateSteps();
+}
+let WIRE=null;
+function renderHarnessBox(r){
+  const L=harnessList(),hc=harnessCheck(r).res;
+  if(!selChip||!L.includes(selChip))selChip=L.find(w=>S.h[w]==null)||L[0];
+  $('#harnessBox').innerHTML=`<div class="lbl">ชุดสาย ${esc(bm().name)} (${L.length} เส้น)</div>
+   <div class="chips">${L.map(w=>`<button class="chip ${S.tool==='harness'&&selChip===w?'sel':hc[w]==='ok'?'ok':hc[w]==='wrong'?'bad':''}" data-chip="${w}">${w}${S.h[w]!=null?(hc[w]==='ok'?' ✓':hc[w]==='wrong'?' ✕':' •'):''}</button>`).join('')}</div>
+   <p class="note">${S.tool==='harness'?esc(hDesc(selChip)):'เลือกเครื่องมือ "สาย BMS" เพื่อเริ่มต่อสาย'}</p>
+   ${bm().kind==='bal'?'<div class="alert">Balancer ไม่มีวงจรตัดกระแส ต้องใช้ฟิวส์/เบรกเกอร์และอุปกรณ์ป้องกันแยกต่างหาก</div>':''}
+   ${S.s<16&&bm().kind==='ess'?`<p class="note">BMS 16S ใช้กับ ${S.s}S: ต่อเฉพาะ B0–B${S.s} และตั้งจำนวนเซลล์ = ${S.s} ในแอป สายที่เหลือให้ทำตามแผนภาพรุ่นที่ใช้ (ส่วนใหญ่ให้รวมไว้ที่ขั้วบวกสุดท้าย) ห้ามปล่อยปลายเปลือย</p>`:''}`;
+}
+function renderWireChecks(r){
+  const L=[],n=S.cells.length,b=bm();
+  if(!(S.s>=b.sMin&&S.s<=b.sMax))L.push(['bad',`${b.name} รองรับ ${b.sMin}–${b.sMax}S ใช้กับ ${S.s}S ไม่ได้ เปลี่ยนรุ่น BMS ที่หัวหน้าจอ`]);
+  if(r.shorts.length)L.push(['bad',`ลัดวงจร! เซลล์ ${r.shorts.map(i=>i+1).join(', ')} ขั้ว + ต่อเข้ากับ − ของตัวเอง`]);
+  if(r.conflict)L.push(['bad','มีวงลูปลัดวงจรผ่านหลายเซลล์ (ต่อบวกชนลบข้ามแถว) ตรวจบัสบาร์ที่เพิ่งต่อ']);
+  if(r.parallel)L.push(['warn','พบขั้วหนึ่งต่อกับมากกว่า 1 บัสบาร์ (ขนานในแพ็ก) แบบนี้ไม่ใช่ '+S.s+'S1P']);
+  const linked=new Set();S.links.forEach(l=>{linked.add(parseInt(l.a));linked.add(parseInt(l.b));});
+  const loose=S.cells.map((c,i)=>i).filter(i=>!linked.has(i));
+  if(loose.length&&S.links.length)L.push(['warn',`เซลล์ที่ยังไม่ได้ต่อ: ${loose.map(i=>i+1).join(', ')}`]);
+  if(!S.links.length)L.push(['warn','ยังไม่มีบัสบาร์ เริ่มจากขั้ว + เซลล์ 1 ไปขั้ว − เซลล์ 2']);
+  if(r.order){
+    if(r.reversed.length)L.push(['bad',`เซลล์ ${r.reversed.map(i=>i+1).join(', ')} ต่อกลับขั้ว แรงดันรวมเหลือ ${fmt(r.packV,2)} V แทนที่จะเป็น ≈${fmt(S.s*3.3,1)} V`]);
+    else L.push(['ok',`ต่ออนุกรม ${S.s}S ครบ · แรงดันรวมวัดได้ ${fmt(r.packV,2)} V`]);
+    const lens=S.links.map(l=>{const a=term(S.cells[parseInt(l.a)],l.a.slice(-1)),b=term(S.cells[parseInt(l.b)],l.b.slice(-1));return d3(a,b);});
+    const long=lens.filter(x=>x>130).length;L.push(['ok',`บัสบาร์แข็ง ${lens.length-long} ชิ้น · สาย/บัสบาร์อ่อน ${long} เส้น (ยาวสุด ${fmt(Math.max(...lens),0)} มม.)`]);
+  }else if(S.links.length&&!r.shorts.length&&!r.conflict)L.push(['warn',`ยังต่อไม่ครบวงจรอนุกรม (${S.links.length}/${n-1} บัสบาร์)`]);
+  const hc=harnessCheck(r).res,wrong=Object.entries(hc).filter(([w,v])=>v==='wrong').map(([w])=>w),miss=Object.entries(hc).filter(([w,v])=>v==='missing').map(([w])=>w);
+  if(wrong.length)L.push(['bad',`สาย BMS ต่อผิดตำแหน่ง: ${wrong.join(', ')}`]);
+  if(miss.length)L.push(['warn',`สาย BMS ที่ยังไม่ได้ต่อ: ${miss.join(', ')}`]);
+  if(!wrong.length&&!miss.length&&r.ok)L.push(['ok','ต่อสาย BMS ครบและถูกตำแหน่ง']);
+  const ord=S.hOrder.filter(w=>/^B\d+$/.test(w)||w==='B-');
+  if(bm().kind!=='bal'&&ord.length&&ord[0]!=='B-'&&S.h['B-']!=null)L.push(['warn','ลำดับที่แนะนำ: ต่อ B− เข้าขั้วลบรวมก่อน แล้วจึงต่อสาย sense B0 → B'+S.s]);
+  $('#wireChecks').innerHTML=L.map(([k,t])=>`<li class="${k}">${t}</li>`).join('');
+  $('#wireAlert').innerHTML=(r.shorts.length||r.conflict)?'<div class="alert">⚡ ลัดวงจร: ในงานจริงจะเกิดประกายไฟ บัสบาร์ร้อนแดง และเซลล์เสียหาย ให้ลบบัสบาร์ที่ผิดทันที</div>':'';
+}
+function renderSense(r){
+  const {res,ch}=harnessCheck(r);
+  let rows='';for(let k=0;k<=S.s;k++){const w='B'+k,at=S.h[w];let v='—',cls='';
+    if(at!=null&&r.pot[r.net[at]]!==undefined&&S.h.B0!=null&&sameComp(r,at,S.h.B0)){v=fmt(r.pot[r.net[at]]-r.pot[r.net[S.h.B0]],3);}
+    const c=k>0?ch[k-1]:null;let cs=c==null?'—':isNaN(c)?'?':fmt(c,3);
+    if(c!=null&&!isNaN(c)&&(c<0.5||c>4.5))cls='style="color:var(--bad);font-weight:600"';
+    rows+=`<tr><td class="mono">${w}</td><td class="n">${v}</td><td class="n" ${cls}>${k>0?cs:''}</td><td>${res[w]==='ok'?'<span style="color:var(--ok)">ถูก</span>':res[w]==='wrong'?'<span style="color:var(--bad)">ผิด</span>':res[w]==='missing'?'<span class="muted">ยังไม่ต่อ</span>':'<span class="muted">?</span>'}</td></tr>`;}
+  $('#senseTable').innerHTML=`<table><thead><tr><th>สาย</th><th>V เทียบ B0</th><th>ต่อเซลล์</th><th>ตำแหน่ง</th></tr></thead><tbody>${rows}</tbody></table><p class="note">ค่าต้องเพิ่มขึ้นทีละ ~3.3 V จาก B0 ถึง B${S.s} ถ้ามีค่าติดลบหรือกระโดดเกิน 4.5 V ห้ามเสียบปลั๊ก</p>`;
+  const m=$('#plugMsg');let t='';
+  if(S.damaged)t='<div class="alert">BMS เสียหายจากการเสียบปลั๊กขณะสายผิด (ช่องวัดได้แรงดันกลับขั้ว/เกินพิกัด) ต้องถอดและเปลี่ยนบอร์ด กด "ถอดปลั๊ก/รีเซ็ต" เพื่อฝึกใหม่</div>';
+  else if(S.active)t='<p style="color:var(--ok);font-weight:600">BMS ทำงานแล้ว ไปที่แท็บ 3 เพื่อเชื่อมต่อแอปและตั้งค่า</p>';
+  else if(S.plugged)t='<p class="note">เสียบปลั๊กแล้ว กดปุ่มเปิด (หรือจ่ายไฟชาร์จสูงกว่าแรงดันแพ็กราว 5 V) เพื่อปลุก BMS</p>';
+  m.innerHTML=t;
+  $('#btnPlug').disabled=S.plugged;$('#btnActivate').disabled=!S.plugged||S.active||S.damaged;
+}
+$('#toolSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.tool=b.dataset.tool;pend=null;renderWire();save();});
+$('#harnessBox').addEventListener('click',e=>{const b=e.target.closest('[data-chip]');if(!b)return;selChip=b.dataset.chip;S.tool='harness';renderWire();});
+$('#svgWire').addEventListener('pointerdown',e=>{const pe=e.target.closest('[data-probe]');if(!pe)return;e.preventDefault();
+  const svg=$('#svgWire'),pt=svgPt(svg,e),c=pe.dataset.probe;pdrag={c,dx:pt.x-PR[c].x,dy:pt.y-PR[c].y};svg.setPointerCapture(e.pointerId);});
+$('#svgWire').addEventListener('pointermove',e=>{if(!pdrag)return;const pt=svgPt($('#svgWire'),e);snapProbe(pdrag.c,pt.x-pdrag.dx,pt.y-pdrag.dy);
+  if(!rafW)rafW=requestAnimationFrame(()=>{rafW=0;renderWire();});});
+const endP=()=>{if(pdrag){pdrag=null;clickBlockUntil=performance.now()+350;renderWire();}};
+$('#svgWire').addEventListener('pointerup',endP);$('#svgWire').addEventListener('pointercancel',endP);
+$('#svgWire').addEventListener('click',e=>{if(performance.now()<clickBlockUntil)return;
+  const tEl=e.target.closest('[data-term]'),lEl=e.target.closest('[data-link]'),cEl=e.target.closest('[data-cell]'),ld=e.target.closest('[data-load]');
+  const k=tEl?tEl.dataset.term:null;
+  if(S.tool==='erase'){
+    if(lEl){S.links.splice(+lEl.dataset.link,1);afterWireChange();return;}
+    if(k){let ch=false;Object.keys(S.h).forEach(w=>{if(S.h[w]===k){delete S.h[w];ch=true;}});if(ch)afterWireChange();return;}
+    return;}
+  if(S.tool==='link'&&k){
+    if(!pend){pend=k;renderWire();return;}
+    if(pend===k){pend=null;renderWire();return;}
+    const ex=S.links.findIndex(l=>(l.a===pend&&l.b===k)||(l.a===k&&l.b===pend));
+    if(ex>=0)S.links.splice(ex,1);else S.links.push({a:pend,b:k});
+    pend=null;afterWireChange();return;}
+  if(S.tool==='harness'){
+    const w=selChip;if(!w)return;
+    if(w==='P-'){if(ld){S.h[w]='LOAD';}else return;}
+    else if(w.startsWith('NTC')){if(cEl)S.h[w]=+cEl.dataset.cell;else return;}
+    else if(k)S.h[w]=k;else return;
+    S.hOrder.push(w);const L=harnessList();selChip=L.find(x=>S.h[x]==null)||w;afterWireChange();return;}
+  if(S.tool==='meter'&&k){const p=tpos(k);snapProbe(PR.next,p.x,p.y);PR.next=PR.next==='red'?'black':'red';renderWire();}
+});
+function afterWireChange(){resetElectrical(false);save();renderWire();renderIso();renderSide();}
+function resetElectrical(full){if(S.plugged&&!S.active){} if(full){S.plugged=false;S.active=false;S.damaged=false;}}
+$('#autoLinks').addEventListener('click',()=>{S.links=[];for(let i=0;i<S.cells.length-1;i++)S.links.push({a:i+'+',b:(i+1)+'-'});pend=null;afterWireChange();});
+$('#autoHarness').addEventListener('click',()=>{const r=analyze();if(!r.ok){$('#wireAlert').innerHTML='<div class="alert">ต่อบัสบาร์อนุกรมให้ถูกต้องก่อน จึงจะต่อสาย BMS อัตโนมัติได้</div>';return;}
+  S.h={};S.hOrder=[];const ord=r.order,pick=n=>{const key=Object.keys(r.net).find(k=>r.net[k]===n);return key;};
+  harnessList().forEach(w=>{
+    if(w==='B-'||w==='MAIN-')S.h[w]=pick(ord[0]);else if(w==='BAT+'||w==='MAIN+')S.h[w]=pick(ord[S.s]);else if(w==='P-')S.h[w]='LOAD';
+    else if(w==='NTC1')S.h[w]=Math.floor(S.s/4);else if(w==='NTC2')S.h[w]=Math.floor(S.s*3/4);else S.h[w]=pick(ord[+w.slice(1)]);
+    S.hOrder.push(w);});afterWireChange();});
+$('#clearWire').addEventListener('click',()=>{S.links=[];S.h={};S.hOrder=[];pend=null;S.plugged=false;S.active=false;S.damaged=false;afterWireChange();});
+$('#btnPlug').addEventListener('click',()=>{
+  const r=analyze(),{ch}=harnessCheck(r);S.plugged=true;
+  const bad=ch.some(v=>v!=null&&!isNaN(v)&&(v<-0.2||v>4.8));
+  if(bad){S.damaged=true;logEv('b','เสียบปลั๊ก sense ขณะสายผิด → ช่องวัด BMS เสียหาย');}
+  else logEv('o','เสียบปลั๊ก sense เข้า BMS');
+  save();renderWire();});
+$('#btnActivate').addEventListener('click',()=>{
+  const r=analyze(),hc=harnessCheck(r).res,k=bm().kind;
+  const need=k==='bal'?['B0']:k==='ess'?['B-','BAT+']:['B-'];
+  const miss=need.filter(w=>hc[w]!=='ok');
+  if(miss.length){$('#plugMsg').innerHTML=`<div class="alert">BMS ไม่ติด: สาย ${miss.join(', ')} ยังไม่ถูกต้อง (บอร์ดรับไฟเลี้ยงผ่านสายนี้)</div>`;return;}
+  S.active=true;SIM.off=false;logEv('o','BMS เปิดทำงาน (Activate)');save();renderWire();updateSteps();});
+$('#btnUnplug').addEventListener('click',()=>{S.plugged=false;S.active=false;S.damaged=false;save();renderWire();updateSteps();});
+
+/* ---------- BMS app + sim ---------- */
+let phTab='status';
+function bmsReady(){const r=WIRE||analyze();return S.active&&!S.damaged&&r.ok;}
+function packSeen(){ // cells the BMS measures, honoring cell count setting
+  const st=S.set,n=st.cells;const out=[];for(let i=0;i<n;i++)out.push(i<S.s?SIM.cells[i].v:0);return out;}
+function renderPhone(){
+  const ph=$('#phone'),st=S.set,b=bm();
+  const head=`<div class="ph-head"><span>JK BMS</span><span class="mono" style="font-size:.75rem;color:var(--phone-mute)">${esc(b.name.split(' ')[0])}_${S.par.packs[0]?S.par.packs[0].addr:0}</span><span>${bmsReady()&&!SIM.off?'ᛒ เชื่อมต่อ':'ᛒ ไม่พบอุปกรณ์'}</span></div>`;
+  const tabs=`<div class="ph-tabs"><button data-ph="status" aria-pressed="${phTab==='status'}">สถานะ</button><button data-ph="set" aria-pressed="${phTab==='set'}">ตั้งค่า</button><button data-ph="ctl" aria-pressed="${phTab==='ctl'}">ควบคุม</button></div>`;
+  let body='';
+  if(!bmsReady()||SIM.off){
+    body=`<div class="ph-card"><b>ไม่พบ BMS ทาง Bluetooth</b><span style="font-size:.85rem;color:var(--phone-mute)">${SIM.off?'BMS ปิดตัวเพราะแรงดันเซลล์ต่ำกว่าค่า Shutdown — ต้องชาร์จเพื่อปลุก':S.damaged?'บอร์ดเสียหายจากการต่อสายผิด':'ต้องต่อบัสบาร์ ต่อสาย BMS เสียบปลั๊ก และกดเปิดในแท็บ 2 ก่อน'}</span>
+      <button class="ph-btn" data-ph-act="${SIM.off?'wake':'quick'}">${SIM.off?'ต่อเครื่องชาร์จเพื่อปลุก BMS':'ข้ามไป: ประกอบแพ็กสำเร็จรูปให้'}</button></div>`;
+  }else if(phTab==='status')body=statusHTML();
+  else if(phTab==='set')body=setHTML();
+  else body=ctlHTML();
+  ph.innerHTML=head+tabs+`<div class="ph-body" id="phBody">${body}</div>`;
+}
+function statusHTML(){
+  const st=S.set,V=packSeen(),n=V.length,real=V.slice(0,Math.min(n,S.s));
+  const tot=V.reduce((a,b)=>a+b,0),mx=Math.max(...V),mn=Math.min(...V),avg=tot/n;
+  const imx=V.indexOf(mx),imn=V.indexOf(mn),I=SIM.I,soc=Math.round(SIM.socB);
+  const al=alarms();
+  const ring=(()=>{const r=36,c=2*Math.PI*r,p=Math.max(0,Math.min(100,soc))/100;return`<svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="${r}" fill="none" stroke="#24405f" stroke-width="9"/><circle cx="48" cy="48" r="${r}" fill="none" stroke="${soc<15?'#ee5a50':'#3fa9f5'}" stroke-width="9" stroke-dasharray="${c*p} ${c}" transform="rotate(-90 48 48)" stroke-linecap="round"/><text x="48" y="53" text-anchor="middle" font-size="20" fill="#e8f0f8" font-family="IBM Plex Mono,monospace">${soc}%</text></svg>`;})();
+  return `${al.length?`<div class="ph-alarm">${al.map(esc).join('<br>')}</div>`:''}
+  <div class="ph-card" style="grid-template-columns:96px 1fr;align-items:center">${ring}
+    <div class="ph-kv" style="grid-template-columns:repeat(2,1fr)">
+      <div><b>${fmt(tot,2)} V</b><span>แรงดันแบต</span></div><div><b>${fmt(I,1)} A</b><span>${I>0.1?'กำลังชาร์จ':I<-0.1?'กำลังจ่าย':'พัก'}</span></div>
+      <div><b>${fmt(tot*I/1000,2)} kW</b><span>กำลัง</span></div><div><b>${fmt(st.cap*soc/100,0)} Ah</b><span>ความจุคงเหลือ</span></div></div></div>
+  <div class="ph-card"><div class="ph-kv">
+    <div><b>${fmt(avg,3)}</b><span>เฉลี่ย V</span></div><div><b>${fmt((mx-mn)*1000,0)} mV</b><span>ผลต่างสูงสุด</span></div><div><b>${fmt(SIM.bal||0,2)} A</b><span>กระแสบาลานซ์</span></div>
+    <div><b>${fmt(SIM.Tm,1)}°C</b><span>MOS</span></div><div><b>${fmt(SIM.Tc,1)}°C</b><span>T1 / T2</span></div><div><b>${fmt(SIM.t/3600,2)} ชม.</b><span>เวลาจำลอง</span></div></div></div>
+  <div class="ph-card"><div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--phone-mute)"><span>แรงดันเซลล์ (${n})</span><span><span style="color:#7cc6ff">■</span> สูงสุด <span style="color:#ff8a80">■</span> ต่ำสุด</span></div>
+    <div class="cellgrid">${V.map((v,i)=>`<div class="${i===imx?'hi':i===imn?'lo':''}"><i>${String(i+1).padStart(2,'0')}</i>${fmt(v,3)}</div>`).join('')}</div></div>
+  <div class="ph-card" style="grid-template-columns:repeat(3,1fr);font-size:.78rem">
+    ${[['ชาร์จ',chgOn()],['จ่าย',dsgOn()],['บาลานซ์',(SIM.bal||0)>0.01]].map(([l,on])=>`<span><span style="color:${on?'#2fe08a':'#ee5a50'}">●</span> ${l} ${on?'เปิด':'ปิด'}</span>`).join('')}</div>`;
+}
+const SETF=[
+  ['ข้อมูลแบต',[['type','ชนิดแบต','sel',['LFP','NMC','LTO']],['cells','จำนวนเซลล์','n',1],['cap','ความจุแบต (Ah)','n',1]]],
+  ['บาลานซ์',[['balTrig','แรงดันต่างเริ่มบาลานซ์ (V)','n',0.001],['balMax','กระแสบาลานซ์สูงสุด (A)','n',0.1],['balStart','แรงดันเริ่มบาลานซ์ (V)','n',0.01]]],
+  ['แรงดัน',[['ovp','ป้องกันชาร์จเกินเซลล์ OVP (V)','n',0.01],['ovpr','คืนสภาพ OVP (V)','n',0.01],['uvp','ป้องกันคายเกินเซลล์ UVP (V)','n',0.01],['uvpr','คืนสภาพ UVP (V)','n',0.01],['soc100','แรงดัน SOC‑100% (V)','n',0.01],['soc0','แรงดัน SOC‑0% (V)','n',0.01],['off','แรงดันปิดเครื่อง (V)','n',0.01],['rcv','RCV แรงดันขอชาร์จ/เซลล์ (V)','n',0.01],['rfv','RFV แรงดันลอยตัว/เซลล์ (V)','n',0.01]]],
+  ['กระแส',[['chgI','กระแสชาร์จต่อเนื่อง (A)','n',1],['chgDly','หน่วงตัดชาร์จเกิน (s)','n',1],['chgRel','เวลาคืนสภาพชาร์จเกิน (s)','n',1],['dsgI','กระแสจ่ายต่อเนื่อง (A)','n',1],['dsgDly','หน่วงตัดจ่ายเกิน (s)','n',1],['dsgRel','เวลาคืนสภาพจ่ายเกิน (s)','n',1],['scpDly','หน่วงลัดวงจร (µs)','n',1],['scpRel','เวลาคืนสภาพลัดวงจร (s)','n',1],['pre','เวลา Pre‑charge (s)','n',1]]],
+  ['อุณหภูมิ',[['cotp','ชาร์จร้อนเกิน (°C)','n',1],['cotpr','คืนสภาพ (°C)','n',1],['dotp','จ่ายร้อนเกิน (°C)','n',1],['dotpr','คืนสภาพ (°C)','n',1],['cutp','ชาร์จต่ำเกิน (°C)','n',1],['cutpr','คืนสภาพ (°C)','n',1],['mosotp','MOS ร้อนเกิน (°C)','n',1],['mosotpr','คืนสภาพ MOS (°C)','n',1]]],
+  ['สื่อสาร',[['proto','โปรโตคอลอินเวอร์เตอร์','sel',['CAN','RS485']]]]
+];
+function setHTML(){
+  const st=S.set;
+  if(!st.unlocked)return`<div class="ph-card"><b>ใส่รหัสอนุญาต</b><span style="font-size:.8rem;color:var(--phone-mute)">หน้าตั้งค่าต้องใช้รหัส (ค่าเริ่มต้นตามคู่มือ 123456) ควรเปลี่ยนรหัสหลังติดตั้ง</span>
+    <input id="phPw" type="password" inputmode="numeric" style="background:#0b1a2b;color:#e8f0f8;border:1px solid #2a4a6b;border-radius:6px;padding:8px" aria-label="รหัสผ่าน"><button class="ph-btn" data-ph-act="unlock">ยืนยัน</button><span id="phPwMsg" style="font-size:.8rem;color:#ff8a80"></span></div>`;
+  const chk=setIssues(),byKey={};chk.forEach(([lv,t,k])=>{if(k&&lv!=='ok')byKey[k]=lv;});
+  return SETF.map(([g,rows])=>`<div class="ph-card"><b style="font-size:.85rem">${g}</b>${rows.map(([k,l,t,o])=>`<label class="ph-row ${byKey[k]||''}"><span>${l}</span>${t==='sel'?`<select data-set="${k}">${o.map(v=>`<option ${st[k]===v?'selected':''}>${v}</option>`).join('')}</select>`:`<input data-set="${k}" type="number" step="${o}" value="${st[k]}">`}</label>`).join('')}</div>`).join('')+
+   `<div class="ph-card"><span style="font-size:.78rem;color:var(--phone-mute)">แก้ค่าแล้วมีผลทันที (ในแอปจริงต้องกดยืนยันทีละค่า) · แอดเดรสอุปกรณ์ตั้งด้วย DIP switch ที่แท็บ 4</span><button class="ph-btn" data-ph-act="factory">คืนค่าโรงงาน (LiFePO4)</button></div>`;
+}
+function ctlHTML(){const st=S.set;
+  return`<div class="ph-card">${[['swChg','สวิตช์ชาร์จ (Charge MOS)'],['swDsg','สวิตช์จ่าย (Discharge MOS)'],['swBal','บาลานซ์'],['swHeat','ฮีตเตอร์']].map(([k,l])=>`<div class="ph-sw"><span>${l}</span><button class="tog" data-sw="${k}" aria-pressed="${!!st[k]}" aria-label="${l}"></button></div>`).join('')}</div>
+  <div class="ph-card"><span style="font-size:.8rem;color:var(--phone-mute)">สถานะป้องกัน</span><div style="font-family:var(--f-mono);font-size:.78rem">${Object.entries(SIM.prot).filter(([k,v])=>v).map(([k])=>PROT_TH[k]).join('<br>')||'ปกติ'}</div></div>`;}
+const PROT_TH={ovp:'เซลล์แรงดันเกิน (OVP)',uvp:'เซลล์แรงดันต่ำ (UVP)',cocp:'ชาร์จกระแสเกิน',docp:'จ่ายกระแสเกิน',scp:'ลัดวงจร',cotp:'ชาร์จร้อนเกิน',dotp:'จ่ายร้อนเกิน',cutp:'ชาร์จอุณหภูมิต่ำ',mosot:'MOS ร้อนเกิน',miss:'จำนวนเซลล์ไม่ตรง'};
+function alarms(){const a=Object.entries(SIM.prot).filter(([k,v])=>v).map(([k])=>'⚠ '+PROT_TH[k]);
+  if(S.set.cells!==S.s)a.push(`⚠ ตั้งจำนวนเซลล์ ${S.set.cells} แต่แพ็กจริง ${S.s}S`);
+  if(Math.abs(S.set.cap-cm().ah)>cm().ah*0.05)a.push(`⚠ ตั้งความจุ ${S.set.cap} Ah ไม่ตรงกับเซลล์ ${cm().ah} Ah ทำให้ SOC เพี้ยน`);return a;}
+function chgOn(){const p=SIM.prot;return S.set.swChg&&!p.ovp&&!p.cocp&&!p.cotp&&!p.cutp&&!p.mosot&&!p.scp&&!p.miss;}
+function dsgOn(){const p=SIM.prot;return S.set.swDsg&&!p.uvp&&!p.docp&&!p.dotp&&!p.mosot&&!p.scp&&!p.miss;}
+function setIssues(){
+  const st=S.set,m=cm(),b=bm(),L=[];
+  L.push(st.type==='LFP'?['ok','ชนิดแบตตั้งเป็น LiFePO4 แล้ว','type']:['bad',`ตั้งชนิดแบตเป็น ${st.type} ค่าแรงดันจะผิดสำหรับเซลล์ LiFePO4`,'type']);
+  L.push(st.cells===S.s?['ok',`จำนวนเซลล์ = ${S.s} ตรงกับแพ็ก`,'cells']:['bad',`จำนวนเซลล์ตั้งไว้ ${st.cells} แต่แพ็กเป็น ${S.s}S`,'cells']);
+  L.push(Math.abs(st.cap-m.ah)<=m.ah*0.05?['ok',`ความจุ ${st.cap} Ah ใกล้เคียงเซลล์ ${m.ah} Ah`,'cap']:['bad',`ความจุตั้งไว้ ${st.cap} Ah ควรเป็น ${m.ah} Ah`,'cap']);
+  L.push(st.ovp>3.65?['bad',`OVP ${st.ovp} V เกินพิกัดเซลล์ LiFePO4 (3.65 V)`,'ovp']:st.ovp<3.45?['warn',`OVP ${st.ovp} V ต่ำมาก ชาร์จไม่เต็ม`,'ovp']:['ok',`OVP ${st.ovp} V อยู่ในช่วงปลอดภัย`,'ovp']);
+  if(st.ovpr>=st.ovp)L.push(['bad','ค่าคืนสภาพ OVP ต้องต่ำกว่า OVP','ovpr']);
+  if(st.soc100>=st.ovp)L.push(['bad','SOC‑100% ต้องต่ำกว่า OVP ไม่เช่นนั้น SOC จะไม่ถึง 100% ก่อนตัด','soc100']);
+  L.push(st.uvp<2.5?['bad',`UVP ${st.uvp} V ต่ำกว่าพิกัดเซลล์ 2.5 V`,'uvp']:['ok',`UVP ${st.uvp} V`,'uvp']);
+  if(st.uvpr<=st.uvp)L.push(['bad','ค่าคืนสภาพ UVP ต้องสูงกว่า UVP','uvpr']);
+  if(st.off>=st.uvp)L.push(['warn','แรงดันปิดเครื่องควรต่ำกว่า UVP','off']);
+  if(b.cont&&st.chgI>b.cont)L.push(['bad',`กระแสชาร์จ ${st.chgI} A เกินพิกัด BMS ${b.cont} A`,'chgI']);
+  else if(st.chgI>m.ah*0.5+1)L.push(['warn',`กระแสชาร์จ ${st.chgI} A เกิน 0.5C (${Math.round(m.ah*0.5)} A) ที่เซลล์ส่วนใหญ่แนะนำ`,'chgI']);
+  else L.push(['ok',`กระแสชาร์จ ${st.chgI} A`,'chgI']);
+  if(b.cont&&st.dsgI>b.cont)L.push(['bad',`กระแสจ่าย ${st.dsgI} A เกินพิกัด BMS ${b.cont} A`,'dsgI']);
+  const kw=S.s*3.2*st.dsgI/1000;L.push(['ok',`จ่ายต่อเนื่องได้ราว ${fmt(kw,1)} kW ที่ ${fmt(S.s*3.2,1)} V`,null]);
+  if(st.balMax>b.bal)L.push(['bad',`กระแสบาลานซ์ ${st.balMax} A เกินความสามารถบอร์ด (${b.bal} A)`,'balMax']);
+  L.push(st.balTrig<=0.006?['ok','แรงดันเริ่มบาลานซ์ ≤ 5 mV เหมาะกับเซลล์ใหญ่กว่า 50 Ah','balTrig']:['warn',`แรงดันเริ่มบาลานซ์ ${st.balTrig*1000} mV · คู่มือ JK แนะนำ 5 mV สำหรับเซลล์ > 50 Ah`,'balTrig']);
+  L.push(st.cutp<0?['warn',`ห้ามชาร์จตั้งไว้ที่ ${st.cutp}°C · เซลล์ LiFePO4 ส่วนใหญ่ห้ามชาร์จต่ำกว่า 0°C ควรตั้ง 0–5°C`,'cutp']:['ok',`ห้ามชาร์จต่ำกว่า ${st.cutp}°C`,'cutp']);
+  if(st.rcv>=st.ovp)L.push(['bad','RCV ต้องต่ำกว่า OVP มิฉะนั้นอินเวอร์เตอร์จะชาร์จจนตัดทุกครั้ง','rcv']);
+  else L.push(['ok',`อินเวอร์เตอร์จะชาร์จถึง ${fmt(st.rcv*S.s,1)} V (RCV × ${S.s})`,'rcv']);
+  if(!st.unlocked)L.unshift(['warn','ยังไม่ได้ใส่รหัสเข้าหน้าตั้งค่าในแอป',null]);
+  return L;
+}
+function renderSetChecks(){$('#setChecks').innerHTML=setIssues().map(([k,t])=>`<li class="${k}">${t}</li>`).join('');}
+$('#phone').addEventListener('click',e=>{
+  const t=e.target.closest('[data-ph]');if(t){phTab=t.dataset.ph;renderPhone();return;}
+  const a=e.target.closest('[data-ph-act]');
+  if(a){const act=a.dataset.phAct;
+    if(act==='quick'){quickPack();return;}
+    if(act==='wake'){SIM.off=false;S.Ireq=Math.max(30,S.Ireq);$('#iRange').value=S.Ireq;logEv('o','ต่อเครื่องชาร์จ → BMS ตื่น');renderPhone();return;}
+    if(act==='unlock'){const v=$('#phPw').value;if(v==='123456'){S.set.unlocked=true;save();renderPhone();renderSetChecks();}else $('#phPwMsg').textContent='รหัสไม่ถูกต้อง';return;}
+    if(act==='factory'){const u=S.set.unlocked;S.set=defaultSettings();S.set.unlocked=u;save();renderPhone();renderSetChecks();updateSteps();return;}}
+  const sw=e.target.closest('[data-sw]');if(sw){S.set[sw.dataset.sw]=!S.set[sw.dataset.sw];save();renderPhone();}
+});
+$('#phone').addEventListener('change',e=>{const el=e.target.closest('[data-set]');if(!el)return;const k=el.dataset.set;
+  if(k==='type'||k==='proto'){S.set[k]=el.value;if(k==='type')Object.assign(S.set,TYPE_DEF[el.value]);}
+  else S.set[k]=el.type==='number'?parseFloat(el.value):el.value;
+  if(k==='cells')S.set.cells=Math.max(1,Math.min(bm().sMax||24,Math.round(S.set.cells)));
+  save();if(k==='type')renderPhone();else{const sc=$('#phBody').scrollTop;renderPhone();$('#phBody').scrollTop=sc;}renderSetChecks();updateSteps();});
+function quickPack(){
+  if(!(S.s>=bm().sMin&&S.s<=bm().sMax)){S.bms=S.s===4?'B2A8S20P':'PB2A16S20P';S.set=defaultSettings();renderCfg();}
+  S.links=[];for(let i=0;i<S.cells.length-1;i++)S.links.push({a:i+'+',b:(i+1)+'-'});
+  WIRE=analyze();$('#autoHarness').click();S.plugged=true;S.active=true;S.damaged=false;logEv('o','ประกอบแพ็กสำเร็จรูป: บัสบาร์ + สาย BMS + เปิดเครื่อง');
+  save();renderAll();
+}
+function logEv(c,t){const h=Math.floor(SIM.t/3600),m=Math.floor(SIM.t%3600/60),s=Math.floor(SIM.t%60);
+  SIM.log.unshift({c,t:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}  ${t}`});SIM.log=SIM.log.slice(0,80);
+  const el=$('#log');if(el)el.innerHTML=SIM.log.map(x=>`<div class="${x.c}">${esc(x.t)}</div>`).join('');}
+function setProt(k,on,msg){if(!!SIM.prot[k]===on)return;SIM.prot[k]=on;logEv(on?'b':'o',(on?'ป้องกัน: ':'คืนสภาพ: ')+PROT_TH[k]+(msg?' · '+msg:''));}
+function simStep(dt){
+  const st=S.set,m=cm(),p=SIM.prot,tm=SIM.tmr,n=S.s;
+  if(SIM.off)return;
+  SIM.prot.miss=st.cells>n; // BMS sees 0 V on missing channels → treated as fault
+  let I=S.Ireq;
+  if(SIM.scp)I=0;
+  if(I>0&&S.cv){const Vp=SIM.cells.reduce((a,c)=>a+ocv(c.soc),0),lim=st.rcv*n;I=I*Math.max(0,Math.min(1,(lim-Vp)/(0.02*n)));}
+  if(I>0&&!chgOn())I=0;if(I<0&&!dsgOn())I=0;
+  SIM.I=I;
+  // overcurrent timers
+  if(I>st.chgI){tm.c=(tm.c||0)+dt;if(tm.c>=st.chgDly){setProt('cocp',true,fmt(I,0)+' A');tm.cr=st.chgRel;}}else tm.c=0;
+  if(-I>st.dsgI){tm.d=(tm.d||0)+dt;if(tm.d>=st.dsgDly){setProt('docp',true,fmt(-I,0)+' A');tm.dr=st.dsgRel;}}else tm.d=0;
+  if(p.cocp){tm.cr-=dt;if(tm.cr<=0)setProt('cocp',false);}
+  if(p.docp){tm.dr-=dt;if(tm.dr<=0)setProt('docp',false);}
+  if(p.scp){tm.sr=(tm.sr||st.scpRel)-dt;if(tm.sr<=0){SIM.scp=false;tm.sr=0;setProt('scp',false);}}
+  // cells
+  const Ireal=SIM.I;
+  SIM.cells.forEach(c=>{c.soc+=Ireal*dt/3600/c.cap;});
+  // balancing (active: highest → lowest)
+  SIM.bal=0;
+  if(st.swBal&&!SIM.prot.miss){const vs=SIM.cells.map(c=>c.v),mx=Math.max(...vs),mn=Math.min(...vs);
+    if(mx-mn>st.balTrig&&mx>=st.balStart){const hi=vs.indexOf(mx),lo=vs.indexOf(mn),ib=st.balMax;
+      SIM.cells[hi].soc-=ib*dt/3600/SIM.cells[hi].cap;SIM.cells[lo].soc+=ib*dt/3600/SIM.cells[lo].cap*0.92;SIM.bal=ib;}}
+  SIM.cells.forEach(c=>{c.soc=Math.max(-0.01,Math.min(1.01,c.soc));
+    let v=ocv(c.soc)+Ireal*m.ir/1000*(1+(c.soc>0.97&&Ireal>0?(c.soc-0.97)*60:0));
+    if(c.soc>1)v=3.6+(c.soc-1)*20;if(c.soc<0)v=2.5+c.soc*30;c.v=v;});
+  // temperature
+  const tau=600,heat=Ireal*Ireal;
+  SIM.Tc+=((S.amb+heat*0.00025+(st.swHeat&&S.amb<5?8:0))-SIM.Tc)*Math.min(1,dt/tau);
+  SIM.Tm+=((S.amb+heat*0.0006)-SIM.Tm)*Math.min(1,dt/(tau/3));
+  // voltage protections (only monitored channels)
+  const mon=SIM.cells.slice(0,Math.min(st.cells,n)).map(c=>c.v),vmax=Math.max(...mon),vmin=st.cells>n?0:Math.min(...mon);
+  if(vmax>=st.ovp)setProt('ovp',true,`เซลล์ ${mon.indexOf(vmax)+1} = ${fmt(vmax,3)} V`);else if(p.ovp&&vmax<=st.ovpr)setProt('ovp',false);
+  if(vmin<=st.uvp)setProt('uvp',true,`ต่ำสุด ${fmt(vmin,3)} V`);else if(p.uvp&&vmin>=st.uvpr)setProt('uvp',false);
+  if(vmin<=st.off&&st.cells<=n&&Ireal<=0){SIM.off=true;logEv('b','แรงดันเซลล์ต่ำกว่าค่าปิดเครื่อง → BMS ปิดตัว');}
+  if(SIM.Tc>=st.cotp)setProt('cotp',true,fmt(SIM.Tc,1)+'°C');else if(p.cotp&&SIM.Tc<=st.cotpr)setProt('cotp',false);
+  if(SIM.Tc>=st.dotp)setProt('dotp',true,fmt(SIM.Tc,1)+'°C');else if(p.dotp&&SIM.Tc<=st.dotpr)setProt('dotp',false);
+  if(SIM.Tc<=st.cutp)setProt('cutp',true,fmt(SIM.Tc,1)+'°C');else if(p.cutp&&SIM.Tc>=st.cutpr)setProt('cutp',false);
+  if(SIM.Tm>=st.mosotp)setProt('mosot',true,fmt(SIM.Tm,1)+'°C');else if(p.mosot&&SIM.Tm<=st.mosotpr)setProt('mosot',false);
+  // SOC estimate
+  SIM.socB+=Ireal*dt/3600/st.cap*100;
+  if(Ireal>0&&vmax>=st.soc100)SIM.socB=100;if(vmin<=st.soc0&&st.cells<=n)SIM.socB=0;
+  SIM.socB=Math.max(0,Math.min(100,SIM.socB));
+  SIM.t+=dt;
+}
+let lastF=0,lastUI=0,histT=0;
+function loop(ts){
+  if(!SIM.run){lastF=0;return;}
+  const dtR=lastF?Math.min(0.1,(ts-lastF)/1000):0;lastF=ts;
+  let simDt=dtR*S.spd;const step=Math.max(1,simDt/120);
+  while(simDt>0){const d=Math.min(step,simDt);simStep(d);simDt-=d;}
+  histT+=dtR*S.spd;
+  if(histT>=Math.max(1,S.spd/20)){histT=0;const vs=SIM.cells.map(c=>c.v);SIM.hist.push({t:SIM.t,mx:Math.max(...vs),mn:Math.min(...vs),I:SIM.I});if(SIM.hist.length>500)SIM.hist.shift();}
+  if(ts-lastUI>250){lastUI=ts;if(phTab==='status')renderPhone();else if(phTab==='ctl'){renderPhone();}drawChart();}
+  requestAnimationFrame(loop);
+}
+function drawChart(){
+  const cv=$('#chart');if(!cv||cv.offsetParent===null)return;
+  const dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
+  const g=cv.getContext('2d');g.scale(dpr,dpr);g.clearRect(0,0,W,H);
+  const padL=46,padR=46,padT=10,padB=24,cw=W-padL-padR,ch=H-padT-padB;
+  const v0=2.4,v1=3.8,i0=-260,i1=260;
+  const y=v=>padT+ch*(1-(v-v0)/(v1-v0)),yi=i=>padT+ch*(1-(i-i0)/(i1-i0));
+  const mu=cssv('--muted'),ln=cssv('--line');
+  g.font='11px IBM Plex Mono, monospace';g.fillStyle=mu;g.strokeStyle=ln;g.lineWidth=1;
+  for(let v=2.5;v<=3.71;v+=0.2){g.beginPath();g.moveTo(padL,y(v));g.lineTo(W-padR,y(v));g.stroke();g.fillText(v.toFixed(1),6,y(v)+4);}
+  [-200,0,200].forEach(i=>g.fillText((i>0?'+':'')+i+'A',W-padR+4,yi(i)+4));
+  g.setLineDash([4,4]);g.strokeStyle=mu;[S.set.ovp,S.set.uvp].forEach(v=>{g.beginPath();g.moveTo(padL,y(v));g.lineTo(W-padR,y(v));g.stroke();});g.setLineDash([]);
+  const h=SIM.hist;if(h.length<2){g.fillStyle=mu;g.fillText('กด ▶ เริ่ม แล้วเลือกกระแสชาร์จ/จ่าย',padL+10,padT+20);return;}
+  const t0=h[0].t,t1=h[h.length-1].t||1,x=t=>padL+cw*(t-t0)/Math.max(1,t1-t0);
+  const line=(f,col,w,dash)=>{g.beginPath();g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);h.forEach((p,k)=>{k?g.lineTo(x(p.t),f(p)):g.moveTo(x(p.t),f(p));});g.stroke();g.setLineDash([]);};
+  line(p=>yi(p.I),cssv('--copper'),1.5,[3,3]);line(p=>y(p.mx),cssv('--accent'),2);line(p=>y(p.mn),cssv('--pos'),2);
+  g.fillStyle=mu;g.fillText(`${((t1-t0)/3600).toFixed(2)} ชม.`,W-padR-60,H-6);
+}
+$('#simRun').addEventListener('click',()=>{if(!bmsReady()){$('#simRun').textContent='▶ เริ่ม (ต้องเปิด BMS ก่อน)';return;}SIM.run=!SIM.run;$('#simRun').textContent=SIM.run?'⏸ หยุด':'▶ เริ่ม';if(SIM.run)requestAnimationFrame(loop);});
+$('#simReset').addEventListener('click',()=>{initSimCells();logEv('o','รีเซ็ตเซลล์ (SOC ≈ 55%)');renderPhone();drawChart();renderWire();});
+$('#simShort').addEventListener('click',()=>{if(!bmsReady())return;SIM.scp=true;SIM.tmr.sr=S.set.scpRel;setProt('scp',true,`ตัดภายใน ${S.set.scpDly} µs`);renderPhone();});
+$('#iRange').addEventListener('input',e=>{S.Ireq=+e.target.value;$('#iVal').textContent=(S.Ireq>0?'+':'')+S.Ireq+' A';save();});
+$('#tRange').addEventListener('input',e=>{S.amb=+e.target.value;$('#tVal').textContent=S.amb+'°C';save();});
+$('#spRange').addEventListener('input',e=>{S.spread=+e.target.value;$('#spVal').textContent='±'+S.spread+'%';save();});
+$('#spRange').addEventListener('change',()=>{initSimCells();renderPhone();});
+$('#spdSel').addEventListener('change',e=>{S.spd=+e.target.value;save();});
+$('#cvChk').addEventListener('change',e=>{S.cv=e.target.checked;save();});
+$$('[data-preset]').forEach(b=>b.addEventListener('click',()=>{let v=+b.dataset.preset;if(v===157)v=Math.round(cm().ah*0.5/5)*5;if(v===-100)v=-Math.round(5000/(S.s*3.2));S.Ireq=v;$('#iRange').value=v;$('#iVal').textContent=(v>0?'+':'')+v+' A';save();}));
+
+/* ---------- PARALLEL ---------- */
+let parPend=null,parRun=false,parLast=0;
+function ensurePacks(){const P=S.par;while(P.packs.length<P.n)P.packs.push({addr:P.packs.length?Math.min(15,P.packs.length):0,soc:60+P.packs.length*8,brk:false,trip:false,lim:false});
+  P.packs.length=P.n;P.power=P.power.slice(0,P.n);while(P.power.length<P.n)P.power.push({pos:null,neg:null});
+  P.comm=P.comm.filter(c=>[c.a,c.b].every(e=>e.startsWith('inv')||+e.split(':')[0]<P.n));}
+function packR(){return S.s*cm().ir/1000+0.0005+0.002;}
+function parSolve(){
+  const P=S.par,R=packR(),V=S.s;
+  const conn=P.packs.map((p,i)=>p.brk&&!p.trip&&P.power[i].pos==='bus+'&&P.power[i].neg==='bus-');
+  const shortP=P.power.some(w=>w.pos==='bus-'||w.neg==='bus+');
+  const ocvs=P.packs.map(p=>S.s*ocv(p.soc/100));
+  const idx=conn.map((c,i)=>c?i:-1).filter(i=>i>=0);
+  const Iload=idx.length?P.P/(idx.reduce((a,i)=>a+ocvs[i],0)/idx.length):0;
+  let I=P.packs.map(()=>0),Vb=null;
+  if(idx.length&&!shortP){
+    let sg=0,sv=0;idx.forEach(i=>{sg+=1/R;sv+=ocvs[i]/R;});Vb=(sv-Iload)/sg;
+    idx.forEach(i=>I[i]=(ocvs[i]-Vb)/R);
+    // limit: packs being charged above their charge limit
+    const st=S.set,lim=bm().kind==='ess'&&P.lim;
+    idx.forEach(i=>{P.packs[i].lim=false;if(-I[i]>st.chgI){if(lim){P.packs[i].lim=true;}else{P.packs[i].trip=true;}}});
+    const lim2=idx.filter(i=>P.packs[i].lim);
+    if(lim2.length){const free=idx.filter(i=>!P.packs[i].lim&&!P.packs[i].trip);lim2.forEach(i=>I[i]=-10);
+      if(free.length){let g2=0,s2=0;free.forEach(i=>{g2+=1/R;s2+=ocvs[i]/R;});Vb=(s2-Iload+10*lim2.length)/g2;free.forEach(i=>I[i]=(ocvs[i]-Vb)/R);}}
+  }
+  return{conn,I,Vb,ocvs,shortP,Iload};
+}
+function commGraph(){const P=S.par,adj=P.packs.map(()=>new Set());
+  P.comm.forEach(c=>{const[a,pa]=c.a.split(':'),[b,pb]=c.b.split(':');if(a==='inv'||b==='inv')return;if(pa.startsWith('485-2')&&pb.startsWith('485-2')){adj[+a].add(+b);adj[+b].add(+a);}});
+  return adj;}
+function parChecks(sol){
+  const P=S.par,L=[],addrs=P.packs.map(p=>p.addr),b=bm();
+  if(b.kind!=='ess')L.push(['bad',`${b.name} ไม่มีพอร์ต RS485‑2/DIP สำหรับขนาน ใช้รุ่น PB (ESS) เพื่อสื่อสารแบบขนาน`]);
+  const zeros=addrs.filter(a=>a===0).length;
+  L.push(zeros===1?['ok','มี Master 1 ตัว (แอดเดรส 0)']:zeros===0?['bad','ไม่มี Master: ต้องตั้ง DIP ของ 1 แพ็กเป็น 0 (OFF ทั้ง 4 ตัว)']:['bad',`มี Master ${zeros} ตัว ต้องมีแอดเดรส 0 เพียงตัวเดียว`]);
+  const dup=addrs.filter((a,i)=>addrs.indexOf(a)!==i);
+  if(dup.length)L.push(['bad',`แอดเดรสซ้ำ: ${[...new Set(dup)].join(', ')} ทุก Slave ต้องไม่ซ้ำกัน (1–15)`]);
+  else if(P.n>1)L.push(['ok','แอดเดรส Slave ไม่ซ้ำกัน']);
+  if(P.n>1){const adj=commGraph(),seen=new Set([0]),q=[0];while(q.length){const u=q.shift();adj[u].forEach(v=>{if(!seen.has(v)){seen.add(v);q.push(v);}});}
+    L.push(seen.size===P.n?['ok','สาย LAN RS485‑2 ต่อพ่วงครบทุกแพ็ก']:['bad',`สาย RS485‑2 ยังไม่ครบ: ต่อถึงกัน ${seen.size}/${P.n} แพ็ก`]);
+    const wrongPort=P.comm.some(c=>{const pa=c.a.split(':')[1],pb=c.b.split(':')[1];return c.a.split(':')[0]!=='inv'&&c.b.split(':')[0]!=='inv'&&!(pa.startsWith('485-2')&&pb.startsWith('485-2'));});
+    if(wrongPort)L.push(['bad','สายขนานระหว่างแพ็กต้องเสียบที่พอร์ต RS485‑2 เท่านั้น (CAN / RS485‑1 ใช้คุยกับอินเวอร์เตอร์)']);}
+  const inv=P.comm.find(c=>c.a.startsWith('inv')||c.b.startsWith('inv'));
+  if(!inv)L.push(['warn','ยังไม่ได้ต่อสายสื่อสารไปอินเวอร์เตอร์']);
+  else{const end=c=>c.a.startsWith('inv')?c.b:c.a,[pi,pp]=end(inv).split(':'),pk=P.packs[+pi];
+    if(pk.addr!==0)L.push(['bad','สายอินเวอร์เตอร์ต้องต่อที่ Master (แอดเดรส 0)']);
+    else if(pp.startsWith('485-2'))L.push(['bad','พอร์ต RS485‑2 ใช้ขนานแพ็ก ต่อกับอินเวอร์เตอร์ไม่ได้']);
+    else if((pp==='can'&&S.par.commSel!=='CAN')||(pp==='485-1'&&S.par.commSel!=='RS485'))L.push(['bad',`เสียบที่พอร์ต ${pp==='can'?'CAN':'RS485‑1'} แต่เลือกสื่อสารแบบ ${S.par.commSel}`]);
+    else L.push(['ok',`Master สื่อสารกับอินเวอร์เตอร์ทาง ${S.par.commSel}`]);
+    if(S.set.proto!==S.par.commSel)L.push(['warn',`ในแอป BMS ตั้งโปรโตคอลเป็น ${S.set.proto} ให้ตรงกับพอร์ตที่ใช้ (${S.par.commSel})`]);}
+  P.power.forEach((w,i)=>{if(w.pos==='bus-'||w.neg==='bus+')L.push(['bad',`แพ็ก ${i+1} ต่อขั้วกลับ (+ เข้าบัสลบ) → ลัดวงจรเต็มกำลัง`]);});
+  const miss=P.power.map((w,i)=>(!w.pos||!w.neg)?i+1:0).filter(Boolean);
+  if(miss.length)L.push(['warn',`แพ็กที่ยังไม่ได้ต่อสายไฟหลัก: ${miss.join(', ')}`]);else L.push(['ok','ต่อบวกเข้าบวก ลบเข้าลบ ครบทุกแพ็ก']);
+  const v=sol.ocvs,dv=Math.max(...v)-Math.min(...v);
+  L.push(dv>1.0?['bad',`แรงดันแพ็กต่างกัน ${fmt(dv,2)} V ควรชาร์จทุกแพ็กให้เต็มก่อนขนาน (ต่างกันไม่เกิน ~0.5 V)`]:dv>0.3?['warn',`แรงดันต่างกัน ${fmt(dv,2)} V จะมีกระแสไหลหากันตอนปิดเบรกเกอร์`]:['ok',`แรงดันแพ็กใกล้กัน (ต่าง ${fmt(dv,2)} V)`]);
+  P.packs.forEach((p,i)=>{if(p.trip)L.push(['bad',`แพ็ก ${i+1} BMS ตัดชาร์จเพราะกระแสไหลเข้าเกิน ${S.set.chgI} A (เปิดฟังก์ชันจำกัดกระแส 10A หรือปรับแรงดันให้ใกล้กันก่อน)`]);if(p.lim)L.push(['warn',`แพ็ก ${i+1} โมดูลจำกัดกระแสทำงาน ชาร์จได้ 10 A จนแรงดันใกล้กัน`]);});
+  const tot=sol.conn.filter(Boolean).length;
+  if(tot){const per=Math.abs(sol.Iload)/tot;L.push(['ok',`กระแสอินเวอร์เตอร์ ${fmt(Math.abs(sol.Iload),0)} A แบ่ง ≈ ${fmt(per,0)} A/แพ็ก · พลังงานรวม ${fmt(tot*S.s*3.2*cm().ah/1000,1)} kWh`]);}
+  return L;
+}
+function renderPar(){
+  ensurePacks();const P=S.par,b=bm(),sol=parSolve(),n=P.n;
+  const cw=170,gap=34,x0=20,invX=x0+n*(cw+gap)+10,W=invX+200,H=520;
+  let s='';
+  // buses
+  s+=`<rect x="${x0}" y="420" width="${invX+60-x0}" height="14" rx="3" fill="var(--pos)" data-bus="bus+" style="cursor:pointer"/><text x="${x0}" y="414" font-size="12" fill="var(--pos)" font-family="var(--f-mono)">บัสบาร์บวก (+)</text>`;
+  s+=`<rect x="${x0}" y="470" width="${invX+60-x0}" height="14" rx="3" fill="var(--neg)" stroke="var(--muted)" data-bus="bus-" style="cursor:pointer"/><text x="${x0}" y="500" font-size="12" fill="var(--muted)" font-family="var(--f-mono)">บัสบาร์ลบ (−)</text>`;
+  const portName={can:'CAN','485-1':'485‑1','485-2a':'485‑2','485-2b':'485‑2'};
+  const adj=commGraph(),seen=new Set([0]),q=[0];if(n>1){while(q.length){const u=q.shift();adj[u].forEach(v=>{if(!seen.has(v)){seen.add(v);q.push(v);}});}}
+  P.packs.forEach((p,i)=>{const x=x0+i*(cw+gap),V=sol.ocvs[i],I=sol.I[i];
+    const master=p.addr===0,linked=n===1||(seen.has(i)&&P.packs.some(o=>o.addr===0));
+    s+=`<g><rect x="${x}" y="20" width="${cw}" height="340" rx="8" fill="var(--surface-2)" stroke="${master?'var(--accent)':'var(--line)'}" stroke-width="${master?3:2}"/>
+      <text x="${x+10}" y="42" font-size="14" font-family="var(--f-display)" font-weight="600" fill="var(--ink)">แพ็ก ${i+1} ${master?'· MASTER':'· slave'}</text>
+      <rect x="${x+10}" y="52" width="${cw-20}" height="44" rx="4" fill="#0d1f14"/>
+      <text x="${x+18}" y="72" font-size="14" fill="#9ef0b5" font-family="var(--f-mono)">${fmt(V,2)} V  ${Math.round(p.soc)}%</text>
+      <text x="${x+18}" y="89" font-size="12" fill="#9ef0b5" font-family="var(--f-mono)">${I>0.05?'จ่าย ':I<-0.05?'ชาร์จ ':''}${fmt(Math.abs(I),1)} A${p.trip?' ✕OCP':p.lim?' LIM':''}</text>`;
+    // LEDs
+    const leds=['RUN','ALM','L1','L2','L3','L4','L5','L6'];
+    leds.forEach((l,k)=>{const lx=x+14+k*19;let on=false,cls='',col='#2fe08a';
+      if(l==='RUN'){on=true;cls='blink';}else if(l==='ALM'){on=p.trip;col='#ee5a50';}
+      else if(l==='L6'){on=master||linked;cls=on?'blink':'';col='#3fa9f5';}
+      else{const lv=+l.slice(1);on=p.soc>(lv-1)*25;}
+      s+=`<circle class="${on?cls:''}" cx="${lx}" cy="112" r="5" fill="${on?col:'#3a4450'}"/><text x="${lx}" y="128" text-anchor="middle" font-size="7" fill="var(--muted)" font-family="var(--f-mono)">${l}</text>`;});
+    // DIP
+    s+=`<text x="${x+10}" y="150" font-size="11" fill="var(--muted)">ADD (DIP)</text><text x="${x+cw-10}" y="150" text-anchor="end" font-size="13" font-weight="600" fill="var(--ink)" font-family="var(--f-mono)">= ${p.addr}</text>`;
+    for(let k=0;k<4;k++){const on=!!(p.addr&(1<<k)),dx=x+14+k*36;
+      s+=`<g data-dip="${i}:${k}" style="cursor:pointer"><rect x="${dx}" y="156" width="26" height="38" rx="3" fill="#c0392b"/><rect x="${dx+5}" y="${on?160:176}" width="16" height="14" rx="2" fill="#f2f2f2"/><text x="${dx+13}" y="206" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="var(--f-mono)">${k+1}</text></g>`;}
+    s+=`<text x="${x+10}" y="218" font-size="9" fill="var(--muted)">ON ↑ = ค่า 1, 2, 4, 8</text>`;
+    // ports
+    ['can','485-1','485-2a','485-2b'].forEach((pt,k)=>{const px=x+10+k*38,key=i+':'+pt,sel=parPend===key,used=P.comm.some(c=>c.a===key||c.b===key);
+      s+=`<g data-port="${key}" style="cursor:pointer"><rect x="${px}" y="230" width="34" height="28" rx="3" fill="${sel?'var(--accent)':'#1b1f24'}" stroke="${used?'var(--comm)':'#555'}" stroke-width="${used?2.5:1}"/><rect x="${px+9}" y="236" width="16" height="12" fill="#333"/><text x="${px+17}" y="270" text-anchor="middle" font-size="9" fill="var(--muted)" font-family="var(--f-mono)">${portName[pt]}</text></g>`;});
+    // breaker
+    s+=`<g data-brk="${i}" style="cursor:pointer"><rect x="${x+40}" y="280" width="90" height="36" rx="4" fill="#20262e" stroke="#666"/><rect x="${p.brk?x+88:x+44}" y="284" width="38" height="28" rx="3" fill="${p.brk?'#2fb36b':'#8a8f96'}"/><text x="${x+85}" y="332" text-anchor="middle" font-size="11" fill="var(--ink)" font-family="var(--f-mono)">DC BREAKER ${p.brk?'ON':'OFF'}</text></g>`;
+    // terminals
+    const pw=P.power[i];
+    s+=`<circle data-pt="${i}:pos" cx="${x+50}" cy="352" r="11" fill="var(--pos)" stroke="${parPend===i+':pos'?'var(--accent)':'#fff'}" stroke-width="3" style="cursor:pointer"/><text x="${x+50}" y="357" text-anchor="middle" font-size="14" fill="#fff" pointer-events="none">+</text>`;
+    s+=`<circle data-pt="${i}:neg" cx="${x+120}" cy="352" r="11" fill="var(--neg)" stroke="${parPend===i+':neg'?'var(--accent)':'#999'}" stroke-width="3" style="cursor:pointer"/><text x="${x+120}" y="357" text-anchor="middle" font-size="14" fill="#fff" pointer-events="none">−</text>`;
+    const busY={'bus+':420,'bus-':470};
+    if(pw.pos)s+=`<path d="M${x+50},363 C${x+50},390 ${x+40},400 ${x+40},${busY[pw.pos]}" fill="none" stroke="${pw.pos==='bus-'?'var(--bad)':'var(--pos)'}" stroke-width="6"/>`;
+    if(pw.neg)s+=`<path d="M${x+120},363 C${x+120},400 ${x+130},420 ${x+130},${busY[pw.neg]}" fill="none" stroke="${pw.neg==='bus+'?'var(--bad)':'var(--neg)'}" stroke-width="6" ${pw.neg==='bus-'?'':''}/>`;
+    s+='</g>';});
+  // inverter
+  s+=`<g><rect x="${invX}" y="60" width="170" height="300" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/>
+    <text x="${invX+85}" y="92" text-anchor="middle" font-size="15" font-family="var(--f-display)" font-weight="600" fill="var(--ink)">อินเวอร์เตอร์</text>
+    <text x="${invX+85}" y="112" text-anchor="middle" font-size="12" fill="var(--muted)">${esc($('#invBrand').selectedOptions[0]?.text||'')}</text>
+    <rect x="${invX+20}" y="128" width="130" height="60" rx="4" fill="#0d1f14"/>
+    <text x="${invX+30}" y="152" font-size="13" fill="#9ef0b5" font-family="var(--f-mono)">BAT ${sol.Vb?fmt(sol.Vb,1):'--.-'} V</text>
+    <text x="${invX+30}" y="174" font-size="13" fill="#9ef0b5" font-family="var(--f-mono)">${P.P>=0?'จ่าย':'ชาร์จ'} ${fmt(Math.abs(P.P)/1000,1)} kW</text>
+    <g data-port="inv:bms" style="cursor:pointer"><rect x="${invX+60}" y="210" width="50" height="30" rx="3" fill="${parPend==='inv:bms'?'var(--accent)':'#1b1f24'}" stroke="var(--comm)"/><rect x="${invX+75}" y="217" width="20" height="14" fill="#333"/></g>
+    <text x="${invX+85}" y="256" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="var(--f-mono)">BMS ${S.par.commSel}</text>
+    <circle cx="${invX+50}" cy="345" r="9" fill="var(--pos)"/><circle cx="${invX+120}" cy="345" r="9" fill="var(--neg)" stroke="#999"/></g>
+    <line x1="${invX+50}" y1="354" x2="${invX+50}" y2="420" stroke="var(--pos)" stroke-width="6"/><line x1="${invX+120}" y1="354" x2="${invX+120}" y2="470" stroke="var(--neg)" stroke-width="6"/>`;
+  // comm cables
+  const portXY=key=>{if(key==='inv:bms')return{x:invX+85,y:240};const[i,pt]=key.split(':'),k=['can','485-1','485-2a','485-2b'].indexOf(pt);return{x:x0+(+i)*(cw+gap)+10+k*38+17,y:258};};
+  P.comm.forEach((c,ci)=>{const a=portXY(c.a),bb=portXY(c.b),inv=c.a==='inv:bms'||c.b==='inv:bms',dy=inv?398:268+ci*3;
+    s+=`<path data-cc="${ci}" d="M${a.x},${a.y} C${a.x},${dy} ${bb.x},${dy} ${bb.x},${bb.y}" fill="none" stroke="var(--comm)" stroke-width="4" opacity=".9" style="cursor:pointer"/>`;});
+  const svg=$('#svgPar');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.width=Math.round(W*0.95)+'px';svg.innerHTML=s;
+  // table
+  $('#parTable').innerHTML=`<table><thead><tr><th>แพ็ก</th><th>SOC</th><th>แรงดัน</th><th>กระแส</th><th>สถานะ</th></tr></thead><tbody>${P.packs.map((p,i)=>`<tr><td class="mono">${i+1} · ADD ${p.addr}</td><td><input type="range" min="0" max="100" value="${Math.round(p.soc)}" data-soc="${i}" aria-label="SOC แพ็ก ${i+1}" style="width:110px"> <span class="num">${Math.round(p.soc)}%</span></td><td class="n">${fmt(sol.ocvs[i],2)} V</td><td class="n">${sol.conn[i]?(sol.I[i]>0?'+':'')+fmt(sol.I[i],1)+' A':'—'}</td><td>${p.trip?'<span style="color:var(--bad)">BMS ตัด <button class="btn sm" data-reset="'+i+'">รีเซ็ต</button></span>':p.lim?'<span style="color:var(--warn)">จำกัด 10A</span>':sol.conn[i]?'<span style="color:var(--ok)">ต่อบัสแล้ว</span>':'<span class="muted">แยกจากระบบ</span>'}</td></tr>`).join('')}</tbody></table>
+   <p class="note">ค่า + = แพ็กจ่ายออก, − = แพ็กถูกชาร์จ · ความต้านทานรวมต่อแพ็ก ≈ ${fmt(packR()*1000,1)} mΩ (เซลล์ ${S.s}×${cm().ir} mΩ + BMS + สาย) แรงดันต่าง 1 V จึงทำให้กระแสวิ่งหากันได้เกิน 100 A</p>`;
+  const L=parChecks(sol);
+  $('#parChecks').innerHTML=L.map(([k,t])=>`<li class="${k}">${t}</li>`).join('');
+  $('#parAlert').innerHTML=sol.shortP?'<div class="alert">⚡ ต่อขั้วแพ็กกลับเข้าบัสบาร์ = ลัดวงจรทั้งตู้ ปลดสายนั้นทันที</div>':'';
+  $('#pVal').textContent=(P.P>0?'+':'')+fmt(P.P/1000,2)+' kW';
+  renderInvSteps();renderSpecs();updateSteps(L);
+}
+const INV={
+  deye:['เมนู Battery Setting → เลือก Lithium (Batt Mode)','Lithium Mode: ใส่หมายเลขโปรโตคอลตามคู่มือ Deye ที่ตรงกับ JK (CAN)','Advanced Function → เปิด BMS_Err_Stop','ในแอป JK: ตั้งโปรโตคอล CAN ให้ตรงยี่ห้อ Deye'],
+  growatt:['กด Enter ค้างเพื่อเข้าโหมดตั้งค่า','ข้อ 05 = LI','ข้อ 36: ใช้ RS485 = L01 · ใช้ CAN = L51','ในแอป JK: เลือกโปรโตคอล Growatt ให้ตรงพอร์ต'],
+  voltronic:['กด SET ค้างเพื่อเข้าหน้าตั้งค่า','ข้อ 05 = LIB','ในแอป JK: เลือกโปรโตคอล Voltronic (RS485‑1)'],
+  srne:['กด SET ค้างเพื่อเข้าหน้าตั้งค่า','ข้อ 32 = BMS','ข้อ 33 = WOW','ข้อ 39 = BMS'],
+  goodwe:['ตั้งค่าแบตเป็น Lithium ผ่านแอป SolarGo','เลือกยี่ห้อแบตที่ตรงกับโปรโตคอล JK (CAN)'],
+  victron:['ตามคู่มือ JK: Victron และ INVT ไม่ต้องตั้งค่าเพิ่ม เลือกโปรโตคอลในแอป JK ให้ตรง']};
+function renderInvSteps(){const br=S.par.brand;$('#invSteps').innerHTML=`<ol style="margin:0;padding-left:1.2em;display:grid;gap:3px">${INV[br].map(t=>`<li>${esc(t)}</li>`).join('')}</ol><p class="note">ที่มา: คู่มือ JK ESS BMS V15 หัวข้อ Inverter settings · โปรโตคอล CAN เริ่มต้น 250 kbps</p>`;}
+$('#svgPar').addEventListener('click',e=>{
+  const P=S.par,dip=e.target.closest('[data-dip]'),port=e.target.closest('[data-port]'),brk=e.target.closest('[data-brk]'),pt=e.target.closest('[data-pt]'),bus=e.target.closest('[data-bus]'),cc=e.target.closest('[data-cc]');
+  if(dip){const[i,k]=dip.dataset.dip.split(':').map(Number);P.packs[i].addr^=(1<<k);parPend=null;}
+  else if(brk){const p=P.packs[+brk.dataset.brk];p.brk=!p.brk;if(!p.brk){p.trip=false;p.lim=false;}}
+  else if(cc){P.comm.splice(+cc.dataset.cc,1);}
+  else if(port){const k=port.dataset.port;
+    if(!parPend||!(parPend.includes(':')&&!parPend.endsWith('pos')&&!parPend.endsWith('neg'))){parPend=k;}
+    else if(parPend===k)parPend=null;
+    else{P.comm=P.comm.filter(c=>c.a!==k&&c.b!==k&&c.a!==parPend&&c.b!==parPend);P.comm.push({a:parPend,b:k});parPend=null;}}
+  else if(pt){parPend=pt.dataset.pt;}
+  else if(bus&&parPend&&(parPend.endsWith('pos')||parPend.endsWith('neg'))){const[i,pol]=parPend.split(':');P.power[+i][pol]=bus.dataset.bus;parPend=null;}
+  else parPend=null;
+  save();renderPar();
+});
+$('#parTable').addEventListener('input',e=>{const r=e.target.closest('[data-soc]');if(!r)return;S.par.packs[+r.dataset.soc].soc=+r.value;S.par.packs.forEach(p=>{p.trip=false;});save();renderPar();});
+$('#parTable').addEventListener('click',e=>{const b=e.target.closest('[data-reset]');if(!b)return;S.par.packs[+b.dataset.reset].trip=false;save();renderPar();});
+$('#parN').addEventListener('change',e=>{S.par.n=+e.target.value;ensurePacks();save();renderPar();});
+$('#invBrand').addEventListener('change',e=>{S.par.brand=e.target.value;if(e.target.value==='growatt'||e.target.value==='voltronic'){}save();renderPar();});
+$('#invComm').addEventListener('change',e=>{S.par.commSel=e.target.value;save();renderPar();});
+$('#pRange').addEventListener('input',e=>{S.par.P=+e.target.value;save();renderPar();});
+$('#limChk').addEventListener('change',e=>{S.par.lim=e.target.checked;S.par.packs.forEach(p=>p.trip=false);save();renderPar();});
+$('#parAuto').addEventListener('click',()=>{const P=S.par;P.packs.forEach((p,i)=>{p.addr=i;p.brk=true;p.trip=false;});P.power=P.packs.map(()=>({pos:'bus+',neg:'bus-'}));
+  P.comm=[];for(let i=0;i<P.n-1;i++)P.comm.push({a:i+':485-2b',b:(i+1)+':485-2a'});P.comm.push({a:'0:'+(P.commSel==='CAN'?'can':'485-1'),b:'inv:bms'});S.set.proto=P.commSel;save();renderPar();});
+$('#parClear').addEventListener('click',()=>{const P=S.par;P.comm=[];P.power=P.packs.map(()=>({pos:null,neg:null}));P.packs.forEach(p=>{p.brk=false;p.trip=false;});save();renderPar();});
+$('#parRun').addEventListener('click',()=>{parRun=!parRun;$('#parRun').textContent=parRun?'⏸ หยุดเวลา':'▶ จำลองเวลา';if(parRun){parLast=0;requestAnimationFrame(parLoop);}});
+function parLoop(ts){if(!parRun)return;const dt=parLast?Math.min(0.1,(ts-parLast)/1000):0;parLast=ts;
+  const sol=parSolve(),simDt=dt*600;
+  S.par.packs.forEach((p,i)=>{if(sol.conn[i]){p.soc-=sol.I[i]*simDt/3600/cm().ah*100;p.soc=Math.max(0,Math.min(100,p.soc));}});
+  if(!parLoop.t||ts-parLoop.t>200){parLoop.t=ts;renderPar();}
+  requestAnimationFrame(parLoop);}
+
+/* ---------- reference ---------- */
+function renderRef(){
+  const d=[['แรงดันเริ่มบาลานซ์','3.0 V'],['กระแสบาลานซ์สูงสุด','1 / 2 A'],['ชาร์จเกินเซลล์ (OVP)','3.60 V'],['คืนสภาพ OVP','3.54 V'],['คายเกินเซลล์ (UVP)','2.60 V'],['คืนสภาพ UVP','2.65 V'],['ปิดเครื่องอัตโนมัติ','2.50 V'],['SOC‑0%','2.60 V'],['SOC‑100%','3.50 V'],['ผลต่างเริ่มบาลานซ์','0.01 V'],['หน่วงชาร์จกระแสเกิน / คืนสภาพ','3 s / 60 s'],['หน่วงจ่ายกระแสเกิน / คืนสภาพ','300 s / 60 s'],['หน่วงลัดวงจร / คืนสภาพ','5 µs / 30 s'],['ชาร์จ/จ่ายร้อนเกิน · คืนสภาพ','70 / 60 °C'],['ชาร์จอุณหภูมิต่ำ · คืนสภาพ','−20 / −10 °C'],['MOS ร้อนเกิน · คืนสภาพ','100 / 80 °C'],['แอดเดรสอุปกรณ์','0'],['Pre‑charge','3 s']];
+  let dip='';for(let a=0;a<16;a++)dip+=`<tr><td class="n">${a}</td>${[0,1,2,3].map(k=>`<td class="mono" style="color:${a&(1<<k)?'var(--ok)':'var(--muted)'}">${a&(1<<k)?'ON':'OFF'}</td>`).join('')}<td>${a===0?'Master':'Slave'}</td></tr>`;
+  const cells=Object.values(CELLS).map(c=>`<tr><td>${c.name}</td><td class="n">${c.L}×${c.T}×${c.Ht}</td><td class="n">${c.kg}</td><td class="n">${c.ir}</td><td class="n">${c.cyc}</td></tr>`).join('');
+  $('#refGrid').innerHTML=`
+  <div class="card"><h3>ลำดับต่อสาย JK‑BMS (ตามคู่มือติดตั้ง)</h3><ol>
+    <li>ตรวจแรงดันเซลล์ทุกก้อน ต่างกันไม่เกิน 0.05 V ก่อนประกอบ</li><li>ต่อเซลล์อนุกรมด้วยบัสบาร์ ขันน็อตตามแรงบิดผู้ผลิตเซลล์</li>
+    <li>ต่อ B− (สายน้ำเงินเส้นใหญ่) เข้าขั้วลบรวมของแพ็ก</li><li>วัดสาย sense ทีละขาด้วยมิเตอร์ ค่าต้องเพิ่มขึ้นทีละเซลล์จาก B0 (ลบรวม) ถึง B${S.s}</li>
+    <li>ต่อ P− (ดำ) ไปขั้วลบอินเวอร์เตอร์/เครื่องชาร์จ ใช้สาย P− ทุกเส้นที่ให้มา</li><li>ต่อ BAT+ (แดง) เข้าขั้วบวกรวม ถ้าไม่ต่อบอร์ดจะไม่ทำงาน</li>
+    <li>ปลุก BMS ด้วยปุ่มเปิด หรือจ่ายไฟชาร์จสูงกว่าแรงดันแพ็กราว 5 V</li><li>เข้าแอป: ชนิดแบต LiFePO4 → จำนวนเซลล์ → ความจุ (Ah) → ค่าป้องกัน</li></ol>
+    <p class="note">ห้ามเสียบปลั๊ก sense ก่อนวัดลำดับสายด้วยมิเตอร์ · พิกัดกระแส BMS ต้องไม่ต่ำกว่ากระแสสูงสุดของอินเวอร์เตอร์</p></div>
+  <div class="card"><h3>ค่าเริ่มต้น JK‑PB (LiFePO4)</h3><div class="tscroll"><table><tbody>${d.map(([a,b])=>`<tr><td>${a}</td><td class="n">${b}</td></tr>`).join('')}</tbody></table></div><p class="note">จากตาราง 4.2 Default parameters, JK‑PB1A16S/PB2A16S V24.0.1</p></div>
+  <div class="card"><h3>ตั้งแอดเดรส DIP switch</h3><div class="tscroll"><table><thead><tr><th>ADD</th><th>1</th><th>2</th><th>3</th><th>4</th><th></th></tr></thead><tbody>${dip}</tbody></table></div>
+    <p class="note">ขนานได้สูงสุด 16 BMS · Master = 0 ตัวเดียว · RS485‑2 ต่อพ่วงด้วยสาย LAN (RJ45) · ไฟ L6 ของ Master กะพริบ Slave กะพริบเมื่อสื่อสารกับ Master สำเร็จ</p></div>
+  <div class="card"><h3>พอร์ตบนบอร์ด Adapter (ESS)</h3><table><tbody>
+    <tr><td class="mono">CAN</td><td>สื่อสารกับอินเวอร์เตอร์ ค่าเริ่มต้น 250 kbps · RJ45 ขา 4 CANH, ขา 5 CANL</td></tr>
+    <tr><td class="mono">RS485‑1</td><td>สื่อสารกับอินเวอร์เตอร์ · ขา 1,8 = B1, ขา 2,7 = A1</td></tr>
+    <tr><td class="mono">RS485‑2 ×2</td><td>ต่อพ่วงแพ็กขนานและต่อคอมพิวเตอร์ 115200 bps</td></tr>
+    <tr><td class="mono">DRY</td><td>หน้าสัมผัสแห้งสำหรับไซเรน/พัดลม</td></tr>
+    <tr><td class="mono">RST / ADD</td><td>ปุ่มรีเซ็ต / DIP แอดเดรส 4 บิต</td></tr></tbody></table>
+    <p class="note">ฟังก์ชันจำกัดกระแสขนาน: จำกัด 10 A เมื่อเกิดชาร์จกระแสเกินระหว่างแพ็ก และหยุดเมื่อกระแสต่ำกว่า 5 A · โมดูลเสริม JK‑BLMK‑5A จำกัด 5 A</p></div>
+  <div class="card"><h3>เซลล์ในตัวจำลอง</h3><div class="tscroll"><table><thead><tr><th>รุ่น</th><th>ยาว×หนา×สูง มม.</th><th>kg</th><th>IR mΩ</th><th>รอบ</th></tr></thead><tbody>${cells}</tbody></table></div>
+    <p class="note">ขนาดและค่า IR เป็นค่าโดยประมาณจากเอกสารผู้ผลิตทั่วไป ตรวจกับ datasheet ของล็อตที่ซื้อจริงก่อนสั่งทำกล่อง</p></div>
+  <div class="card"><h3>รุ่น BMS ที่เลือกได้</h3><div class="tscroll"><table><thead><tr><th>รุ่น</th><th>จำนวนเซลล์</th><th>กระแส</th><th>บาลานซ์</th></tr></thead><tbody>${Object.values(BMS).map(b=>`<tr><td>${b.name}${b.ext?' *':''}</td><td class="n">${b.sMin}–${b.sMax}S</td><td class="n">${b.cont?b.cont+' A':'—'}</td><td class="n">${b.bal} A</td></tr>`).join('')}</tbody></table></div>
+    <p class="note">PB series ใช้ได้ 7–16S จึงไม่รองรับ 4S · * JK‑B2A8S20P (4–8S) ไม่ได้อยู่ในเอกสารที่แนบมา ใช้เป็นตัวอย่างสำหรับ 4S</p>
+    <p class="note">แหล่งอ้างอิง: <a href="https://www.shop.jkbms.com/jkbms-installation-guide-safety-manual/" target="_blank" rel="noopener">JKBMS Installation Guide</a></p></div>`;
+}
+
+/* ---------- step status / tabs ---------- */
+function updateSteps(parL){
+  const iss=layoutIssues(),layOk=!iss.out.size&&!iss.hit.size&&!iss.tooLow;
+  const r=WIRE||analyze(),hc=harnessCheck(r).res,wOk=r.ok&&Object.values(hc).every(v=>v==='ok')&&S.active&&!S.damaged;
+  const sOk=S.set&&!setIssues().some(x=>x[0]==='bad');
+  const pL=parL||null;
+  const set=(id,ok,bad)=>{const e=$('#st-'+id);if(!e)return;e.className='step'+(ok?' ok':bad?' bad':'');};
+  set('layout',layOk,!layOk);set('wire',wOk,r.shorts.length||r.conflict||S.damaged);set('bms',sOk&&bmsReady(),false);
+  if(pL)set('par',!pL.some(x=>x[0]!=='ok'),pL.some(x=>x[0]==='bad'));
+}
+function showTab(t){S.tab=t;$$('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  $$('section[role=tabpanel]').forEach(s=>s.hidden=s.id!=='tab-'+t);
+  if(t==='layout')renderLayoutAll();if(t==='wire')renderWire();if(t==='bms'){renderPhone();renderSetChecks();drawChart();}if(t==='par')renderPar();if(t==='ref')renderRef();
+  try{if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);}catch(e){}save();}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(['layout','wire','bms','par','ref'].includes(h)&&h!==S.tab)showTab(h);});
+
+/* ---------- config handlers ---------- */
+$('#cfgCell').addEventListener('change',e=>{S.cell=e.target.value;genLayout(S.arr);initSimCells();syncBoxInputs();renderAll();});
+$('#cfgS').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;const s=+b.dataset.s;if(s===S.s)return;S.s=s;
+  if(!(s>=bm().sMin&&s<=bm().sMax))S.bms=s===4?'B2A8S20P':'PB2A16S20P';
+  genLayout(arrOptions(s)[0][0]);S.links=[];S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;initSimCells();syncBoxInputs();renderCfg();renderAll();});
+$('#cfgBms').addEventListener('change',e=>{S.bms=e.target.value;S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;const u=S.set&&S.set.unlocked;S.set=defaultSettings();S.set.unlocked=u;fitBox();syncBoxInputs();renderCfg();renderAll();});
+
+function renderAll(){renderSpecs();renderLayoutAll();renderWire();if(S.tab==='bms'){renderPhone();renderSetChecks();}if(S.tab==='par')renderPar();if(S.tab==='ref')renderRef();updateSteps();save();}
+
+/* ---------- boot ---------- */
+S=load()||defaults();
+if(!S.cells.length)genLayout(S.arr);
+if(!S.set)S.set=defaultSettings();
+if(!S.par.commSel)S.par.commSel='CAN';
+ensurePacks();initSimCells();
+$('#parN').innerHTML=Array.from({length:8},(_,i)=>`<option value="${i+1}" ${i+1===S.par.n?'selected':''}>${i+1} แพ็ก</option>`).join('');
+$('#invBrand').value=S.par.brand;$('#invComm').value=S.par.commSel;$('#pRange').value=S.par.P;$('#limChk').checked=S.par.lim;
+$('#iRange').value=S.Ireq;$('#iVal').textContent=(S.Ireq>0?'+':'')+S.Ireq+' A';$('#tRange').value=S.amb;$('#tVal').textContent=S.amb+'°C';
+$('#spRange').value=S.spread;$('#spVal').textContent='±'+S.spread+'%';$('#spdSel').value=String(S.spd);$('#cvChk').checked=S.cv;
+renderCfg();syncBoxInputs();
+logEv('o','เริ่มจำลอง · ค่าในแอปเป็นค่าโรงงาน (16 เซลล์ / 280 Ah) ต้องปรับให้ตรงกับแพ็ก');
+const h0=location.hash.slice(1);
+showTab(['layout','wire','bms','par','ref'].includes(h0)?h0:S.tab||'layout');
+renderWire();
+})();
+</script>
+<script>/* menu 16 in the simulator: tell the parent page how tall this page is, and follow its theme switch */
+(function(){if(window.self===window.top)return;
+  const send=()=>{try{parent.postMessage({lfpH:Math.ceil(document.documentElement.scrollHeight)},'*')}catch(e){}};
+  try{new ResizeObserver(send).observe(document.body)}catch(e){setInterval(send,1000)}
+  addEventListener('load',send);
+  addEventListener('message',e=>{if(e.data&&e.data.pvTheme)document.documentElement.dataset.theme=e.data.pvTheme});
+})();</script>
+</body>
+</html>

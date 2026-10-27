@@ -5,7 +5,7 @@ Open index.html in a browser to run the project from this folder."""
 import os,re,hashlib
 here=os.path.dirname(os.path.abspath(__file__))
 R=lambda p:open(os.path.join(here,p),encoding='utf-8').read()
-JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','acmicro','solar','site','loads','backup','bkanim','systems','events','bench','benchui','basics','earth','submit','worksheets','hwlog','fusion','fusionpar','fusiondet','fusionov','fusionman','cable','library','kb_rcd','solis','access','ctx','app']
+JS=['config','catalog','pdfimport','model','engine','wiring','acart','acsys','acmicro','solar','site','loads','backup','bkanim','systems','events','bench','benchui','basics','earth','submit','worksheets','hwlog','fusion','fusionpar','fusiondet','fusionov','fusionman','cable','library','kb_rcd','solis','lfp','access','ctx','app']
 TITLE='solar sim@1'
 import base64
 ICON_URI='data:image/svg+xml;base64,'+base64.b64encode(open(os.path.join(here,'img','favicon.svg'),'rb').read()).decode()
@@ -15,7 +15,7 @@ body=R('app.html')
 V=lambda p:hashlib.sha1(R(p).encode('utf-8')).hexdigest()[:8]
 for n in JS:
     assert '</script' not in R(f'js/{n}.js'),n
-BUILD=hashlib.sha1((''.join(R(f'js/{n}.js') for n in JS)+R('css/styles.css')+body).encode('utf-8')).hexdigest()[:10]
+BUILD=hashlib.sha1((''.join(R(f'js/{n}.js') for n in JS)+R('css/styles.css')+body+R('lfp.html')).encode('utf-8')).hexdigest()[:10]
 dev=f'''<!doctype html>
 <html lang="th">
 <head>
@@ -33,10 +33,13 @@ if(m&&m[1]!=='{BUILD}'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){{sessio
 </head>
 <body>
 {body}
+<script>var LFP_V='{V('lfp.html')}'</script>
 '''+''.join(f'<script src="js/{n}.js?v={V(f"js/{n}.js")}"></script>\n' for n in JS)+'''</body>
 </html>
 '''
 open(os.path.join(here,'index.html'),'w',encoding='utf-8').write(dev)
+import json
+LFP_DOC='const LFP_DOC='+json.dumps(R('lfp.html'),ensure_ascii=False).replace('</','<\\/')+';'
 bundle=f'''<title>{TITLE}</title>
 <link rel="icon" type="image/svg+xml" href="{ICON_URI}">
 <script>try{{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}}catch(e){{document.documentElement.dataset.theme='light'}}</script>
@@ -46,7 +49,7 @@ bundle=f'''<title>{TITLE}</title>
 {R('css/styles.css')}</style>
 {body}
 <script>
-'''+'\n'.join(R(f'js/{n}.js') for n in JS)+'''
+'''+LFP_DOC+'\n'+'\n'.join(R(f'js/{n}.js') for n in JS)+'''
 </script>
 '''
 os.makedirs(os.path.join(here,'dist'),exist_ok=True)
