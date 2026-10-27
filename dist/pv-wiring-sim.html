@@ -188,6 +188,19 @@ table.t th:first-child,table.t td:first-child{text-align:left}
 .navb[aria-current="page"]{background:var(--accentbg);border-color:var(--accent);font-weight:600}
 .navb .ic{width:20px;text-align:center;font-family:var(--mono);color:var(--muted)}
 .navb[aria-current="page"] .ic{color:var(--accent)}
+/* grouped menu: 4 collapsible groups + submit; on phones one "current menu" button opens the list */
+.navcur{display:none}
+.navgroups{display:flex;flex-direction:column;gap:2px}
+.ngrp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:38px;padding:0 10px;border-radius:6px;font-size:12.5px;font-weight:600;letter-spacing:.04em;color:var(--muted);user-select:none}
+.ngrp>summary::-webkit-details-marker{display:none}
+.ngrp>summary::after{content:"›";font-size:18px;line-height:1;transition:transform .15s}
+.ngrp[open]>summary::after{transform:rotate(90deg)}
+.ngrp>summary:hover{background:var(--bg);color:var(--ink)}
+.ngrp.has-cur>summary{color:var(--accent)}
+.ngrp .navb{width:100%}
+.ngrp[open]{padding-bottom:4px}
+.navsubmit{margin-top:8px;border-color:var(--line)}
+@media (prefers-reduced-motion:reduce){.ngrp>summary::after{transition:none}}
 .sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--muted);padding:0 4px}
 .main{padding:20px max(16px,env(safe-area-inset-right,0px)) 48px 24px;min-width:0}
 .main .wrap{max-width:860px;margin:0}
@@ -244,10 +257,15 @@ table.ldt td:nth-child(2) input,table.ldt td:nth-child(3) input,table.ldt td:nth
 .hint.tight{margin:0}
 @media (max-width:760px){
   .app{grid-template-columns:1fr}
-  .side{position:sticky;top:0;z-index:20;height:auto;flex-direction:row;gap:4px;padding:6px 8px;padding-top:calc(6px + env(safe-area-inset-top,0px));border-right:0;border-bottom:1px solid var(--line);overflow-x:auto}
+  .side{position:sticky;top:0;z-index:20;height:auto;flex-direction:row;align-items:center;gap:8px;padding:6px 8px;padding-top:calc(6px + env(safe-area-inset-top,0px));border-right:0;border-bottom:1px solid var(--line);overflow:visible}
   .brand,.sidefoot{display:none}
-  .navb{flex:none;min-height:44px;padding:0 12px;font-size:14px;white-space:nowrap}
-  .navb .ic{display:none}
+  .navcur{display:flex;flex:1;min-width:0;align-items:center;gap:10px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:15px;font-weight:600;text-align:left}
+  .navcur #navcurname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navcuric{font-size:18px;color:var(--accent)}
+  .navgroups{display:none;position:absolute;left:0;right:0;top:100%;max-height:calc(100vh - 80px);max-height:calc(100dvh - 80px);overflow-y:auto;overscroll-behavior:contain;padding:8px max(12px,env(safe-area-inset-right,0px)) 14px max(12px,env(safe-area-inset-left,0px));background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 12px 28px rgba(0,0,0,.18)}
+  .side.open .navgroups{display:flex}
+  .navb{flex:none;min-height:44px;padding:0 12px;font-size:14.5px}
+  .ngrp>summary{min-height:44px;font-size:13.5px}
   .main{padding:14px 16px 40px}
   table.ldt thead{display:none}
   table.ldt,table.ldt tbody,table.ldt tr,table.ldt td{display:block}
@@ -550,7 +568,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 /* theme button */
 .themeb{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-size:13px;margin-top:6px}
 .themeb:hover{color:var(--ink)}
-@media (max-width:760px){.themeb{margin:0 0 0 auto;min-height:44px}}
+@media (max-width:760px){.themeb{margin:0;min-height:44px}}
 
 /* menu 07 power-flow animation */
 .bka-card{margin-top:14px}
@@ -1022,23 +1040,34 @@ html.lfplocked,html.lfplocked body{overflow:hidden;overscroll-behavior:none}
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
-    <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
-    <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
-    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
-    <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
-    <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
-    <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
-    <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
-    <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
-    <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
-    <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
-    <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
-    <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
-    <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
-    <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
-    <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
-    <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
-    <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
+    <button class="navcur" id="navcur" type="button" aria-expanded="false" aria-controls="navgroups"><span class="navcuric" aria-hidden="true">☰</span><span id="navcurname">เมนู</span></button>
+    <div class="navgroups" id="navgroups">
+    <details class="ngrp" data-grp="start"><summary>เริ่มต้น</summary>
+      <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
+      <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
+    </details>
+    <details class="ngrp" data-grp="wire"><summary>อุปกรณ์และต่อสาย</summary>
+      <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
+      <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
+      <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
+      <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
+      <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
+    </details>
+    <details class="ngrp" data-grp="sim"><summary>ออกแบบและจำลอง</summary>
+      <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
+      <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
+      <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
+      <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
+      <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
+      <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
+    </details>
+    <details class="ngrp" data-grp="real"><summary>ติดตั้งตามรุ่นจริง</summary>
+      <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
+      <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
+      <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
+    </details>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
+    </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -11778,6 +11807,7 @@ function accApply(){
   accBar();
   if(typeof HW!=='undefined'&&typeof hwRole==='function'&&!hwRole()){HW.files=[];HW.day=null}
   document.querySelectorAll('.navb[data-tab]').forEach(b=>{b.hidden=!accAllowed(b.dataset.tab)});
+  if(typeof navSync==='function')navSync();
   TABS.forEach(t=>{
     const sec=document.getElementById('tab-'+t);if(!sec)return;
     const ro=ACC.enabled&&accPerm(t)==='view';
@@ -11929,6 +11959,14 @@ function setNavH(){
   const mob=window.matchMedia('(max-width:760px)').matches,nav=$('#nav');
   document.documentElement.style.setProperty('--navh',mob?nav.offsetHeight+'px':'0px');
 }
+/* grouped menu: a group hides when none of its menus is open to this user; the group holding the current menu opens */
+function navSync(){
+  document.querySelectorAll('.ngrp').forEach(g=>{const bs=[...g.querySelectorAll('.navb')],has=bs.some(b=>b.dataset.tab===curTab);
+    g.hidden=!bs.some(b=>!b.hidden);g.classList.toggle('has-cur',has);if(has)g.open=true;});
+  const b=document.querySelector(`.navb[data-tab="${curTab}"]`),n=document.getElementById('navcurname');
+  if(b&&n){const ic=b.querySelector('.ic');n.textContent=(ic?ic.textContent+' ':'')+[...b.childNodes].filter(x=>x!==ic).map(x=>x.textContent).join('').trim();}
+}
+function navOpen(on){const nav=document.getElementById('nav'),c=document.getElementById('navcur');if(!nav||!c)return;nav.classList.toggle('open',on);c.setAttribute('aria-expanded',on?'true':'false');}
 function showTab(t,fromHash){
   let sub='';if(typeof t==='string'&&t.includes('/')){sub=t.slice(t.indexOf('/')+1);t=t.slice(0,t.indexOf('/'))}
   if(t==='library'&&typeof KB!=='undefined'&&(sub||fromHash))KB.open=sub;
@@ -11939,6 +11977,7 @@ function showTab(t,fromHash){
   if(typeof fsOn!=='undefined'&&fsOn&&t!=='wiring')setFs(false);
   TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t});
   document.querySelectorAll('.navb').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  navSync();navOpen(false);
   if(!fromHash){try{history.replaceState(null,'','#'+t+(t==='library'&&typeof KB!=='undefined'&&KB.open?'/'+KB.open:''))}catch(e){}}
   setNavH();
   requestAnimationFrame(()=>{
@@ -12139,6 +12178,10 @@ function initReset(){
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
   initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initFupar();initFudet();initFuov();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();if(typeof initLibrary==='function')initLibrary();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+  $('#navcur').addEventListener('click',e=>{e.stopPropagation();navOpen(!$('#nav').classList.contains('open'))});
+  document.addEventListener('click',e=>{if(!e.target.closest('#nav'))navOpen(false)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')navOpen(false)});
+  navSync();
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
   $('#acinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

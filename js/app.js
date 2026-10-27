@@ -6,6 +6,14 @@ function setNavH(){
   const mob=window.matchMedia('(max-width:760px)').matches,nav=$('#nav');
   document.documentElement.style.setProperty('--navh',mob?nav.offsetHeight+'px':'0px');
 }
+/* grouped menu: a group hides when none of its menus is open to this user; the group holding the current menu opens */
+function navSync(){
+  document.querySelectorAll('.ngrp').forEach(g=>{const bs=[...g.querySelectorAll('.navb')],has=bs.some(b=>b.dataset.tab===curTab);
+    g.hidden=!bs.some(b=>!b.hidden);g.classList.toggle('has-cur',has);if(has)g.open=true;});
+  const b=document.querySelector(`.navb[data-tab="${curTab}"]`),n=document.getElementById('navcurname');
+  if(b&&n){const ic=b.querySelector('.ic');n.textContent=(ic?ic.textContent+' ':'')+[...b.childNodes].filter(x=>x!==ic).map(x=>x.textContent).join('').trim();}
+}
+function navOpen(on){const nav=document.getElementById('nav'),c=document.getElementById('navcur');if(!nav||!c)return;nav.classList.toggle('open',on);c.setAttribute('aria-expanded',on?'true':'false');}
 function showTab(t,fromHash){
   let sub='';if(typeof t==='string'&&t.includes('/')){sub=t.slice(t.indexOf('/')+1);t=t.slice(0,t.indexOf('/'))}
   if(t==='library'&&typeof KB!=='undefined'&&(sub||fromHash))KB.open=sub;
@@ -16,6 +24,7 @@ function showTab(t,fromHash){
   if(typeof fsOn!=='undefined'&&fsOn&&t!=='wiring')setFs(false);
   TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t});
   document.querySelectorAll('.navb').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  navSync();navOpen(false);
   if(!fromHash){try{history.replaceState(null,'','#'+t+(t==='library'&&typeof KB!=='undefined'&&KB.open?'/'+KB.open:''))}catch(e){}}
   setNavH();
   requestAnimationFrame(()=>{
@@ -216,6 +225,10 @@ function initReset(){
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
   initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initFupar();initFudet();initFuov();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();if(typeof initLibrary==='function')initLibrary();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+  $('#navcur').addEventListener('click',e=>{e.stopPropagation();navOpen(!$('#nav').classList.contains('open'))});
+  document.addEventListener('click',e=>{if(!e.target.closest('#nav'))navOpen(false)});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')navOpen(false)});
+  navSync();
   $('#qpanel').addEventListener('change',e=>{ACT.panel=e.target.value;onCatalogChange()});
   $('#qinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});
   $('#acinv').addEventListener('change',e=>{ACT.inv=e.target.value;onCatalogChange()});

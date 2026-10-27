@@ -1,23 +1,34 @@
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
-    <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
-    <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
-    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
-    <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
-    <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
-    <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
-    <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
-    <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
-    <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
-    <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
-    <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
-    <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
-    <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
-    <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
-    <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
-    <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
-    <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
+    <button class="navcur" id="navcur" type="button" aria-expanded="false" aria-controls="navgroups"><span class="navcuric" aria-hidden="true">☰</span><span id="navcurname">เมนู</span></button>
+    <div class="navgroups" id="navgroups">
+    <details class="ngrp" data-grp="start"><summary>เริ่มต้น</summary>
+      <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
+      <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
+    </details>
+    <details class="ngrp" data-grp="wire"><summary>อุปกรณ์และต่อสาย</summary>
+      <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
+      <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
+      <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
+      <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
+      <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
+    </details>
+    <details class="ngrp" data-grp="sim"><summary>ออกแบบและจำลอง</summary>
+      <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
+      <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
+      <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
+      <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
+      <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
+      <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
+    </details>
+    <details class="ngrp" data-grp="real"><summary>ติดตั้งตามรุ่นจริง</summary>
+      <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
+      <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
+      <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
+    </details>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
+    </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>

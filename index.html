@@ -3,37 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="ed88433655">
+<meta name="build" content="1224aad982">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='ed88433655'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='1224aad982'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=9cd388d6">
+<link rel="stylesheet" href="css/styles.css?v=12688864">
 </head>
 <body>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
-    <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
-    <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
-    <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
-    <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
-    <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
-    <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
-    <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
-    <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
-    <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
-    <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
-    <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
-    <button class="navb" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
-    <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
-    <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
-    <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
-    <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
-    <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
+    <button class="navcur" id="navcur" type="button" aria-expanded="false" aria-controls="navgroups"><span class="navcuric" aria-hidden="true">☰</span><span id="navcurname">เมนู</span></button>
+    <div class="navgroups" id="navgroups">
+    <details class="ngrp" data-grp="start"><summary>เริ่มต้น</summary>
+      <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
+      <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
+    </details>
+    <details class="ngrp" data-grp="wire"><summary>อุปกรณ์และต่อสาย</summary>
+      <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
+      <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
+      <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
+      <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
+      <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
+    </details>
+    <details class="ngrp" data-grp="sim"><summary>ออกแบบและจำลอง</summary>
+      <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
+      <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
+      <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
+      <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
+      <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
+      <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
+    </details>
+    <details class="ngrp" data-grp="real"><summary>ติดตั้งตามรุ่นจริง</summary>
+      <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
+      <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
+      <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
+    </details>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
+    </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
   </nav>
@@ -667,8 +678,8 @@ if(m&&m[1]!=='ed88433655'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/kb_rcd.js?v=98dcfe12"></script>
 <script src="js/solis.js?v=eff4270e"></script>
 <script src="js/lfp.js?v=36037bf8"></script>
-<script src="js/access.js?v=fcf5de94"></script>
+<script src="js/access.js?v=b5aaf33e"></script>
 <script src="js/ctx.js?v=529868cd"></script>
-<script src="js/app.js?v=e7c87201"></script>
+<script src="js/app.js?v=8e3772b8"></script>
 </body>
 </html>

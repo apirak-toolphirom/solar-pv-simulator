@@ -51,6 +51,7 @@ function accApply(){
   accBar();
   if(typeof HW!=='undefined'&&typeof hwRole==='function'&&!hwRole()){HW.files=[];HW.day=null}
   document.querySelectorAll('.navb[data-tab]').forEach(b=>{b.hidden=!accAllowed(b.dataset.tab)});
+  if(typeof navSync==='function')navSync();
   TABS.forEach(t=>{
     const sec=document.getElementById('tab-'+t);if(!sec)return;
     const ro=ACC.enabled&&accPerm(t)==='view';

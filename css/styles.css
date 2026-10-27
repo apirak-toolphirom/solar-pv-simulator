@@ -182,6 +182,19 @@ table.t th:first-child,table.t td:first-child{text-align:left}
 .navb[aria-current="page"]{background:var(--accentbg);border-color:var(--accent);font-weight:600}
 .navb .ic{width:20px;text-align:center;font-family:var(--mono);color:var(--muted)}
 .navb[aria-current="page"] .ic{color:var(--accent)}
+/* grouped menu: 4 collapsible groups + submit; on phones one "current menu" button opens the list */
+.navcur{display:none}
+.navgroups{display:flex;flex-direction:column;gap:2px}
+.ngrp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:38px;padding:0 10px;border-radius:6px;font-size:12.5px;font-weight:600;letter-spacing:.04em;color:var(--muted);user-select:none}
+.ngrp>summary::-webkit-details-marker{display:none}
+.ngrp>summary::after{content:"›";font-size:18px;line-height:1;transition:transform .15s}
+.ngrp[open]>summary::after{transform:rotate(90deg)}
+.ngrp>summary:hover{background:var(--bg);color:var(--ink)}
+.ngrp.has-cur>summary{color:var(--accent)}
+.ngrp .navb{width:100%}
+.ngrp[open]{padding-bottom:4px}
+.navsubmit{margin-top:8px;border-color:var(--line)}
+@media (prefers-reduced-motion:reduce){.ngrp>summary::after{transition:none}}
 .sidefoot{margin-top:auto;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--muted);padding:0 4px}
 .main{padding:20px max(16px,env(safe-area-inset-right,0px)) 48px 24px;min-width:0}
 .main .wrap{max-width:860px;margin:0}
@@ -238,10 +251,15 @@ table.ldt td:nth-child(2) input,table.ldt td:nth-child(3) input,table.ldt td:nth
 .hint.tight{margin:0}
 @media (max-width:760px){
   .app{grid-template-columns:1fr}
-  .side{position:sticky;top:0;z-index:20;height:auto;flex-direction:row;gap:4px;padding:6px 8px;padding-top:calc(6px + env(safe-area-inset-top,0px));border-right:0;border-bottom:1px solid var(--line);overflow-x:auto}
+  .side{position:sticky;top:0;z-index:20;height:auto;flex-direction:row;align-items:center;gap:8px;padding:6px 8px;padding-top:calc(6px + env(safe-area-inset-top,0px));border-right:0;border-bottom:1px solid var(--line);overflow:visible}
   .brand,.sidefoot{display:none}
-  .navb{flex:none;min-height:44px;padding:0 12px;font-size:14px;white-space:nowrap}
-  .navb .ic{display:none}
+  .navcur{display:flex;flex:1;min-width:0;align-items:center;gap:10px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:15px;font-weight:600;text-align:left}
+  .navcur #navcurname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .navcuric{font-size:18px;color:var(--accent)}
+  .navgroups{display:none;position:absolute;left:0;right:0;top:100%;max-height:calc(100vh - 80px);max-height:calc(100dvh - 80px);overflow-y:auto;overscroll-behavior:contain;padding:8px max(12px,env(safe-area-inset-right,0px)) 14px max(12px,env(safe-area-inset-left,0px));background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 12px 28px rgba(0,0,0,.18)}
+  .side.open .navgroups{display:flex}
+  .navb{flex:none;min-height:44px;padding:0 12px;font-size:14.5px}
+  .ngrp>summary{min-height:44px;font-size:13.5px}
   .main{padding:14px 16px 40px}
   table.ldt thead{display:none}
   table.ldt,table.ldt tbody,table.ldt tr,table.ldt td{display:block}
@@ -544,7 +562,7 @@ table.t.wsh td,table.t.wsh th{font-family:var(--body);text-align:left;white-spac
 /* theme button */
 .themeb{flex:none;display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-size:13px;margin-top:6px}
 .themeb:hover{color:var(--ink)}
-@media (max-width:760px){.themeb{margin:0 0 0 auto;min-height:44px}}
+@media (max-width:760px){.themeb{margin:0;min-height:44px}}
 
 /* menu 07 power-flow animation */
 .bka-card{margin-top:14px}
