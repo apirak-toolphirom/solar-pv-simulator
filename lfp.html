@@ -81,6 +81,15 @@ button{cursor:pointer}
 .pane{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:grid;grid-template-rows:auto;min-width:0;overflow:hidden}
 .wbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:6px 12px;border-bottom:1px solid var(--line);font-size:.85rem}
 .wscroll{overflow:auto;max-height:82vh}
+/* screen lock: the working pane fills the screen and the page cannot scroll, so a finger drag only moves cells/wires */
+.lockbar{display:none}
+html.locked,html.locked body{overflow:hidden;overscroll-behavior:none}
+.pane.lockpane{position:fixed;inset:0;z-index:100;border-radius:0;border:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.pane.lockpane .lockbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding-block:8px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));background:var(--surface-2);border-bottom:1px solid var(--line)}
+.pane.lockpane .lockbar [data-la="unlock"]{margin-left:auto}
+.pane.lockpane>svg{flex:1;min-height:0;height:100%!important;max-height:none;aspect-ratio:auto!important;touch-action:none}
+.pane.lockpane .wscroll{flex:1;min-height:0;max-height:none;overscroll-behavior:contain}
+#paneTop.lockpane>figcaption{display:none}
 .wscroll svg{max-height:none!important;max-width:none}
 .pane>figcaption,.pane>.cap{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-size:.85rem}
 .pane svg{display:block;width:100%;height:auto;max-height:78vh;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -213,10 +222,13 @@ body{margin:0}
       <label class="field"><span class="lbl">กว้าง</span><input class="inline-num num" type="number" id="boxW" step="5"></label>
       <label class="field"><span class="lbl">สูง</span><input class="inline-num num" type="number" id="boxH" step="5"></label>
       <button class="btn" id="btnFit">ปรับกล่องพอดีเซลล์</button>
+      <button class="btn" id="btnShuffle">สุ่มวางคละกัน</button>
+      <button class="btn pri" id="btnLockTop">ล็อกจอ</button>
       <div class="sel-box" id="selBox"></div>
     </div>
     <div class="lay-grid">
-      <figure class="pane lay-top">
+      <figure class="pane lay-top" id="paneTop">
+        <div class="lockbar"><button class="btn sm" data-la="r90">หมุน 90°</button><button class="btn sm" data-la="r180">กลับขั้ว 180°</button><button class="btn sm" data-la="shuffle">สุ่มใหม่</button><span class="num" id="lockInfo"></span><button class="btn sm pri" data-la="unlock">ปลดล็อกจอ</button></div>
         <figcaption><span><b id="topCap">มุมบน (Top view)</b> <span class="muted">ลากเซลล์เพื่อย้าย · ดับเบิลคลิกหรือกด R เพื่อหมุน 90° · F กลับขั้ว 180° · ลูกศรเลื่อนทีละ 1 มม.</span></span></figcaption>
         <svg id="svgTop" aria-label="มุมมองด้านบนของการจัดวางเซลล์ในกล่อง"></svg>
       </figure>
@@ -240,13 +252,14 @@ body{margin:0}
   <!-- 2 WIRING -->
   <section role="tabpanel" id="tab-wire" hidden>
     <div class="wire-grid">
-      <figure class="pane wire-svg">
+      <figure class="pane wire-svg" id="paneWire">
+        <div class="lockbar"><span class="note">ล็อกจอแล้ว หน้าเว็บจะไม่เลื่อนขณะลากสาย</span><button class="btn sm pri" data-la="unlock">ปลดล็อกจอ</button></div>
         <figcaption><span id="wireHint"><b>ต่อสาย</b></span><span class="seg" id="toolSeg">
           <button data-tool="link">บัสบาร์</button><button data-tool="harness">สาย BMS</button><button data-tool="meter">มิเตอร์</button><button data-tool="erase">ลบ</button></span></figcaption>
         <div class="wbar" id="devBar"><span class="lbl">อุปกรณ์</span><b id="devName"></b>
           <button class="btn sm" data-dv="small" title="ย่ออุปกรณ์ที่เลือก">ย่อ −</button><button class="btn sm" data-dv="big" title="ขยายอุปกรณ์ที่เลือก">ขยาย +</button>
           <span class="lbl" style="margin-left:8px">มุมมอง</span><button class="btn sm" data-dv="zout">−</button><b class="num" id="zoomVal"></b><button class="btn sm" data-dv="zin">+</button>
-          <button class="btn sm" data-dv="reset">จัดตำแหน่งเริ่มต้น</button></div>
+          <button class="btn sm" data-dv="reset">จัดตำแหน่งเริ่มต้น</button><button class="btn sm pri" id="btnLockWire">ล็อกจอ</button></div>
         <div class="wscroll"><svg id="svgWire" aria-label="แผงต่อสาย ลากแพ็ก BMS อินเวอร์เตอร์ และมิเตอร์ย้ายได้"></svg></div>
       </figure>
       <aside class="wire-side">
@@ -633,6 +646,8 @@ function renderLayChecks(iss){
   }else L.push(iss.tooLow?['bad',`ความสูงกล่อง ${S.box.H} มม. ไม่พอสำหรับ ${S.tiers} ชั้น (เซลล์สูง ${cm().Ht} มม.)`]:['ok',`ความสูงกล่องพอ เหลือที่ด้านบน ${Math.round(S.box.H-S.tiers*(cm().Ht+TIER_GAP))} มม. สำหรับบัสบาร์/BMS`]);
   const vol=S.box.L*S.box.W*(S.box.H+(FRONT()?BMS_BAY:0))/1e6,kwh=S.s*3.2*cm().ah/1000;
   L.push(['ok',`ความหนาแน่นพลังงานตู้ ≈ ${fmt(kwh/vol*1000,0)} Wh/ลิตร · ปริมาตรภายใน ${fmt(vol,1)} ลิตร`]);
+  {const ok=orderReady(),n=S.cells.length-1;L.push(ok===n?['ok',`เรียงลำดับและขั้วพร้อมต่ออนุกรมด้วยบัสบาร์สั้นครบ ${ok}/${n} คู่ (ขั้ว + เซลล์ก่อนหน้าชิดขั้ว − เซลล์ถัดไป)`]:['warn',`เรียงลำดับพร้อมต่อบัสบาร์สั้น ${ok}/${n} คู่ · ลากเซลล์ไปวางบนช่องของอีกก้อนเพื่อสลับที่ แล้วหมุนให้ขั้ว + ชิดขั้ว − ของเซลล์หมายเลขถัดไป`]);
+   const li=$('#lockInfo');if(li)li.textContent=`เรียงแล้ว ${ok}/${n}${S.sel!=null?' · เลือกเซลล์ '+(S.sel+1):''}`;}
   L.push(['warn','เซลล์ 280 Ah และ 314 Ah รุ่นนี้ใช้ขนาดเดียวกัน (71173207) จึงใช้กล่องและบัสบาร์ชุดเดียวกันได้ แต่ห้ามผสมความจุในแพ็กเดียว']);
   $('#layChecks').innerHTML=L.map(([k,t])=>`<li class="${k}">${t}</li>`).join('');
 }
@@ -762,19 +777,52 @@ let rafL=0;function scheduleLayout(){if(rafL)return;rafL=requestAnimationFrame((
 
 /* ---------- layout interactions ---------- */
 function svgPt(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+/* ---- screen lock ---- */
+let LOCKED=null;
+function setLock(pane){
+  if(LOCKED)LOCKED.classList.remove('lockpane');LOCKED=pane||null;
+  document.documentElement.classList.toggle('locked',!!pane);if(pane)pane.classList.add('lockpane');
+  try{if(window.self!==window.top)parent.postMessage({lfpLock:!!pane},'*')}catch(e){}
+  $('#btnLockTop').textContent=$('#btnLockWire').textContent='ล็อกจอ';
+  requestAnimationFrame(()=>{if(S.tab==='layout')renderTop();if(S.tab==='wire'){lastVB=null;renderWire();}});
+}
+$('#btnLockTop').addEventListener('click',()=>setLock($('#paneTop')));
+$('#btnLockWire').addEventListener('click',()=>setLock($('#paneWire')));
+document.addEventListener('click',e=>{const b=e.target.closest('[data-la]');if(!b)return;const a=b.dataset.la;
+  if(a==='unlock')setLock(null);else if(a==='shuffle')shuffleCells();else if(S.sel!=null)rotSel(S.sel,a==='r90'?90:180);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&LOCKED)setLock(null);});
+/* ---- slots of the chosen arrangement: drop a cell near a slot to snap; drop on an occupied slot to swap ---- */
+function slotsFor(code){const keep={cells:S.cells,box:S.box,style:S.style,tiers:S.tiers,arr:S.arr,az:S.az,sel:S.sel};
+  genLayout(code);const sl=S.cells.map(c=>({x:c.x,y:c.y,tier:c.tier}));Object.assign(S,keep);return sl;}
+function shuffleCells(){
+  const sl=slotsFor(S.arr),R=Math.random,O=FRONT()?[0,180]:[90,270];
+  for(let i=sl.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[sl[i],sl[j]]=[sl[j],sl[i]];}
+  S.cells.forEach((c,i)=>{c.x=sl[i].x;c.y=sl[i].y;c.tier=sl[i].tier;c.rot=O[Math.floor(R()*2)];});
+  S.links=[];S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;S.sel=null;
+  save();renderLayoutAll();renderWire();
+}
+function orderReady(){let ok=0;for(let i=0;i<S.cells.length-1;i++){if(d3(term(S.cells[i],'+'),term(S.cells[i+1],'-'))<=110)ok++;}return ok;}
 let drag=null;
 $('#svgTop').addEventListener('pointerdown',e=>{
   const g=e.target.closest('[data-cell]');const svg=$('#svgTop');
   if(!g){S.sel=null;renderTop();return;}
   const i=+g.dataset.cell,c=S.cells[i],p=svgPt(svg,e);S.sel=i;
-  drag={i,dx:p.x-c.x,dy:p.y-(c.y+panelY(c.tier))};svg.setPointerCapture(e.pointerId);renderTop();
+  drag={i,dx:p.x-c.x,dy:p.y-(c.y+panelY(c.tier)),from:{x:c.x,y:c.y,tier:c.tier}};svg.setPointerCapture(e.pointerId);renderTop();
 });
 $('#svgTop').addEventListener('pointermove',e=>{
   if(!drag)return;const svg=$('#svgTop'),p=svgPt(svg,e),c=S.cells[drag.i];
   const gy=p.y-drag.dy;let t=Math.floor((gy+PANEL_GAP/2)/(edH()+PANEL_GAP));t=Math.max(0,Math.min(S.tiers-1,t));
   c.tier=t;c.x=Math.round(p.x-drag.dx);c.y=Math.round(gy-panelY(t));scheduleLayout();
 });
-const endDrag=()=>{if(drag){drag=null;save();resetElectrical(false);}};
+const endDrag=()=>{if(!drag)return;const c=S.cells[drag.i],from=drag.from;drag=null;
+  if(Math.hypot(c.x-from.x,c.y-from.y)>3||c.tier!==from.tier){
+    const sl=slotsFor(S.arr).filter(q=>q.tier===c.tier);let best=null,bd=45;
+    sl.forEach(q=>{const d=Math.hypot(q.x-c.x,q.y-c.y);if(d<bd){bd=d;best=q;}});
+    if(best){const other=S.cells.findIndex((o,j)=>o!==c&&o.tier===best.tier&&Math.hypot(o.x-best.x,o.y-best.y)<6);
+      if(other>=0){const o=S.cells[other];o.x=from.x;o.y=from.y;o.tier=from.tier;}
+      c.x=best.x;c.y=best.y;}
+  }
+  save();renderLayoutAll();renderWire();};
 $('#svgTop').addEventListener('pointerup',endDrag);$('#svgTop').addEventListener('pointercancel',endDrag);
 $('#svgTop').addEventListener('dblclick',e=>{const g=e.target.closest('[data-cell]');if(g){rotSel(+g.dataset.cell,90);}});
 function rotSel(i,deg){const c=S.cells[i];c.rot=(c.rot+deg)%360;S.sel=i;save();renderLayoutAll();renderWire();}
@@ -796,6 +844,7 @@ $('#azRange').addEventListener('input',e=>{S.az=+e.target.value;renderIso();save
 $('#isoReset').addEventListener('click',()=>{S.az=35;renderIso();save();});
 $('#sideSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.side=b.dataset.v;renderSide();save();});
 $('#btnGen').addEventListener('click',()=>{genLayout($('#arrSel').value);S.links=[];S.h={};S.hOrder=[];resetElectrical(true);syncBoxInputs();renderAll();});
+$('#btnShuffle').addEventListener('click',shuffleCells);
 $('#btnFit').addEventListener('click',()=>{fitBox();syncBoxInputs();save();renderLayoutAll();});
 ['L','W','H'].forEach(k=>$('#box'+k).addEventListener('change',e=>{S.box[k]=Math.max(50,+e.target.value||0);save();renderLayoutAll();renderWire();}));
 function syncBoxInputs(){$('#boxL').value=S.box.L;$('#boxW').value=S.box.W;$('#boxH').value=S.box.H;
@@ -1461,7 +1510,7 @@ function updateSteps(parL){
   set('layout',layOk,!layOk);set('wire',wOk,r.shorts.length||r.conflict||S.damaged);set('bms',sOk&&bmsReady(),false);
   if(pL)set('par',!pL.some(x=>x[0]!=='ok'),pL.some(x=>x[0]==='bad'));
 }
-function showTab(t){S.tab=t;$$('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+function showTab(t){if(LOCKED)setLock(null);S.tab=t;$$('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   $$('section[role=tabpanel]').forEach(s=>s.hidden=s.id!=='tab-'+t);
   if(t==='layout')renderLayoutAll();if(t==='wire')renderWire();if(t==='bms'){renderPhone();renderSetChecks();drawChart();}if(t==='par')renderPar();if(t==='ref')renderRef();
   try{if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);}catch(e){}save();}
