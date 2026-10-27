@@ -87,17 +87,25 @@ function b0LabIc(lab){const L=String(lab);let g='';
 /* in-scene SVG sliders + chips: defs [{k,lab,min,max,step,v,fmt,ic,x,y,w}] · chips [{k,opts:[[val,label]],v,x,y,lab}] */
 function b0SvgCtl(svg,g,defs,chips,onChange){
   const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return[q.x,q.y]};
-  const draw=()=>{g.innerHTML=defs.map(d=>{const kx=d.x+(d.v-d.min)/(d.max-d.min)*d.w;
+  const draw=()=>{g.innerHTML=defs.map(d=>{
+    if(d.vt){const ky=d.y+d.h-(d.v-d.min)/(d.max-d.min)*d.h,c=d.col||'var(--accent)';
+     return`<g class="b0sl" data-k="${d.k}" tabindex="0" role="slider" aria-orientation="vertical" aria-label="${esc(d.lab)}" aria-valuemin="${d.min}" aria-valuemax="${d.max}" aria-valuenow="${d.v}"><rect x="${d.x-38}" y="${d.y-50}" width="76" height="${d.h+84}" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+      ${d.ic?`<g transform="translate(${d.x-12} ${d.y-46})">${d.ic}</g>`:''}<text x="${d.x}" y="${d.y-12}" font-size="11" font-weight="600" text-anchor="middle" fill="var(--ink)">${esc(d.lab)}</text>
+      <rect x="${d.x-3}" y="${d.y}" width="6" height="${d.h}" rx="3" fill="var(--band)"/><rect x="${d.x-3}" y="${ky.toFixed(1)}" width="6" height="${(d.y+d.h-ky).toFixed(1)}" rx="3" fill="${c}"/>
+      <path d="M${d.x+10} ${d.y}h5M${d.x+10} ${d.y+d.h/2}h5M${d.x+10} ${d.y+d.h}h5" stroke="var(--line)" stroke-width="1.5"/>
+      <rect x="${d.x-24}" y="${d.y-10}" width="48" height="${d.h+20}" fill="transparent"/><circle cx="${d.x}" cy="${ky.toFixed(1)}" r="10" fill="#fff" stroke="${c}" stroke-width="3"/>
+      <text x="${d.x}" y="${d.y+d.h+25}" font-size="12" font-weight="700" text-anchor="middle" font-family="monospace" fill="var(--ink)">${esc(d.fmt?d.fmt(d.v):d.v)}</text></g>`}
+    const kx=d.x+(d.v-d.min)/(d.max-d.min)*d.w;
     return`<g class="b0sl" data-k="${d.k}" tabindex="0" role="slider" aria-label="${esc(d.lab)}" aria-valuenow="${d.v}"><rect x="${d.x-38}" y="${d.y-30}" width="${d.w+56}" height="52" rx="10" fill="var(--surface)" stroke="var(--line)"/>
      ${d.ic?`<g transform="translate(${d.x-32} ${d.y-23}) scale(1.05)">${d.ic}</g>`:''}<text x="${d.x-4}" y="${d.y-12}" font-size="12" font-weight="600" fill="var(--ink)">${esc(d.lab)}</text><text x="${d.x+d.w+12}" y="${d.y-12}" font-size="12" font-weight="700" text-anchor="end" font-family="monospace" fill="var(--ink)">${esc(d.fmt?d.fmt(d.v):d.v)}</text>
      <rect x="${d.x}" y="${d.y+2}" width="${d.w}" height="6" rx="3" fill="var(--band)"/><rect x="${d.x}" y="${d.y+2}" width="${Math.max(0,kx-d.x).toFixed(1)}" height="6" rx="3" fill="${d.col||'var(--accent)'}"/>
      <rect x="${d.x-8}" y="${d.y-10}" width="${d.w+16}" height="30" fill="transparent"/><circle cx="${kx.toFixed(1)}" cy="${d.y+5}" r="10" fill="#fff" stroke="${d.col||'var(--accent)'}" stroke-width="3"/></g>`}).join('')+
     (chips||[]).map(c=>`<g><text x="${c.x}" y="${c.y-8}" font-size="12" font-weight="600" fill="var(--ink)">${esc(c.lab)}</text>${c.opts.map((o,i)=>{const w=c.w||86,x=c.x+i*(w+6),on=String(o[0])===String(c.v);return`<g class="b0chp" data-c="${c.k}" data-v="${o[0]}" role="button" tabindex="0" aria-pressed="${on}"><rect x="${x}" y="${c.y}" width="${w}" height="30" rx="15" fill="${on?'var(--accentbg)':'var(--surface)'}" stroke="${on?'var(--accent)':'var(--line)'}" stroke-width="${on?2:1}"/><text x="${x+w/2}" y="${c.y+19.5}" text-anchor="middle" font-size="12" font-weight="${on?700:500}" fill="var(--ink)">${esc(o[1])}</text></g>`}).join('')}</g>`).join('')};
-  const set=(d,x)=>{let v=d.min+(x-d.x)/d.w*(d.max-d.min);v=Math.round(v/d.step)*d.step;v=+Math.max(d.min,Math.min(d.max,v)).toFixed(4);if(v!==d.v){d.v=v;draw();onChange(d.k,v)}};
+  const set=(d,p)=>{let v=d.min+(d.vt?(d.y+d.h-p[1])/d.h:(p[0]-d.x)/d.w)*(d.max-d.min);v=Math.round(v/d.step)*d.step;v=+Math.max(d.min,Math.min(d.max,v)).toFixed(4);if(v!==d.v){d.v=v;draw();onChange(d.k,v)}};
   let drag=null;
   g.addEventListener('pointerdown',e=>{const c=e.target.closest('.b0chp');if(c){const ch=chips.find(x=>x.k===c.dataset.c);ch.v=isNaN(+c.dataset.v)?c.dataset.v:+c.dataset.v;draw();onChange(ch.k,ch.v);return}
-    const s=e.target.closest('.b0sl');if(!s)return;e.preventDefault();e.stopPropagation();drag=defs.find(d=>d.k===s.dataset.k);try{svg.setPointerCapture(e.pointerId)}catch(_){}set(drag,pt(e)[0])});
-  svg.addEventListener('pointermove',e=>{if(drag)set(drag,pt(e)[0])});
+    const s=e.target.closest('.b0sl');if(!s)return;e.preventDefault();e.stopPropagation();drag=defs.find(d=>d.k===s.dataset.k);try{svg.setPointerCapture(e.pointerId)}catch(_){}set(drag,pt(e))});
+  svg.addEventListener('pointermove',e=>{if(drag)set(drag,pt(e))});
   const up=()=>{drag=null};svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
   g.addEventListener('keydown',e=>{const s=e.target.closest('.b0sl'),c=e.target.closest('.b0chp');
     if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();const ch=chips.find(x=>x.k===c.dataset.c);ch.v=isNaN(+c.dataset.v)?c.dataset.v:+c.dataset.v;draw();onChange(ch.k,ch.v);const n=g.querySelector(`.b0chp[data-c="${ch.k}"][data-v="${c.dataset.v}"]`);if(n)n.focus();return}
@@ -120,19 +128,25 @@ const B0T=[
  intro:`<ul><li>เซลล์ทำจากสารกึ่งตัวนำ (ซิลิคอนชนิด N ประกบชนิด P) แสง (โฟตอน) ที่ตกกระทบให้พลังงานแก่อิเล็กตรอนจนหลุดเป็นอิสระ สนามไฟฟ้าที่รอยต่อ P-N ผลักอิเล็กตรอนไปด้านเดียว เกิดแรงดันและกระแส เรียกว่า <b>ปรากฏการณ์โฟโตโวลตาอิก</b></li>
  <li>ไฟที่ได้เป็น <b>ไฟฟ้ากระแสตรง (DC)</b> มีขั้ว + และ − ชัดเจน</li><li><b>กระแส</b> แปรผันตรงกับความเข้มแสง ส่วน <b>แรงดัน</b> เปลี่ยนน้อยเมื่อแสงเปลี่ยน แต่ลดลงเมื่อเซลล์ร้อนขึ้น</li></ul>`,
  w(el){
-  el.innerHTML=`<div class="b0fig"><svg viewBox="0 0 520 170" class="b0ill" role="img" aria-label="แสงตกกระทบเซลล์ อิเล็กตรอนไหลผ่านหลอดไฟ" overflow="visible">
-   <g id="b1sun">${B0G.sun(42,40,19,1)}</g><g id="b1ray" stroke="#f7a823" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 6"><line x1="66" y1="52" x2="150" y2="76"/><line x1="60" y1="64" x2="146" y2="90"/><line x1="72" y1="38" x2="168" y2="70"/></g>
-   <rect x="150" y="70" width="190" height="22" fill="var(--s1)" opacity=".85"/><text x="245" y="85" text-anchor="middle" class="b0lab" fill="#fff">ชนิด N (−)</text>
-   <rect x="150" y="92" width="190" height="40" fill="var(--s2)" opacity=".75"/><text x="245" y="117" text-anchor="middle" class="b0lab" fill="#fff">ชนิด P (+)</text>
-   <path d="M340 80 H420 V40 H462" fill="none" stroke="var(--neg)" stroke-width="2.5"/><path d="M340 120 H420 V150 H500 V64 H478" fill="none" stroke="var(--pos)" stroke-width="2.5"/>
-   <g id="b1bw">${B0G.bulb(470,44,17,.8)}</g><text x="470" y="100" text-anchor="middle" class="b0ax">หลอด DC</text>
-   <g id="b1th">${B0G.thermo(120,6,52,.3)}</g><text x="120" y="2" text-anchor="middle" class="b0ax" id="b1tt"></text>
-   <text x="380" y="72" class="b0ax">e⁻ →</text></svg></div>
-   ${b0Rng('b1g','ความเข้มแสง (W/m²)',0,1200,50,1000)}${b0Rng('b1t','อุณหภูมิเซลล์ (°C)',10,75,1,25,' °C')}<div id="b1o"></div>`;
-  b0Bind(el,['b1g','b1t'],()=>{const c=b0Curve(b0V('b1g'),b0V('b1t'));
-   el.querySelector('#b1o').innerHTML=b0Kv([['กระแสลัดวงจร Isc',b0f(c.isc,2)+' A'],['แรงดันวงจรเปิด Voc',b0f(c.voc,1)+' V'],['กำลังสูงสุด',b0f(c.mp.P,0)+' W'],['ชนิดไฟ','DC (มีขั้ว + / −)']]);
-   const on=Math.min(1,c.mp.P/550),g=b0V('b1g'),t=b0V('b1t');el.querySelector('#b1bw').innerHTML=B0G.bulb(470,44,17,on);el.querySelector('#b1sun').innerHTML=B0G.sun(42,40,19,g/1200);
-   el.querySelector('#b1ray').setAttribute('opacity',(g/1200).toFixed(2));el.querySelector('#b1th').innerHTML=B0G.thermo(120,10,52,(t-0)/80);el.querySelector('#b1tt').textContent=t+' °C'},['',' °C']);
+  el.innerHTML=`<div class="b0fig"><svg id="b1svg" viewBox="0 0 640 222" class="b0ill" role="img" aria-label="แสงตกกระทบเซลล์ อิเล็กตรอนไหลผ่านหลอดไฟ พร้อมแถบปรับแสงและอุณหภูมิ" overflow="visible">
+   <g id="b1sun">${B0G.sun(130,54,19,1)}</g><g id="b1ray" stroke="#f7a823" stroke-width="3" stroke-linecap="round" stroke-dasharray="7 6"><line x1="150" y1="66" x2="214" y2="98"/><line x1="144" y1="78" x2="196" y2="106"/><line x1="156" y1="52" x2="236" y2="98"/></g>
+   <rect x="190" y="98" width="190" height="22" fill="var(--s1)" opacity=".85"/><text x="285" y="113" text-anchor="middle" class="b0lab" fill="#fff">ชนิด N (−)</text>
+   <rect x="190" y="120" width="190" height="40" fill="var(--s2)" opacity=".75"/><text x="285" y="145" text-anchor="middle" class="b0lab" fill="#fff">ชนิด P (+)</text>
+   <path d="M380 108 H450 V70 H494" fill="none" stroke="var(--neg)" stroke-width="2.5"/><path d="M380 148 H450 V180 H532 V94 H510" fill="none" stroke="var(--pos)" stroke-width="2.5"/>
+   <g id="b1bw">${B0G.bulb(502,74,17,.8)}</g><text x="502" y="130" text-anchor="middle" class="b0ax">หลอด DC</text>
+   <g id="b1th">${B0G.thermo(352,38,52,.3)}</g><text x="352" y="32" text-anchor="middle" class="b0ax" id="b1tt"></text>
+   <text x="402" y="100" class="b0ax">e⁻ →</text><g id="b1ctl"></g></svg></div>
+   <p class="hint tight">ลากปุ่มกลมบนแถบขึ้น-ลงในภาพ เพื่อปรับความเข้มแสงและอุณหภูมิเซลล์</p><div id="b1o"></div>`;
+  const S={g:1000,t:25},$q=x=>el.querySelector(x);
+  const draw=()=>{const c=b0Curve(S.g,S.t),g=S.g,t=S.t;
+   $q('#b1o').innerHTML=b0Kv([['กระแสลัดวงจร Isc',b0f(c.isc,2)+' A'],['แรงดันวงจรเปิด Voc',b0f(c.voc,1)+' V'],['กำลังสูงสุด',b0f(c.mp.P,0)+' W'],['ชนิดไฟ','DC (มีขั้ว + / −)']]);
+   $q('#b1bw').innerHTML=B0G.bulb(502,74,17,Math.min(1,c.mp.P/550));$q('#b1sun').innerHTML=B0G.sun(130,54,19,g/1200);
+   $q('#b1ray').setAttribute('opacity',(g/1200).toFixed(2));$q('#b1th').innerHTML=B0G.thermo(352,38,52,t/80);$q('#b1tt').textContent=t+' °C'};
+  b0SvgCtl($q('#b1svg'),$q('#b1ctl'),[
+    {k:'g',lab:'ความเข้มแสง',min:0,max:1200,step:50,v:S.g,fmt:v=>v+' W/m²',ic:B0G.sun(12,12,6.5,1),vt:1,x:42,y:62,h:124,col:'#f7a823'},
+    {k:'t',lab:'อุณหภูมิเซลล์',min:10,max:75,step:1,v:S.t,fmt:v=>v+' °C',ic:B0G.thermo(12,1,19,.55),vt:1,x:596,y:62,h:124,col:'#e53935'}],
+   [],(k,v)=>{S[k]=v;draw()});
+  draw();
  },
  q:[{q:'แผงโซลาร์เซลล์ผลิตไฟฟ้าชนิดใด',o:['ไฟฟ้ากระแสสลับ (AC) 230 V','ไฟฟ้ากระแสตรง (DC)','ไฟฟ้าสถิต','ไฟฟ้า 3 เฟส'],a:1,ex:'เซลล์ให้ไฟ DC ต้องใช้อินเวอร์เตอร์แปลงเป็น AC ก่อนใช้กับเครื่องใช้ไฟฟ้าในบ้าน'},
   {q:'ถ้าแสงลดลงเหลือครึ่งหนึ่ง (อุณหภูมิคงที่) ค่าใดลดลงเกือบครึ่งตาม',o:['แรงดันวงจรเปิด Voc','กระแส','ความถี่','ไม่มีค่าใดเปลี่ยน'],a:1,ex:'กระแสแปรผันตรงกับความเข้มแสง ส่วนแรงดันลดลงเพียงเล็กน้อย ลองเลื่อนแถบความเข้มแสงดู'},
