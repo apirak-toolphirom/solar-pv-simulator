@@ -1,4 +1,4 @@
-/* ---- เมนู 15 Solis Hybrid: ติดตั้ง ตรวจวัด Power ON/OFF ตั้งค่าหน้าจอ HMI และแดชบอร์ดทดสอบการทำงาน ----
+/* ---- เมนู 13 Solis Hybrid: ติดตั้ง ตรวจวัด Power ON/OFF ตั้งค่าหน้าจอ HMI และแดชบอร์ดทดสอบการทำงาน ----
    อ้างอิง Solis S6-EH1P(3-8)K-L-PLUS User Manual V1.3 (04/2026, Drive: PV Datasheets/01 อินเวอร์เตอร์/Solis)
    3.4–3.10 ผังพอร์ตและการต่อสาย · 5.1–5.3 Pre-commissioning, Power ON/OFF · 5.4 HMI Quick/Detailed setting · ตาราง 7.1 ข้อความ alarm · 8 สเปก 6K · FAQ
    แรงดันแผง โหลด และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง

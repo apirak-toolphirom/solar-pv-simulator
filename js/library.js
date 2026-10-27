@@ -148,7 +148,7 @@ kbAdd({id:'mcb-curves',cat:'protect',upd:'2026-10-26',
   title:'เคิร์ฟการทริปของเบรกเกอร์ลูกย่อย (MCB): B, C, D, K, Z',
   summary:'MCB แต่ละชนิดต่างกันที่ "ทนกระแสกระชากได้กี่เท่าก่อนทริปทันที" อ่านกราฟเวลา-กระแส เลือก curve ให้เหมาะกับโหลดและความยาวสาย และข้อควรระวังเมื่อใช้กับไฟ DC',
   tags:['เบรกเกอร์','MCB','trip curve','เคิร์ฟ','B','C','D','K','Z','IEC 60898','IEC 60947-2','inrush','กระแสกระชาก','ลัดวงจร','thermal','magnetic','DC'],
-  related:[['cable','13 สายไฟและเบรกเกอร์ → เลือกเบรกเกอร์'],['bench','10 ชุดทดลองวงจร DC'],['basics','00 หัวข้อ 08 ระบบป้องกัน']],
+  related:[['cable','06 สายไฟและเบรกเกอร์ → เลือกเบรกเกอร์'],['bench','05 ชุดทดลองวงจร DC'],['basics','00 หัวข้อ 08 ระบบป้องกัน']],
   src:[['What You Need to Know About Miniature Circuit Breaker Trip Curves — Electrical Engineering Resource','https://electricalengineeringresource.com/what-you-need-to-know-about-miniature-circuit-breaker-trip-curves/']],
   srcNote:'ค่าส่วน thermal ของ B/C/D ตาม IEC 60898-1 ส่วน K/Z เป็นเคิร์ฟของผู้ผลิตตาม IEC 60947-2 ซึ่งแต่ละยี่ห้อต่างกันเล็กน้อย กราฟในหน้านี้เป็นรูปทรงโดยประมาณเพื่อการเรียนรู้ งานจริงใช้กราฟจากแคตตาล็อกของรุ่นที่ซื้อ',
   body:()=>`

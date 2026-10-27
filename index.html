@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="1224aad982">
+<meta name="build" content="9b71b032cc">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='1224aad982'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='9b71b032cc'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
@@ -21,29 +21,29 @@ if(m&&m[1]!=='1224aad982'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <div class="navgroups" id="navgroups">
     <details class="ngrp" data-grp="start"><summary>เริ่มต้น</summary>
       <button class="navb" data-tab="basics"><span class="ic">00</span>แบบฝึกพื้นฐาน</button>
-      <button class="navb" data-tab="library"><span class="ic">14</span>คลังความรู้</button>
+      <button class="navb" data-tab="library"><span class="ic">01</span>คลังความรู้</button>
     </details>
     <details class="ngrp" data-grp="wire"><summary>อุปกรณ์และต่อสาย</summary>
-      <button class="navb" data-tab="equip"><span class="ic">01</span>อุปกรณ์</button>
-      <button class="navb" data-tab="wiring"><span class="ic">02</span>ต่อสาย DC แผง</button>
-      <button class="navb" data-tab="ac"><span class="ic">03</span>ต่อสาย AC ระบบ</button>
-      <button class="navb" data-tab="bench"><span class="ic">10</span>ชุดทดลองวงจร DC</button>
-      <button class="navb" data-tab="cable"><span class="ic">13</span>สายไฟและเบรกเกอร์</button>
+      <button class="navb" data-tab="equip"><span class="ic">02</span>อุปกรณ์</button>
+      <button class="navb" data-tab="wiring"><span class="ic">03</span>ต่อสาย DC แผง</button>
+      <button class="navb" data-tab="ac"><span class="ic">04</span>ต่อสาย AC ระบบ</button>
+      <button class="navb" data-tab="bench"><span class="ic">05</span>ชุดทดลองวงจร DC</button>
+      <button class="navb" data-tab="cable"><span class="ic">06</span>สายไฟและเบรกเกอร์</button>
     </details>
     <details class="ngrp" data-grp="sim"><summary>ออกแบบและจำลอง</summary>
-      <button class="navb" data-tab="pv"><span class="ic">04</span>จำลองแผง</button>
-      <button class="navb" data-tab="site"><span class="ic">05</span>ไซต์และเงา</button>
-      <button class="navb" data-tab="load"><span class="ic">06</span>จำลองโหลด</button>
-      <button class="navb" data-tab="backup"><span class="ic">07</span>จำลองการไหลของไฟ</button>
-      <button class="navb" data-tab="systems"><span class="ic">08</span>จำลองระบบ 4 แบบ</button>
-      <button class="navb" data-tab="events"><span class="ic">09</span>จำลองเหตุการณ์</button>
+      <button class="navb" data-tab="pv"><span class="ic">07</span>จำลองแผง</button>
+      <button class="navb" data-tab="site"><span class="ic">08</span>ไซต์และเงา</button>
+      <button class="navb" data-tab="load"><span class="ic">09</span>จำลองโหลด</button>
+      <button class="navb" data-tab="backup"><span class="ic">10</span>จำลองการไหลของไฟ</button>
+      <button class="navb" data-tab="systems"><span class="ic">11</span>จำลองระบบ 4 แบบ</button>
+      <button class="navb" data-tab="events"><span class="ic">12</span>จำลองเหตุการณ์</button>
     </details>
     <details class="ngrp" data-grp="real"><summary>ติดตั้งตามรุ่นจริง</summary>
-      <button class="navb" data-tab="solis"><span class="ic">15</span>Solis Commissioning</button>
-      <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
-      <button class="navb" data-tab="fusion"><span class="ic">12</span>Huawei FusionSolar</button>
+      <button class="navb" data-tab="solis"><span class="ic">13</span>Solis Commissioning</button>
+      <button class="navb" data-tab="lfp"><span class="ic">14</span>แบต LiFePO4 + JK-BMS</button>
+      <button class="navb" data-tab="fusion"><span class="ic">15</span>Huawei FusionSolar</button>
     </details>
-      <button class="navb navsubmit" data-tab="submit"><span class="ic">11</span>ส่งงาน</button>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">16</span>ส่งงาน</button>
     </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
     <div class="sidefoot"><span id="whoami"></span><span id="savest" role="status">กำลังโหลด…</span><button class="btn sm" id="resetall">เริ่มใหม่ทั้งโปรเจ็ค</button></div>
@@ -52,9 +52,9 @@ if(m&&m[1]!=='1224aad982'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   <section class="accbar" id="accbar" hidden></section>
 
   <section class="tab" id="tab-basics" hidden>
-    <header><h1>แบบฝึกพื้นฐาน</h1><p class="sub">15 หัวข้อพื้นฐานระบบผลิตไฟฟ้าพลังงานแสงอาทิตย์ แตะหัวข้อเพื่อเปิด อ่านสรุป ลองแบบจำลอง แล้วตอบคำถาม ใช้แผงตัวอย่างของเมนูนี้เอง ไม่เกี่ยวกับอุปกรณ์ที่เลือกในเมนู 01–10</p></header>
+    <header><h1>แบบฝึกพื้นฐาน</h1><p class="sub">15 หัวข้อพื้นฐานระบบผลิตไฟฟ้าพลังงานแสงอาทิตย์ แตะหัวข้อเพื่อเปิด อ่านสรุป ลองแบบจำลอง แล้วตอบคำถาม ใช้แผงตัวอย่างของเมนูนี้เอง ไม่เกี่ยวกับอุปกรณ์ที่เลือกในเมนูอื่น</p></header>
     <div class="panelbox b0head"><div id="b0prog" class="b0prog"></div><div class="eqact"><button class="chip" id="b0exp">เปิดทุกหัวข้อ</button><button class="chip" id="b0col">ปิดทุกหัวข้อ</button><button class="chip" id="b0reset">ล้างคำตอบแบบฝึก 00</button></div>
-      <p class="hint tight">หัวข้อจะ "ผ่าน" เมื่อตอบคำถามถูกทุกข้อ และทำภารกิจในแบบจำลองสำเร็จ (ถ้ามี) คำตอบบันทึกไปกับโปรเจ็คอัตโนมัติ ส่งผลได้ที่เมนู 11 ใบงาน W00</p></div>
+      <p class="hint tight">หัวข้อจะ "ผ่าน" เมื่อตอบคำถามถูกทุกข้อ และทำภารกิจในแบบจำลองสำเร็จ (ถ้ามี) คำตอบบันทึกไปกับโปรเจ็คอัตโนมัติ ส่งผลได้ที่เมนู 16 ใบงาน W00</p></div>
     <div id="b0list" class="b0list"></div>
     <p class="hint">ค่าของแผงตัวอย่างเป็นค่าสมมติเพื่อการเรียนรู้ ตัวเลขในแบบจำลองเป็นการประมาณ งานจริงให้ตรวจกับดาต้าชีต มาตรฐาน และผู้ได้รับอนุญาตทุกครั้ง</p>
   </section>
@@ -526,7 +526,7 @@ if(m&&m[1]!=='1224aad982'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   </section>
 
   <section class="tab" id="tab-cable" hidden>
-    <header><h1>สายไฟและเบรกเกอร์</h1><p class="sub">เลือกขนาดสาย เบรกเกอร์ ฟิวส์ สายดิน แรงดันตก และท่อร้อยสาย ทั้งฝั่ง AC (ขาออกอินเวอร์เตอร์ / วงจรทั่วไป) และฝั่ง DC (สตริงแผง / แบตเตอรี่) ใช้ค่าอุปกรณ์จากเมนู 01–02 ได้</p></header>
+    <header><h1>สายไฟและเบรกเกอร์</h1><p class="sub">เลือกขนาดสาย เบรกเกอร์ ฟิวส์ สายดิน แรงดันตก และท่อร้อยสาย ทั้งฝั่ง AC (ขาออกอินเวอร์เตอร์ / วงจรทั่วไป) และฝั่ง DC (สตริงแผง / แบตเตอรี่) ใช้ค่าอุปกรณ์จากเมนู 02–03 ได้</p></header>
     <div class="chips cbtabs" id="cbtabs" role="group" aria-label="หน้าย่อย"></div>
     <p class="simmsg ok" id="cbmsg" role="status" hidden></p>
     <div id="cbpage"></div>
@@ -644,7 +644,7 @@ if(m&&m[1]!=='1224aad982'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   </div></main>
 </div>
 
-<script>var LFP_V='87a9c598'</script>
+<script>var LFP_V='7c3c6b89'</script>
 <script src="js/config.js?v=396a084b"></script>
 <script src="js/catalog.js?v=9b5d6a62"></script>
 <script src="js/pdfimport.js?v=e4c2f177"></script>
@@ -657,29 +657,29 @@ if(m&&m[1]!=='1224aad982'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/solar.js?v=fbe9ec06"></script>
 <script src="js/site.js?v=68afc494"></script>
 <script src="js/loads.js?v=ab042e0e"></script>
-<script src="js/backup.js?v=a1c91c8f"></script>
+<script src="js/backup.js?v=5e9d0665"></script>
 <script src="js/bkanim.js?v=44dd5b7d"></script>
 <script src="js/systems.js?v=ea106708"></script>
 <script src="js/events.js?v=50b85166"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
 <script src="js/benchui.js?v=266c0de5"></script>
-<script src="js/basics.js?v=ac1a2edf"></script>
+<script src="js/basics.js?v=a988f584"></script>
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=9c033448"></script>
-<script src="js/worksheets.js?v=a0271889"></script>
-<script src="js/hwlog.js?v=86e8e2ce"></script>
+<script src="js/worksheets.js?v=c1eb63a0"></script>
+<script src="js/hwlog.js?v=28d24151"></script>
 <script src="js/fusion.js?v=5382422e"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
 <script src="js/fusiondet.js?v=0d128f7f"></script>
 <script src="js/fusionov.js?v=4f66fbb2"></script>
 <script src="js/fusionman.js?v=11536347"></script>
-<script src="js/cable.js?v=ad83f3df"></script>
-<script src="js/library.js?v=d5ebfec6"></script>
-<script src="js/kb_rcd.js?v=98dcfe12"></script>
-<script src="js/solis.js?v=eff4270e"></script>
-<script src="js/lfp.js?v=36037bf8"></script>
-<script src="js/access.js?v=b5aaf33e"></script>
-<script src="js/ctx.js?v=529868cd"></script>
-<script src="js/app.js?v=8e3772b8"></script>
+<script src="js/cable.js?v=3ab5311f"></script>
+<script src="js/library.js?v=f70da764"></script>
+<script src="js/kb_rcd.js?v=84a26b64"></script>
+<script src="js/solis.js?v=b4f7ce2a"></script>
+<script src="js/lfp.js?v=8b9cce6c"></script>
+<script src="js/access.js?v=b1577869"></script>
+<script src="js/ctx.js?v=69022d74"></script>
+<script src="js/app.js?v=8d0bfc21"></script>
 </body>
 </html>

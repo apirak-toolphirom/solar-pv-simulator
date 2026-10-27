@@ -126,7 +126,7 @@ function backupRun(){
     if(!isPh3(I)&&MOK.M.ph==='3')warns.push(['warn',`${MOK.M.name} เป็นมิเตอร์ 3 เฟส ใช้กับอินเวอร์เตอร์ 1 เฟสได้เมื่อบ้านใช้ไฟ 3 เฟส ถ้าบ้านใช้ไฟ 1 เฟส ใช้ DDSU666-H จะเหมาะกว่า`]);
     const pk=Math.max(...LP.all),ia=pk/230/(isPh3(I)?3:1);
     if(ia>MOK.M.imax)warns.push(['warn',`กระแสโหลดสูงสุดประมาณ ${f(ia,0)} A ต่อเฟส เกินช่วงวัดของ ${MOK.M.name} (${MOK.M.imax} A) ${MOK.M.imax<250&&isPh3(I)?'ควรใช้ DTSU666-H 250A':''}`]);}
-  if(BK_EXPSRC==='ac'&&BK.exp!=='full')warns.push(['warn',`ใช้ค่า Export limit ${cfg.expLimW} W จากเมนู 03 ต่อสาย AC (ติ๊ก "นำผลการต่อสายไปใช้" ไว้) แทนค่าที่เลือกในหน้านี้`]);
+  if(BK_EXPSRC==='ac'&&BK.exp!=='full')warns.push(['warn',`ใช้ค่า Export limit ${cfg.expLimW} W จากเมนู 04 ต่อสาย AC (ติ๊ก "นำผลการต่อสายไปใช้" ไว้) แทนค่าที่เลือกในหน้านี้`]);
   if(cfg.expLimW!=null&&T.curt>0.05&&BK.mode!=='off')warns.push(['warn',`${cfg.expLimW===0?'Zero export':'จำกัดการขาย '+cfg.expLimW+' W'}: อินเวอร์เตอร์ลดกำลังแผงลง ไฟที่ผลิตได้แต่ไม่ได้ใช้ ${f(T.curt,1)} kWh/วัน ${BK.mode==='grid'?'(ไม่มีแบตเก็บ ควรย้ายโหลดมาใช้กลางวัน)':'(แบตเต็มแล้ว)'}`]);
   if(BK.mode==='grid'&&BK.outDur>0)warns.push(['warn','อินเวอร์เตอร์ On-grid จะตัดการจ่ายไฟทันทีเมื่อกริดดับ (anti-islanding) แม้มีแดด ช่วงไฟดับจึงไม่มีไฟใช้']);
   const peakIsl=Math.max(...(BK.island==='crit'?LP.crit:LP.all));
@@ -281,7 +281,7 @@ function bkSync(){
   if(mic&&BK.src==='ideal'){const I=curInv(),nm=Math.max(1,Math.min(4,Math.round(+I.nmppt||4)));
     $('#bkmicsel').innerHTML=[...Array(nm)].map((_,j)=>{const k=j+1,off=!bkMicOn(k),cur=off?'none':MP_PM[k]||'';return`<label${off?' class="bkmicoff"':''}>PV${k}<select data-bkpv="${k}"><option value="none" ${off?'selected':''}>— ไม่ต่อแผง (ช่องว่าง) —</option><option value="" ${cur?'':'selected'}>แผงหลัก: ${esc(PV.name)} (${PV.pmax} W)</option>${CAT.panels.map(p=>`<option value="${esc(p.id)}" ${cur===p.id?'selected':''}>${esc((p.brand+' '+p.model).trim())}${/\d\s*W\)?$/.test(p.model)?'':` (${p.pmax} W)`}</option>`).join('')}</select></label>`}).join('');
     const W=[...Array(nm)].map((_,j)=>bkMicOn(j+1)?mpPV(j+1).pmax:0),sum=W.reduce((a,b)=>a+b,0),nOn=W.filter(w=>w>0).length,emp=[...Array(nm)].map((_,j)=>j+1).filter(k=>!bkMicOn(k));
-    $('#bkmicinfo').textContent=(nOn?`ไมโคร 1 ตัว ต่อแผง ${nOn} จาก ${nm} ช่อง (ช่องละ 1 แผง) รวม ${f(sum/1000,2)} kWp · AC ${f(I.pac/1000,2)} kW · รุ่นแผงใช้ค่าเดียวกับเมนู 02`:'ยังไม่ได้ต่อแผงเลย เลือกแผงอย่างน้อย 1 ช่อง')
+    $('#bkmicinfo').textContent=(nOn?`ไมโคร 1 ตัว ต่อแผง ${nOn} จาก ${nm} ช่อง (ช่องละ 1 แผง) รวม ${f(sum/1000,2)} kWp · AC ${f(I.pac/1000,2)} kW · รุ่นแผงใช้ค่าเดียวกับเมนู 03`:'ยังไม่ได้ต่อแผงเลย เลือกแผงอย่างน้อย 1 ช่อง')
       +(emp.length&&nOn?` · ช่องว่าง PV${emp.join(', PV')}: ไม่ผลิตไฟ ช่องอื่นทำงานแยกกันตามปกติ (เก็บขั้ว DC ช่องว่างด้วยฝาปิดกันน้ำ)`:'')+(I.pvRec&&sum>I.pvRec?` · เกินกำลังแผงที่แนะนำ ${I.pvRec} W ต่อตัว`:'');}
   $('#bkos').value=hhmm(BK.outStart);$('#bkod').value=BK.outDur;$('#bkis').value=BK.island;$('#bksoc').value=BK.soc0;
   document.querySelectorAll('#bkexp [data-be]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.be===BK.exp)));

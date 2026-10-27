@@ -326,7 +326,7 @@ function cbMethOpts(type){const T=CB_TYPES[type];return T.meth.map(m=>[m,T.ins==
 function cbFields(pg){
   const P=CB[pg];
   if(pg==='ac')return[
-    ['src','วงจรของ','sel',[['inv','ขาออกอินเวอร์เตอร์ที่เลือก (เมนู 01)'],['load','โหลด / วงจรทั่วไป']]],
+    ['src','วงจรของ','sel',[['inv','ขาออกอินเวอร์เตอร์ที่เลือก (เมนู 02)'],['load','โหลด / วงจรทั่วไป']]],
     ['ph','ระบบไฟ','sel',[['1','1 เฟส'],['3','3 เฟส']],()=>P.src!=='inv'],
     ['v','แรงดัน (V)','num',null,()=>P.src!=='inv'],
     ['unit','หน่วยโหลด','sel',[['kW','kW'],['kVA','kVA'],['A','A']],()=>P.src!=='inv'],
@@ -405,8 +405,8 @@ function cbFieldHTML(pg,f){
 function cbFormHTML(pg){
   const tools={
     ac:`<p class="hint tight" id="cbacinv"></p>`,
-    dc:`<div class="eqact"><button class="btn sm" id="cbdcfrom">ใช้ค่าจากแผงและการต่อสาย (เมนู 01–02)</button></div>`,
-    bat:`<div class="eqact"><button class="btn sm" id="cbbatfrom">ใช้ค่าจากแบตและอินเวอร์เตอร์ที่เลือก (เมนู 01)</button></div>`,
+    dc:`<div class="eqact"><button class="btn sm" id="cbdcfrom">ใช้ค่าจากแผงและการต่อสาย (เมนู 02–03)</button></div>`,
+    bat:`<div class="eqact"><button class="btn sm" id="cbbatfrom">ใช้ค่าจากแบตและอินเวอร์เตอร์ที่เลือก (เมนู 02)</button></div>`,
     brk:''
   }[pg]||'';
   return`<div class="panelbox cbform">${tools}<div class="cbgrid">${cbFields(pg).map(f=>cbFieldHTML(pg,f)).join('')}</div></div><div id="cbres_${pg}" class="cbres"></div>`;
@@ -437,7 +437,7 @@ function cbInvForAC(){
 function cbRenderAC(){
   const P=CB.ac,inv=cbInvForAC(),r=cbCalcAC(P,inv),h=document.getElementById('cbres_ac');if(!h)return;
   const it=document.getElementById('cbacinv');
-  if(it)it.textContent=P.src==='inv'&&inv?`อินเวอร์เตอร์: ${inv.brand} ${inv.model} · ${cbN(inv.pac)} W · ${String(inv.phase)==='3'?'3 เฟส':'1 เฟส'}${inv.nUnits>1?` (ไมโคร ${inv.nUnits} ตัวรวมกัน)`:''} เปลี่ยนรุ่นได้ที่เมนู 01`:'';
+  if(it)it.textContent=P.src==='inv'&&inv?`อินเวอร์เตอร์: ${inv.brand} ${inv.model} · ${cbN(inv.pac)} W · ${String(inv.phase)==='3'?'3 เฟส':'1 เฟส'}${inv.nUnits>1?` (ไมโคร ${inv.nUnits} ตัวรวมกัน)`:''} เปลี่ยนรุ่นได้ที่เมนู 02`:'';
   const ok=r.size;
   h.innerHTML=`<div class="metrics">
     ${cbMetric('กระแสใช้งาน IB',`${cbN(r.IB,1)} A`,esc(r.srcTxt||''))}
@@ -534,7 +534,7 @@ function cbFromWiring(){
     const A=typeof analyze==='function'?analyze():null;
     const r=A&&A.res.find(x=>x.blk);
     if(r){P.ns=r.blk.ns;P.np=r.blk.mp;msg+=` · DC${r.k} ต่อ ${r.blk.ns}S${r.blk.mp}P`;if(A.res.filter(x=>x.blk).length>1)msg+=' (ใช้ MPPT แรกที่ต่อแล้ว)'}
-    else msg+=' · ยังไม่ได้ต่อสายในเมนู 02 จำนวนแผงคงค่าเดิม';
+    else msg+=' · ยังไม่ได้ต่อสายในเมนู 03 จำนวนแผงคงค่าเดิม';
     if(typeof st!=='undefined'&&isFinite(st.tmin))P.tmin=st.tmin;
   }catch(e){}
   cbMsg(msg);
@@ -543,7 +543,7 @@ function cbFromBattery(){
   const P=CB.bat,bi=typeof bankInfo==='function'?bankInfo():null,I=typeof curInv==='function'?curInv():null;
   let msg='';
   if(bi){P.v=Math.round(bi.V*10)/10;P.vmin=Math.round(bi.V*0.9*10)/10;P.amps=Math.round(Math.max(bi.chgA,bi.disA));if(bi.scA>0)P.ka=Math.round(bi.scA/100)/10;msg=`แบต ${bi.b.brand} ${bi.b.model} × ${bi.n} · ${cbN(bi.V,1)} V · ชาร์จ/จ่ายสูงสุด ${cbN(Math.max(bi.chgA,bi.disA))} A`}
-  else msg='ยังไม่ได้เลือกแบตในเมนู 01';
+  else msg='ยังไม่ได้เลือกแบตในเมนู 02';
   if(I&&I.type!=='on-grid'){const kw=+I.bdis||+I.backupKw||(+I.pac||0)/1000;if(kw>0){P.kw=kw;msg+=` · อินเวอร์เตอร์ ${I.brand} ${I.model} จ่ายจากแบต ${cbN(kw,1)} kW`}}
   if(P.v>150){P.cab='cv';msg+=' · แบตแรงดันสูง ใช้สายและสวิตช์ตามคู่มือผู้ผลิต'}
   cbMsg(msg);

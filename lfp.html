@@ -179,7 +179,7 @@ td.n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-num
 a{color:var(--accent)}
 @media (max-width:1100px){.wire-grid,.bms-grid,.par-grid{grid-template-columns:minmax(0,1fr)}.lay-grid{grid-template-columns:minmax(0,1fr)}.phone{justify-self:center}}
 @media (max-width:640px){.top{grid-template-columns:minmax(0,1fr)}h1{font-size:1.3rem}}
-/* embedded as menu 16 of the PV simulator: the app shows the title, the page follows the app theme */
+/* embedded as menu 14 of the PV simulator: the app shows the title, the page follows the app theme */
 .embed .top>div:first-child{display:none}
 .embed .wrap{padding-block:4px 24px}
 [hidden]{display:none!important}
@@ -217,7 +217,7 @@ body{margin:0}
   <section role="tabpanel" id="tab-layout">
     <div class="toolbar">
       <label class="field"><span class="lbl">รูปแบบการจัดวาง</span><select id="arrSel"></select></label>
-      <button class="btn" id="btnGen">จัดเรียงใหม่ตามรูปแบบ</button>
+      <button class="btn" id="btnGen" title="วางเซลล์เรียงลำดับและหันขั้วพร้อมต่อบัสบาร์">เรียงให้ดู (เฉลย)</button>
       <label class="field"><span class="lbl">กล่องภายใน ยาว (มม.)</span><input class="inline-num num" type="number" id="boxL" step="5"></label>
       <label class="field"><span class="lbl">กว้าง</span><input class="inline-num num" type="number" id="boxW" step="5"></label>
       <label class="field"><span class="lbl">สูง</span><input class="inline-num num" type="number" id="boxH" step="5"></label>
@@ -362,7 +362,7 @@ const fmt=(v,d=2)=>Number(v).toFixed(d);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY='lfp-pack-sim-v2';
+const KEY='lfp-pack-sim-v3';
 let S=null;
 function defaults(){
   return {cell:'EVE-MB31',s:16,bms:'PB2A16S20P',arr:'F-2-8',style:'front',tiers:1,box:{L:350,W:210,H:684},cells:[],links:[],
@@ -794,13 +794,16 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&LOCKED)setLock(null
 /* ---- slots of the chosen arrangement: drop a cell near a slot to snap; drop on an occupied slot to swap ---- */
 function slotsFor(code){const keep={cells:S.cells,box:S.box,style:S.style,tiers:S.tiers,arr:S.arr,az:S.az,sel:S.sel};
   genLayout(code);const sl=S.cells.map(c=>({x:c.x,y:c.y,tier:c.tier}));Object.assign(S,keep);return sl;}
-function shuffleCells(){
-  const sl=slotsFor(S.arr),R=Math.random,O=FRONT()?[0,180]:[90,270];
-  for(let i=sl.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[sl[i],sl[j]]=[sl[j],sl[i]];}
-  S.cells.forEach((c,i)=>{c.x=sl[i].x;c.y=sl[i].y;c.tier=sl[i].tier;c.rot=O[Math.floor(R()*2)];});
+/* cells start mixed up (order and polarity) so the learner arranges them; retry until at most a few pairs happen to line up */
+function scramble(){
+  const base=slotsFor(S.arr),R=Math.random,O=FRONT()?[0,180]:[90,270],lim=Math.max(1,Math.floor((S.cells.length-1)/5));
+  for(let k=0;k<12;k++){const sl=base.slice();
+    for(let i=sl.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[sl[i],sl[j]]=[sl[j],sl[i]];}
+    S.cells.forEach((c,i)=>{c.x=sl[i].x;c.y=sl[i].y;c.tier=sl[i].tier;c.rot=O[Math.floor(R()*2)];});
+    if(orderReady()<=lim)break;}
   S.links=[];S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;S.sel=null;
-  save();renderLayoutAll();renderWire();
 }
+function shuffleCells(){scramble();save();renderLayoutAll();renderWire();}
 function orderReady(){let ok=0;for(let i=0;i<S.cells.length-1;i++){if(d3(term(S.cells[i],'+'),term(S.cells[i+1],'-'))<=110)ok++;}return ok;}
 let drag=null;
 $('#svgTop').addEventListener('pointerdown',e=>{
@@ -843,6 +846,7 @@ $('#svgIso').addEventListener('pointerup',()=>{isoDrag=null;save();});
 $('#azRange').addEventListener('input',e=>{S.az=+e.target.value;renderIso();save();});
 $('#isoReset').addEventListener('click',()=>{S.az=35;renderIso();save();});
 $('#sideSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.side=b.dataset.v;renderSide();save();});
+$('#arrSel').addEventListener('change',e=>{genLayout(e.target.value);scramble();resetElectrical(true);syncBoxInputs();renderAll();});
 $('#btnGen').addEventListener('click',()=>{genLayout($('#arrSel').value);S.links=[];S.h={};S.hOrder=[];resetElectrical(true);syncBoxInputs();renderAll();});
 $('#btnShuffle').addEventListener('click',shuffleCells);
 $('#btnFit').addEventListener('click',()=>{fitBox();syncBoxInputs();save();renderLayoutAll();});
@@ -1213,6 +1217,7 @@ $('#phone').addEventListener('change',e=>{const el=e.target.closest('[data-set]'
   if(k==='cells')S.set.cells=Math.max(1,Math.min(bm().sMax||24,Math.round(S.set.cells)));
   save();if(k==='type')renderPhone();else{const sc=$('#phBody').scrollTop;renderPhone();$('#phBody').scrollTop=sc;}renderSetChecks();updateSteps();});
 function quickPack(){
+  genLayout(S.arr);syncBoxInputs();
   if(!(S.s>=bm().sMin&&S.s<=bm().sMax)){S.bms=S.s===4?'B2A8S20P':'PB2A16S20P';S.set=defaultSettings();renderCfg();}
   S.links=[];for(let i=0;i<S.cells.length-1;i++)S.links.push({a:i+'+',b:(i+1)+'-'});
   WIRE=analyze();$('#autoHarness').click();S.plugged=true;S.active=true;S.damaged=false;logEv('o','ประกอบแพ็กสำเร็จรูป: บัสบาร์ + สาย BMS + เปิดเครื่อง');
@@ -1518,10 +1523,10 @@ $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');i
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(['layout','wire','bms','par','ref'].includes(h)&&h!==S.tab)showTab(h);});
 
 /* ---------- config handlers ---------- */
-$('#cfgCell').addEventListener('change',e=>{S.cell=e.target.value;genLayout(S.arr);initSimCells();syncBoxInputs();renderAll();});
+$('#cfgCell').addEventListener('change',e=>{S.cell=e.target.value;genLayout(S.arr);scramble();initSimCells();syncBoxInputs();renderAll();});
 $('#cfgS').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;const s=+b.dataset.s;if(s===S.s)return;S.s=s;
   if(!(s>=bm().sMin&&s<=bm().sMax))S.bms=s===4?'B2A8S20P':'PB2A16S20P';
-  genLayout(arrOptions(s)[0][0]);S.links=[];S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;initSimCells();syncBoxInputs();renderCfg();renderAll();});
+  genLayout(arrOptions(s)[0][0]);scramble();S.links=[];S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;initSimCells();syncBoxInputs();renderCfg();renderAll();});
 $('#cfgBms').addEventListener('change',e=>{S.bms=e.target.value;S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;const u=S.set&&S.set.unlocked;S.set=defaultSettings();S.set.unlocked=u;fitBox();syncBoxInputs();renderCfg();renderAll();});
 
 function renderAll(){renderSpecs();renderLayoutAll();renderWire();if(S.tab==='bms'){renderPhone();renderSetChecks();}if(S.tab==='par')renderPar();if(S.tab==='ref')renderRef();updateSteps();save();}
@@ -1529,7 +1534,7 @@ function renderAll(){renderSpecs();renderLayoutAll();renderWire();if(S.tab==='bm
 /* ---------- boot ---------- */
 S=load()||defaults();
 window.LFP_STATE=()=>S;
-if(!S.cells.length)genLayout(S.arr);
+if(!S.cells.length){genLayout(S.arr);scramble();}
 if(!S.set)S.set=defaultSettings();
 if(!S.par.commSel)S.par.commSel='CAN';
 ensurePacks();initSimCells();
@@ -1544,7 +1549,7 @@ showTab(['layout','wire','bms','par','ref'].includes(h0)?h0:S.tab||'layout');
 renderWire();
 })();
 </script>
-<script>/* menu 16 in the simulator: tell the parent page how tall this page is, and follow its theme switch */
+<script>/* menu 14 in the simulator: tell the parent page how tall this page is, and follow its theme switch */
 (function(){if(window.self===window.top)return;
   const send=()=>{try{parent.postMessage({lfpH:Math.ceil(document.documentElement.scrollHeight)},'*')}catch(e){}};
   try{new ResizeObserver(send).observe(document.body)}catch(e){setInterval(send,1000)}

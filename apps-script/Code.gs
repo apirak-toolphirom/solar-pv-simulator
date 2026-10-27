@@ -76,11 +76,11 @@ function wsSet_(d, props) {
 // สถานะ: auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ซ่อน ยกเว้นเมนูที่ผู้เยี่ยมชมเห็น) · ส่งงาน auto = เปิดเมื่อมีใบงานเปิดอยู่ · เปิด · ดูอย่างเดียว · ปิด
 var MENU_SHEET = 'เมนู';
 var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
-var MENU_DEF = [['basics', '00 แบบฝึกพื้นฐาน'], ['equip', '01 อุปกรณ์'], ['wiring', '02 ต่อสาย DC แผง'], ['ac', '03 ต่อสาย AC ระบบ'], ['pv', '04 จำลองแผง'], ['site', '05 ไซต์และเงา'],
-  ['load', '06 จำลองโหลด'], ['backup', '07 จำลองการไหลของไฟ'], ['systems', '08 จำลองระบบ 4 แบบ'], ['events', '09 จำลองเหตุการณ์'], ['bench', '10 ชุดทดลองวงจร DC'], ['submit', '11 ส่งงาน'], ['fusion', '12 Huawei FusionSolar'], ['cable', '13 สายไฟและเบรกเกอร์'], ['library', '14 คลังความรู้'], ['solis', '15 Solis Commissioning'], ['lfp', '16 แบต LiFePO4 + JK-BMS']]
-  // 13 สายไฟและเบรกเกอร์ เป็นเครื่องมืออ้างอิง: เปิดให้ผู้เรียนเป็นค่าเริ่มต้น
+var MENU_DEF = [['basics', '00 แบบฝึกพื้นฐาน'], ['library', '01 คลังความรู้'], ['equip', '02 อุปกรณ์'], ['wiring', '03 ต่อสาย DC แผง'], ['ac', '04 ต่อสาย AC ระบบ'], ['bench', '05 ชุดทดลองวงจร DC'],
+  ['cable', '06 สายไฟและเบรกเกอร์'], ['pv', '07 จำลองแผง'], ['site', '08 ไซต์และเงา'], ['load', '09 จำลองโหลด'], ['backup', '10 จำลองการไหลของไฟ'], ['systems', '11 จำลองระบบ 4 แบบ'], ['events', '12 จำลองเหตุการณ์'], ['solis', '13 Solis Commissioning'], ['lfp', '14 แบต LiFePO4 + JK-BMS'], ['fusion', '15 Huawei FusionSolar'], ['submit', '16 ส่งงาน']]
+  // 06 สายไฟและเบรกเกอร์ และ 01 คลังความรู้ เป็นเครื่องมืออ้างอิง: เปิดให้ผู้เรียนเป็นค่าเริ่มต้น
   .map(function (m) { return [m[0], m[1], m[0] === 'cable' || m[0] === 'library' ? 'เปิด' : m[0] === 'solis' || m[0] === 'lfp' ? 'ปิด' : 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
-// 15 Solis Commissioning และ 16 แบต LiFePO4 + JK-BMS: ค่าเริ่ม = ปิด (ซ่อนจากผู้เรียน) ผู้สอนเปิดเองที่ dashboard เมื่อถึงคาบที่ใช้
+// 13 Solis Commissioning และ 14 แบต LiFePO4 + JK-BMS: ค่าเริ่ม = ปิด (ซ่อนจากผู้เรียน) ผู้สอนเปิดเองที่ dashboard เมื่อถึงคาบที่ใช้
 // เมนูที่ต้องลงชื่อ (ผู้เรียน/ผู้สอน) เสมอ: ผู้เยี่ยมชมไม่เห็นแม้ติ๊ก "ผู้เยี่ยมชม" = ใช่
 var MENU_SIGNED = [];
 function menuSheet_() {
@@ -96,6 +96,10 @@ function menuSheet_() {
     // แผ่นที่สร้างไว้ก่อนมีเมนูใหม่ (เช่น 00 แบบฝึกพื้นฐาน): เพิ่มแถวที่ยังไม่มีต่อท้าย
     var n = sh.getLastRow() - 1, have = n > 0 ? sh.getRange(2, 1, n, 1).getValues().map(function (r) { return String(r[0]).trim(); }) : [];
     MENU_DEF.forEach(function (m) { if (have.indexOf(m[0]) < 0) sh.appendRow(m); });
+    // ชื่อเมนูตามเลขใหม่ (จัดกลุ่มเมนู 2569-10): อัปเดตคอลัมน์ชื่อ ไม่แตะสถานะที่ผู้สอนตั้งไว้
+    var nm = {}; MENU_DEF.forEach(function (m) { nm[m[0]] = m[1]; });
+    var n2 = sh.getLastRow() - 1, keys = n2 > 0 ? sh.getRange(2, 1, n2, 2).getValues() : [];
+    keys.forEach(function (r, k) { var t = String(r[0]).trim(); if (nm[t] && String(r[1]) !== nm[t]) sh.getRange(k + 2, 2).setValue(nm[t]); });
   }
   return sh;
 }

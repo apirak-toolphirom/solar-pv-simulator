@@ -56,7 +56,7 @@ function ctxChips(t){
     }
     case'site':{const n=SITE.objs.length,k=c=>SITE.objs.filter(o=>o.t===c).length;
       return[C('ok','พิกัด',`${f(SIM.lat,3)}, ${f(SIM.lon,3)}`,'pv'),C(n?'ok':'warn','ผัง',n?`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')}`:'ยังว่าง',null),C(EV.site.on&&k('pv')?'ok':'idle','ส่งต่อ',EV.site.on?(k('pv')?`เงาบนแผง ${k('pv')} ชุด → 04, 07, 08, 09`:'ยังไม่มีแผงบนผัง'):'ปิดอยู่ (เปิดที่แท็บ 04, 08 หรือ 09)',null),C(k('pv')?'ok':'idle','แผงบนผัง',k('pv')+' ชุด',null)]}
-    case'basics':{const n=typeof b0Count==='function'?b0Count():0;return[C('idle','อิสระ','แผงตัวอย่าง 550 W ของเมนูนี้ ไม่ใช้อุปกรณ์จากเมนู 01–10',null),C(n===15?'ok':'idle','ความคืบหน้า',`ผ่าน ${n} / 15 หัวข้อ → ใบงาน W00 (เมนู 11)`,n===15?'submit':null)]}
+    case'basics':{const n=typeof b0Count==='function'?b0Count():0;return[C('idle','อิสระ','แผงตัวอย่าง 550 W ของเมนูนี้ ไม่ใช้อุปกรณ์จากเมนูอื่น',null),C(n===15?'ok':'idle','ความคืบหน้า',`ผ่าน ${n} / 15 หัวข้อ → ใบงาน W00 (เมนู 16)`,n===15?'submit':null)]}
     case'bench':return[C('idle','อิสระ','ไม่ใช้ข้อมูลจากแท็บอื่น (ระบบ 12 / 24 / 48 V)',null)];
     case'cable':{const pg=typeof CB!=='undefined'?CB.page:'ac';
       if(pg==='ac')return[CB.ac.src==='inv'?C('ok','ขาออกอินเวอร์เตอร์',`${inv} · ${f(I.pac)} W`,'equip'):C('idle','วงจร','ค่าที่กรอกเอง',null)];
