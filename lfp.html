@@ -78,7 +78,10 @@ button{cursor:pointer}
 .tabs .step.bad{border-color:var(--bad);color:var(--bad)}
 
 /* common */
-.pane{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:grid;grid-template-rows:auto auto;min-width:0;overflow:hidden}
+.pane{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);display:grid;grid-template-rows:auto;min-width:0;overflow:hidden}
+.wbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:6px 12px;border-bottom:1px solid var(--line);font-size:.85rem}
+.wscroll{overflow:auto;max-height:82vh}
+.wscroll svg{max-height:none!important;max-width:none}
 .pane>figcaption,.pane>.cap{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-size:.85rem}
 .pane svg{display:block;width:100%;height:auto;max-height:78vh;touch-action:none;user-select:none;-webkit-user-select:none}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
@@ -240,7 +243,11 @@ body{margin:0}
       <figure class="pane wire-svg">
         <figcaption><span id="wireHint"><b>ต่อสาย</b></span><span class="seg" id="toolSeg">
           <button data-tool="link">บัสบาร์</button><button data-tool="harness">สาย BMS</button><button data-tool="meter">มิเตอร์</button><button data-tool="erase">ลบ</button></span></figcaption>
-        <svg id="svgWire" aria-label="แผงต่อสายมุมบน"></svg>
+        <div class="wbar" id="devBar"><span class="lbl">อุปกรณ์</span><b id="devName"></b>
+          <button class="btn sm" data-dv="small" title="ย่ออุปกรณ์ที่เลือก">ย่อ −</button><button class="btn sm" data-dv="big" title="ขยายอุปกรณ์ที่เลือก">ขยาย +</button>
+          <span class="lbl" style="margin-left:8px">มุมมอง</span><button class="btn sm" data-dv="zout">−</button><b class="num" id="zoomVal"></b><button class="btn sm" data-dv="zin">+</button>
+          <button class="btn sm" data-dv="reset">จัดตำแหน่งเริ่มต้น</button></div>
+        <div class="wscroll"><svg id="svgWire" aria-label="แผงต่อสาย ลากแพ็ก BMS อินเวอร์เตอร์ และมิเตอร์ย้ายได้"></svg></div>
       </figure>
       <aside class="wire-side">
         <div class="card">
@@ -796,22 +803,37 @@ function syncBoxInputs(){$('#boxL').value=S.box.L;$('#boxW').value=S.box.W;$('#b
 
 /* ---------- WIRING ---------- */
 let pend=null,selChip=null;
-/* ---- multimeter with draggable probes ---- */
+/* ---- movable, scalable devices on the wiring bench: pack (cells + box), smart BMS, inverter, multimeter ---- */
 const PR={red:{x:null,y:null,key:null,lab:''},black:{x:null,y:null,key:null,lab:''},next:'red'};
-let pdrag=null,clickBlockUntil=0,rafW=0;
-function meterGeom(){const g=wireBmsGeom();return{x:g.loadX+175,y:g.y-70,w:160,h:240};}
-function jackPos(c){const m=meterGeom();return c==='red'?{x:m.x+m.w-42,y:m.y+m.h-28}:{x:m.x+42,y:m.y+m.h-28};}
-function parkPos(c){const m=meterGeom();return c==='red'?{x:m.x+m.w+40,y:m.y+m.h+40}:{x:m.x+m.w+80,y:m.y+m.h+40};}
+let pdrag=null,ddrag=null,wdrag=null,clickBlockUntil=0,rafW=0,lastVB=null;
+function bmsSize(){const n=bm().kind==='bal'?S.s+1:S.s+1;return{w:Math.max(340,70+n*19),h:130};}
+const INV_SZ={w:140,h:100},MET_SZ={w:160,h:240};
+function wdefaults(){const W=topSceneW(),H=topSceneH(),bw=bmsSize().w,bh=bmsSize().h;
+  if(H>W*0.9){const x=W+90;return{pack:{x:0,y:0},bms:{x,y:30,s:1},inv:{x,y:30+bh+90,s:1},meter:{x:x+INV_SZ.w+70,y:30+bh+60,s:1}};}
+  const y=H+90;return{pack:{x:0,y:0},bms:{x:0,y,s:1},inv:{x:bw+60,y,s:1},meter:{x:bw+60+INV_SZ.w+60,y:y-60,s:1}};}
+function WP(k){if(!S.wpos)S.wpos={};if(!S.wpos[k])S.wpos[k]=wdefaults()[k];return S.wpos[k];}
+const G=(k,lx,ly)=>{const d=WP(k),sc=d.s||1;return{x:d.x+lx*sc,y:d.y+ly*sc};};
+function wpos(key){const p=tpos(key),o=WP('pack');return{x:p.x+o.x,y:p.y+o.y,tier:p.tier};}
+/* BMS connection points (local coordinates on the board) */
+function pinLocal(w){const b=bmsSize();
+  if(/^B\d+$/.test(w))return{x:34+(+w.slice(1))*19,y:0};
+  return({'B-':{x:b.w-44,y:0},'BAT+':{x:b.w,y:48},'P-':{x:b.w,y:96},'NTC1':{x:0,y:58},'NTC2':{x:0,y:96}})[w]||{x:0,y:0};}
+function pinPos(w){if(w==='MAIN+')return G('inv',28,0);if(w==='MAIN-')return G('inv',INV_SZ.w-28,0);const l=pinLocal(w);return G('bms',l.x,l.y);}
+const invNeg=()=>G('inv',INV_SZ.w-28,0);
+const pinDir=w=>w==='NTC1'||w==='NTC2'?[-1,0]:w==='BAT+'||w==='P-'?[1,0]:[0,-1];
+/* ---- multimeter ---- */
+function jackPos(c){return c==='red'?G('meter',118,212):G('meter',42,212);}
+function parkPos(c){const m=WP('meter'),sc=m.s||1;return c==='red'?{x:m.x+(MET_SZ.w+30)*sc,y:m.y+(MET_SZ.h+30)*sc}:{x:m.x+(MET_SZ.w+70)*sc,y:m.y+(MET_SZ.h+30)*sc};}
 function probeTargets(){
-  const T=[];S.cells.forEach((c,i)=>['+','-'].forEach(t=>{const p=tpos(i+t);T.push({x:p.x,y:p.y,key:i+t,lab:`เซลล์ ${i+1} ขั้ว ${t==='+'?'+':'−'}`});}));
+  const T=[];S.cells.forEach((c,i)=>['+','-'].forEach(t=>{const p=wpos(i+t);T.push({x:p.x,y:p.y,key:i+t,lab:`เซลล์ ${i+1} ขั้ว ${t==='+'?'+':'−'}`});}));
   harnessList().forEach(w=>{const at=S.h[w];if(typeof at==='string'&&at!=='LOAD'&&!w.startsWith('MAIN')){const p=pinPos(w);T.push({x:p.x,y:p.y,key:at,lab:'ขา '+w+' บน BMS'});}});
-  const g=wireBmsGeom();
-  if(typeof S.h['MAIN+']==='string')T.push({x:g.loadX+20,y:g.loadY,key:S.h['MAIN+'],lab:'BAT+ อินเวอร์เตอร์'});
-  if(S.h['P-']==='LOAD'&&S.active&&!S.damaged&&typeof S.h['B-']==='string')T.push({x:g.loadX+90,y:g.loadY,key:S.h['B-'],lab:'BAT− อินเวอร์เตอร์ (ผ่าน MOS)'});
+  if(typeof S.h['MAIN+']==='string'){const p=pinPos('MAIN+');T.push({x:p.x,y:p.y,key:S.h['MAIN+'],lab:'BAT+ อินเวอร์เตอร์'});}
+  const negKey=bm().kind==='bal'?S.h['MAIN-']:(S.h['P-']==='LOAD'&&S.active&&!S.damaged?S.h['B-']:null);
+  if(typeof negKey==='string'){const p=invNeg();T.push({x:p.x,y:p.y,key:negKey,lab:'BAT− อินเวอร์เตอร์'+(bm().kind==='bal'?'':' (ผ่าน MOS)')});}
   return T;}
 function syncProbes(){const T=probeTargets();['red','black'].forEach(c=>{const p=PR[c];
   if(p.key){const t=T.find(t=>t.key===p.key&&t.lab===p.lab)||T.find(t=>t.key===p.key);if(t){p.x=t.x;p.y=t.y;p.lab=t.lab;}else{p.key=null;}}
-  if(!p.key&&(p.x==null||pdrag==null)){if(p.x==null||!p.free){const q=parkPos(c);p.x=q.x;p.y=q.y;}}});}
+  if(!p.key&&(p.x==null||!p.free)&&pdrag==null){const q=parkPos(c);p.x=q.x;p.y=q.y;}});}
 function snapProbe(c,x,y){const T=probeTargets();let best=null,bd=30;T.forEach(t=>{const d=Math.hypot(t.x-x,t.y-y);if(d<bd){bd=d;best=t;}});
   const p=PR[c];if(best){p.x=best.x;p.y=best.y;p.key=best.key;p.lab=best.lab;p.free=false;}else{p.x=x;p.y=y;p.key=null;p.lab='';p.free=true;}}
 function meterRead(){
@@ -822,21 +844,22 @@ function meterRead(){
   if(r.pot[r.net[a]]===undefined||r.pot[r.net[b]]===undefined||!sameComp(r,a,b))return{ok:false,v:0,txt:' 0.00',note:lab+' · สองจุดไม่ได้ต่อถึงกัน ค่าลอย'};
   const v=r.pot[r.net[a]]-r.pot[r.net[b]],av=Math.abs(v),t=(av<19.995?av.toFixed(3):av.toFixed(2));
   return{ok:true,v,txt:(v<-0.0005?'-':' ')+t,note:lab+(v<-0.0005?' · ค่าติดลบ = สลับโพรบ หรือขั้วกลับ':'')};}
+function devFrame(k,w,h){return S.wsel===k?`<rect x="-8" y="-8" width="${w+16}" height="${h+16}" rx="10" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="7 5"/>`:'';}
 function meterSVG(){
-  const m=meterGeom(),rd=meterRead(),cx=m.x+m.w/2;let s='';
-  s+=`<g><rect x="${m.x}" y="${m.y}" width="${m.w}" height="${m.h}" rx="16" fill="#e5a11a" stroke="#9c6500" stroke-width="3"/>
-   <rect x="${m.x+9}" y="${m.y+9}" width="${m.w-18}" height="${m.h-18}" rx="10" fill="#26292d"/>
-   <rect x="${m.x+18}" y="${m.y+20}" width="${m.w-36}" height="58" rx="4" fill="#b7c6a3" stroke="#6d7a5e"/>
-   <text x="${m.x+24}" y="${m.y+32}" font-size="9" fill="#2a3322" font-family="var(--f-mono)">AUTO  DC</text>
-   <text x="${m.x+m.w-22}" y="${m.y+68}" text-anchor="end" font-size="30" font-weight="600" fill="#1b2216" font-family="var(--f-mono)" letter-spacing="1">${rd.txt}</text>
-   <text x="${m.x+m.w-22}" y="${m.y+32}" text-anchor="end" font-size="11" fill="#2a3322" font-family="var(--f-mono)">V⎓</text>
-   <circle cx="${cx}" cy="${m.y+132}" r="34" fill="#17191b" stroke="#4a4f55" stroke-width="3"/>
-   <line x1="${cx}" y1="${m.y+132}" x2="${cx-22}" y2="${m.y+110}" stroke="#f0f0f0" stroke-width="5" stroke-linecap="round"/>
-   <g font-size="10" fill="#e8e8e8" font-family="var(--f-mono)"><text x="${cx-48}" y="${m.y+104}" fill="#ffd34d">V⎓</text><text x="${cx+30}" y="${m.y+104}">V~</text><text x="${cx+38}" y="${m.y+150}">Ω</text><text x="${cx-56}" y="${m.y+150}">OFF</text><text x="${cx-6}" y="${m.y+92}">mA</text></g>
-   <circle cx="${jackPos('black').x}" cy="${jackPos('black').y}" r="11" fill="#111" stroke="#666" stroke-width="3"/><text x="${jackPos('black').x}" y="${jackPos('black').y-16}" text-anchor="middle" font-size="9" fill="#ddd" font-family="var(--f-mono)">COM</text>
-   <circle cx="${jackPos('red').x}" cy="${jackPos('red').y}" r="11" fill="#111" stroke="#d33" stroke-width="3"/><text x="${jackPos('red').x}" y="${jackPos('red').y-16}" text-anchor="middle" font-size="9" fill="#ddd" font-family="var(--f-mono)">VΩ</text></g>`;
+  const d=WP('meter'),rd=meterRead();let s='';
+  s+=`<g data-dev="meter" transform="translate(${d.x} ${d.y}) scale(${d.s||1})" style="cursor:move">${devFrame('meter',MET_SZ.w,MET_SZ.h)}<rect x="0" y="0" width="160" height="240" rx="16" fill="#e5a11a" stroke="#9c6500" stroke-width="3"/>
+   <rect x="9" y="9" width="142" height="222" rx="10" fill="#26292d"/>
+   <rect x="18" y="20" width="124" height="58" rx="4" fill="#b7c6a3" stroke="#6d7a5e"/>
+   <text x="24" y="32" font-size="9" fill="#2a3322" font-family="var(--f-mono)">AUTO  DC</text>
+   <text x="138" y="68" text-anchor="end" font-size="30" font-weight="600" fill="#1b2216" font-family="var(--f-mono)" letter-spacing="1">${rd.txt}</text>
+   <text x="138" y="32" text-anchor="end" font-size="11" fill="#2a3322" font-family="var(--f-mono)">V⎓</text>
+   <circle cx="80" cy="132" r="34" fill="#17191b" stroke="#4a4f55" stroke-width="3"/>
+   <line x1="80" y1="132" x2="58" y2="110" stroke="#f0f0f0" stroke-width="5" stroke-linecap="round"/>
+   <g font-size="10" fill="#e8e8e8" font-family="var(--f-mono)"><text x="32" y="104" fill="#ffd34d">V⎓</text><text x="110" y="104">V~</text><text x="118" y="150">Ω</text><text x="24" y="150">OFF</text><text x="74" y="92">mA</text></g>
+   <circle cx="42" cy="212" r="11" fill="#111" stroke="#666" stroke-width="3"/><text x="42" y="196" text-anchor="middle" font-size="9" fill="#ddd" font-family="var(--f-mono)">COM</text>
+   <circle cx="118" cy="212" r="11" fill="#111" stroke="#d33" stroke-width="3"/><text x="118" y="196" text-anchor="middle" font-size="9" fill="#ddd" font-family="var(--f-mono)">VΩ</text></g>`;
   ['black','red'].forEach(c=>{const p=PR[c],J=jackPos(c),col=c==='red'?'#d22':'#151515',hx=p.x+18,hy=p.y-34;
-    s+=`<path d="M${J.x},${J.y} C${J.x},${J.y+90} ${hx+40},${hy-90} ${hx+16},${hy-30}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" opacity=".95"/>`;
+    s+=`<path d="M${J.x},${J.y} C${J.x},${J.y+90} ${hx+40},${hy-90} ${hx+16},${hy-30}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" opacity=".95" pointer-events="none"/>`;
     s+=`<g data-probe="${c}" style="cursor:grab">
       <line x1="${p.x}" y1="${p.y}" x2="${p.x+9}" y2="${p.y-17}" stroke="#d9dde2" stroke-width="3" stroke-linecap="round"/>
       <polygon points="${p.x+5},${p.y-12} ${p.x+13},${p.y-22} ${p.x+34},${p.y-62} ${p.x+22},${p.y-68} ${p.x+2},${p.y-28}" fill="${col}" stroke="${c==='red'?'#7a0d0d':'#555'}" stroke-width="1.5"/>
@@ -844,59 +867,77 @@ function meterSVG(){
       ${p.key?`<circle cx="${p.x}" cy="${p.y}" r="17" fill="none" stroke="${c==='red'?'#ff4d4d':'#9aa3ad'}" stroke-width="3"/>`:''}</g>`;});
   return s;}
 function updMeter(){const rd=meterRead();$('#meterDisp').textContent=rd.txt.trim()+' V';$('#meterInfo').textContent=rd.note;}
-function wireBmsGeom(){const W=topSceneW(),y=topSceneH()+70;return{x:Math.max(0,W/2-210),y,w:300,h:100,loadX:Math.max(0,W/2-210)+340,loadY:y};}
-function pinPos(w){const g=wireBmsGeom();
-  if(/^B\d+$/.test(w)){const k=+w.slice(1);return{x:g.x+14+k*(Math.min(16,272/(S.s+1))),y:g.y};}
-  if(w==='B-')return{x:g.x+g.w-40,y:g.y};if(w==='BAT+')return{x:g.x+g.w-10,y:g.y+60};
-  if(w==='P-')return{x:g.x+g.w,y:g.y+82};if(w==='NTC1')return{x:g.x,y:g.y+30};if(w==='NTC2')return{x:g.x,y:g.y+55};
-  if(w==='MAIN+')return{x:g.loadX+20,y:g.loadY};if(w==='MAIN-')return{x:g.loadX+90,y:g.loadY};return{x:g.x,y:g.y};}
+const PIN_COL=w=>w==='B-'||w==='MAIN-'?'var(--comm)':w==='BAT+'||w==='MAIN+'?'var(--pos)':w==='P-'?'var(--neg)':w.startsWith('NTC')?'var(--warn)':'#e4e4e4';
+function bmsSVG(hc){
+  const d=WP('bms'),b=bmsSize(),kind=bm().kind,L=harnessList().filter(w=>!w.startsWith('MAIN')),n=S.s+1,cx=b.w/2;
+  let s=`<g data-dev="bms" transform="translate(${d.x} ${d.y}) scale(${d.s||1})" style="cursor:move">${devFrame('bms',b.w,b.h)}
+    <rect x="0" y="0" width="${b.w}" height="${b.h}" rx="6" fill="var(--pcb)" stroke="${S.damaged?'var(--bad)':'var(--pcb-hi)'}" stroke-width="${S.damaged?5:2}"/>
+    <rect x="${20}" y="-10" width="${34+(n-1)*19-6}" height="44" rx="4" fill="rgba(0,0,0,.18)" stroke="#cfeedd" stroke-dasharray="3 3"/>
+    <text x="${24}" y="50" font-size="10" fill="#cfeedd" font-family="var(--f-mono)">ปลั๊ก SENSE · B0 = ลบรวม · B${S.s} = บวกรวม</text>
+    <text x="${cx}" y="${b.h-40}" text-anchor="middle" font-size="17" fill="#eafff2" font-family="var(--f-mono)" font-weight="600">${esc(bm().name)}</text>
+    <text x="${cx}" y="${b.h-20}" text-anchor="middle" font-size="12" fill="#cfeedd">${S.damaged?'⚠ ช่องวัดเสียหาย':S.active?'● ทำงาน':S.plugged?'เสียบปลั๊กแล้ว · รอกดเปิด':kind==='bal'?'Active Balancer · ไม่มี MOS ตัดวงจร':'ยังไม่เสียบปลั๊ก sense'}</text>`;
+  L.forEach(w=>{const p=pinLocal(w),sense=/^B\d+$/.test(w),st=hc[w];
+    const ring=st==='ok'?'#43d17f':st==='wrong'?'#ff5a50':S.h[w]!=null?'#ffd27a':'#333';
+    s+=`<g data-pin="${w}" style="cursor:crosshair"><rect x="${p.x-6}" y="${p.y-6}" width="12" height="12" rx="2" fill="${PIN_COL(w)}" stroke="${ring}" stroke-width="${st?2.5:1}"/>
+      <circle cx="${p.x}" cy="${p.y}" r="11" fill="transparent"/></g>`;
+    if(sense)s+=`<text x="${p.x}" y="${p.y+22}" text-anchor="middle" font-size="9" fill="#eafff2" font-family="var(--f-mono)">${w}</text>`;
+    else{const right=p.x>=b.w-1,left=p.x<=1,top=p.y<=1;
+      s+=`<text x="${left?p.x+12:right?p.x-12:p.x}" y="${top?p.y+24:p.y+4}" text-anchor="${left?'start':right?'end':'middle'}" font-size="12" font-weight="600" fill="#ffffff" font-family="var(--f-mono)">${w==='B-'?'B− (ลบรวม)':w==='P-'?'P− (โหลด)':w==='BAT+'?'BAT+':w}</text>`;}});
+  return s+'</g>';}
+function invSVG(){const d=WP('inv'),w=INV_SZ.w,h=INV_SZ.h;
+  return`<g data-dev="inv" data-load="1" transform="translate(${d.x} ${d.y}) scale(${d.s||1})" style="cursor:move">${devFrame('inv',w,h)}<rect x="0" y="0" width="${w}" height="${h}" rx="6" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/>
+    <text x="${w/2}" y="48" text-anchor="middle" font-size="14" fill="var(--ink)" font-family="var(--f-display)">อินเวอร์เตอร์</text>
+    <text x="${w/2}" y="68" text-anchor="middle" font-size="11" fill="var(--muted)">ขั้วแบตเตอรี่</text>
+    <g data-pin="MAIN+" style="cursor:crosshair"><circle cx="28" cy="0" r="10" fill="var(--pos)"/><circle cx="28" cy="0" r="16" fill="transparent"/></g><text x="28" y="26" text-anchor="middle" font-size="12" font-weight="600" fill="var(--pos)" font-family="var(--f-mono)">BAT+</text>
+    <g ${bm().kind==='bal'?'data-pin="MAIN-"':''}><circle cx="${w-28}" cy="0" r="10" fill="var(--neg)" stroke="#888"/><circle cx="${w-28}" cy="0" r="16" fill="transparent"/></g><text x="${w-28}" y="26" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)" font-family="var(--f-mono)">BAT−</text></g>`;}
+function wireBounds(){
+  const W=topSceneW(),H=topSceneH(),o=WP('pack'),xs=[o.x-40,o.x+W+60],ys=[o.y-50,o.y+H+30];
+  const add=(k,w,h)=>{const d=WP(k),sc=d.s||1;xs.push(d.x-20,d.x+w*sc+20);ys.push(d.y-40,d.y+h*sc+40);};
+  add('bms',bmsSize().w,bmsSize().h);{const d=WP('bms');ys.push(d.y-170*(d.s||1));}add('inv',INV_SZ.w,INV_SZ.h);add('meter',MET_SZ.w+110,MET_SZ.h+80);
+  ['red','black'].forEach(c=>{const p=PR[c];if(p.x!=null){xs.push(p.x-20,p.x+60);ys.push(p.y-80,p.y+20);}});
+  const x0=Math.min(...xs),y0=Math.min(...ys);return[x0,y0,Math.max(...xs)-x0,Math.max(...ys)-y0];}
 function renderWire(){
   const r=analyze();WIRE=r;
-  const g=wireBmsGeom(),W=topSceneW();
-  const svg=$('#svgWire'),mg=meterGeom();fitSvg(svg,[-30,-45,Math.max(W,mg.x+mg.w+130)+60,Math.max(g.y+g.h+80,mg.y+mg.h+100)+45]);
-  let s=boxPanelsSVG();
+  const o=WP('pack'),hc=harnessCheck(r).res,svg=$('#svgWire');
+  syncProbes();
+  if(!(ddrag||pdrag||wdrag)||!lastVB)lastVB=wireBounds();
+  fitSvg(svg,lastVB);svg.style.width=(S.wzoom||100)+'%';
+  let s=`<g data-dev="pack" transform="translate(${o.x} ${o.y})">`+boxPanelsSVG();
   S.cells.forEach((c,i)=>s+=cellSVG(c,i,{mode:'wire',shorts:r.shorts,rev:r.reversed}));
   S.links.forEach((l,i)=>s+=linkSVG(l,i));
-  // BMS board
-  const kind=bm().kind;
-  s+=`<g><rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx="5" fill="var(--pcb)" stroke="${S.damaged?'var(--bad)':'var(--pcb-hi)'}" stroke-width="${S.damaged?5:2}"/>
-    <text x="${g.x+g.w/2}" y="${g.y+55}" text-anchor="middle" font-size="17" fill="#eafff2" font-family="var(--f-mono)" font-weight="600">${esc(bm().name)}</text>
-    <text x="${g.x+g.w/2}" y="${g.y+76}" text-anchor="middle" font-size="12" fill="#cfeedd">${S.damaged?'⚠ ช่องวัดเสียหาย':S.active?'● ทำงาน':S.plugged?'เสียบปลั๊กแล้ว · รอกดเปิด':'ยังไม่เสียบปลั๊ก sense'}</text></g>`;
-  // pins
-  harnessList().forEach(w=>{const p=pinPos(w);if(w.startsWith('MAIN'))return;
-    s+=`<rect x="${p.x-5}" y="${p.y-5}" width="10" height="10" fill="${w==='B-'?'var(--comm)':w==='BAT+'?'var(--pos)':w==='P-'?'var(--neg)':'#ddd'}" stroke="#333"/>`;
-    if(/^B\d+$/.test(w)&&(+w.slice(1)%2===0||S.s<=8))s+=`<text x="${p.x}" y="${p.y+20}" text-anchor="middle" font-size="9" fill="#eafff2" font-family="var(--f-mono)">${w}</text>`;});
-  // load block
-  s+=`<g data-load="1" style="cursor:pointer"><rect x="${g.loadX}" y="${g.loadY}" width="120" height="${g.h}" rx="5" fill="var(--surface-2)" stroke="var(--line)" stroke-width="2"/>
-    <text x="${g.loadX+60}" y="${g.loadY+38}" text-anchor="middle" font-size="14" fill="var(--ink)" font-family="var(--f-display)">อินเวอร์เตอร์</text>
-    <text x="${g.loadX+60}" y="${g.loadY+58}" text-anchor="middle" font-size="12" fill="var(--muted)">BAT+ ‧ BAT−</text>
-    <circle cx="${g.loadX+20}" cy="${g.loadY}" r="8" fill="var(--pos)"/><circle cx="${g.loadX+90}" cy="${g.loadY}" r="8" fill="var(--neg)" stroke="#888"/>
-    <rect data-load="1" x="${g.loadX}" y="${g.loadY}" width="120" height="${g.h}" fill="transparent"/></g>`;
-  // harness wires
-  const hc=harnessCheck(r).res;
+  if(S.wsel==='pack')s+=`<rect x="-14" y="-14" width="${topSceneW()+28}" height="${topSceneH()+28}" rx="10" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="7 5" pointer-events="none"/>`;
+  s+='</g>';
+  const order=['bms','inv'].sort((x,y)=>(x===S.wsel)-(y===S.wsel));let devs={bms:bmsSVG(hc),inv:invSVG()};
+  s+=order.map(k=>devs[k]).join('');
+  // harness wires (drawn above devices)
   Object.entries(S.h).forEach(([w,at])=>{
-    if(at==null)return;const p=pinPos(w);let q;
-    if(at==='LOAD')q={x:g.loadX+90,y:g.loadY};
-    else if(typeof at==='number'){const c=S.cells[at];q={x:c.x+foot(c).w/2-8,y:c.y+panelY(c.tier)};}
-    else q=tpos(at);
-    if(w==='P-'){q={x:g.loadX+90,y:g.loadY+g.h};}
-    const col=w==='B-'||w==='MAIN-'?'var(--comm)':w==='BAT+'||w==='MAIN+'?'var(--pos)':w==='P-'?'var(--neg)':w.startsWith('NTC')?'var(--warn)':'#d7d7d7';
-    const wd=/^B\d+$/.test(w)||w.startsWith('NTC')?2.2:7;
-    const bad=hc[w]==='wrong';
-    if(w==='P-'){s+=`<path d="M${p.x},${p.y} C${p.x+60},${p.y} ${q.x},${q.y+30} ${q.x},${q.y}" fill="none" stroke="var(--neg)" stroke-width="7"/>`;return;}
-    if(w==='MAIN+'||w==='MAIN-'){s+=`<path d="M${q.x},${q.y} C${q.x},${q.y+120} ${p.x},${p.y-120} ${p.x},${p.y}" fill="none" stroke="${col}" stroke-width="7" opacity=".9"/>`;}
-    else s+=`<path d="M${p.x},${p.y} C${p.x},${p.y-70} ${q.x},${q.y+70} ${q.x},${q.y}" fill="none" stroke="${bad?'var(--bad)':col}" stroke-width="${wd}" opacity=".95"/>`;
-    s+=`<g><rect x="${q.x+8}" y="${q.y-24}" width="${w.length*8+10}" height="17" rx="8" fill="${bad?'var(--bad)':'var(--surface)'}" stroke="${bad?'var(--bad)':'var(--line)'}"/><text x="${q.x+13}" y="${q.y-11}" font-size="12" font-family="var(--f-mono)" fill="${bad?'#fff':'var(--ink)'}">${w}</text></g>`;
+    if(at==null||(wdrag&&wdrag.w===w))return;const p=pinPos(w);let q;
+    if(at==='LOAD')q=invNeg();
+    else if(typeof at==='number'){const c=S.cells[at];if(!c)return;q={x:c.x+o.x+foot(c).w/2-8,y:c.y+panelY(c.tier)+o.y};}
+    else q=wpos(at);
+    const col=PIN_COL(w),wd=/^B\d+$/.test(w)||w.startsWith('NTC')?2.4:7,bad=hc[w]==='wrong';
+    const dv=pinDir(w),L=Math.max(60,Math.min(160,Math.hypot(q.x-p.x,q.y-p.y)*0.45));
+    s+=`<path d="M${p.x},${p.y} C${p.x+dv[0]*L},${p.y+dv[1]*L} ${q.x},${q.y+(q.y>p.y+dv[1]*L?-L*0.6:L*0.6)} ${q.x},${q.y}" fill="none" stroke="${bad?'var(--bad)':col}" stroke-width="${wd}" opacity=".95" pointer-events="none"/>`;
+    if(at!=='LOAD')s+=`<g pointer-events="none"><rect x="${q.x+8}" y="${q.y-24}" width="${w.length*8+10}" height="17" rx="8" fill="${bad?'var(--bad)':'var(--surface)'}" stroke="${bad?'var(--bad)':'var(--line)'}"/><text x="${q.x+13}" y="${q.y-11}" font-size="12" font-family="var(--f-mono)" fill="${bad?'#fff':'var(--ink)'}">${w}</text></g>`;
   });
-  // pending / probes
-  if(pend){const p=tpos(pend);s+=`<circle cx="${p.x}" cy="${p.y}" r="24" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="6 4"/>`;}
-  syncProbes();s+=meterSVG();
+  if(wdrag){const p=pinPos(wdrag.w);s+=`<path d="M${p.x},${p.y} L${wdrag.x},${wdrag.y}" fill="none" stroke="${PIN_COL(wdrag.w)}" stroke-width="4" stroke-dasharray="8 5" pointer-events="none"/><circle cx="${wdrag.x}" cy="${wdrag.y}" r="${wdrag.hit?16:7}" fill="none" stroke="var(--accent)" stroke-width="3" pointer-events="none"/><text x="${wdrag.x+14}" y="${wdrag.y-12}" font-size="13" font-family="var(--f-mono)" fill="var(--accent)" pointer-events="none">${wdrag.w}</text>`;}
+  if(pend){const p=wpos(pend);s+=`<circle cx="${p.x}" cy="${p.y}" r="24" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="6 4"/>`;}
+  s+=meterSVG();
   svg.innerHTML=s;updMeter();
   $$('#toolSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===S.tool));
-  const hints={link:'<b>บัสบาร์</b> คลิกขั้ว + ของเซลล์หนึ่ง แล้วคลิกขั้ว − ของเซลล์ถัดไป',harness:'<b>สาย BMS</b> เลือกสายทางขวา แล้วคลิกขั้วเซลล์ (P− คลิกที่กล่องอินเวอร์เตอร์ · NTC คลิกตัวเซลล์)',meter:'<b>มิเตอร์</b> ลากปลายโพรบแดง/ดำไปแตะขั้ว หรือคลิกขั้ว (สลับแดง → ดำ)',erase:'<b>ลบ</b> คลิกบัสบาร์หรือป้ายสายที่ต้องการลบ'};
+  const hints={link:'<b>บัสบาร์</b> คลิกขั้ว + ของเซลล์หนึ่ง แล้วคลิกขั้ว − ของเซลล์ถัดไป',harness:'<b>สาย BMS</b> ลากจากจุดต่อบน BMS ไปวางที่ขั้วเซลล์ ต่อเส้นไหนก่อนก็ได้ (หรือเลือกชื่อสายทางขวาแล้วคลิกขั้ว)',meter:'<b>มิเตอร์</b> ลากปลายโพรบไปแตะขั้ว หรือคลิกขั้ว (สลับแดง → ดำ)',erase:'<b>ลบ</b> คลิกบัสบาร์ ป้ายสาย หรือจุดต่อบน BMS ที่ต้องการถอด'};
   $('#wireHint').innerHTML=hints[S.tool];
+  const nm={pack:'แพ็กแบต',bms:'BMS',inv:'อินเวอร์เตอร์',meter:'มิเตอร์'}[S.wsel||''];
+  $('#devName').textContent=nm?nm+(S.wsel!=='pack'?' '+Math.round((WP(S.wsel).s||1)*100)+'%':''):'คลิกอุปกรณ์เพื่อเลือก';
+  $('#zoomVal').textContent=(S.wzoom||100)+'%';
   renderHarnessBox(r);renderWireChecks(r);renderSense(r);updateSteps();
 }
+function harnessDrop(w,x,y){
+  const o=WP('pack');
+  if(w==='P-'){const n=invNeg(),d=WP('inv'),sc=d.s||1;
+    if(Math.hypot(n.x-x,n.y-y)<40||(x>=d.x&&x<=d.x+INV_SZ.w*sc&&y>=d.y&&y<=d.y+INV_SZ.h*sc))return'LOAD';return null;}
+  if(w.startsWith('NTC')){let hit=null;S.cells.forEach((c,i)=>{const f=foot(c),cx=c.x+o.x,cy=c.y+panelY(c.tier)+o.y;if(Math.abs(x-cx)<=f.w/2&&Math.abs(y-cy)<=f.h/2)hit=i;});return hit;}
+  let best=null,bd=36;S.cells.forEach((c,i)=>['+','-'].forEach(t=>{const p=wpos(i+t),d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=i+t;}}));return best;}
 let WIRE=null;
 function renderHarnessBox(r){
   const L=harnessList(),hc=harnessCheck(r).res;
@@ -927,8 +968,6 @@ function renderWireChecks(r){
   if(wrong.length)L.push(['bad',`สาย BMS ต่อผิดตำแหน่ง: ${wrong.join(', ')}`]);
   if(miss.length)L.push(['warn',`สาย BMS ที่ยังไม่ได้ต่อ: ${miss.join(', ')}`]);
   if(!wrong.length&&!miss.length&&r.ok)L.push(['ok','ต่อสาย BMS ครบและถูกตำแหน่ง']);
-  const ord=S.hOrder.filter(w=>/^B\d+$/.test(w)||w==='B-');
-  if(bm().kind!=='bal'&&ord.length&&ord[0]!=='B-'&&S.h['B-']!=null)L.push(['warn','ลำดับที่แนะนำ: ต่อ B− เข้าขั้วลบรวมก่อน แล้วจึงต่อสาย sense B0 → B'+S.s]);
   $('#wireChecks').innerHTML=L.map(([k,t])=>`<li class="${k}">${t}</li>`).join('');
   $('#wireAlert').innerHTML=(r.shorts.length||r.conflict)?'<div class="alert">⚡ ลัดวงจร: ในงานจริงจะเกิดประกายไฟ บัสบาร์ร้อนแดง และเซลล์เสียหาย ให้ลบบัสบาร์ที่ผิดทันที</div>':'';
 }
@@ -949,16 +988,38 @@ function renderSense(r){
 }
 $('#toolSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.tool=b.dataset.tool;pend=null;renderWire();save();});
 $('#harnessBox').addEventListener('click',e=>{const b=e.target.closest('[data-chip]');if(!b)return;selChip=b.dataset.chip;S.tool='harness';renderWire();});
-$('#svgWire').addEventListener('pointerdown',e=>{const pe=e.target.closest('[data-probe]');if(!pe)return;e.preventDefault();
-  const svg=$('#svgWire'),pt=svgPt(svg,e),c=pe.dataset.probe;pdrag={c,dx:pt.x-PR[c].x,dy:pt.y-PR[c].y};svg.setPointerCapture(e.pointerId);});
-$('#svgWire').addEventListener('pointermove',e=>{if(!pdrag)return;const pt=svgPt($('#svgWire'),e);snapProbe(pdrag.c,pt.x-pdrag.dx,pt.y-pdrag.dy);
+$('#devBar').addEventListener('click',e=>{const b=e.target.closest('[data-dv]');if(!b)return;const a=b.dataset.dv;
+  if(a==='reset'){S.wpos=null;lastVB=null;PR.red.x=PR.black.x=null;PR.red.free=PR.black.free=false;}
+  else if(a==='zin'||a==='zout'){S.wzoom=Math.max(60,Math.min(300,(S.wzoom||100)+(a==='zin'?20:-20)));}
+  else if(S.wsel&&S.wsel!=='pack'){const d=WP(S.wsel);d.s=Math.max(0.5,Math.min(2.5,+((d.s||1)+(a==='big'?0.15:-0.15)).toFixed(2)));lastVB=null;}
+  save();renderWire();});
+const SVGW=$('#svgWire');
+SVGW.addEventListener('pointerdown',e=>{
+  const pe=e.target.closest('[data-probe]'),pin=e.target.closest('[data-pin]'),dev=e.target.closest('[data-dev]');
+  const onPart=e.target.closest('[data-term],[data-link]');
+  const pt=svgPt(SVGW,e);
+  if(pe){e.preventDefault();const c=pe.dataset.probe;pdrag={c,dx:pt.x-PR[c].x,dy:pt.y-PR[c].y};SVGW.setPointerCapture(e.pointerId);return;}
+  if(pin&&S.tool!=='erase'){e.preventDefault();wdrag={w:pin.dataset.pin,x:pt.x,y:pt.y,sx:pt.x,sy:pt.y,hit:null};selChip=wdrag.w;SVGW.setPointerCapture(e.pointerId);return;}
+  if(dev&&!onPart&&!e.target.closest('[data-cell]')||dev&&dev.dataset.dev!=='pack'&&!pin){
+    const k=dev.dataset.dev,d=WP(k);S.wsel=k;ddrag={k,dx:pt.x-d.x,dy:pt.y-d.y,sx:pt.x,sy:pt.y,moved:false};SVGW.setPointerCapture(e.pointerId);}
+});
+SVGW.addEventListener('pointermove',e=>{
+  if(!pdrag&&!ddrag&&!wdrag)return;const pt=svgPt(SVGW,e);
+  if(pdrag)snapProbe(pdrag.c,pt.x-pdrag.dx,pt.y-pdrag.dy);
+  if(wdrag){wdrag.x=pt.x;wdrag.y=pt.y;wdrag.hit=harnessDrop(wdrag.w,pt.x,pt.y);}
+  if(ddrag){if(Math.hypot(pt.x-ddrag.sx,pt.y-ddrag.sy)>4)ddrag.moved=true;if(ddrag.moved){const d=WP(ddrag.k);d.x=Math.round(pt.x-ddrag.dx);d.y=Math.round(pt.y-ddrag.dy);}}
   if(!rafW)rafW=requestAnimationFrame(()=>{rafW=0;renderWire();});});
-const endP=()=>{if(pdrag){pdrag=null;clickBlockUntil=performance.now()+350;renderWire();}};
-$('#svgWire').addEventListener('pointerup',endP);$('#svgWire').addEventListener('pointercancel',endP);
-$('#svgWire').addEventListener('click',e=>{if(performance.now()<clickBlockUntil)return;
-  const tEl=e.target.closest('[data-term]'),lEl=e.target.closest('[data-link]'),cEl=e.target.closest('[data-cell]'),ld=e.target.closest('[data-load]');
+const endP=e=>{
+  if(pdrag){pdrag=null;clickBlockUntil=performance.now()+350;lastVB=null;renderWire();}
+  if(wdrag){const w=wdrag.w,moved=Math.hypot(wdrag.x-wdrag.sx,wdrag.y-wdrag.sy)>6,at=moved?harnessDrop(w,wdrag.x,wdrag.y):null;wdrag=null;clickBlockUntil=performance.now()+350;
+    if(at!=null){S.h[w]=at;S.hOrder.push(w);afterWireChange();}else{S.tool='harness';selChip=w;setTimeout(renderWire,0);}}
+  if(ddrag){const m=ddrag.moved;ddrag=null;if(m){clickBlockUntil=performance.now()+350;lastVB=null;save();renderWire();}else setTimeout(renderWire,0);}};
+SVGW.addEventListener('pointerup',endP);SVGW.addEventListener('pointercancel',endP);
+SVGW.addEventListener('click',e=>{if(performance.now()<clickBlockUntil)return;
+  const tEl=e.target.closest('[data-term]'),lEl=e.target.closest('[data-link]'),cEl=e.target.closest('[data-cell]'),ld=e.target.closest('[data-load]'),pin=e.target.closest('[data-pin]');
   const k=tEl?tEl.dataset.term:null;
   if(S.tool==='erase'){
+    if(pin&&S.h[pin.dataset.pin]!=null){delete S.h[pin.dataset.pin];afterWireChange();return;}
     if(lEl){S.links.splice(+lEl.dataset.link,1);afterWireChange();return;}
     if(k){let ch=false;Object.keys(S.h).forEach(w=>{if(S.h[w]===k){delete S.h[w];ch=true;}});if(ch)afterWireChange();return;}
     return;}
@@ -974,7 +1035,7 @@ $('#svgWire').addEventListener('click',e=>{if(performance.now()<clickBlockUntil)
     else if(w.startsWith('NTC')){if(cEl)S.h[w]=+cEl.dataset.cell;else return;}
     else if(k)S.h[w]=k;else return;
     S.hOrder.push(w);const L=harnessList();selChip=L.find(x=>S.h[x]==null)||w;afterWireChange();return;}
-  if(S.tool==='meter'&&k){const p=tpos(k);snapProbe(PR.next,p.x,p.y);PR.next=PR.next==='red'?'black':'red';renderWire();}
+  if(S.tool==='meter'&&k){const p=wpos(k);snapProbe(PR.next,p.x,p.y);PR.next=PR.next==='red'?'black':'red';renderWire();}
 });
 function afterWireChange(){resetElectrical(false);save();renderWire();renderIso();renderSide();}
 function resetElectrical(full){if(S.plugged&&!S.active){} if(full){S.plugged=false;S.active=false;S.damaged=false;}}
@@ -1418,6 +1479,7 @@ function renderAll(){renderSpecs();renderLayoutAll();renderWire();if(S.tab==='bm
 
 /* ---------- boot ---------- */
 S=load()||defaults();
+window.LFP_STATE=()=>S;
 if(!S.cells.length)genLayout(S.arr);
 if(!S.set)S.set=defaultSettings();
 if(!S.par.commSel)S.par.commSel='CAN';
