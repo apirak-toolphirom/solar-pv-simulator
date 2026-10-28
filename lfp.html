@@ -431,12 +431,14 @@ function fitBox(){
   S.box={L:Math.ceil((mx+mg)/5)*5,W:Math.ceil((my+mg)/5)*5,H:Math.ceil((S.tiers*(cm().Ht+TIER_GAP)+(bm().kind==='bal'?60:130))/5)*5};
 }
 function layoutIssues(){
-  const out=new Set(),hit=new Set(),EH=edH();
-  S.cells.forEach((c,i)=>{const f=foot(c);if(c.x-f.w/2<-0.5||c.y-f.h/2<-0.5||c.x+f.w/2>S.box.L+0.5||c.y+f.h/2>EH+0.5)out.add(i);
+  const out=new Set(),hit=new Set(),stage=new Set(),EH=edH();
+  S.cells.forEach((c,i)=>{const f=foot(c),oy=panelY(c.tier),cy=c.y;
+    const away=c.x+f.w/2<=0||c.x-f.w/2>=S.box.L||cy+f.h/2<=0||cy-f.h/2>=EH;
+    if(away)stage.add(i);else if(c.x-f.w/2<-0.5||c.y-f.h/2<-0.5||c.x+f.w/2>S.box.L+0.5||c.y+f.h/2>EH+0.5)out.add(i);
     S.cells.forEach((o,j)=>{if(j<=i||o.tier!==c.tier)return;const g=foot(o);
       if(Math.abs(c.x-o.x)<(f.w+g.w)/2-0.5&&Math.abs(c.y-o.y)<(f.h+g.h)/2-0.5){hit.add(i);hit.add(j);}});});
   const tooLow=FRONT()?S.box.W<cm().Ht:S.box.H<S.tiers*(cm().Ht+TIER_GAP)+20;
-  return{out,hit,tooLow};
+  return{out,hit,tooLow,stage};
 }
 
 /* ---------- circuit analysis ---------- */
@@ -562,12 +564,12 @@ function fitSvg(svg,w,h){svg.setAttribute('viewBox',`${w[0]} ${w[1]} ${w[2]} ${w
 
 function cellSVG(c,i,opts){
   const m=cm(),f=foot(c),sel=opts.sel===i,iss=opts.iss;
-  const bad=iss&&(iss.out.has(i)||iss.hit.has(i)),short=opts.shorts&&opts.shorts.includes(i),rev=opts.rev&&opts.rev.includes(i);
+  const staged=iss&&iss.stage&&iss.stage.has(i),bad=iss&&(iss.out.has(i)||iss.hit.has(i)),short=opts.shorts&&opts.shorts.includes(i),rev=opts.rev&&opts.rev.includes(i);
   const oy=panelY(c.tier),cx=c.x,cy=c.y+oy;
   const tp0=term(c,'+'),tn0=term(c,'-'),tp={x:tp0.x,y:tp0.y+oy},tn={x:tn0.x,y:tn0.y+oy};const px=tp.x,nx=tn.x;
   const big=opts.mode==='wire'?15:12;
   let s=`<g class="cell" data-cell="${i}">`;
-  s+=`<rect x="${cx-f.w/2}" y="${cy-f.h/2}" width="${f.w}" height="${f.h}" rx="4" fill="var(--cell-side)" stroke="${bad||short?'var(--bad)':sel?'var(--accent)':'var(--cell-side-2)'}" stroke-width="${bad||short||sel?4:1.5}"/>`;
+  s+=`<rect x="${cx-f.w/2}" y="${cy-f.h/2}" width="${f.w}" height="${f.h}" rx="4" fill="var(--cell-side)" stroke="${bad||short?'var(--bad)':sel?'var(--accent)':staged?'var(--warn)':'var(--cell-side-2)'}" stroke-width="${bad||short||sel||staged?4:1.5}" ${staged&&!sel?'stroke-dasharray="10 6"':''}/>`;
   s+=`<rect x="${cx-f.w/2+4}" y="${cy-f.h/2+4}" width="${f.w-8}" height="${f.h-8}" rx="3" fill="var(--cell-top)"/>`;
   // vent
   const vertical=f.h>f.w;
@@ -617,10 +619,15 @@ function boxPanelsSVG(){
 function renderTop(){
   const iss=layoutIssues(),W=topSceneW();
   $('#topCap').textContent=FRONT()?'ด้านหน้า (Front view) · เซลล์นอนตะแคง ขั้วหันออกประตู':'มุมบน (Top view)';
-  const svg=$('#svgTop'),TH=topSceneH();fitSvg(svg,[-30,-45,W+60,TH+90]);
+  const svg=$('#svgTop'),TH=topSceneH();
+  if(!drag||!TOPVB){const b=packBounds();TOPVB=[b.x0,b.y0-50,b.x1-b.x0,b.y1-b.y0+95];}
+  fitSvg(svg,TOPVB);
   let s=boxPanelsSVG();
   S.cells.forEach((c,i)=>s+=cellSVG(c,i,{mode:'layout',sel:S.sel,iss}));
   S.links.forEach((l,i)=>s+=`<g opacity=".55" pointer-events="none">${linkSVG(l,i)}</g>`);
+  if(S.sel!=null&&S.cells[S.sel]){const c=S.cells[S.sel],f=foot(c),vert=f.h>f.w,cx=vert?c.x+f.w/2:c.x,ty=vert?c.y+panelY(c.tier):c.y+panelY(c.tier)-f.h/2,dx=vert?0:26,dy=vert?26:0;
+    const btn=(x,y,act,glyph,lab,pri)=>`<g data-cbtn="${act}" style="cursor:pointer"><circle cx="${x}" cy="${y}" r="20" fill="${pri?'var(--accent)':'var(--surface)'}" stroke="var(--accent)" stroke-width="3"/><text x="${x}" y="${y+8}" text-anchor="middle" font-size="22" font-weight="700" fill="${pri?'var(--accent-ink)':'var(--accent)'}" font-family="var(--f-mono)">${glyph}</text><title>${lab}</title></g>`;
+    s+=btn(cx-dx,ty-dy,'r90','⟳','หมุน 90°',true)+btn(cx+dx,ty+dy,'r180','±','กลับขั้ว 180°',false);}
   s+=`<g font-family="var(--f-mono)" font-size="13" fill="var(--muted)"><line x1="0" y1="${TH+22}" x2="${S.box.L}" y2="${TH+22}" stroke="var(--muted)" marker-start="url(#ar)" marker-end="url(#ar)"/><text x="${S.box.L/2}" y="${TH+38}" text-anchor="middle">${S.box.L} มม.</text></g>`;
   svg.innerHTML=`<defs><marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10z" fill="var(--muted)"/></marker></defs>`+s;
   renderSelBox();renderLayChecks(iss);
@@ -635,11 +642,12 @@ function renderSelBox(){
 }
 function renderLayChecks(iss){
   const L=[];
-  L.push(iss.out.size?['bad',`เซลล์ ${[...iss.out].map(i=>i+1).join(', ')} ล้นออกนอกกล่อง`]:['ok','เซลล์ทุกก้อนอยู่ภายในกล่อง']);
+  if(iss.stage.size)L.push(['warn',`ยังไม่ได้วางลงตู้ ${iss.stage.size} ก้อน (กรอบประสีเหลือง) ลากเข้าไปวางในตู้ เซลล์จะดูดเข้าช่องเอง`]);
+  L.push(iss.out.size?['bad',`เซลล์ ${[...iss.out].map(i=>i+1).join(', ')} ล้นขอบตู้`]:iss.stage.size?['ok','เซลล์ที่วางในตู้ไม่ล้นขอบ']:['ok','เซลล์ทุกก้อนอยู่ภายในกล่อง']);
   L.push(iss.hit.size?['bad',`เซลล์ ${[...iss.hit].map(i=>i+1).join(', ')} ทับกัน ต้องเว้นระยะหรือมีแผ่นฉนวนคั่น`]:['ok','ไม่มีเซลล์ทับกัน (เผื่อแผ่นฉนวนคั่นเซลล์ 2 มม.)']);
   if(FRONT()){
     L.push(iss.tooLow?['bad',`ความลึกตู้ ${S.box.W} มม. น้อยกว่าความสูงเซลล์ ${cm().Ht} มม. (เซลล์นอน ความสูงจะกลายเป็นความลึก)`]:['ok',`ความลึก ${S.box.W} มม. พอสำหรับเซลล์ยาว ${cm().Ht} มม. เหลือ ${fmt(S.box.W-cm().Ht,1)} มม.`]);
-    const used=S.cells.length?Math.max(...S.cells.map(c=>c.y+foot(c).h/2))-Math.min(...S.cells.map(c=>c.y-foot(c).h/2)):0;
+    const inb=S.cells.filter((c,i)=>!iss.stage.has(i)),used=inb.length?Math.max(...inb.map(c=>c.y+foot(c).h/2))-Math.min(...inb.map(c=>c.y-foot(c).h/2)):0;
     L.push(['ok',`ซ้อนเซลล์สูงรวม ${fmt(used,0)} มม. จากช่องสูง ${S.box.H} มม. · ช่องด้านบน ${BMS_BAY} มม. สำหรับ BMS และเบรกเกอร์`]);
     if(S.box.L<2*cm().L+1)L.push(['warn',`กว้าง ${S.box.L} มม. แคบกว่าเซลล์ 2 ก้อนวางชน (${fmt(2*cm().L,1)} มม.)`]);
     L.push(['warn','ตู้ในรูประบุกว้าง 346 มม. (วัดด้วยมือ คลาดเคลื่อนได้) ตัวจำลองตั้ง 350 มม. ให้เซลล์ 2 ก้อน 173.7 มม. วางได้ ตรวจขนาดจริงอีกครั้งก่อนสั่ง']);
@@ -795,8 +803,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&LOCKED)setLock(null
 function slotsFor(code){const keep={cells:S.cells,box:S.box,style:S.style,tiers:S.tiers,arr:S.arr,az:S.az,sel:S.sel};
   genLayout(code);const sl=S.cells.map(c=>({x:c.x,y:c.y,tier:c.tier}));Object.assign(S,keep);return sl;}
 /* cells start mixed up (order and polarity) so the learner arranges them; retry until at most a few pairs happen to line up */
+/* spots outside the box (left/right of a cabinet, below a flat box) where the cells wait to be placed */
+function stagingSpots(n){const m=cm(),B=S.box,EH=topSceneH(),f=FRONT()?{w:m.L,h:m.T}:{w:m.T,h:m.L},sp=[];
+  if(FRONT()){const rows=Math.ceil(n/2),step=Math.max(f.h+22,(EH-40)/rows);
+    for(let r=0;r<rows;r++){const y=20+f.h/2+r*step;sp.push({x:-(f.w/2+45),y},{x:B.L+f.w/2+45,y});}}
+  else{const per=Math.max(2,Math.floor((B.L+160)/(f.w+24)));
+    for(let i=0;i<n;i++){const r=Math.floor(i/per),k=i%per;sp.push({x:-80+f.w/2+k*(f.w+24),y:EH+70+f.h/2+r*(f.h+24)});}}
+  return sp.slice(0,n).map(q=>({x:Math.round(q.x+(Math.random()-0.5)*30),y:Math.round(q.y+(Math.random()-0.5)*14),tier:0}));}
 function scramble(){
-  const base=slotsFor(S.arr),R=Math.random,O=FRONT()?[0,180]:[90,270],lim=Math.max(1,Math.floor((S.cells.length-1)/5));
+  const base=stagingSpots(S.cells.length),R=Math.random,O=FRONT()?[0,180]:[90,270],lim=Math.max(1,Math.floor((S.cells.length-1)/5));
   for(let k=0;k<12;k++){const sl=base.slice();
     for(let i=sl.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[sl[i],sl[j]]=[sl[j],sl[i]];}
     S.cells.forEach((c,i)=>{c.x=sl[i].x;c.y=sl[i].y;c.tier=sl[i].tier;c.rot=O[Math.floor(R()*2)];});
@@ -805,8 +820,11 @@ function scramble(){
 }
 function shuffleCells(){scramble();save();renderLayoutAll();renderWire();}
 function orderReady(){let ok=0;for(let i=0;i<S.cells.length-1;i++){if(d3(term(S.cells[i],'+'),term(S.cells[i+1],'-'))<=110)ok++;}return ok;}
-let drag=null;
+let drag=null,TOPVB=null;
+function packBounds(){const W=topSceneW(),H=topSceneH();let x0=-30,y0=-45,x1=W+30,y1=H+20;
+  S.cells.forEach(c=>{const f=foot(c),y=c.y+panelY(c.tier);x0=Math.min(x0,c.x-f.w/2-20);x1=Math.max(x1,c.x+f.w/2+20);y0=Math.min(y0,y-f.h/2-70);y1=Math.max(y1,y+f.h/2+20);});return{x0,y0,x1,y1};}
 $('#svgTop').addEventListener('pointerdown',e=>{
+  const cb=e.target.closest('[data-cbtn]');if(cb&&S.sel!=null){e.preventDefault();rotSel(S.sel,cb.dataset.cbtn==='r90'?90:180);return;}
   const g=e.target.closest('[data-cell]');const svg=$('#svgTop');
   if(!g){S.sel=null;renderTop();return;}
   const i=+g.dataset.cell,c=S.cells[i],p=svgPt(svg,e);S.sel=i;
@@ -817,7 +835,7 @@ $('#svgTop').addEventListener('pointermove',e=>{
   const gy=p.y-drag.dy;let t=Math.floor((gy+PANEL_GAP/2)/(edH()+PANEL_GAP));t=Math.max(0,Math.min(S.tiers-1,t));
   c.tier=t;c.x=Math.round(p.x-drag.dx);c.y=Math.round(gy-panelY(t));scheduleLayout();
 });
-const endDrag=()=>{if(!drag)return;const c=S.cells[drag.i],from=drag.from;drag=null;
+const endDrag=()=>{if(!drag)return;const c=S.cells[drag.i],from=drag.from;drag=null;TOPVB=null;
   if(Math.hypot(c.x-from.x,c.y-from.y)>3||c.tier!==from.tier){
     const sl=slotsFor(S.arr).filter(q=>q.tier===c.tier);let best=null,bd=45;
     sl.forEach(q=>{const d=Math.hypot(q.x-c.x,q.y-c.y);if(d<bd){bd=d;best=q;}});
@@ -861,8 +879,8 @@ const PR={red:{x:null,y:null,key:null,lab:''},black:{x:null,y:null,key:null,lab:
 let pdrag=null,ddrag=null,wdrag=null,clickBlockUntil=0,rafW=0,lastVB=null;
 function bmsSize(){const n=bm().kind==='bal'?S.s+1:S.s+1;return{w:Math.max(340,70+n*19),h:130};}
 const INV_SZ={w:140,h:100},MET_SZ={w:160,h:240};
-function wdefaults(){const W=topSceneW(),H=topSceneH(),bw=bmsSize().w,bh=bmsSize().h;
-  if(H>W*0.9){const x=W+90;return{pack:{x:0,y:0},bms:{x,y:30,s:1},inv:{x,y:30+bh+90,s:1},meter:{x:x+INV_SZ.w+70,y:30+bh+60,s:1}};}
+function wdefaults(){const pb=packBounds(),W=pb.x1,H=pb.y1,bw=bmsSize().w,bh=bmsSize().h;
+  if(H>W*0.9){const x=W+70;return{pack:{x:0,y:0},bms:{x,y:30,s:1},inv:{x,y:30+bh+90,s:1},meter:{x:x+INV_SZ.w+70,y:30+bh+60,s:1}};}
   const y=H+90;return{pack:{x:0,y:0},bms:{x:0,y,s:1},inv:{x:bw+60,y,s:1},meter:{x:bw+60+INV_SZ.w+60,y:y-60,s:1}};}
 function WP(k){if(!S.wpos)S.wpos={};if(!S.wpos[k])S.wpos[k]=wdefaults()[k];return S.wpos[k];}
 const G=(k,lx,ly)=>{const d=WP(k),sc=d.s||1;return{x:d.x+lx*sc,y:d.y+ly*sc};};
@@ -944,7 +962,7 @@ function invSVG(){const d=WP('inv'),w=INV_SZ.w,h=INV_SZ.h;
     <g data-pin="MAIN+" style="cursor:crosshair"><circle cx="28" cy="0" r="10" fill="var(--pos)"/><circle cx="28" cy="0" r="16" fill="transparent"/></g><text x="28" y="26" text-anchor="middle" font-size="12" font-weight="600" fill="var(--pos)" font-family="var(--f-mono)">BAT+</text>
     <g ${bm().kind==='bal'?'data-pin="MAIN-"':''}><circle cx="${w-28}" cy="0" r="10" fill="var(--neg)" stroke="#888"/><circle cx="${w-28}" cy="0" r="16" fill="transparent"/></g><text x="${w-28}" y="26" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)" font-family="var(--f-mono)">BAT−</text></g>`;}
 function wireBounds(){
-  const W=topSceneW(),H=topSceneH(),o=WP('pack'),xs=[o.x-40,o.x+W+60],ys=[o.y-50,o.y+H+30];
+  const pb=packBounds(),o=WP('pack'),xs=[o.x+pb.x0-10,o.x+pb.x1+30],ys=[o.y+pb.y0,o.y+pb.y1+10];
   const add=(k,w,h)=>{const d=WP(k),sc=d.s||1;xs.push(d.x-20,d.x+w*sc+20);ys.push(d.y-40,d.y+h*sc+40);};
   add('bms',bmsSize().w,bmsSize().h);{const d=WP('bms');ys.push(d.y-170*(d.s||1));}add('inv',INV_SZ.w,INV_SZ.h);add('meter',MET_SZ.w+110,MET_SZ.h+80);
   ['red','black'].forEach(c=>{const p=PR[c];if(p.x!=null){xs.push(p.x-20,p.x+60);ys.push(p.y-80,p.y+20);}});
