@@ -377,7 +377,7 @@ const fmt=(v,d=2)=>Number(v).toFixed(d);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- state ---------- */
-const KEY='lfp-pack-sim-v3';
+const KEY='lfp-pack-sim-v4';
 let S=null;
 function defaults(){
   return {cell:'EVE-MB31',s:16,bms:'PB2A16S20P',arr:'F-2-8',style:'front',tiers:1,box:{L:350,W:210,H:684},cells:[],links:[],
@@ -827,19 +827,27 @@ function panMove(e){if(!PAN)return false;const dx=e.clientX-PAN.x,dy=e.clientY-P
 function slotsFor(code){const keep={cells:S.cells,box:S.box,style:S.style,tiers:S.tiers,arr:S.arr,az:S.az,sel:S.sel};
   genLayout(code);const sl=S.cells.map(c=>({x:c.x,y:c.y,tier:c.tier}));Object.assign(S,keep);return sl;}
 /* cells start mixed up (order and polarity) so the learner arranges them; retry until at most a few pairs happen to line up */
-/* spots outside the box (left/right of a cabinet, below a flat box) where the cells wait to be placed */
-function stagingSpots(n){const m=cm(),B=S.box,EH=topSceneH(),f=FRONT()?{w:m.L,h:m.T}:{w:m.T,h:m.L},sp=[];
-  if(FRONT()){const rows=Math.ceil(n/2),step=Math.max(f.h+22,(EH-40)/rows);
-    for(let r=0;r<rows;r++){const y=20+f.h/2+r*step;sp.push({x:-(f.w/2+45),y},{x:B.L+f.w/2+45,y});}}
-  else{const per=Math.max(2,Math.floor((B.L+160)/(f.w+24)));
-    for(let i=0;i<n;i++){const r=Math.floor(i/per),k=i%per;sp.push({x:-80+f.w/2+k*(f.w+24),y:EH+70+f.h/2+r*(f.h+24)});}}
-  return sp.slice(0,n).map(q=>({x:Math.round(q.x+(Math.random()-0.5)*30),y:Math.round(q.y+(Math.random()-0.5)*14),tier:0}));}
+/* scattered start: every cell gets a random spot (around the cabinet or loose inside it, never half across a wall),
+   a random turn (0/90/180/270) and a random order, so trainees have to sort, turn and place every cell themselves */
 function scramble(){
-  const base=stagingSpots(S.cells.length),R=Math.random,O=FRONT()?[0,180]:[90,270],lim=Math.max(1,Math.floor((S.cells.length-1)/5));
-  for(let k=0;k<12;k++){const sl=base.slice();
-    for(let i=sl.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[sl[i],sl[j]]=[sl[j],sl[i]];}
-    S.cells.forEach((c,i)=>{c.x=sl[i].x;c.y=sl[i].y;c.tier=sl[i].tier;c.rot=O[Math.floor(R()*2)];});
-    if(orderReady()<=lim)break;}
+  const m=cm(),B=S.box,EH=edH(),n=S.cells.length,R=Math.random,rots=[0,90,180,270];
+  const big=Math.max(m.L,m.T)+30,X0=-(big+40),X1=B.L+big+40,Y0=-20,Y1=EH+(FRONT()?40:big+40);
+  const placed=[];
+  const fits=(c)=>{const f=foot(c),x0=c.x-f.w/2,x1=c.x+f.w/2,y0=c.y-f.h/2,y1=c.y+f.h/2;
+    const inside=x0>=4&&x1<=B.L-4&&y0>=4&&y1<=EH-4,outside=x1<=-10||x0>=B.L+10||y1<=-10||y0>=EH+10;
+    if(!inside&&!outside)return false;
+    return placed.every(o=>{const g=foot(o);return Math.abs(c.x-o.x)>=(f.w+g.w)/2+10||Math.abs(c.y-o.y)>=(f.h+g.h)/2+10;});};
+  const order=S.cells.map((c,i)=>i).sort(()=>R()-0.5);
+  for(let attempt=0;attempt<6;attempt++){placed.length=0;let ok=true;
+    for(const i of order){const c=S.cells[i];let done=false;
+      for(let k=0;k<1500&&!done;k++){c.tier=0;c.rot=rots[Math.floor(R()*4)];c.x=Math.round(X0+R()*(X1-X0));c.y=Math.round(Y0+R()*(Y1-Y0));
+        /* keep most cells outside the box so placing them is the exercise */
+        const f=foot(c),inBox=c.x-f.w/2>=0&&c.x+f.w/2<=B.L&&c.y-f.h/2>=0&&c.y+f.h/2<=EH;
+        if(inBox&&placed.filter(o=>o.inBox).length>=Math.floor(n/4))continue;
+        if(fits(c)){c.inBox=inBox;placed.push(c);done=true;}}
+      if(!done){ok=false;break;}}
+    if(ok&&orderReady()<=1)break;}
+  S.cells.forEach(c=>delete c.inBox);
   S.links=[];S.h={};S.hOrder=[];S.plugged=false;S.active=false;S.damaged=false;S.sel=null;
 }
 function shuffleCells(){scramble();save();renderLayoutAll();renderWire();}
@@ -1620,7 +1628,8 @@ function renderAll(){renderSpecs();renderLayoutAll();renderWire();if(S.tab==='bm
 S=load()||defaults();
 window.LFP_STATE=()=>S;
 if(S.compact)requestAnimationFrame(()=>setCompact(true));
-if(!S.cells.length){genLayout(S.arr);scramble();}
+if(!S.cells.length)genLayout(S.arr);
+if(!S.links.length)scramble();
 if(!S.set)S.set=defaultSettings();
 if(!S.par.commSel)S.par.commSel='CAN';
 ensurePacks();initSimCells();
