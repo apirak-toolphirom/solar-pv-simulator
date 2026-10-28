@@ -90,6 +90,17 @@ html.locked,html.locked body{overflow:hidden;overscroll-behavior:none}
 .pane.lockpane>svg{flex:1;min-height:0;height:100%!important;max-height:none;aspect-ratio:auto!important;touch-action:none}
 .pane.lockpane .wscroll{flex:1;min-height:0;max-height:none;overscroll-behavior:contain}
 #paneTop.lockpane>figcaption{display:none}
+.tscrollT{overflow:auto;max-height:82vh}
+.tscrollT svg{max-height:none!important;max-width:none}
+.pane.lockpane .tscrollT{flex:1;min-height:0;max-height:none;overscroll-behavior:contain}
+.zbar{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center}
+.zbar b{min-width:44px;text-align:center}
+.tabrow{display:flex;align-items:flex-end;gap:8px;min-width:0}
+.tabrow .tabs{flex:1;min-width:0}
+.tabrow #btnCompact{margin-bottom:6px;white-space:nowrap}
+/* compact mode: header, specs and the layout toolbar fold away so the drawing gets the screen */
+html.compact .top,html.compact .lay-toolbar,html.compact .hide-compact{display:none}
+html.compact .wrap{gap:8px;padding-block:6px 24px}
 .wscroll svg{max-height:none!important;max-width:none}
 .pane>figcaption,.pane>.cap{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-size:.85rem}
 .pane svg{display:block;width:100%;height:auto;max-height:78vh;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -205,6 +216,7 @@ body{margin:0}
     <div class="specs" id="specs"></div>
   </header>
 
+  <div class="tabrow">
   <nav class="tabs" role="tablist" id="tabs">
     <button role="tab" data-tab="layout"><span class="step" id="st-layout">1</span>จัดวางลงกล่อง</button>
     <button role="tab" data-tab="wire"><span class="step" id="st-wire">2</span>ต่อบัสบาร์ &amp; สาย BMS</button>
@@ -212,10 +224,12 @@ body{margin:0}
     <button role="tab" data-tab="par"><span class="step" id="st-par">4</span>ขนานแบต &amp; อินเวอร์เตอร์</button>
     <button role="tab" data-tab="ref"><span class="step">i</span>คู่มือย่อ</button>
   </nav>
+  <button class="btn sm" id="btnCompact" type="button" aria-pressed="false">▴ ซ่อนแถบ</button>
+  </div>
 
   <!-- 1 LAYOUT -->
   <section role="tabpanel" id="tab-layout">
-    <div class="toolbar">
+    <div class="toolbar lay-toolbar">
       <label class="field"><span class="lbl">รูปแบบการจัดวาง</span><select id="arrSel"></select></label>
       <button class="btn" id="btnGen" title="วางเซลล์เรียงลำดับและหันขั้วพร้อมต่อบัสบาร์">เรียงให้ดู (เฉลย)</button>
       <label class="field"><span class="lbl">กล่องภายใน ยาว (มม.)</span><input class="inline-num num" type="number" id="boxL" step="5"></label>
@@ -228,9 +242,10 @@ body{margin:0}
     </div>
     <div class="lay-grid">
       <figure class="pane lay-top" id="paneTop">
-        <div class="lockbar"><button class="btn sm" data-la="r90">หมุน 90°</button><button class="btn sm" data-la="r180">กลับขั้ว 180°</button><button class="btn sm" data-la="shuffle">สุ่มใหม่</button><span class="num" id="lockInfo"></span><button class="btn sm pri" data-la="unlock">ปลดล็อกจอ</button></div>
-        <figcaption><span><b id="topCap">มุมบน (Top view)</b> <span class="muted">ลากเซลล์เพื่อย้าย · ดับเบิลคลิกหรือกด R เพื่อหมุน 90° · F กลับขั้ว 180° · ลูกศรเลื่อนทีละ 1 มม.</span></span></figcaption>
-        <svg id="svgTop" aria-label="มุมมองด้านบนของการจัดวางเซลล์ในกล่อง"></svg>
+        <div class="lockbar"><button class="btn sm" data-la="r90">หมุน 90°</button><button class="btn sm" data-la="r180">กลับขั้ว 180°</button><button class="btn sm" data-la="shuffle">สุ่มใหม่</button><span class="num" id="lockInfo"></span><span class="zbar"><button class="btn sm" data-tz="-">−</button><b class="num tzVal"></b><button class="btn sm" data-tz="+">+</button></span><button class="btn sm pri" data-la="unlock">ปลดล็อกจอ</button></div>
+        <figcaption><span><b id="topCap">มุมบน (Top view)</b> <span class="muted hide-compact">ลากเซลล์เพื่อย้าย · แตะเซลล์แล้วกด ⟳ หมุน / ± กลับขั้ว · ลากพื้นที่ว่างเพื่อเลื่อนภาพเมื่อซูม</span></span>
+          <span class="zbar"><span class="lbl">ซูม</span><button class="btn sm" data-tz="-">−</button><b class="num tzVal"></b><button class="btn sm" data-tz="+">+</button><button class="btn sm" data-la="shuffle">สุ่มใหม่</button><button class="btn sm pri" data-la="lock">ล็อกจอ</button></span></figcaption>
+        <div class="tscrollT" id="tscrollT"><svg id="svgTop" aria-label="มุมมองด้านบนของการจัดวางเซลล์ในกล่อง"></svg></div>
       </figure>
       <div class="lay-side">
         <figure class="pane">
@@ -621,7 +636,7 @@ function renderTop(){
   $('#topCap').textContent=FRONT()?'ด้านหน้า (Front view) · เซลล์นอนตะแคง ขั้วหันออกประตู':'มุมบน (Top view)';
   const svg=$('#svgTop'),TH=topSceneH();
   if(!drag||!TOPVB){const b=packBounds();TOPVB=[b.x0,b.y0-50,b.x1-b.x0,b.y1-b.y0+95];}
-  fitSvg(svg,TOPVB);
+  fitSvg(svg,TOPVB);svg.style.width=(S.tzoom||100)+'%';$$('.tzVal').forEach(x=>x.textContent=(S.tzoom||100)+'%');
   let s=boxPanelsSVG();
   S.cells.forEach((c,i)=>s+=cellSVG(c,i,{mode:'layout',sel:S.sel,iss}));
   S.links.forEach((l,i)=>s+=`<g opacity=".55" pointer-events="none">${linkSVG(l,i)}</g>`);
@@ -797,8 +812,17 @@ function setLock(pane){
 $('#btnLockTop').addEventListener('click',()=>setLock($('#paneTop')));
 $('#btnLockWire').addEventListener('click',()=>setLock($('#paneWire')));
 document.addEventListener('click',e=>{const b=e.target.closest('[data-la]');if(!b)return;const a=b.dataset.la;
-  if(a==='unlock')setLock(null);else if(a==='shuffle')shuffleCells();else if(S.sel!=null)rotSel(S.sel,a==='r90'?90:180);});
+  if(a==='unlock')setLock(null);else if(a==='lock')setLock($('#paneTop'));else if(a==='shuffle')shuffleCells();else if(S.sel!=null)rotSel(S.sel,a==='r90'?90:180);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&LOCKED)setLock(null);});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tz]');if(!b)return;S.tzoom=Math.max(60,Math.min(400,(S.tzoom||100)+(b.dataset.tz==='+'?25:-25)));save();renderTop();});
+function setCompact(on){S.compact=!!on;document.documentElement.classList.toggle('compact',S.compact);
+  const b=$('#btnCompact');b.textContent=S.compact?'▾ แสดงแถบ':'▴ ซ่อนแถบ';b.setAttribute('aria-pressed',S.compact);
+  try{if(window.self!==window.top)parent.postMessage({lfpCompact:S.compact},'*')}catch(e){}save();}
+$('#btnCompact').addEventListener('click',()=>setCompact(!S.compact));
+/* drag on empty space pans a zoomed drawing (touch-action is off on the drawings so cells can be dragged) */
+let PAN=null;
+function panStart(sc,e,extra){PAN=Object.assign({sc,x:e.clientX,y:e.clientY,sl:sc.scrollLeft,st:sc.scrollTop,moved:false},extra||{});}
+function panMove(e){if(!PAN)return false;const dx=e.clientX-PAN.x,dy=e.clientY-PAN.y;if(Math.abs(dx)+Math.abs(dy)>5)PAN.moved=true;PAN.sc.scrollLeft=PAN.sl-dx;PAN.sc.scrollTop=PAN.st-dy;return true;}
 /* ---- slots of the chosen arrangement: drop a cell near a slot to snap; drop on an occupied slot to swap ---- */
 function slotsFor(code){const keep={cells:S.cells,box:S.box,style:S.style,tiers:S.tiers,arr:S.arr,az:S.az,sel:S.sel};
   genLayout(code);const sl=S.cells.map(c=>({x:c.x,y:c.y,tier:c.tier}));Object.assign(S,keep);return sl;}
@@ -826,16 +850,17 @@ function packBounds(){const W=topSceneW(),H=topSceneH();let x0=-30,y0=-45,x1=W+3
 $('#svgTop').addEventListener('pointerdown',e=>{
   const cb=e.target.closest('[data-cbtn]');if(cb&&S.sel!=null){e.preventDefault();rotSel(S.sel,cb.dataset.cbtn==='r90'?90:180);return;}
   const g=e.target.closest('[data-cell]');const svg=$('#svgTop');
-  if(!g){S.sel=null;renderTop();return;}
+  if(!g){panStart($('#tscrollT'),e);svg.setPointerCapture(e.pointerId);if(S.sel!=null){S.sel=null;renderTop();}return;}
   const i=+g.dataset.cell,c=S.cells[i],p=svgPt(svg,e);S.sel=i;
   drag={i,dx:p.x-c.x,dy:p.y-(c.y+panelY(c.tier)),from:{x:c.x,y:c.y,tier:c.tier}};svg.setPointerCapture(e.pointerId);renderTop();
 });
 $('#svgTop').addEventListener('pointermove',e=>{
+  if(panMove(e))return;
   if(!drag)return;const svg=$('#svgTop'),p=svgPt(svg,e),c=S.cells[drag.i];
   const gy=p.y-drag.dy;let t=Math.floor((gy+PANEL_GAP/2)/(edH()+PANEL_GAP));t=Math.max(0,Math.min(S.tiers-1,t));
   c.tier=t;c.x=Math.round(p.x-drag.dx);c.y=Math.round(gy-panelY(t));scheduleLayout();
 });
-const endDrag=()=>{if(!drag)return;const c=S.cells[drag.i],from=drag.from;drag=null;TOPVB=null;
+const endDrag=()=>{if(PAN){PAN=null;return;}if(!drag)return;const c=S.cells[drag.i],from=drag.from;drag=null;TOPVB=null;
   if(Math.hypot(c.x-from.x,c.y-from.y)>3||c.tier!==from.tier){
     const sl=slotsFor(S.arr).filter(q=>q.tier===c.tier);let best=null,bd=45;
     sl.forEach(q=>{const d=Math.hypot(q.x-c.x,q.y-c.y);if(d<bd){bd=d;best=q;}});
@@ -1096,16 +1121,20 @@ SVGW.addEventListener('pointerdown',e=>{
   if(e.target.closest('[data-wdel],[data-wcancel],[data-hw]'))return;
   if(pe){e.preventDefault();const c=pe.dataset.probe;pdrag={c,dx:pt.x-PR[c].x,dy:pt.y-PR[c].y};SVGW.setPointerCapture(e.pointerId);return;}
   if(pin)return; /* BMS wires connect by tap source → tap destination (no dragging on phones) */
-  if(dev&&!onPart&&!e.target.closest('[data-cell]')||dev&&dev.dataset.dev!=='pack'&&!pin){
+  const packBg=dev&&dev.dataset.dev==='pack'&&!onPart&&!e.target.closest('[data-cell]');
+  if(!dev||packBg&&S.wsel!=='pack'){panStart($('#svgWire').parentElement,e,{pack:packBg});SVGW.setPointerCapture(e.pointerId);return;}
+  if(packBg||dev&&dev.dataset.dev!=='pack'&&!pin){
     const k=dev.dataset.dev,d=WP(k);S.wsel=k;ddrag={k,dx:pt.x-d.x,dy:pt.y-d.y,sx:pt.x,sy:pt.y,moved:false};SVGW.setPointerCapture(e.pointerId);}
 });
 SVGW.addEventListener('pointermove',e=>{
+  if(panMove(e))return;
   if(!pdrag&&!ddrag&&!wdrag)return;const pt=svgPt(SVGW,e);
   if(pdrag)snapProbe(pdrag.c,pt.x-pdrag.dx,pt.y-pdrag.dy);
   if(wdrag){wdrag.x=pt.x;wdrag.y=pt.y;wdrag.hit=harnessDrop(wdrag.w,pt.x,pt.y);}
   if(ddrag){if(Math.hypot(pt.x-ddrag.sx,pt.y-ddrag.sy)>4)ddrag.moved=true;if(ddrag.moved){const d=WP(ddrag.k);d.x=Math.round(pt.x-ddrag.dx);d.y=Math.round(pt.y-ddrag.dy);}}
   if(!rafW)rafW=requestAnimationFrame(()=>{rafW=0;renderWire();});});
 const endP=e=>{
+  if(PAN){const p=PAN;PAN=null;if(p.moved)clickBlockUntil=performance.now()+350;else if(p.pack){S.wsel='pack';setTimeout(renderWire,0);}return;}
   if(pdrag){pdrag=null;clickBlockUntil=performance.now()+350;lastVB=null;renderWire();}
   if(wdrag){const w=wdrag.w,moved=Math.hypot(wdrag.x-wdrag.sx,wdrag.y-wdrag.sy)>6,at=moved?harnessDrop(w,wdrag.x,wdrag.y):null;wdrag=null;clickBlockUntil=performance.now()+350;
     if(at!=null){S.h[w]=at;S.hOrder.push(w);afterWireChange();}else{S.tool='harness';selChip=w;setTimeout(renderWire,0);}}
@@ -1571,7 +1600,7 @@ function updateSteps(parL){
   set('layout',layOk,!layOk);set('wire',wOk,r.shorts.length||r.conflict||S.damaged);set('bms',sOk&&bmsReady(),false);
   if(pL)set('par',!pL.some(x=>x[0]!=='ok'),pL.some(x=>x[0]==='bad'));
 }
-function showTab(t){if(LOCKED)setLock(null);S.tab=t;$$('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+function showTab(t){if(LOCKED)setLock(null);PAN=null;S.tab=t;$$('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   $$('section[role=tabpanel]').forEach(s=>s.hidden=s.id!=='tab-'+t);
   if(t==='layout')renderLayoutAll();if(t==='wire')renderWire();if(t==='bms'){renderPhone();renderSetChecks();drawChart();}if(t==='par')renderPar();if(t==='ref')renderRef();
   try{if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);}catch(e){}save();}
@@ -1590,6 +1619,7 @@ function renderAll(){renderSpecs();renderLayoutAll();renderWire();if(S.tab==='bm
 /* ---------- boot ---------- */
 S=load()||defaults();
 window.LFP_STATE=()=>S;
+if(S.compact)requestAnimationFrame(()=>setCompact(true));
 if(!S.cells.length){genLayout(S.arr);scramble();}
 if(!S.set)S.set=defaultSettings();
 if(!S.par.commSel)S.par.commSel='CAN';

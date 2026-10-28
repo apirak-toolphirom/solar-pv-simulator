@@ -11,5 +11,6 @@ function lfpTheme(){const f=document.getElementById('lfpframe');if(f&&f.contentW
 addEventListener('message',e=>{const f=document.getElementById('lfpframe');if(!f||e.source!==f.contentWindow||!e.data)return;
   if('lfpLock' in e.data){/* screen lock: the page inside takes the whole screen, the app nav and page scroll stay out of the way */
     f.classList.toggle('locked',!!e.data.lfpLock);document.documentElement.classList.toggle('lfplocked',!!e.data.lfpLock);return;}
+  if('lfpCompact' in e.data){document.documentElement.classList.toggle('lfpcompact',!!e.data.lfpCompact);return;}
   if(e.data.lfpH)f.style.height=Math.max(600,e.data.lfpH)+'px'});
 document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('themebtn');if(b)b.addEventListener('click',()=>setTimeout(lfpTheme,0))});

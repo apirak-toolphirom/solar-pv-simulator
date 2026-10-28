@@ -1030,3 +1030,5 @@ ol.kbol,ul.kbol{margin:8px 0;padding-left:22px;display:grid;gap:6px;line-height:
 .lfpframe{display:block;width:100%;height:900px;border:0;border-radius:10px;background:transparent}
 html.lfplocked,html.lfplocked body{overflow:hidden;overscroll-behavior:none}
 .lfpframe.locked{position:fixed;inset:0;width:100vw;height:100vh!important;height:100dvh!important;z-index:9999;border-radius:0;background:var(--bg)}
+/* menu 14 compact mode: the page header and note give their space to the simulator */
+html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
