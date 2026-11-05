@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="405f2ff00f">
+<meta name="build" content="3ab1da1991">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='405f2ff00f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='3ab1da1991'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
@@ -248,7 +248,7 @@ if(m&&m[1]!=='405f2ff00f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         </div>
         <svg id="orsvg" class="orsvg" viewBox="0 0 330 150" role="img" aria-label="ทิศที่แผงหันหน้าไปและมุมเอียง"></svg>
       </div>
-      <div class="pvsite" id="pvsitebox"><label class="chk"><input id="pvsite" type="checkbox"> คิดเงาบนแผงจากผังไซต์ (แท็บ 05)</label><span id="pvsitenote" class="hint tight"></span><button class="btn sm" id="pvsitego">ไปแท็บไซต์และเงา</button></div>
+      <div class="pvsite" id="pvsitebox"><label class="chk"><input id="pvsite" type="checkbox"> คิดเงาบนแผงจากผังไซต์ (เมนู 08)</label><span id="pvsitenote" class="hint tight"></span><button class="btn sm" id="pvsitego">ไปแท็บไซต์และเงา</button></div>
     </div>
     <div class="simcards">
       <p id="simmsg" class="simmsg" hidden>ต่อสายแผงเข้า MPPT ให้ครบวงจรและผ่านการตรวจขั้วก่อน แล้วระบบจะจำลองการทำงานทั้งวันให้</p>
@@ -429,7 +429,7 @@ if(m&&m[1]!=='405f2ff00f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       <div class="syenv">
         <section class="evb" id="syecbox"><h3><label class="chk"><input id="syecl" type="checkbox"> เมฆบัง</label></h3>
           <div class="row3"><label>เริ่ม<input id="syecs" type="time"></label><label>นาน (ชม.)<input id="syecd" type="number" min="0" max="12" step="0.5"></label><label>ความหนา (%)<input id="syecp" type="number" min="10" max="100" step="5"></label></div></section>
-        <section class="evb" id="syesitebox"><h3><label class="chk"><input id="syesite" type="checkbox"> เงาจากผังไซต์ (แท็บ 05)</label></h3><p class="hint tight" id="syesitenote"></p></section>
+        <section class="evb" id="syesitebox"><h3><label class="chk"><input id="syesite" type="checkbox"> เงาจากผังไซต์ (เมนู 08)</label></h3><p class="hint tight" id="syesitenote"></p></section>
         <section class="evb" id="syetbox"><h3><label class="chk"><input id="syetr" type="checkbox"> เงาต้นไม้</label></h3>
           <div class="row3"><label>ทิศ<select id="syeta"></select></label><label>สูง (ม.)<input id="syeth" type="number" min="1" max="40" step="0.5"></label><label>ห่าง (ม.)<input id="syetd" type="number" min="1" max="60" step="0.5"></label></div></section>
         <section class="evb" id="syebbox"><h3><label class="chk"><input id="syebl" type="checkbox"> เงาตึก / อาคาร</label></h3>
@@ -474,7 +474,7 @@ if(m&&m[1]!=='405f2ff00f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
         <label>แสงที่หายไป <b id="evdpv"></b><input id="evdp" type="range" min="1" max="60" step="1"></label>
         <p class="hint tight">ฝุ่นบางๆ ราว 3–8% ฝุ่นหนาหรือขี้นก 15–30%</p>
       </section>
-      <section class="panelbox evb" id="evsitebox"><h3><label class="chk"><input id="evsite" type="checkbox"> ใช้เงาจากผังไซต์ (แท็บ 05)</label></h3><p class="hint tight" id="evsitenote"></p></section>
+      <section class="panelbox evb" id="evsitebox"><h3><label class="chk"><input id="evsite" type="checkbox"> ใช้เงาจากผังไซต์ (เมนู 08)</label></h3><p class="hint tight" id="evsitenote"></p></section>
       <section class="panelbox evb" id="evtbox"><h3><label class="chk"><input id="evtr" type="checkbox"> ต้นไม้บังแสง</label></h3>
         <div class="chips" id="evtdir"></div>
         <label>ทิศของต้นไม้ <b id="evtav"></b><input id="evta" type="range" min="0" max="359" step="5"></label>
@@ -662,13 +662,13 @@ if(m&&m[1]!=='405f2ff00f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/acart.js?v=a67bdc03"></script>
 <script src="js/acsys.js?v=1455dcc2"></script>
 <script src="js/acmicro.js?v=622b90f2"></script>
-<script src="js/solar.js?v=fbe9ec06"></script>
+<script src="js/solar.js?v=7451b1ff"></script>
 <script src="js/site.js?v=68afc494"></script>
 <script src="js/loads.js?v=ab042e0e"></script>
 <script src="js/backup.js?v=5e9d0665"></script>
 <script src="js/bkanim.js?v=44dd5b7d"></script>
-<script src="js/systems.js?v=ea106708"></script>
-<script src="js/events.js?v=50b85166"></script>
+<script src="js/systems.js?v=1a24ac25"></script>
+<script src="js/events.js?v=2db707bf"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
 <script src="js/benchui.js?v=266c0de5"></script>
 <script src="js/basics.js?v=a988f584"></script>
@@ -678,7 +678,7 @@ if(m&&m[1]!=='405f2ff00f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/hwlog.js?v=28d24151"></script>
 <script src="js/fusion.js?v=5382422e"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
-<script src="js/fusiondet.js?v=0d128f7f"></script>
+<script src="js/fusiondet.js?v=9b4bc098"></script>
 <script src="js/fusionov.js?v=4f66fbb2"></script>
 <script src="js/fusionman.js?v=11536347"></script>
 <script src="js/cable.js?v=3ab5311f"></script>
@@ -688,7 +688,7 @@ if(m&&m[1]!=='405f2ff00f'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/lfp.js?v=d3c2d727"></script>
 <script src="js/calc.js?v=0a1172ec"></script>
 <script src="js/access.js?v=f47392bb"></script>
-<script src="js/ctx.js?v=69022d74"></script>
+<script src="js/ctx.js?v=564c4242"></script>
 <script src="js/app.js?v=376436fe"></script>
 </body>
 </html>

@@ -32,7 +32,7 @@ function syEnvSync(){
   q('syebl').checked=B.on;q('syebh').value=B.h;q('syebd').value=B.d;q('syeba').value=B.az;q('syebw').value=B.w;
   [['syecbox',C.on],['syetbox',T.on],['syebbox',B.on]].forEach(([id,on])=>q(id).classList.toggle('on',on));
   q('syesite').checked=EV.site.on;q('syesitebox').classList.toggle('on',EV.site.on);q('syetbox').hidden=EV.site.on;q('syebbox').hidden=EV.site.on;
-  q('syesitenote').textContent=EV.site.on?(siteHasPV()?`ต้นไม้และตึกจากผัง · แผง ${siArrays().length} ชุดบนหลังคา`:'ยังไม่มีแผงบนผัง ไปแท็บ 05 กด "+ แผงโซลาร์"'):'ปิดอยู่ ใช้ต้นไม้ / ตึกแบบเดี่ยว';
+  q('syesitenote').textContent=EV.site.on?(siteHasPV()?`ต้นไม้และตึกจากผัง · แผง ${siArrays().length} ชุดบนหลังคา`:'ยังไม่มีแผงบนผัง ไปเมนู 08 กด "+ แผงโซลาร์"'):'ปิดอยู่ ใช้ต้นไม้ / ตึกแบบเดี่ยว';
 }
 const SY_ROWS=[['exp','ขายไฟคืนกริด'],['out','ตอนไฟดับ'],['bat','แบตเตอรี่'],['gen','เครื่องปั่นไฟ'],['sw','เวลาสลับไปไฟสำรอง'],['inv','ชนิดอินเวอร์เตอร์'],['perm','การเชื่อมต่อการไฟฟ้า']];
 let SYR=null,syCfg=null;

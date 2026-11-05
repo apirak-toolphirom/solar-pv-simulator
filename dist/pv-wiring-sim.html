@@ -1275,7 +1275,7 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
         </div>
         <svg id="orsvg" class="orsvg" viewBox="0 0 330 150" role="img" aria-label="ทิศที่แผงหันหน้าไปและมุมเอียง"></svg>
       </div>
-      <div class="pvsite" id="pvsitebox"><label class="chk"><input id="pvsite" type="checkbox"> คิดเงาบนแผงจากผังไซต์ (แท็บ 05)</label><span id="pvsitenote" class="hint tight"></span><button class="btn sm" id="pvsitego">ไปแท็บไซต์และเงา</button></div>
+      <div class="pvsite" id="pvsitebox"><label class="chk"><input id="pvsite" type="checkbox"> คิดเงาบนแผงจากผังไซต์ (เมนู 08)</label><span id="pvsitenote" class="hint tight"></span><button class="btn sm" id="pvsitego">ไปแท็บไซต์และเงา</button></div>
     </div>
     <div class="simcards">
       <p id="simmsg" class="simmsg" hidden>ต่อสายแผงเข้า MPPT ให้ครบวงจรและผ่านการตรวจขั้วก่อน แล้วระบบจะจำลองการทำงานทั้งวันให้</p>
@@ -1456,7 +1456,7 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
       <div class="syenv">
         <section class="evb" id="syecbox"><h3><label class="chk"><input id="syecl" type="checkbox"> เมฆบัง</label></h3>
           <div class="row3"><label>เริ่ม<input id="syecs" type="time"></label><label>นาน (ชม.)<input id="syecd" type="number" min="0" max="12" step="0.5"></label><label>ความหนา (%)<input id="syecp" type="number" min="10" max="100" step="5"></label></div></section>
-        <section class="evb" id="syesitebox"><h3><label class="chk"><input id="syesite" type="checkbox"> เงาจากผังไซต์ (แท็บ 05)</label></h3><p class="hint tight" id="syesitenote"></p></section>
+        <section class="evb" id="syesitebox"><h3><label class="chk"><input id="syesite" type="checkbox"> เงาจากผังไซต์ (เมนู 08)</label></h3><p class="hint tight" id="syesitenote"></p></section>
         <section class="evb" id="syetbox"><h3><label class="chk"><input id="syetr" type="checkbox"> เงาต้นไม้</label></h3>
           <div class="row3"><label>ทิศ<select id="syeta"></select></label><label>สูง (ม.)<input id="syeth" type="number" min="1" max="40" step="0.5"></label><label>ห่าง (ม.)<input id="syetd" type="number" min="1" max="60" step="0.5"></label></div></section>
         <section class="evb" id="syebbox"><h3><label class="chk"><input id="syebl" type="checkbox"> เงาตึก / อาคาร</label></h3>
@@ -1501,7 +1501,7 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
         <label>แสงที่หายไป <b id="evdpv"></b><input id="evdp" type="range" min="1" max="60" step="1"></label>
         <p class="hint tight">ฝุ่นบางๆ ราว 3–8% ฝุ่นหนาหรือขี้นก 15–30%</p>
       </section>
-      <section class="panelbox evb" id="evsitebox"><h3><label class="chk"><input id="evsite" type="checkbox"> ใช้เงาจากผังไซต์ (แท็บ 05)</label></h3><p class="hint tight" id="evsitenote"></p></section>
+      <section class="panelbox evb" id="evsitebox"><h3><label class="chk"><input id="evsite" type="checkbox"> ใช้เงาจากผังไซต์ (เมนู 08)</label></h3><p class="hint tight" id="evsitenote"></p></section>
       <section class="panelbox evb" id="evtbox"><h3><label class="chk"><input id="evtr" type="checkbox"> ต้นไม้บังแสง</label></h3>
         <div class="chips" id="evtdir"></div>
         <label>ทิศของต้นไม้ <b id="evtav"></b><input id="evta" type="range" min="0" max="359" step="5"></label>
@@ -4198,7 +4198,7 @@ function pvSiteSync(){
   const c=document.getElementById('pvsite');if(!c||typeof EV==='undefined')return;
   c.checked=EV.site.on;
   const n=typeof siArrays==='function'?siArrays().length:0;
-  document.getElementById('pvsitenote').textContent=EV.site.on?(n?`ใช้ต้นไม้ ตึก และตำแหน่งแผง ${n} ชุดจากผังไซต์`:'ยังไม่มีแผงบนผัง ไปแท็บ 05 กด "+ แผงโซลาร์"'):(n?`มีแผงบนผัง ${n} ชุด ติ๊กเพื่อคิดเงาจากผัง`:'วางบ้าน ต้นไม้ ตึก และแผงได้ที่แท็บ 05');
+  document.getElementById('pvsitenote').textContent=EV.site.on?(n?`ใช้ต้นไม้ ตึก และตำแหน่งแผง ${n} ชุดจากผังไซต์`:'ยังไม่มีแผงบนผัง ไปเมนู 08 กด "+ แผงโซลาร์"'):(n?`มีแผงบนผัง ${n} ชุด ติ๊กเพื่อคิดเงาจากผัง`:'วางบ้าน ต้นไม้ ตึก และแผงได้ที่เมนู 08');
 }
 function runSimView(){
   if(!lastA)return;
@@ -5518,7 +5518,7 @@ function syEnvSync(){
   q('syebl').checked=B.on;q('syebh').value=B.h;q('syebd').value=B.d;q('syeba').value=B.az;q('syebw').value=B.w;
   [['syecbox',C.on],['syetbox',T.on],['syebbox',B.on]].forEach(([id,on])=>q(id).classList.toggle('on',on));
   q('syesite').checked=EV.site.on;q('syesitebox').classList.toggle('on',EV.site.on);q('syetbox').hidden=EV.site.on;q('syebbox').hidden=EV.site.on;
-  q('syesitenote').textContent=EV.site.on?(siteHasPV()?`ต้นไม้และตึกจากผัง · แผง ${siArrays().length} ชุดบนหลังคา`:'ยังไม่มีแผงบนผัง ไปแท็บ 05 กด "+ แผงโซลาร์"'):'ปิดอยู่ ใช้ต้นไม้ / ตึกแบบเดี่ยว';
+  q('syesitenote').textContent=EV.site.on?(siteHasPV()?`ต้นไม้และตึกจากผัง · แผง ${siArrays().length} ชุดบนหลังคา`:'ยังไม่มีแผงบนผัง ไปเมนู 08 กด "+ แผงโซลาร์"'):'ปิดอยู่ ใช้ต้นไม้ / ตึกแบบเดี่ยว';
 }
 const SY_ROWS=[['exp','ขายไฟคืนกริด'],['out','ตอนไฟดับ'],['bat','แบตเตอรี่'],['gen','เครื่องปั่นไฟ'],['sw','เวลาสลับไปไฟสำรอง'],['inv','ชนิดอินเวอร์เตอร์'],['perm','การเชื่อมต่อการไฟฟ้า']];
 let SYR=null,syCfg=null;
@@ -5926,7 +5926,7 @@ function evSync(){
   const B=EV.bld;if(q('evbl')){q('evbl').checked=B.on;q('evbh').value=B.h;q('evbd').value=B.d;q('evbw').value=B.w;q('evba').value=B.az;q('evbav').textContent=`${B.az}° (${dirName(B.az)})`}
   ['evcbox','evdbox','evtbox','evbbox'].forEach((id,i)=>{const e=q(id);if(e)e.classList.toggle('on',[EV.cloud.on,EV.dust.on,EV.tree.on,EV.bld.on][i])});
   const act=[];if(EV.cloud.on)act.push('เมฆบัง');if(EV.dust.on)act.push('ฝุ่นบังแผง');if(EV.tree.on)act.push('ต้นไม้บัง');if(EV.bld.on)act.push('ตึกบัง');if(evSiteActive())act.push('เงาจากผังไซต์');
-  if(q('evsite')){q('evsite').checked=EV.site.on;q('evsitebox').classList.toggle('on',EV.site.on);q('evtbox').hidden=EV.site.on;q('evbbox').hidden=EV.site.on;q('evsitenote').textContent=EV.site.on?(siteHasPV()?`ใช้ต้นไม้และตึกจากผังไซต์ (แท็บ 05) คิดเงาบนแผงโซลาร์ ${siArrays().length} ชุดบนผัง`:'ยังไม่มีแผงโซลาร์บนผัง ไปแท็บ 05 กด "+ แผงโซลาร์" เพื่อวางบนหลังคา'):'ใช้ต้นไม้ / ตึกแบบเดี่ยวที่ตั้งด้านล่างแทน'}
+  if(q('evsite')){q('evsite').checked=EV.site.on;q('evsitebox').classList.toggle('on',EV.site.on);q('evtbox').hidden=EV.site.on;q('evbbox').hidden=EV.site.on;q('evsitenote').textContent=EV.site.on?(siteHasPV()?`ใช้ต้นไม้และตึกจากผังไซต์ (เมนู 08) คิดเงาบนแผงโซลาร์ ${siArrays().length} ชุดบนผัง`:'ยังไม่มีแผงโซลาร์บนผัง ไปเมนู 08 กด "+ แผงโซลาร์" เพื่อวางบนหลังคา'):'ใช้ต้นไม้ / ตึกแบบเดี่ยวที่ตั้งด้านล่างแทน'}
   const n=document.getElementById('evnote');if(n)n.textContent=act.length?'เหตุการณ์ที่เปิดอยู่ในกราฟด้านล่าง: '+act.join(', ')+' (ตั้งค่าที่แท็บ "จำลองเหตุการณ์")':'';
 }
 function evRun(){
@@ -9608,7 +9608,7 @@ function fuDetRender(D,i){
     <tr>${cell('Device name',esc('INV-'+(dv.hw?'':'DEMO-')+'0000000000'))}${cell('Device type','Inverter')}${cell('SN',esc(fuPr.sn))}</tr>
     <tr>${cell('Device replacement record','--')}${cell('Model',esc(I.name))}${cell('Software version',dv.hw?esc(fuPr.sw):'--')}</tr>
     <tr>${cell('Package Name',dv.hw?'SUN2000MB_'+esc(fuPr.sw):'--')}${cell('Monitoring hardware version','B')}<td></td><td></td></tr></tbody></table>
-    <h3>String Details <span class="fuinfo" tabindex="0" data-tip="ข้อมูลแผงของแต่ละสตริง ดึงจากอุปกรณ์ที่เลือกในแท็บ 01">ⓘ</span></h3>
+    <h3>String Details <span class="fuinfo" tabindex="0" data-tip="ข้อมูลแผงของแต่ละสตริง ดึงจากอุปกรณ์ที่เลือกในเมนู 02">ⓘ</span></h3>
     <table class="fut"><thead><tr><th></th><th>String</th><th>2-in-1 String</th><th>Module Manufacturer</th><th>Modules Type</th><th>Module Type</th><th>Max. Module Power (Pmax) (W)</th><th>Module Quantity</th><th>String Capacity (Wp)</th></tr></thead><tbody>${pvs.map((_,j)=>{const b=j<2?blk(j):null;return `<tr><td>+</td><th>PV${j+1}</th><td><input type="checkbox" disabled aria-label="2-in-1"></td><td>${b?esc(String(PV.name||'--').split(' ')[0]):'--'}</td><td>${b?'Crystalline silicon':'--'}</td><td>${b?esc(PV.name||'--'):'--'}</td><td>${b?n(PV.pmax,0):'--'}</td><td>${b?b.ns*(b.mp||1):'--'}</td><td>${b?n(b.n*PV.pmax,2):'0.00'}</td></tr>`}).join('')}</tbody></table>`;
 }
 function fuAdjOpen(kind){
@@ -11915,17 +11915,17 @@ function ctxChips(t){
   const site=typeof SIM!=='undefined'?`${SIM.date} · เอียง ${SIM.tilt}° หัน ${SIM.az}°`:'';
   const panelSrc=()=>BK.src==='wiring'
     ?(dcOk?['ok',`ตามที่ต่อสาย ${nUsed} แผง`,'wiring']:['warn','ตามที่ต่อสาย: ยังต่อไม่ถูก','wiring'])
-    :['idle',`แผงสมมติ ${BK.nIdeal} แผง (ไม่ใช้สายจาก 02)`,'backup'];
+    :['idle',`แผงสมมติ ${BK.nIdeal} แผง (ไม่ใช้สายจาก 03)`,'backup'];
   const C=(lvl,k,v,go)=>({lvl,k,v,go});
   switch(t){
-    case'equip':return[C('ok','อุปกรณ์ที่เลือก',`${pan} · ${inv}${bi?' · '+bi.b.brand+' '+bi.b.model:''}`,null),C('idle','ใช้ใน','แท็บ 02–09 และ 11',null)];
+    case'equip':return[C('ok','อุปกรณ์ที่เลือก',`${pan} · ${inv}${bi?' · '+bi.b.brand+' '+bi.b.model:''}`,null),C('idle','ใช้ใน','เมนู 03–12 และ 16',null)];
     case'wiring':return[C('ok','แผง',pan,'equip'),C('ok','อินเวอร์เตอร์',inv,'equip'),C('ok','ส่งต่อไป','04 จำลองแผง · 06/07 ถ้าเลือก',null)];
     case'ac':{
       const a=[C('ok','อินเวอร์เตอร์',inv,'equip')];
       if(I.type!=='on-grid')a.push(C(bi?'ok':'warn','แบต',bi?`${bi.b.brand} ${bi.b.model} × ${bi.n} (${f(bi.V,0)} V)`:'ยังไม่มี','equip'));
       a.push(C('ok','ไฟเข้าบ้าน',ph3?'3 เฟส':'1 เฟส',null));
       if(ph3)a.push(C(loads.length?'ok':'warn','ตารางมิเตอร์ 3 เฟส',loads.length?`โหลด ${loads.length} รายการ · ${BK.mode==='off'?'Off-grid':'มีกริด'}`:'ยังไม่มีโหลด','load'));
-      a.push(C(ACS.apply?'ok':'idle','ส่งผลไปแท็บ 06',ACS.apply?'ใช้ (ติ๊กแล้ว)':'ไม่ใช้ (ยังไม่ติ๊ก)',null));
+      a.push(C(ACS.apply?'ok':'idle','ส่งผลไปเมนู 10',ACS.apply?'ใช้ (ติ๊กแล้ว)':'ไม่ใช้ (ยังไม่ติ๊ก)',null));
       return a;
     }
     case'pv':return[C(dcOk?'ok':'warn','แผงที่ต่อสาย',dcOk?`${nUsed} แผง · ${f(A.pv/1000,2)} kWp`:'ยังต่อสายไม่ถูก','wiring'),C('ok','อินเวอร์เตอร์',inv,'equip'),C('ok','พิกัด / มุมแผง',site,null),C(EV.site.on?(siteHasPV()?'ok':'warn'):'idle','เงาบนแผง',EV.site.on?(siteHasPV()?`จากผังไซต์ ${siArrays().length} ชุด`:'ยังไม่มีแผงบนผัง'):'ไม่ใช้ผังไซต์','site')];
@@ -11946,10 +11946,10 @@ function ctxChips(t){
     case'events':{
       const ev=typeof evSource==='function'?evSource():null,bk=window.lastBK;
       return[C(ev&&!ev.ideal?'ok':'idle','แผง',ev?(ev.ideal?`แผงสมมติ ${ev.n} แผง`:`ตามที่ต่อสาย ${ev.n} แผง`):'-','wiring'),C('ok','พิกัด / วันที่',site,'pv'),
-        C(bk&&BK.mode!=='off'&&BK.outDur>0?'ok':'idle','ไฟดับ',bk&&BK.mode!=='off'&&BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (จาก 07)`:'ไม่ได้ตั้งในแท็บ 07','backup'),C(EV.site.on?'ok':'idle','ต้นไม้ / ตึก',EV.site.on?'จากผังไซต์':'ตั้งแบบเดี่ยวในแท็บนี้','site')];
+        C(bk&&BK.mode!=='off'&&BK.outDur>0?'ok':'idle','ไฟดับ',bk&&BK.mode!=='off'&&BK.outDur>0?`${hhmm(BK.outStart)} ${BK.outDur} ชม. (จาก 10)`:'ไม่ได้ตั้งในเมนู 10','backup'),C(EV.site.on?'ok':'idle','ต้นไม้ / ตึก',EV.site.on?'จากผังไซต์':'ตั้งแบบเดี่ยวในแท็บนี้','site')];
     }
     case'site':{const n=SITE.objs.length,k=c=>SITE.objs.filter(o=>o.t===c).length;
-      return[C('ok','พิกัด',`${f(SIM.lat,3)}, ${f(SIM.lon,3)}`,'pv'),C(n?'ok':'warn','ผัง',n?`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')}`:'ยังว่าง',null),C(EV.site.on&&k('pv')?'ok':'idle','ส่งต่อ',EV.site.on?(k('pv')?`เงาบนแผง ${k('pv')} ชุด → 04, 07, 08, 09`:'ยังไม่มีแผงบนผัง'):'ปิดอยู่ (เปิดที่แท็บ 04, 08 หรือ 09)',null),C(k('pv')?'ok':'idle','แผงบนผัง',k('pv')+' ชุด',null)]}
+      return[C('ok','พิกัด',`${f(SIM.lat,3)}, ${f(SIM.lon,3)}`,'pv'),C(n?'ok':'warn','ผัง',n?`บ้าน ${k('house')} · ต้นไม้ ${k('tree')} · ตึก ${k('bldg')} · โซน ${k('zone')}`:'ยังว่าง',null),C(EV.site.on&&k('pv')?'ok':'idle','ส่งต่อ',EV.site.on?(k('pv')?`เงาบนแผง ${k('pv')} ชุด → 04, 07, 08, 09`:'ยังไม่มีแผงบนผัง'):'ปิดอยู่ (เปิดที่เมนู 07, 11 หรือ 12)',null),C(k('pv')?'ok':'idle','แผงบนผัง',k('pv')+' ชุด',null)]}
     case'basics':{const n=typeof b0Count==='function'?b0Count():0;return[C('idle','อิสระ','แผงตัวอย่าง 550 W ของเมนูนี้ ไม่ใช้อุปกรณ์จากเมนูอื่น',null),C(n===15?'ok':'idle','ความคืบหน้า',`ผ่าน ${n} / 15 หัวข้อ → ใบงาน W00 (เมนู 16)`,n===15?'submit':null)]}
     case'bench':return[C('idle','อิสระ','ไม่ใช้ข้อมูลจากแท็บอื่น (ระบบ 12 / 24 / 48 V)',null)];
     case'cable':{const pg=typeof CB!=='undefined'?CB.page:'ac';

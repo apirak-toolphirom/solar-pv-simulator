@@ -221,7 +221,7 @@ function evSync(){
   const B=EV.bld;if(q('evbl')){q('evbl').checked=B.on;q('evbh').value=B.h;q('evbd').value=B.d;q('evbw').value=B.w;q('evba').value=B.az;q('evbav').textContent=`${B.az}° (${dirName(B.az)})`}
   ['evcbox','evdbox','evtbox','evbbox'].forEach((id,i)=>{const e=q(id);if(e)e.classList.toggle('on',[EV.cloud.on,EV.dust.on,EV.tree.on,EV.bld.on][i])});
   const act=[];if(EV.cloud.on)act.push('เมฆบัง');if(EV.dust.on)act.push('ฝุ่นบังแผง');if(EV.tree.on)act.push('ต้นไม้บัง');if(EV.bld.on)act.push('ตึกบัง');if(evSiteActive())act.push('เงาจากผังไซต์');
-  if(q('evsite')){q('evsite').checked=EV.site.on;q('evsitebox').classList.toggle('on',EV.site.on);q('evtbox').hidden=EV.site.on;q('evbbox').hidden=EV.site.on;q('evsitenote').textContent=EV.site.on?(siteHasPV()?`ใช้ต้นไม้และตึกจากผังไซต์ (แท็บ 05) คิดเงาบนแผงโซลาร์ ${siArrays().length} ชุดบนผัง`:'ยังไม่มีแผงโซลาร์บนผัง ไปแท็บ 05 กด "+ แผงโซลาร์" เพื่อวางบนหลังคา'):'ใช้ต้นไม้ / ตึกแบบเดี่ยวที่ตั้งด้านล่างแทน'}
+  if(q('evsite')){q('evsite').checked=EV.site.on;q('evsitebox').classList.toggle('on',EV.site.on);q('evtbox').hidden=EV.site.on;q('evbbox').hidden=EV.site.on;q('evsitenote').textContent=EV.site.on?(siteHasPV()?`ใช้ต้นไม้และตึกจากผังไซต์ (เมนู 08) คิดเงาบนแผงโซลาร์ ${siArrays().length} ชุดบนผัง`:'ยังไม่มีแผงโซลาร์บนผัง ไปเมนู 08 กด "+ แผงโซลาร์" เพื่อวางบนหลังคา'):'ใช้ต้นไม้ / ตึกแบบเดี่ยวที่ตั้งด้านล่างแทน'}
   const n=document.getElementById('evnote');if(n)n.textContent=act.length?'เหตุการณ์ที่เปิดอยู่ในกราฟด้านล่าง: '+act.join(', ')+' (ตั้งค่าที่แท็บ "จำลองเหตุการณ์")':'';
 }
 function evRun(){

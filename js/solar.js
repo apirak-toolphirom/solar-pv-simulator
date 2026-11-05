@@ -240,7 +240,7 @@ function pvSiteSync(){
   const c=document.getElementById('pvsite');if(!c||typeof EV==='undefined')return;
   c.checked=EV.site.on;
   const n=typeof siArrays==='function'?siArrays().length:0;
-  document.getElementById('pvsitenote').textContent=EV.site.on?(n?`ใช้ต้นไม้ ตึก และตำแหน่งแผง ${n} ชุดจากผังไซต์`:'ยังไม่มีแผงบนผัง ไปแท็บ 05 กด "+ แผงโซลาร์"'):(n?`มีแผงบนผัง ${n} ชุด ติ๊กเพื่อคิดเงาจากผัง`:'วางบ้าน ต้นไม้ ตึก และแผงได้ที่แท็บ 05');
+  document.getElementById('pvsitenote').textContent=EV.site.on?(n?`ใช้ต้นไม้ ตึก และตำแหน่งแผง ${n} ชุดจากผังไซต์`:'ยังไม่มีแผงบนผัง ไปเมนู 08 กด "+ แผงโซลาร์"'):(n?`มีแผงบนผัง ${n} ชุด ติ๊กเพื่อคิดเงาจากผัง`:'วางบ้าน ต้นไม้ ตึก และแผงได้ที่เมนู 08');
 }
 function runSimView(){
   if(!lastA)return;

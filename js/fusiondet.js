@@ -37,7 +37,7 @@ function fuDetRender(D,i){
     <tr>${cell('Device name',esc('INV-'+(dv.hw?'':'DEMO-')+'0000000000'))}${cell('Device type','Inverter')}${cell('SN',esc(fuPr.sn))}</tr>
     <tr>${cell('Device replacement record','--')}${cell('Model',esc(I.name))}${cell('Software version',dv.hw?esc(fuPr.sw):'--')}</tr>
     <tr>${cell('Package Name',dv.hw?'SUN2000MB_'+esc(fuPr.sw):'--')}${cell('Monitoring hardware version','B')}<td></td><td></td></tr></tbody></table>
-    <h3>String Details <span class="fuinfo" tabindex="0" data-tip="ข้อมูลแผงของแต่ละสตริง ดึงจากอุปกรณ์ที่เลือกในแท็บ 01">ⓘ</span></h3>
+    <h3>String Details <span class="fuinfo" tabindex="0" data-tip="ข้อมูลแผงของแต่ละสตริง ดึงจากอุปกรณ์ที่เลือกในเมนู 02">ⓘ</span></h3>
     <table class="fut"><thead><tr><th></th><th>String</th><th>2-in-1 String</th><th>Module Manufacturer</th><th>Modules Type</th><th>Module Type</th><th>Max. Module Power (Pmax) (W)</th><th>Module Quantity</th><th>String Capacity (Wp)</th></tr></thead><tbody>${pvs.map((_,j)=>{const b=j<2?blk(j):null;return `<tr><td>+</td><th>PV${j+1}</th><td><input type="checkbox" disabled aria-label="2-in-1"></td><td>${b?esc(String(PV.name||'--').split(' ')[0]):'--'}</td><td>${b?'Crystalline silicon':'--'}</td><td>${b?esc(PV.name||'--'):'--'}</td><td>${b?n(PV.pmax,0):'--'}</td><td>${b?b.ns*(b.mp||1):'--'}</td><td>${b?n(b.n*PV.pmax,2):'0.00'}</td></tr>`}).join('')}</tbody></table>`;
 }
 function fuAdjOpen(kind){
