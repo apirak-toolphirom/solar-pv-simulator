@@ -343,7 +343,7 @@ $("mBody").innerHTML = `
   <div class="chk"><b>ติดตั้งกับผู้ติดตั้งที่ขึ้นทะเบียน</b> เช่น <b>${P.name}</b></div>
   <div class="chk"><b>การรับประกันคุ้มครอง ${C.warrantyYears} ปีเต็ม:</b> รับประกันติดตั้ง ${C.warrantyYears} ปี + ล้างแผงฟรีปีละ 1 ครั้ง + ประกันอัคคีภัย ${C.warrantyYears} ปี</div>
   <div class="docs"><b>📄 เอกสารที่ลูกค้าต้องเตรียม:</b><ol>${C.documents.map(d => `<li>${d}</li>`).join("")}</ol></div>`;
-$("foot").innerHTML = `ผลคำนวณเป็นค่าประมาณเพื่อประกอบการตัดสินใจ ไม่ใช่ใบเสนอราคา · ${P.name}${P.phone ? " · โทร " + P.phone : ""}${P.line ? " · LINE " + P.line : ""}`;
+$("foot").innerHTML = `<a href="https://github.com/apirak-toolphirom/solar-pv-simulator/blob/main/docs/manual-calc.md" target="_blank" rel="noopener">📘 คู่มือการใช้งาน</a> · ผลคำนวณเป็นค่าประมาณเพื่อประกอบการตัดสินใจ ไม่ใช่ใบเสนอราคา · ${P.name}${P.phone ? " · โทร " + P.phone : ""}${P.line ? " · LINE " + P.line : ""}`;
 $("pkNote").textContent = `แพ็กเกจยอดนิยม (เข้าร่วมโครงการรับเงินคืน ${fmt(C.subsidy)} บาทได้ทุกขนาด)`;
 
 const chips = document.querySelector(".chips");
