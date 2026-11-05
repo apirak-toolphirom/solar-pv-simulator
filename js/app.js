@@ -1,5 +1,5 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc'];
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -43,6 +43,7 @@ function showTab(t,fromHash){
     else if(t==='library')kbRender();
     else if(t==='solis')slRenderTab();
     else if(t==='lfp')lfpOpen();
+    else if(t==='calc')calcOpen();
     window.scrollTo(0,0);
   });
   touch();

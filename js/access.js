@@ -4,9 +4,9 @@
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC แผง',ac:'04 ต่อสาย AC ระบบ',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 จำลองการไหลของไฟ',systems:'11 จำลองระบบ 4 แบบ',events:'12 จำลองเหตุการณ์',bench:'05 ชุดทดลองวงจร DC',submit:'16 ส่งงาน',fusion:'15 Huawei FusionSolar',cable:'06 สายไฟและเบรกเกอร์',library:'01 คลังความรู้',solis:'13 Solis Commissioning',lfp:'14 แบต LiFePO4 + JK-BMS'};
+const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC แผง',ac:'04 ต่อสาย AC ระบบ',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 จำลองการไหลของไฟ',systems:'11 จำลองระบบ 4 แบบ',events:'12 จำลองเหตุการณ์',bench:'05 ชุดทดลองวงจร DC',submit:'16 ส่งงาน',fusion:'15 Huawei FusionSolar',cable:'06 สายไฟและเบรกเกอร์',library:'01 คลังความรู้',solis:'13 Solis Commissioning',lfp:'14 แบต LiFePO4 + JK-BMS',calc:'17 คำนวณความคุ้มค่า'};
 /* menus the teacher opens on purpose: hidden from students until the "เมนู" sheet has a row that opens them (also before an older Code.gs adds the row) */
-const ACC_HIDDEN=['solis','lfp'];
+const ACC_HIDDEN=['solis','lfp','calc'];
 /* menus that need a signed-in student or the teacher, whatever the sheet says (never open to visitors, nor offline) */
 const ACC_SIGNED=[];
 function accPerm(t){

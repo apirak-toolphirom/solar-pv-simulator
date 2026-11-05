@@ -14,7 +14,7 @@ const WS_DEFAULT=[
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
-const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC',ac:'04 ต่อสาย AC',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 การไหลของไฟ',systems:'11 ระบบ 4 แบบ',events:'12 เหตุการณ์',bench:'05 วงจร DC',solis:'13 Solis Commissioning',lfp:'14 แบต LiFePO4 + JK-BMS'};
+const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC',ac:'04 ต่อสาย AC',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 การไหลของไฟ',systems:'11 ระบบ 4 แบบ',events:'12 เหตุการณ์',bench:'05 วงจร DC',solis:'13 Solis Commissioning',lfp:'14 แบต LiFePO4 + JK-BMS',calc:'17 คำนวณความคุ้มค่า'};
 let WS=WS_DEFAULT.slice(),WSSEL=null,WSSRC='default',WS_MINE=null;
 window.SY_SEEN=false;
 

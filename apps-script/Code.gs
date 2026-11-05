@@ -77,10 +77,10 @@ function wsSet_(d, props) {
 var MENU_SHEET = 'เมนู';
 var MENU_HEAD = ['เมนู', 'ชื่อ', 'สถานะ', 'ผู้เยี่ยมชม'];
 var MENU_DEF = [['basics', '00 แบบฝึกพื้นฐาน'], ['library', '01 คลังความรู้'], ['equip', '02 อุปกรณ์'], ['wiring', '03 ต่อสาย DC แผง'], ['ac', '04 ต่อสาย AC ระบบ'], ['bench', '05 ชุดทดลองวงจร DC'],
-  ['cable', '06 สายไฟและเบรกเกอร์'], ['pv', '07 จำลองแผง'], ['site', '08 ไซต์และเงา'], ['load', '09 จำลองโหลด'], ['backup', '10 จำลองการไหลของไฟ'], ['systems', '11 จำลองระบบ 4 แบบ'], ['events', '12 จำลองเหตุการณ์'], ['solis', '13 Solis Commissioning'], ['lfp', '14 แบต LiFePO4 + JK-BMS'], ['fusion', '15 Huawei FusionSolar'], ['submit', '16 ส่งงาน']]
+  ['cable', '06 สายไฟและเบรกเกอร์'], ['pv', '07 จำลองแผง'], ['site', '08 ไซต์และเงา'], ['load', '09 จำลองโหลด'], ['backup', '10 จำลองการไหลของไฟ'], ['systems', '11 จำลองระบบ 4 แบบ'], ['events', '12 จำลองเหตุการณ์'], ['solis', '13 Solis Commissioning'], ['lfp', '14 แบต LiFePO4 + JK-BMS'], ['fusion', '15 Huawei FusionSolar'], ['submit', '16 ส่งงาน'], ['calc', '17 คำนวณความคุ้มค่า']]
   // 06 สายไฟและเบรกเกอร์ และ 01 คลังความรู้ เป็นเครื่องมืออ้างอิง: เปิดให้ผู้เรียนเป็นค่าเริ่มต้น
-  .map(function (m) { return [m[0], m[1], m[0] === 'cable' || m[0] === 'library' ? 'เปิด' : m[0] === 'solis' || m[0] === 'lfp' ? 'ปิด' : 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
-// 13 Solis Commissioning และ 14 แบต LiFePO4 + JK-BMS: ค่าเริ่ม = ปิด (ซ่อนจากผู้เรียน) ผู้สอนเปิดเองที่ dashboard เมื่อถึงคาบที่ใช้
+  .map(function (m) { return [m[0], m[1], m[0] === 'cable' || m[0] === 'library' ? 'เปิด' : m[0] === 'solis' || m[0] === 'lfp' || m[0] === 'calc' ? 'ปิด' : 'auto', m[0] === 'backup' || m[0] === 'basics' ? 'ใช่' : 'ไม่']; });
+// 13 Solis Commissioning, 14 แบต LiFePO4 + JK-BMS และ 17 คำนวณความคุ้มค่า: ค่าเริ่ม = ปิด (ซ่อนจากผู้เรียน) ผู้สอนเปิดเองที่ dashboard เมื่อถึงคาบที่ใช้
 // เมนูที่ต้องลงชื่อ (ผู้เรียน/ผู้สอน) เสมอ: ผู้เยี่ยมชมไม่เห็นแม้ติ๊ก "ผู้เยี่ยมชม" = ใช่
 var MENU_SIGNED = [];
 function menuSheet_() {
