@@ -1,5 +1,7 @@
 /* ---- app shell: tabs, persistence, boot ---- */
 const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc'];
+/* manual of each menu: docs/manual-<file>.md (keep in step with docs/README.md) */
+const MANUAL={basics:'00-basics',library:'01-library',equip:'02-equip',wiring:'03-wiring',ac:'04-ac',bench:'05-bench',cable:'06-cable',pv:'07-pv',site:'08-site',load:'09-load',backup:'10-backup',systems:'11-systems',events:'12-events',solis:'13-solis',lfp:'14-lfp',fusion:'15-fusion',submit:'16-submit',calc:'17-calc'};
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -25,6 +27,7 @@ function showTab(t,fromHash){
   TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t});
   document.querySelectorAll('.navb').forEach(b=>{if(b.dataset.tab===t)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   navSync();navOpen(false);
+  {const ml=document.getElementById('manlink');if(ml&&MANUAL[t])ml.href='https://github.com/apirak-toolphirom/solar-pv-simulator/blob/main/docs/manual-'+MANUAL[t]+'.md'}
   if(!fromHash){try{history.replaceState(null,'','#'+t+(t==='library'&&typeof KB!=='undefined'&&KB.open?'/'+KB.open:''))}catch(e){}}
   setNavH();
   requestAnimationFrame(()=>{
