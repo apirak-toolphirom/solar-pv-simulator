@@ -1100,6 +1100,19 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 /* 04/05: terminals a wire may go to (dashed ring) and those of the wrong kind (dimmed) while wiring */
 .act.pick .acterm,.bpt.pick .acterm{stroke-width:4;stroke-dasharray:3 2}
 .act.nopick,.bpt.nopick{opacity:.35}
+
+/* ---- touch screens: every control at least ~40 px tall so a finger hits it (students use phones) ---- */
+@media (pointer:coarse),(max-width:700px){
+  .chip,.btn,.btn.sm,.trayit,button.lgb,select,input[type=number],input[type=text],input[type=password],input[type=time],input[type=date],input[type=search]{min-height:40px}
+  button.ctxc{min-height:36px}
+  .lnk{display:inline-flex;align-items:center;min-height:36px;padding:0 2px}
+  input[type=checkbox],input[type=radio]{width:22px;height:22px;flex:none}
+  label.chk{min-height:40px}
+  input[type=range]{min-height:36px}
+  .b0o{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 10px}
+  .tab select,.tab .chip,.tab .btn{min-height:40px!important}
+  .tab input[type=checkbox]{width:22px!important;height:22px!important}
+}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
