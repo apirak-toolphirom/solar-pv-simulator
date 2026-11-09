@@ -80,6 +80,8 @@ function acArt(k,c,I,S){
       +`<rect x="50" y="66" width="80" height="12" rx="2" class="a-fill"/><rect x="52" y="68" width="14" height="8" class="a-grn"/><rect x="68" y="68" width="14" height="8" class="a-grn"/><rect x="84" y="68" width="14" height="8" class="a-grn"/><rect x="100" y="68" width="14" height="8" class="a-grn" style="opacity:.35"/>`
       +`<rect x="56" y="88" width="24" height="52" rx="3" class="a-fill"/><rect x="92" y="88" width="24" height="52" rx="3" class="a-fill"/><path d="M68 94V134M104 94V134" class="a-line" style="stroke:var(--s3)"/><rect x="48" y="146" width="84" height="4" rx="2" style="fill:var(--accent)"/>`
       +T(90,170,hw?'COM: Enable · RS485':'BMS สื่อสาร CAN','acnote');
+  }else if(k==='INV'&&typeof acBrandArt==='function'&&ACB_CUR){
+    g+=acBrandArt(c,I);
   }else if(k==='INV'){
     g+=`<rect x="0" y="0" width="${c.w}" height="${c.h}" rx="14" class="acbox inv"/>`;
     const band=(y0,y1,x0,x1,col,title,icon)=>`<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" rx="7" style="fill:${col};opacity:.13"/><text x="${x0+6}" y="${y0+12}" class="a-grp" style="fill:${col}">${title}</text>`+icon;

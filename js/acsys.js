@@ -516,6 +516,7 @@ function acRender(){
   if(typeof micAC==='function'&&micAC())return;
   const svg=document.getElementById('acsvg');if(!svg)return;
   const I=curInv(),A=acAnalyze();acMeterLabels(I);
+  if(typeof acBrandApply==='function')acBrandApply(I);
   acLayout();if(typeof acReadout==='function')acReadout(I);svg.setAttribute('viewBox',`0 0 ${AC_VB.w} ${AC_VB.h}`);acApplyZoom();
   let s='';
   Object.keys(AC_CL).forEach(k=>{s+=`<g class="acmod" data-c="${k}">${acArt(k,AC_CL[k],I,ACS.set)}</g>`});

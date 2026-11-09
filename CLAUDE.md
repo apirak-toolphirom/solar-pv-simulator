@@ -9,7 +9,7 @@
 | `js/library.js` `js/kb_*.js` | `docs/manual-01-library.md` (ตารางบทความ) |
 | `js/catalog.js` `js/pdfimport.js` | `docs/manual-02-equip.md` |
 | `js/wiring.js` `js/wireaid.js` `js/engine.js` `js/model.js` | `docs/manual-03-wiring.md` |
-| `js/acsys.js` `js/acart.js` `js/acmicro.js` | `docs/manual-04-ac.md` |
+| `js/acsys.js` `js/acart.js` `js/acbrand.js` `js/acmicro.js` `js/achouse.js` | `docs/manual-04-ac.md` |
 | `js/bench.js` `js/benchui.js` | `docs/manual-05-bench.md` |
 | `js/cable.js` | `docs/manual-06-cable.md` |
 | `js/solar.js` | `docs/manual-07-pv.md` |
