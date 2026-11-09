@@ -364,12 +364,20 @@ function fmtSummary(kind,x){
   if(kind==='inverters')return`${({'on-grid':'On-grid','hybrid':'Hybrid','off-grid':'Off-grid'})[x.type]||x.type} · ${x.pac/1000} kW · MPPT ${x.lo}–${x.hi} V`+(x.type!=='on-grid'&&x.bvMax?` · แบต ${x.bvMin}–${x.bvMax} V`:'');
   return`${x.chem} · ${x.v} V${x.v3>0?' / '+x.v3+' V (3 เฟส)':''} · ${x.ah} Ah · ${f(x.v*x.ah/1000,2)} kWh`;
 }
+/* brand → model picker (two dropdowns) to keep menu 02 short */
+function eqBrands(kind){const o=[];CAT[kind].forEach(x=>{const b=String(x.brand||'').trim()||'(ไม่ระบุยี่ห้อ)';if(!o.includes(b))o.push(b)});return o}
+const eqBrandOf=x=>String(x&&x.brand||'').trim()||'(ไม่ระบุยี่ห้อ)';
 function eqListHTML(kind){
-  const key=ACTKEY[kind],sc=SCHEMA[kind];
-  return CAT[kind].map(x=>{
-    const on=(pick(kind)||{}).id===x.id;
-    return`<li class="eqrow${on?' on':''}"><label class="eqpick"><input type="radio" name="act-${kind}" value="${esc(x.id)}" ${on?'checked':''} data-act="${kind}"><span><b>${esc(x.brand)} ${esc(x.model)}</b><small>${esc(fmtSummary(kind,x))}</small>${x.note?`<small class="nt">${esc(x.note)}</small>`:''}${kind==='batteries'&&!batCompat(x)?'<small class="nt bad">ใช้กับอินเวอร์เตอร์ที่เลือกไม่ได้</small>':''}</span></label>${TEACH.on?`<span class="eqbtn"><button class="btn sm" data-edit="${kind}" data-id="${esc(x.id)}">แก้ไข</button><button class="btn sm" data-del="${kind}" data-id="${esc(x.id)}" ${CAT[kind].length<2?'disabled':''}>ลบ</button></span>`:''}</li>`;
-  }).join('');
+  const cur=pick(kind);if(!cur)return'<p class="hint">ยังไม่มีรุ่นในแคตตาล็อก</p>';
+  const brand=eqBrandOf(cur),brands=eqBrands(kind),isBat=kind==='batteries';
+  const inB=CAT[kind].filter(x=>eqBrandOf(x)===brand);
+  const bOpt=brands.map(b=>{const L=CAT[kind].filter(x=>eqBrandOf(x)===b),ok=!isBat||L.some(x=>batCompat(x));
+    return`<option value="${esc(b)}" ${b===brand?'selected':''}>${esc(b)} (${L.length} รุ่น)${ok?'':' · ใช้กับอินเวอร์เตอร์นี้ไม่ได้'}</option>`}).join('');
+  const mOpt=inB.map(x=>`<option value="${esc(x.id)}" ${x.id===cur.id?'selected':''}>${esc(x.model)}${isBat&&!batCompat(x)?' · ใช้ไม่ได้':''}</option>`).join('');
+  return`<div class="eqsel"><label>ยี่ห้อ<select data-brand="${kind}" aria-label="ยี่ห้อ">${bOpt}</select></label><label>รุ่น<select data-act="${kind}" aria-label="รุ่น">${mOpt}</select></label></div>
+  <div class="eqcur"><b>${esc(cur.brand)} ${esc(cur.model)}</b><small>${esc(fmtSummary(kind,cur))}</small>${cur.note?`<small class="nt">${esc(cur.note)}</small>`:''}${isBat&&!batCompat(cur)?'<small class="nt bad">ใช้กับอินเวอร์เตอร์ที่เลือกไม่ได้</small>':''}
+  ${TEACH.on?`<span class="eqbtn"><button class="btn sm" data-edit="${kind}" data-id="${esc(cur.id)}">แก้ไขรุ่นนี้</button><button class="btn sm" data-del="${kind}" data-id="${esc(cur.id)}" ${CAT[kind].length<2?'disabled':''}>ลบรุ่นนี้</button></span>`:''}</div>
+  <p class="hint tight">ทั้งหมด ${CAT[kind].length} รุ่น · ${brands.length} ยี่ห้อ</p>`;
 }
 function eqFormHTML(kind){
   const sc=SCHEMA[kind],cur=EQ.edit[kind],isNew=!cur;
@@ -399,7 +407,7 @@ function eqRender(kind){
   const host=$('#eq-'+kind);if(!host)return;
   const sc=SCHEMA[kind];
   host.innerHTML=`<div class="panelbox eqbox">
-    <ul class="eqlist">${eqListHTML(kind)}</ul>
+    ${eqListHTML(kind)}
     ${kind==='batteries'?`<div class="bankbox"><h3>ชุดแบตเตอรี่ที่ใช้จำลอง</h3>${bankHTML()}</div>`:''}
     ${TEACH.on?`<details class="eqd"${EQ.edit[kind]?' open':''}><summary>${EQ.edit[kind]?'แก้ไข':'เพิ่ม'}${sc.one}</summary>${eqFormHTML(kind)}</details>
     <details class="eqd"><summary>นำเข้า / ส่งออก</summary>
@@ -439,6 +447,12 @@ function initCatalogUI(){
     const t=e.target;
     if(t.dataset.file&&!TEACH.on)return;
     if(t.dataset.act){ACT[ACTKEY[t.dataset.act]]=t.value;onCatalogChange();return}
+    if(t.dataset.brand){
+      const kind=t.dataset.brand,L=CAT[kind].filter(x=>eqBrandOf(x)===t.value);
+      const x=(kind==='batteries'&&L.find(y=>batCompat(y)))||L[0];
+      if(x){ACT[ACTKEY[kind]]=x.id;onCatalogChange()}
+      return;
+    }
     if(t.dataset.file){
       const file=t.files[0];if(!file)return;
       const kind=t.dataset.file,rd=new FileReader();

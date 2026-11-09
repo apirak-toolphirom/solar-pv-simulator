@@ -224,6 +224,16 @@ input[type=file]{font-size:13px;width:100%}
 .eqpick small{color:var(--muted);font-size:12.5px;overflow-wrap:anywhere}
 .eqpick small.nt{font-style:italic}
 .eqbtn{display:flex;gap:6px;flex:none}
+.eqsel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:10px}
+.eqsel label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.eqsel select{font-size:15px}
+.eqcur{display:flex;flex-direction:column;gap:2px;margin-top:10px;padding:8px 10px;background:var(--accentbg);border-radius:8px}
+.eqcur b{font-weight:500;overflow-wrap:anywhere}
+.eqcur small{color:var(--muted);font-size:12.5px;overflow-wrap:anywhere}
+.eqcur small.nt{font-style:italic}
+.eqcur small.nt.bad{color:var(--err);font-style:normal}
+.eqcur .eqbtn{margin-top:6px}
+@media (max-width:560px){.eqsel{grid-template-columns:1fr}}
 .eqd{border-top:1px solid var(--line);padding-top:10px}
 .eqd>summary{cursor:pointer;font-weight:500;min-height:32px;display:flex;align-items:center}
 .eqgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 14px;margin:10px 0}
