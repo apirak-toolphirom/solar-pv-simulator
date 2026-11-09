@@ -37,6 +37,7 @@ function connect(a,b){
   if(!a||!b||a===b)return;
   if(st.wires.some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a)))return;
   st.wires.push({a,b});
+  if(typeof aidLog==='function'){const k=wkind(a,b);aidLog('ต่อสาย: '+k.t,k.lvl)}
 }
 function wirePath(ka,a,kb,b){
   const da=dirVec(ka),db=kb?dirVec(kb):{x:0,y:0},dist=Math.hypot(b.x-a.x,b.y-a.y),k=30+Math.min(dist*.25,90);
@@ -91,10 +92,12 @@ function drawSvg(A){
     }
     s+=`<path class="halo" d="${d}"/><path class="wire ${cls}"${sty} d="${d}"/><path class="whit" data-wire="${i}" d="${d}"><title>แตะเพื่อลบสาย</title></path>`;
   });
+  if(typeof aidWires==='function')s+=aidWires(A);
+  const picking=(wiring&&wiring.moved)?wiring.from:st.armed;
   allKeys().forEach(k=>{
     const t=termPos(k),ty=typeOf(k);
-    const on=st.armed===k||(wiring&&wiring.cand===k);
-    s+=`<g data-term="${k}"><circle class="hit" cx="${t.x}" cy="${t.y}" r="${hit}"/><circle class="term ${ty}${on?' armed':''}" cx="${t.x}" cy="${t.y}" r="${tr}"/><text class="tt" style="font-size:${fs}px" x="${t.x}" y="${t.y+fs*0.36}">${ty==='p'?'+':'−'}</text></g>`;
+    const on=st.armed===k||(wiring&&wiring.cand===k),pk=picking&&k!==picking&&!on;
+    s+=`<g data-term="${k}"><circle class="hit" cx="${t.x}" cy="${t.y}" r="${hit}"/><circle class="term ${ty}${on?' armed':''}${pk?' pick':''}" cx="${t.x}" cy="${t.y}" r="${tr}"/><text class="tt" style="font-size:${fs}px" x="${t.x}" y="${t.y+fs*0.36}">${ty==='p'?'+':'−'}</text></g>`;
   });
   A.si.inv.forEach(k=>{const b=invBlk(k);badges.push([b.x+b.w-24,b.y+b.h/2])});
   badges.forEach(m=>{s+=`<g class="shortbadge" transform="translate(${m[0].toFixed(1)} ${m[1].toFixed(1)})"><circle r="14"/><path d="M3,-9 L-5,2 L0,2 L-3,10 L6,-3 L1,-3 Z"/><text class="shortlbl" x="19" y="4" style="text-anchor:start">ชอต</text></g>`});
@@ -102,6 +105,7 @@ function drawSvg(A){
     const a=termPos(wiring.from),tgt=wiring.cand?termPos(wiring.cand):{x:wiring.x,y:wiring.y};
     s+=`<path class="wprev" d="${wirePath(wiring.from,a,wiring.cand,tgt)}"/>`;
   }
+  if(typeof aidTop==='function')s+=aidTop(A);
   svg.innerHTML=s;
 }
 
@@ -159,12 +163,14 @@ function render(){
   $('#rotp').disabled=st.sel==null;
   $('#addp').disabled=st.panels.length>=MAXP;
   syncScaleUI();
+  if(typeof aidPanels==='function')aidPanels(A);
   maybeSim(A);
   if(typeof touch==='function')touch();
 }
 
 /* ---- events ---- */
 svg.addEventListener('pointerdown',e=>{
+  if(typeof aidDown==='function'&&aidDown(e))return;
   const rh=e.target.closest('[data-rot]');
   if(rh){rotPanel(+rh.dataset.rot);e.preventDefault();return}
   const t=e.target.closest('[data-term]');
@@ -180,6 +186,7 @@ svg.addEventListener('pointerdown',e=>{
   if(!e.target.closest('[data-wire]')){st.sel=null;st.armed=null;render()}
 });
 document.addEventListener('pointermove',e=>{
+  if(typeof aidMove==='function'&&aidMove(e))return;
   if(wiring){
     const p=pt(e);wiring.x=p.x;wiring.y=p.y;
     if(Math.hypot(e.clientX-wiring.sx,e.clientY-wiring.sy)>5)wiring.moved=true;
@@ -192,6 +199,7 @@ document.addEventListener('pointermove',e=>{
   }
 });
 document.addEventListener('pointerup',e=>{
+  if(typeof aidUp==='function'&&aidUp(e))return;
   if(wiring){
     const w=wiring;wiring=null;
     if(w.moved){connect(w.from,nearest(pt(e),w.from));st.armed=null}
@@ -204,7 +212,7 @@ document.addEventListener('pointerup',e=>{
 document.addEventListener('pointercancel',()=>{wiring=null;moving=null;invMove=null;render()});
 svg.addEventListener('click',e=>{
   const w=e.target.closest('[data-wire]');
-  if(w){st.wires.splice(+w.dataset.wire,1);render()}
+  if(w){const x=st.wires[+w.dataset.wire];st.wires.splice(+w.dataset.wire,1);if(x&&typeof aidLog==='function')aidLog('ลบสาย: '+wkind(x.a,x.b).t,'idle');render()}
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&fsOn){setFs(false);return}
@@ -216,7 +224,7 @@ function delPanel(){
   const id=st.sel;
   st.panels=st.panels.filter(p=>p.id!==id);
   st.wires=st.wires.filter(w=>!w.a.startsWith(id+':')&&!w.b.startsWith(id+':'));
-  st.sel=null;render();
+  st.sel=null;if(typeof aidLog==='function')aidLog(`ลบแผง #${id} และสายที่ต่ออยู่`,'idle');render();
 }
 $('#cards').addEventListener('change',e=>{const s=e.target.closest('[data-mppv]');if(!s)return;const k=+s.dataset.mppv;if(s.value)MP_PM[k]=s.value;else delete MP_PM[k];render()});
 document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{PRESETS[b.dataset.preset]();render()}));

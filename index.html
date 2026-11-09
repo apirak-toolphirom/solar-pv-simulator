@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="985192af44">
+<meta name="build" content="c5bf53c95c">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='985192af44'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='c5bf53c95c'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=7f799335">
+<link rel="stylesheet" href="css/styles.css?v=d83e920e">
 </head>
 <body>
 <div class="app">
@@ -109,7 +109,21 @@ if(m&&m[1]!=='985192af44'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     </div>
   </section>
 
+  <section class="bar fsk wtools">
+    <div class="grp wtray"><span class="lab">ถาดอุปกรณ์</span>
+      <button class="trayit" data-tray="panel" title="ลากลงพื้นที่ต่อสาย หรือแตะเพื่อเพิ่มต่อท้าย"><i class="tic pv"></i>แผงโซลาร์<small>ลากลงพื้นที่</small></button>
+      <button class="trayit" data-tray="meter" title="ลากลงพื้นที่ หรือแตะเพื่อเปิด/ปิด"><i class="tic mm"></i>มัลติมิเตอร์<small>วัดแรงดัน DC</small></button>
+    </div>
+    <span class="sp"></span>
+    <div class="grp"><span class="lab">ตัวช่วย</span>
+      <button class="chip tog" id="wlab" aria-pressed="true" title="แสดงบนสายแต่ละเส้นว่าเป็นอนุกรม ขนาน เข้าอินเวอร์เตอร์ ขั้วกลับ หรือชอต">ป้ายบอกการต่อ</button>
+      <button class="chip tog" id="wmeter" aria-pressed="false">มัลติมิเตอร์</button>
+      <button class="chip tog pri" id="wrun" title="จำลองอินเวอร์เตอร์ทำงาน ไฟไหลตามสายของ MPPT ที่ต่อถูก แสดงแรงดัน กระแส และกำลัง">▶ เดินระบบ</button>
+    </div>
+  </section>
+
   <section class="fscan fsk">
+    <div id="wmnote" class="wmnote" hidden></div>
     <div class="canvas"><svg id="svg" viewBox="0 0 1200 680" role="img" aria-label="พื้นที่ต่อสายแผงโซลาร์เข้าอินเวอร์เตอร์"></svg></div>
     <p class="hint">ลากจากขั้วหนึ่งไปอีกขั้วเพื่อต่อสาย แตะสายเพื่อลบ ลากตัวแผงเพื่อย้าย ลากกล่อง MPPT 1 และ MPPT 2 แยกกันไปวางตำแหน่งไหนก็ได้ กดปุ่ม ↻ ที่มุมกล่องหรือ "หมุน MPPT" เพื่อหมุนให้ขั้ว DC หันซ้าย บน ขวา หรือล่าง กดปุ่ม ↻ ที่แผงหรือกด R เพื่อหมุน บนมือถือแตะขั้วแรกแล้วแตะขั้วที่สองก็ต่อได้ เลขแผงนับต่อไปเรื่อยๆ ไม่ใช้เลขที่ลบไปแล้วซ้ำ สายที่ทำให้เกิดชอตจะมีสัญลักษณ์ฟ้าแลบสีแดง</p>
     <div class="key">
@@ -117,6 +131,11 @@ if(m&&m[1]!=='985192af44'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       <span><i style="background:var(--neg);outline:1px solid var(--line)"></i>สายดำ = ขั้ว −</span>
       <span><i style="background:linear-gradient(90deg,var(--pos) 48%,var(--neg) 52%)"></i>แดง-ดำ = + ต่อ − ระหว่างแผง (อนุกรม)</span>
     </div>
+  </section>
+
+  <section class="waidrow">
+    <div class="panelbox"><h2>ผังวงจรย่อ</h2><div id="wschem" class="wschem"></div><p class="hint tight">วาดจากสายที่ต่อจริง เส้นตั้งซ้าย = DC− เส้นตั้งขวา = DC+ แต่ละแถวคือ 1 สตริง (แผงต่ออนุกรม) หลายแถวคือขนานกัน</p></div>
+    <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" id="wlogclr">ล้าง</button></div><ul id="wlog" class="wlog"></ul></div>
   </section>
 
   <section>
@@ -665,7 +684,8 @@ if(m&&m[1]!=='985192af44'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/pdfimport.js?v=e4c2f177"></script>
 <script src="js/model.js?v=f5bf7887"></script>
 <script src="js/engine.js?v=0c08839d"></script>
-<script src="js/wiring.js?v=431b1ab5"></script>
+<script src="js/wiring.js?v=3151bc8e"></script>
+<script src="js/wireaid.js?v=83b92691"></script>
 <script src="js/acart.js?v=a67bdc03"></script>
 <script src="js/acsys.js?v=1455dcc2"></script>
 <script src="js/acmicro.js?v=622b90f2"></script>
