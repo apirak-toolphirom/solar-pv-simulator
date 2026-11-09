@@ -55,6 +55,7 @@ svg text{fill:var(--muted);font:11px var(--mono)}
 .iss .row{display:grid;grid-template-columns:minmax(0,1fr) 58px;gap:8px;align-items:center;font-size:12.5px}
 .iss .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .iss .b{height:8px;border-radius:0 4px 4px 0;background:var(--s1);margin-top:3px}
+.msum{width:100%;border-collapse:collapse;font-size:13px}.msum th,.msum td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.msum .n{font-family:var(--mono);text-align:right}.msum tr.none td{color:var(--muted)}.msum .ti{min-width:220px}.msum td:nth-child(5){min-width:130px;white-space:nowrap}.pbar{display:inline-block;width:80px;height:8px;border-radius:99px;background:var(--line);overflow:hidden;vertical-align:middle;margin-right:6px}.pbar i{display:block;height:100%;background:var(--ok)}
 .iss .n{font-family:var(--mono);text-align:right;white-space:nowrap}
 .tblwrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
 table{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}
@@ -111,6 +112,8 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
       <div class="card"><h2>ผลการตรวจ (ครั้งล่าสุดของแต่ละคน)</h2><div class="res" id="chRes"></div>
         <div class="lg"><span><i style="background:var(--ok)"></i>✓ ผ่าน</span><span><i style="background:var(--warn)"></i>! มีข้อควรระวัง</span><span><i style="background:var(--err)"></i>× ไม่ผ่าน</span><span><i style="background:var(--idle)"></i>ยังไม่ได้ทำ</span></div></div>
     </div>
+    <div class="card" style="margin-bottom:12px"><h2>สรุปรายเมนู (ครั้งล่าสุดของแต่ละคนในใบงานของเมนูนั้น)</h2><div class="tblwrap"><table class="msum" id="msum"></table></div>
+      <p class="foot">ผ่าน = ใบงานทุกใบของเมนูที่คนนั้นส่งผ่านเกณฑ์ · เกณฑ์ที่ไม่ผ่านบ่อยสุด นับจากเกณฑ์ใบงานที่ยังไม่ผ่านของเมนูนั้น (ตัวเลขต่างกันนับเป็นข้อเดียวกัน) · เมนูที่ยังไม่มีใบงานจะไม่มีตัวเลข</p></div>
     <div class="card" style="margin-bottom:12px"><h2>ข้อผิดพลาดที่พบบ่อย</h2><div class="iss" id="chIss"></div></div>
 
     <div class="card">
@@ -183,6 +186,7 @@ function demo(){
       inv:pick(['Solis S6-GR1P6K-S','Huawei SUN2000-5KTL-L1','Solis S6-EH1P6K-L-PLUS'],i),bat:i%3?'Dyness PowerBrick 14.3 kWh × 1S1P':'-',pv:(used*.65*4.4).toFixed(1),load:11.2,bkMode:'hybrid',
       ws:pick(['W1','W2','W3','W1','W4'],i+j),wsPass:rnd()<.6,wsFail:'',ans:'1. ทำไมต่ออนุกรมเกิน… → เพราะ Voc ตอนเช้าที่อากาศเย็นจะสูงเกินแรงดันสูงสุดของอินเวอร์เตอร์',img:'',
       bk:rnd()<.7?'ok':'warn',bkText:'ช่วงไฟดับ 18:00–00:00: ไฟพอใช้ตามโหลดที่เลือก',unmet:0,issues:dc==='ok'?[]:[pick(iss,i+j),dc==='err'?pick(iss,i+2):''].filter(Boolean),ac:rnd()<.5?'ok':rnd()<.5?'err':'idle',acErr:0,ev:''})}});
+  out.forEach(r=>{if(r.ws&&!r.wsPass)r.wsFail=({W1:'ผลต่อสาย DC ยังไม่ผ่านการตรวจ',W2:'ผลต่อสาย AC ยังไม่ผ่าน',W3:'เงาบังแผงเกิน 15%',W4:'ไฟไม่พอใช้ช่วงไฟดับ'})[r.ws]||'ยังไม่ครบเกณฑ์'});
   ROWS=out;WSL=[['W00','แบบฝึกพื้นฐาน 15 หัวข้อ'],['W1','อุปกรณ์และต่อสาย DC'],['W2','ต่อสาย AC และพอร์ตอินเวอร์เตอร์'],['W3','กำลังผลิตและเงา'],['W4','โหลดและ Backup'],['W5','เลือกระบบ'],['W6','จำลองเหตุการณ์'],['W7','วงจร DC'],['W8','Commissioning Solis Hybrid']].map(([id,name],k)=>({id,name,tabs:'',start:'',end:'',status:k<4?'auto':'ปิด',open:k<4}));MNL=[['basics','00 แบบฝึกพื้นฐาน'],['library','01 คลังความรู้'],['equip','02 อุปกรณ์'],['wiring','03 ต่อสาย DC แผง'],['ac','04 ต่อสาย AC ระบบ'],['bench','05 ชุดทดลองวงจร DC'],['cable','06 สายไฟและเบรกเกอร์'],['pv','07 จำลองแผง'],['site','08 ไซต์และเงา'],['load','09 จำลองโหลด'],['backup','10 จำลองการไหลของไฟ'],['systems','11 จำลองระบบ 4 แบบ'],['events','12 จำลองเหตุการณ์'],['calc','13 คำนวณความคุ้มค่า'],['eit','14 ออกแบบระบบไฟฟ้า วสท.'],['solis','15 Solis Commissioning'],['lfp','16 แบต LiFePO4 + JK-BMS'],['fusion','17 Huawei FusionSolar'],['submit','18 ส่งงาน']].map(([tab,name])=>({tab,name,status:['cable','library'].includes(tab)?'เปิด':['solis','lfp','calc','eit'].includes(tab)?'ปิด':'auto',visitorOn:tab==='backup'||tab==='basics',student:['basics','equip','wiring','ac','pv','site','load','backup','submit','cable','library'].includes(tab)?'open':'closed',visitor:tab==='backup'||tab==='basics'?'open':'closed'}));ROST=0;msg('ข้อมูลตัวอย่าง (ไม่ใช่ข้อมูลจริง) · กด "โหลดข้อมูล" เพื่อดูงานส่งจริง','info');show();
 }
 
@@ -219,7 +223,7 @@ function render(){
     ['ขนาดระบบเฉลี่ย',last.length?f(last.reduce((a,r)=>a+r.kwp,0)/last.length,2)+' kWp':'–',last.length?`${f(last.reduce((a,r)=>a+r.used,0)/last.length,1)} แผงต่อคน`:''],
     ['ส่งวันนี้',ROWS.filter(r=>dayKey(r.t)===today).length+' ครั้ง',dayTh(today)]];
   $('#kpis').innerHTML=kp.map(k=>`<div class="card kpi"><div class="k">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${esc(k[2])}</div></div>`).join('');
-  drawDays();drawRes(last);drawIssues(last);drawMatrix();drawWsTable();drawMenus();drawTable(L);
+  drawDays();drawRes(last);drawIssues(last);drawMatrix();drawMenuSum(inDay);drawWsTable();drawMenus();drawTable(L);
 }
 
 /* submissions per day: one series, bars from a zero baseline, hover tooltip */
@@ -277,6 +281,27 @@ ${r.ws?`<b>ใบงาน</b> ${esc(r.ws)} ${esc(r.wsName)} · ${r.wsPass?'ผ�
   $('#foot').textContent='แตะแถวเพื่อดูรายละเอียด · แตะหัวคอลัมน์เพื่อเรียง · ข้อมูลมาจากแผ่น Submissions ใน Google Sheets ของผู้สอน';
 }
 /* students x worksheets: latest submission per cell */
+/* per menu: how many trainees submitted a worksheet that uses it, how many passed, and the most common mistake */
+const WS_TABS0={W00:'basics',W1:'equip,wiring',W2:'ac',W3:'pv,site',W4:'load,backup',W5:'systems',W6:'events',W7:'bench',W8:'solis',W9:'cable',W10:'calc',W11:'eit',W12:'lfp',W13:'fusion'};
+const MNL0=[['basics','00 แบบฝึกพื้นฐาน'],['library','01 คลังความรู้'],['equip','02 อุปกรณ์'],['wiring','03 ต่อสาย DC แผง'],['ac','04 ต่อสาย AC ระบบ'],['bench','05 ชุดทดลองวงจร DC'],['cable','06 สายไฟและเบรกเกอร์'],['pv','07 จำลองแผง'],['site','08 ไซต์และเงา'],['load','09 จำลองโหลด'],['backup','10 จำลองการไหลของไฟ'],['systems','11 จำลองระบบ 4 แบบ'],['events','12 จำลองเหตุการณ์'],['calc','13 คำนวณความคุ้มค่า'],['eit','14 ออกแบบระบบไฟฟ้า วสท.'],['solis','15 Solis Commissioning'],['lfp','16 แบต LiFePO4 + JK-BMS'],['fusion','17 Huawei FusionSolar']];
+function drawMenuSum(L){
+  const host=$('#msum');if(!host)return;
+  const tabsOf=id=>{const w=WSL.find(x=>x.id===id);return String((w&&w.tabs)||WS_TABS0[id]||'').split(',').map(s=>s.trim()).filter(Boolean)};
+  const lastWs={};L.forEach(r=>{if(!r.ws||r.ws==='W0')return;const c=who(r)+'|'+r.ws;if(!lastWs[c]||r.t>lastWs[c].t)lastWs[c]=r});
+  const menus=(MNL.length?MNL.map(m=>[m.tab,m.name]):MNL0).filter(m=>m[0]!=='submit').sort((a,b)=>a[1].localeCompare(b[1]));
+  const mask=t=>t.replace(/[\d.,]+/g,'#');
+  const rows=menus.map(([tab,name])=>{
+    const wsIds=[...new Set(Object.values(lastWs).map(r=>r.ws).concat(WSL.map(w=>w.id),Object.keys(WS_TABS0)))].filter(id=>tabsOf(id).includes(tab));
+    if(!wsIds.length)return`<tr class="none"><td>${esc(name)}</td><td>–</td><td class="n" colspan="3">ยังไม่มีใบงาน</td><td></td></tr>`;
+    const per={},iss={};
+    Object.values(lastWs).forEach(r=>{if(!wsIds.includes(r.ws))return;const k=who(r);per[k]=per[k]===undefined?r.wsPass:per[k]&&r.wsPass;
+      [...new Set(String(r.wsFail||'').split('\n').map(s=>s.trim()).filter(Boolean))].forEach(t=>{const m=mask(t);if(!iss[m])iss[m]={n:0,ex:t};iss[m].n++})});
+    const n=Object.keys(per).length,p=Object.values(per).filter(Boolean).length,top=Object.values(iss).sort((a,b)=>b.n-a.n)[0];
+    const pc=n?p/n*100:0;
+    return`<tr><td>${esc(name)}</td><td>${esc(wsIds.join(', '))}</td><td class="n">${n}</td><td class="n">${p}</td><td><div class="pbar" data-tip="${n?`ผ่าน ${p} จาก ${n} คน`:'ยังไม่มีคนส่ง'}"><i style="width:${pc}%"></i></div><span class="n">${n?f(pc,0)+' %':'–'}</span></td><td class="ti">${top?`${esc(top.ex)} <b>(${top.n} คน)</b>`:n?'ไม่มี':''}</td></tr>`;
+  });
+  host.innerHTML=`<thead><tr><th>เมนู</th><th>ใบงาน</th><th>ส่ง (คน)</th><th>ผ่าน</th><th>อัตราผ่าน</th><th>เกณฑ์ที่ไม่ผ่านบ่อยสุด</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+}
 function drawMatrix(){
   const ids=WSL.length?WSL.map(w=>w.id).filter(id=>id!=='W0'):[...new Set(ROWS.map(r=>r.ws).filter(Boolean))].sort();
   const host=$('#mtx');
