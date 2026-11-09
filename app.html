@@ -97,12 +97,30 @@
     <div class="grp wtray"><span class="lab">ถาดอุปกรณ์</span>
       <button class="trayit" data-tray="panel" title="ลากลงพื้นที่ต่อสาย หรือแตะเพื่อเพิ่มต่อท้าย"><i class="tic pv"></i>แผงโซลาร์<small>ลากลงพื้นที่</small></button>
       <button class="trayit" data-tray="meter" title="ลากลงพื้นที่ หรือแตะเพื่อเปิด/ปิด"><i class="tic mm"></i>มัลติมิเตอร์<small>วัดแรงดัน DC</small></button>
+      <button class="trayit" data-tray="clamp" title="ลากไปคล้องสาย หรือแตะเพื่อเปิด/ปิด"><i class="tic cm"></i>แคลมป์มิเตอร์<small>วัดกระแสในสาย</small></button>
     </div>
     <span class="sp"></span>
     <div class="grp"><span class="lab">ตัวช่วย</span>
       <button class="chip tog" id="wlab" aria-pressed="true" title="แสดงบนสายแต่ละเส้นว่าเป็นอนุกรม ขนาน เข้าอินเวอร์เตอร์ ขั้วกลับ หรือชอต">ป้ายบอกการต่อ</button>
       <button class="chip tog" id="wmeter" aria-pressed="false">มัลติมิเตอร์</button>
+      <button class="chip tog" id="wclamp" aria-pressed="false">แคลมป์มิเตอร์</button>
+      <label class="scl" for="wtc">เซลล์ตอนวัด <select id="wtc"><option value="min">เย็นสุด (ตามที่ตั้ง)</option><option value="25" selected>25°C (STC)</option><option value="max">ร้อนสุด (ตามที่ตั้ง)</option></select></label>
+      <button class="chip tog" id="wfault" title="ระบบต่อสตริงให้และซ่อนจุดเสีย 1 จุด ใช้มิเตอร์ไล่หา">โจทย์หาจุดเสีย</button>
       <button class="chip tog pri" id="wrun" title="จำลองอินเวอร์เตอร์ทำงาน ไฟไหลตามสายของ MPPT ที่ต่อถูก แสดงแรงดัน กระแส และกำลัง">▶ เดินระบบ</button>
+    </div>
+  </section>
+
+  <section class="waid2">
+    <details id="wmis" class="panelbox wmis" open><summary>ภารกิจทีละขั้น <b id="wmisp">0/6</b><span class="wmisbar"><i id="wmisbar"></i></span></summary>
+      <ol id="wmisl" class="wmisl"></ol>
+      <button class="chip" id="wmisr">เริ่มภารกิจใหม่</button>
+    </details>
+    <div id="wfaultbox" class="panelbox wfault" hidden>
+      <h2>โจทย์หาจุดเสีย</h2>
+      <p class="hint tight">ระบบจะต่อสตริงให้ แล้วซ่อนจุดเสีย 1 จุด (ขั้ว MC4 หลวม/สายขาด หรือแผงที่บายพาสไดโอดลัด) ใช้มัลติมิเตอร์ไล่วัดทีละแผงและคร่อมแต่ละจุดต่อ กด ▶ เดินระบบ เพื่อดูอาการ ผู้สอนให้ทุกคนใช้ <b>รหัสโจทย์</b> เดียวกันได้ จะได้จุดเสียเดียวกัน</p>
+      <div class="wfrow"><label for="wfcode">รหัสโจทย์<input id="wfcode" type="number" inputmode="numeric" min="1000" max="9999"></label><button class="chip" id="wfrand">สุ่มรหัส</button><button class="chip pri" id="wfgo">เริ่มโจทย์</button><button class="chip" id="wfend">จบโจทย์</button></div>
+      <div id="wfans" class="wfrow" hidden><label for="wfsel">จุดเสียคือ<select id="wfsel"></select></label><button class="chip pri" id="wfchk">ตรวจคำตอบ</button></div>
+      <p id="wfmsg" class="hint tight"></p>
     </div>
   </section>
 

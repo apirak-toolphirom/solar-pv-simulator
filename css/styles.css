@@ -1118,3 +1118,25 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
   .tblwrap:has(> table.mcard){overflow:visible}
 }
 @media (max-width:600px){table.mcard.rh tr>:first-child::before{content:none}table.mcard.rh tr>:first-child{justify-content:flex-start;text-align:left}}
+/* ---- 03: clamp meter, missions, fault exercise ---- */
+.tic.cm{width:20px;height:20px;border-radius:50%;border:4px solid #e0762c;background:transparent;box-shadow:inset 0 0 0 2px #3a3a3a}
+.trayghost.clamp{background:#e0762c;color:#fff}
+.clamp{cursor:grab}.clamp .chit{fill:transparent}
+.clamp .cjaw{fill:none;stroke:#e0762c;stroke-width:6}.clamp.on .cjaw{stroke:#c45a10}
+.clamp .chand{fill:#3a3a3a;stroke:#e0762c;stroke-width:1.5}
+.clamp .clcd{fill:#c9d6b8;stroke:#55604a;stroke-width:1.5}
+.cval{font:700 17px var(--mono);text-anchor:end;fill:#1d2616}.cval.warn{fill:#7a4a00}
+.wmnote div{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;width:100%}
+.waid2{display:grid;gap:10px}
+.wmis summary{cursor:pointer;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wmis summary b{font-family:var(--mono)}
+.wmisbar{flex:1 1 120px;max-width:260px;height:8px;border-radius:99px;background:var(--line);overflow:hidden}.wmisbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.wmisl{list-style:none;margin:10px 0;padding:0;display:grid;gap:6px}
+.wmisl li{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--muted)}
+.wmisl .mk{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);font:600 12px var(--mono)}
+.wmisl li.done{color:var(--ink)}.wmisl li.done .mk{background:var(--ok);border-color:var(--ok);color:#fff}
+.wmisl li.now{color:var(--ink);font-weight:600}.wmisl li.now .mk{border-color:var(--accent);color:var(--accent)}
+.wfault h2{margin-bottom:4px}
+.wfrow{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin:8px 0}
+.wfrow label{display:flex;flex-direction:column;gap:4px;font-size:13px}.wfrow input{width:110px}.wfrow select{max-width:100%}
+.okc{color:var(--ok)}.errc{color:var(--err)}
