@@ -37,3 +37,10 @@
 
 ## build
 แก้ไฟล์ต้นทางแล้วรัน `python3 build.py` ทุกครั้งก่อน commit (สร้าง `index.html` และ `dist/pv-wiring-sim.html`)
+
+## ทดสอบ
+รัน `bash tests/run.sh` ก่อน commit ทุกครั้ง (build ให้เอง) ต้องขึ้น `ALL TESTS PASSED`
+- `tests/smoke.js` เปิดทุกเมนูใน jsdom ตรวจ error และว่าทุกเมนูมีปุ่ม section ชื่อ และคู่มือ
+- `tests/structure.test.js` เลขเมนูเรียง 00, 01, 02 … ตามแถบเมนู และตรงกันใน ACC_NAME ชื่อไฟล์คู่มือ และ `Code.gs`
+- `tests/menu03.test.js` ตัวเลขตัวอย่างในคู่มือเมนู 03 ต้องตรงกับที่โปรแกรมคำนวณ ถ้าตั้งใจเปลี่ยนการคำนวณ ให้แก้คู่มือและไฟล์ทดสอบพร้อมกัน
+- `tests/mobile.py` (ถ้ามี Python Playwright + Chrome) ทุกเมนูที่จอ 390 px ไม่ล้นจอ ไม่มีตารางต้องเลื่อนซ้ายขวา และปุ่มสูงพอให้แตะ

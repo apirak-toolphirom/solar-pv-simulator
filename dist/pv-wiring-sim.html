@@ -3301,6 +3301,10 @@ function aidPot(A){
     if(r in V)return;c++;V[r]=0;comp[r]=c;const q=[r];
     while(q.length){const u=q.shift();(adj[u]||[]).forEach(([v,x])=>{const want=V[u]+x;if(!(v in V)){V[v]=want;comp[v]=c;q.push(v)}else if(Math.abs(V[v]-want)>.01)bad[c]=1})}
   });
+  /* the inverter's DC input closes the loop with a (high) resistance: when a string is broken somewhere, no current flows,
+     so DC+ and DC− sit at the same potential and the whole string voltage appears across the break */
+  mpKs().forEach(k=>{const gp=fd(`i${k}:p`),gn=fd(`i${k}:n`),cp=comp[gp],cn=comp[gn];if(cp===cn)return;
+    const d=V[gn]-V[gp];Object.keys(comp).forEach(g=>{if(comp[g]===cp){V[g]+=d;comp[g]=cn}});if(bad[cp])bad[cn]=1});
   return{fd,V,comp,bad};
 }
 function meterRead(A){
@@ -3310,7 +3314,8 @@ function meterRead(A){
   if(P.comp[gr]!==P.comp[gb])return{v:'0.0',note:'ปลายวัดอยู่คนละวงจร ไม่มีทางเดินไฟระหว่างสองจุดนี้',lvl:'warn',x:0};
   if(P.bad[P.comp[gr]])return{v:'0.0',note:'วงจรนี้ลัดวงจร แรงดันตกเหลือ 0 V และมีกระแสลัดสูง ลบสายที่มีฟ้าแลบก่อน',lvl:'err',x:0};
   const v=P.V[gr]-P.V[gb],x=v/vAt(PV,run);
-  if(gr===gb||Math.abs(v)<.05)return{v:'0.0',note:'สองจุดนี้ต่อถึงกันด้วยสาย (ศักย์เท่ากัน) จึงอ่านได้ 0 V',lvl:'idle',x:0};
+  if(gr===gb)return{v:'0.0',note:'สองจุดนี้ต่อถึงกันด้วยสาย (ศักย์เท่ากัน) จึงอ่านได้ 0 V',lvl:'idle',x:0};
+  if(Math.abs(v)<.05)return{v:'0.0',note:'ไม่มีแรงดันระหว่างสองจุดนี้ (ยังไม่มีแผงต่อครบวงจรระหว่างกัน หรือมีจุดขาดในวงจร)',lvl:'idle',x:0};
   if(v<0)return{v:f(v,1),note:`ค่าติดลบ: ปลายแดงอยู่ฝั่ง − ของวงจร สลับสายมิเตอร์ (${mode})`,lvl:'warn',x:0};
   return{v:f(v,1),note:`${mode} ≈ ${f(x,1)} เท่าของแผงเดียว (แผงเดียว ${f(vAt(PV,run),1)} V)`,lvl:'ok',x};
 }

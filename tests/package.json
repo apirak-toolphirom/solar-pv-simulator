@@ -1,0 +1,8 @@
+{
+  "name": "solar-pv-simulator-tests",
+  "private": true,
+  "description": "Checks for the solar PV simulator: run `bash tests/run.sh` from the repo root",
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}
