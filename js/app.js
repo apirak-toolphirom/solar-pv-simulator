@@ -259,3 +259,7 @@ function initReset(){
     window.APP_READY=true;
   })();
 })();
+
+/* phones: tables marked .mcard become stacked cards; each cell is labelled with its column heading (CSS shows it) */
+function mcardLabel(){document.querySelectorAll('table.mcard').forEach(t=>{const hs=[...t.querySelectorAll('thead tr:last-child th')].map(th=>th.textContent.trim());t.querySelectorAll('tbody tr').forEach(tr=>{let c=0;[...tr.children].forEach(td=>{const h=hs[c];c+=+(td.getAttribute('colspan')||1);if(h&&td.dataset.label!==h)td.dataset.label=h})})})}
+{let q=0;new MutationObserver(()=>{if(!q)q=requestAnimationFrame(()=>{q=0;mcardLabel()})}).observe(document.body,{childList:true,subtree:true});mcardLabel()}

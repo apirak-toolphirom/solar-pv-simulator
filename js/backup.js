@@ -211,7 +211,7 @@ function bkPeriods(R,bi){
     while(i<n){if(!R.outage[i]){i++;continue}let j=i;while(j<n&&R.outage[j])j++;seg.push([i,j]);i=j}
     socTxt=seg.map(([a,b])=>`${hhmm(a*5/60)} ${f(a>0?R.soc[a-1]:BK.soc0,0)} % → ${b>=n?'24:00':hhmm(b*5/60)} ${f(R.soc[b-1],0)} %`).join(' · ')}
   const row=(nm,a,b,u)=>`<tr><td>${nm}</td><td>${a}</td>${on?`<td>${b}</td>`:''}</tr>`,v=x=>f(x,2)+' kWh',N=P[0],O=P[1];
-  let h=`<table class="t bkper"><thead><tr><th>ช่วงเวลา</th><th>ปกติ (กริดมีไฟ)</th>${on?'<th class="out">ไฟดับ</th>':''}</tr></thead><tbody>`
+  let h=`<table class="t bkper mcard rh"><thead><tr><th>ช่วงเวลา</th><th>ปกติ (กริดมีไฟ)</th>${on?'<th class="out">ไฟดับ</th>':''}</tr></thead><tbody>`
     +row('ระยะเวลา',f(N.h,1)+' ชม.',f(O.h,1)+' ชม.')
     +row('โหลดที่ต้องจ่าย',v(N.load)+' <small>(ทั้งหมด)</small>',v(O.load)+` <small>(${BK.island==='crit'?'เฉพาะโหลด Backup':'ทั้งหมด'})</small>`)
     +row('จากแผงตรง',v(N.direct),v(O.direct))

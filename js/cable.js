@@ -421,7 +421,7 @@ function cbCandTable(sel,need,vdMax,par,label){
   if(!sel||!sel.C)return'';
   const pk=sel.pick&&sel.pick.s;
   return`<section class="card tbl"><h3>${esc(label||'เทียบขนาดสาย')}</h3><p class="hint tight">ตัวคูณอุณหภูมิ ${cbN(sel.kt,2)} · ตัวคูณจัดกลุ่ม ${cbN(sel.kg,2)}${par>1?` · ขนาน ${par} เส้น`:''} · ต้องการ Iz' ≥ ${cbN(need,1)} A และแรงดันตก ≤ ${vdMax}%</p>
-    <div class="tblwrap"><table class="t cbt"><thead><tr><th>ขนาด (mm²)</th><th>Iz' (A)</th><th>กระแส</th><th>แรงดันตก (%)</th><th>แรงดันตก</th><th></th></tr></thead><tbody>${sel.C.map(c=>`<tr class="${c.s===pk?'cur':''}${!c.okMin?' cbdim':''}"><td>${c.s}</td><td>${cbN(c.iz,1)}</td><td>${c.okI?'<span class="cbok">ผ่าน</span>':'<span class="cbno">ไม่ผ่าน</span>'}</td><td>${cbN(c.vd.pct,2)}</td><td>${c.okV?'<span class="cbok">ผ่าน</span>':'<span class="cbno">ไม่ผ่าน</span>'}</td><td>${c.s===pk?'<b>เลือก</b>':!c.okMin?'<small>เล็กกว่าที่กำหนด</small>':''}</td></tr>`).join('')}</tbody></table></div></section>`;
+    <div class="tblwrap"><table class="t cbt mcard"><thead><tr><th>ขนาด (mm²)</th><th>Iz' (A)</th><th>กระแส</th><th>แรงดันตก (%)</th><th>แรงดันตก</th><th></th></tr></thead><tbody>${sel.C.map(c=>`<tr class="${c.s===pk?'cur':''}${!c.okMin?' cbdim':''}"><td>${c.s}</td><td>${cbN(c.iz,1)}</td><td>${c.okI?'<span class="cbok">ผ่าน</span>':'<span class="cbno">ไม่ผ่าน</span>'}</td><td>${cbN(c.vd.pct,2)}</td><td>${c.okV?'<span class="cbok">ผ่าน</span>':'<span class="cbno">ไม่ผ่าน</span>'}</td><td>${c.s===pk?'<b>เลือก</b>':!c.okMin?'<small>เล็กกว่าที่กำหนด</small>':''}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 function cbCdHTML(cd,kind){
   if(!cd)return'';
@@ -501,13 +501,13 @@ function cbBrkTable(sys,need){
 }
 function cbRenderRef(){
   const h=document.getElementById('cbres_ref');if(!h)return;
-  const amp=(ins,ld)=>`<div class="tblwrap"><table class="t cbt"><thead><tr><th>mm²</th>${Object.keys(CB_AMP[ins][ld]).map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>${CB_SIZES.map((s,i)=>`<tr><td>${s}</td>${Object.keys(CB_AMP[ins][ld]).map(m=>`<td>${CB_AMP[ins][ld][m][i]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const amp=(ins,ld)=>`<div class="tblwrap"><table class="t cbt mcard"><thead><tr><th>mm²</th>${Object.keys(CB_AMP[ins][ld]).map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>${CB_SIZES.map((s,i)=>`<tr><td>${s}</td>${Object.keys(CB_AMP[ins][ld]).map(m=>`<td>${CB_AMP[ins][ld][m][i]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
   const kt=(t)=>`<tr>${Object.keys(t).map(k=>`<td>${k}°C<br><b>${t[k]}</b></td>`).join('')}</tr>`;
   h.innerHTML=`
   <section class="card tbl"><h3>พิกัดกระแสสายทองแดง PVC 70°C (A) อุณหภูมิอากาศ 30°C / ดิน 20°C</h3><p class="hint tight">1 เฟส และ DC (2 เส้นมีกระแส)</p>${amp('pvc',2)}<p class="hint tight" style="margin-top:10px">3 เฟส (3 เส้นมีกระแส)</p>${amp('pvc',3)}</section>
   <section class="card tbl"><h3>พิกัดกระแสสายทองแดง XLPE 90°C (A)</h3><p class="hint tight">1 เฟส และ DC</p>${amp('xlpe',2)}<p class="hint tight" style="margin-top:10px">3 เฟส</p>${amp('xlpe',3)}</section>
   <section class="card tbl"><h3>วิธีติดตั้ง</h3><div class="tblwrap"><table class="t cbt cbl"><tbody>${Object.keys(CB_METH).map(k=>`<tr><td>${esc(CB_METH[k])}</td></tr>`).join('')}</tbody></table></div></section>
-  <section class="card tbl"><h3>สายโซลาร์ PV1-F / H1Z2Z2-K (A) ที่อากาศ 60°C ตัวนำ 120°C</h3><div class="tblwrap"><table class="t cbt"><thead><tr><th>mm²</th>${Object.keys(CB_PVMETH).map(k=>`<th>${esc(CB_PVMETH[k])}</th>`).join('')}</tr></thead><tbody>${CB_PVS.map((s,i)=>`<tr><td>${s}</td>${Object.keys(CB_PVAMP).map(k=>`<td>${CB_PVAMP[k][i]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  <section class="card tbl"><h3>สายโซลาร์ PV1-F / H1Z2Z2-K (A) ที่อากาศ 60°C ตัวนำ 120°C</h3><div class="tblwrap"><table class="t cbt mcard"><thead><tr><th>mm²</th>${Object.keys(CB_PVMETH).map(k=>`<th>${esc(CB_PVMETH[k])}</th>`).join('')}</tr></thead><tbody>${CB_PVS.map((s,i)=>`<tr><td>${s}</td>${Object.keys(CB_PVAMP).map(k=>`<td>${CB_PVAMP[k][i]}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     <p class="hint tight">ตัวคูณอุณหภูมิ: 70°C 0.91 · 80°C 0.82 · 90°C 0.71 · ต่ำกว่า 60°C ใช้ 1.00 (ไม่เพิ่มพิกัด)</p></section>
   <section class="card tbl"><h3>ตัวคูณปรับค่าอุณหภูมิ</h3><p class="hint tight">ในอากาศ PVC / XLPE</p><div class="tblwrap"><table class="t cbt cbk"><tbody>${kt(CB_KT.air.pvc)}${kt(CB_KT.air.xlpe)}</tbody></table></div><p class="hint tight" style="margin-top:10px">ในดิน PVC / XLPE</p><div class="tblwrap"><table class="t cbt cbk"><tbody>${kt(CB_KT.ground.pvc)}${kt(CB_KT.ground.xlpe)}</tbody></table></div></section>
   <section class="card tbl"><h3>ตัวคูณจัดกลุ่ม (วงจรเดินรวมกัน)</h3><div class="tblwrap"><table class="t cbt cbk"><tbody><tr>${Object.keys(CB_KG).map(k=>`<td>${k} วงจร<br><b>${CB_KG[k]}</b></td>`).join('')}</tr></tbody></table></div></section>

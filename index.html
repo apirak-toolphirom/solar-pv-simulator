@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="e02d5caa69">
+<meta name="build" content="32c6ba5c77">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='e02d5caa69'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='32c6ba5c77'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=d2cdffcc">
+<link rel="stylesheet" href="css/styles.css?v=9c561d8f">
 </head>
 <body>
 <div class="app">
@@ -467,7 +467,7 @@ if(m&&m[1]!=='e02d5caa69'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       <div id="sycards" class="sycards"></div>
       <section class="card"><h3>กราฟทั้งวัน: <span id="sysel"></span></h3><p id="synote" class="hint tight"></p><div id="syleg" class="legend"></div><div id="chS1" class="chart"></div></section>
       <section class="card" id="sycard2" style="margin-top:12px"><h3>สถานะประจุแบต (SOC)</h3><div id="chS2" class="chart"></div></section>
-      <section class="card tbl" style="margin-top:12px"><h3>เปรียบเทียบทั้ง 4 ระบบ</h3><div class="tblwrap"><table class="t sytbl" id="sytbl"></table></div></section>
+      <section class="card tbl" style="margin-top:12px"><h3>เปรียบเทียบทั้ง 4 ระบบ</h3><div class="tblwrap"><table class="t sytbl mcard rh" id="sytbl"></table></div></section>
     </div>
     <p class="hint">แบบจำลองอย่างง่ายเพื่อการเรียนรู้ ใช้อินเวอร์เตอร์และแบตที่เลือกในแท็บ "อุปกรณ์" กับทุกระบบเพื่อเทียบหลักการทำงาน ไม่รวมการชาร์จแบตจากกริด เครื่องปั่นไฟ และเงื่อนไขของการไฟฟ้า ตรวจกับคู่มืออินเวอร์เตอร์และข้อกำหนดการเชื่อมต่อของการไฟฟ้าก่อนติดตั้งจริง</p>
   </section>
@@ -527,7 +527,7 @@ if(m&&m[1]!=='e02d5caa69'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       <section class="card"><h3>กำลัง AC เทียบวันปกติ</h3><div id="evleg1" class="legend"></div><div id="evchA" class="chart"></div></section>
       <section class="card"><h3>มุมเงยดวงอาทิตย์และช่วงที่ต้นไม้บัง</h3><div id="evchB" class="chart"></div></section>
       <section class="card"><h3>พลังงานที่หายไปแยกตามสาเหตุ</h3><div id="evcause" class="bars"></div></section>
-      <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
+      <section class="card tbl"><h3>เทียบตามฤดู (วันที่เดียวกันของปี)</h3><div class="tblwrap"><table class="t mcard"><thead><tr><th>ฤดู / วัน</th><th>วันที่</th><th>ขึ้น–ตก</th><th>กลางวัน (ชม.)</th><th>เงยสูงสุด</th><th>kWh ปกติ</th><th>kWh มีเหตุการณ์</th></tr></thead><tbody id="evseas"></tbody></table></div></section>
     </div>
     <p class="hint">ต้นไม้คำนวณแบบประมาณ: เมื่อดวงอาทิตย์อยู่ในช่วงทิศของต้นไม้และต่ำกว่ายอดไม้ แสงตรงถูกบังตามสัดส่วนแผงที่เลือก แสงกระจายยังเข้า เมฆลดแสงตรงมากกว่าแสงกระจาย ฝุ่นลดแสงทุกส่วนเท่ากัน ไม่รวมผลของไดโอดบายพาสในแผง ไม่ใช่ค่ารับประกัน</p>
   </section>
@@ -694,7 +694,7 @@ if(m&&m[1]!=='e02d5caa69'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/solar.js?v=7451b1ff"></script>
 <script src="js/site.js?v=68afc494"></script>
 <script src="js/loads.js?v=ab042e0e"></script>
-<script src="js/backup.js?v=5e9d0665"></script>
+<script src="js/backup.js?v=e496bca1"></script>
 <script src="js/bkanim.js?v=44dd5b7d"></script>
 <script src="js/systems.js?v=1a24ac25"></script>
 <script src="js/events.js?v=2db707bf"></script>
@@ -710,7 +710,7 @@ if(m&&m[1]!=='e02d5caa69'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/fusiondet.js?v=9b4bc098"></script>
 <script src="js/fusionov.js?v=4f66fbb2"></script>
 <script src="js/fusionman.js?v=11536347"></script>
-<script src="js/cable.js?v=8bf86be5"></script>
+<script src="js/cable.js?v=460dbda9"></script>
 <script src="js/library.js?v=33900429"></script>
 <script src="js/kb_rcd.js?v=84a26b64"></script>
 <script src="js/solis.js?v=eff4270e"></script>
@@ -719,6 +719,6 @@ if(m&&m[1]!=='e02d5caa69'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/eit.js?v=109de49c"></script>
 <script src="js/access.js?v=9c004683"></script>
 <script src="js/ctx.js?v=f19791ef"></script>
-<script src="js/app.js?v=2ae6cba6"></script>
+<script src="js/app.js?v=8317da44"></script>
 </body>
 </html>
