@@ -190,7 +190,7 @@ td.n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-num
 a{color:var(--accent)}
 @media (max-width:1100px){.wire-grid,.bms-grid,.par-grid{grid-template-columns:minmax(0,1fr)}.lay-grid{grid-template-columns:minmax(0,1fr)}.phone{justify-self:center}}
 @media (max-width:640px){.top{grid-template-columns:minmax(0,1fr)}h1{font-size:1.3rem}}
-/* embedded as menu 14 of the PV simulator: the app shows the title, the page follows the app theme */
+/* embedded as menu 16 of the PV simulator: the app shows the title, the page follows the app theme */
 .embed .top>div:first-child{display:none}
 .embed .wrap{padding-block:4px 24px}
 [hidden]{display:none!important}
@@ -1644,7 +1644,7 @@ showTab(['layout','wire','bms','par','ref'].includes(h0)?h0:S.tab||'layout');
 renderWire();
 })();
 </script>
-<script>/* menu 14 in the simulator: tell the parent page how tall this page is, and follow its theme switch */
+<script>/* menu 16 in the simulator: tell the parent page how tall this page is, and follow its theme switch */
 (function(){if(window.self===window.top)return;
   const send=()=>{try{parent.postMessage({lfpH:Math.ceil(document.documentElement.scrollHeight)},'*')}catch(e){}};
   try{new ResizeObserver(send).observe(document.body)}catch(e){setInterval(send,1000)}

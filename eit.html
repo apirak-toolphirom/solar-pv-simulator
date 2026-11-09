@@ -244,7 +244,7 @@ svg.sld g.ck:hover .ln{stroke:var(--accent)}
 
 <script>
 /* =====================================================================
-   เมนู 18 ออกแบบระบบไฟฟ้า วสท. 2564 — หน้าเดี่ยว (เปิดตรงได้ หรือฝังใน iframe ของโปรแกรมจำลอง)
+   เมนู 14 ออกแบบระบบไฟฟ้า วสท. 2564 — หน้าเดี่ยว (เปิดตรงได้ หรือฝังใน iframe ของโปรแกรมจำลอง)
    ข้อมูลโครงการเก็บใน localStorage 'pvsim:eit' และบันทึก/เปิดเป็นไฟล์ .json
    ===================================================================== */
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -769,7 +769,7 @@ function buildReport(){const I=P.info,S=P.src,rr=R.b[R.root];let pg=0;const page
     <table>${[['โครงการ',I.name],['สถานที่',I.loc],['เจ้าของโครงการ',I.owner],['ประเภทอาคาร',BLDG[I.bldg]],['เลขที่เอกสาร',`${I.doc} · Rev. ${I.rev}`],['วันที่',I.date]].map(([a,b])=>`<tr><td style="width:150px;color:#555">${a}</td><td><b>${esc(b||'-')}</b></td></tr>`).join('')}</table>
     <p><span class="stamp">ออกเพื่อขออนุมัติ · FOR APPROVAL</span></p>
     <table class="rt"><tr><th></th><th>ชื่อ - สกุล</th><th style="width:30%">ลายมือชื่อ</th><th style="width:15%">วันที่</th></tr><tr><td>จัดทำ</td><td>${esc(I.designer||'')}</td><td style="height:34px"></td><td></td></tr><tr><td>ตรวจสอบ</td><td></td><td style="height:34px"></td><td></td></tr><tr><td>อนุมัติ</td><td></td><td style="height:34px"></td><td></td></tr></table>
-    <p class="note">เอกสารนี้สร้างจากโปรแกรมจำลองระบบโซลาร์ (เมนู 18) เพื่อการเรียนรู้ มีผลเมื่อลงนามโดยวิศวกรผู้ได้รับใบอนุญาตประกอบวิชาชีพวิศวกรรมควบคุม</p></div>`);
+    <p class="note">เอกสารนี้สร้างจากโปรแกรมจำลองระบบโซลาร์ (เมนู 14) เพื่อการเรียนรู้ มีผลเมื่อลงนามโดยวิศวกรผู้ได้รับใบอนุญาตประกอบวิชาชีพวิศวกรรมควบคุม</p></div>`);
   page(`<h2>1 สรุปผลการออกแบบ</h2>${summaryRows()}<div class="concl">${R.iss.some(i=>i.lv==='err')?'ยังมีรายการไม่ผ่านเกณฑ์ (ดูหัวข้อ 4) ต้องแก้ไขก่อนเสนออนุมัติ':'ขนาดเครื่องป้องกันกระแสเกิน สายไฟฟ้า สายดิน แรงดันตก และพิกัดตัดกระแสลัดวงจรของทุกวงจร เป็นไปตามเกณฑ์ในหัวข้อ 2 และมาตรฐาน วสท. 2564 จึงเสนอเพื่อพิจารณาอนุมัติ'}</div>
     ${R.iss.length?`<h3>รายการที่ต้องแก้ / ข้อแนะนำ</h3><table class="rt">${R.iss.map(x=>`<tr><td style="width:70px"><span class="tag ${x.lv}">${{err:'ต้องแก้',warn:'เตือน',tip:'แนะนำ'}[x.lv]}</span></td><td>${esc(x.msg)}</td></tr>`).join('')}</table>`:''}`);
   page(`<h2>2 ข้อมูลและเกณฑ์การออกแบบ</h2><h3>2.1 ข้อมูลระบบไฟฟ้า</h3><table class="rt">${[['ระบบไฟฟ้า',R.sys3?'3 เฟส 4 สาย 230/400 V, 50 Hz':'1 เฟส 2 สาย 230 V, 50 Hz'],
@@ -796,7 +796,7 @@ function initTop(){const s=$('#sample');s.innerHTML='<option value="">— เล
   $('#pvadd').onclick=()=>{const b=$('#pvboard').value||P.boards[0].id,B=bOf(b);P.circ.push(mkPV(b,B.ph===3?10:5,B.ph));$('#boards').innerHTML='';recalc()};
   $('#sldsvg').onclick=()=>{const b=new Blob([sldSvg(true)],{type:'image/svg+xml'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SLD-'+(P.info.name||'project')+'.svg';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}}
 function syncName(){$('#pname').value=P.info.name||''}
-/* inside the simulator (menu 18): report page height so the iframe grows with the content, follow the app theme */
+/* inside the simulator (menu 14): report page height so the iframe grows with the content, follow the app theme */
 function post(){if(window.self===window.top)return;try{parent.postMessage({eitH:Math.ceil(document.documentElement.scrollHeight)},'*')}catch(e){}}
 addEventListener('message',e=>{if(e.data&&e.data.pvTheme){document.documentElement.dataset.theme=e.data.pvTheme}});
 P=load();initTop();syncName();compute();renderKpis();show('src');

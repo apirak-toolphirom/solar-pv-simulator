@@ -1,4 +1,4 @@
-/* ---- menu 13: cables and breakers (AC circuit, DC PV string, DC battery, breaker picker, reference tables) ----
+/* ---- menu 06: cables and breakers (AC circuit, DC PV string, DC battery, breaker picker, reference tables) ----
    Written for this simulator. Ampacities follow the IEC 60364-5-52 reference installation methods (copper, ambient 30 °C in air /
    20 °C in ground) and EN 50618 for PV cable (ambient 60 °C). Breaker and fuse rules follow common IEC 60364-4-43 / 60364-7-712 /
    IEC 62548 practice, simplified for teaching. Everything runs in the browser; values are a first design pass, not a final design. */

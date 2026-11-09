@@ -1,4 +1,4 @@
-/* ---- menu 14: คลังความรู้ (knowledge library) ----
+/* ---- menu 01: คลังความรู้ (knowledge library) ----
    A list of articles grouped by category, with search. Each article is one kbAdd({...}) call:
      id      short slug, also the link  #library/<id>
      cat     a key of KB_CATS
