@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="3ab1da1991">
+<meta name="build" content="216452a6df">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='3ab1da1991'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='216452a6df'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
@@ -38,6 +38,7 @@ if(m&&m[1]!=='3ab1da1991'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       <button class="navb" data-tab="systems"><span class="ic">11</span>จำลองระบบ 4 แบบ</button>
       <button class="navb" data-tab="events"><span class="ic">12</span>จำลองเหตุการณ์</button>
       <button class="navb" data-tab="calc"><span class="ic">17</span>คำนวณความคุ้มค่า</button>
+      <button class="navb" data-tab="eit"><span class="ic">18</span>ออกแบบระบบไฟฟ้า วสท.</button>
     </details>
     <details class="ngrp" data-grp="real"><summary>ติดตั้งตามรุ่นจริง</summary>
       <button class="navb" data-tab="solis"><span class="ic">13</span>Solis Commissioning</button>
@@ -528,6 +529,12 @@ if(m&&m[1]!=='3ab1da1991'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p class="hint">ราคา เงินสนับสนุน และเงื่อนไขสินเชื่อเป็นค่าตั้งต้นที่ผู้สอนแก้ได้ใน calc.html ผลลัพธ์เป็นค่าประมาณ ไม่ใช่ใบเสนอราคา ตรวจเงื่อนไขโครงการจากหน่วยงานรัฐก่อนใช้งานจริง</p>
   </section>
 
+  <section class="tab" id="tab-eit" hidden>
+    <header><h1>ออกแบบระบบไฟฟ้า ตามมาตรฐาน วสท. 2564</h1><p class="sub">ตั้งแหล่งจ่าย (มิเตอร์ 1 เฟส / 3 เฟส หรือหม้อแปลง) เพิ่มตู้ MDB / DB วงจรย่อย และ Solar PV แล้วโปรแกรมเลือกขนาดเบรกเกอร์ สายไฟ สายดิน ท่อ ตรวจแรงดันตก กระแสลัดวงจร สมดุลเฟส เครื่องตัดไฟรั่ว และขนาดมิเตอร์ พร้อมวาด SLD ทำ BOQ (Excel) และรายงานคำนวณ (PDF)</p></header>
+    <iframe id="eitframe" class="lfpframe" title="ออกแบบระบบไฟฟ้า วสท. 2564" loading="lazy"></iframe>
+    <p class="hint">ตารางกระแสคำนวณจากตารางฐาน IEC 60364-5-52 ปรับเป็นอุณหภูมิอ้างอิงของ วสท. ดีมานด์แฟกเตอร์และตารางมิเตอร์เป็นแนวทางทั่วไป ผลเป็นการออกแบบเบื้องต้นเพื่อการเรียนรู้ ตรวจกับหนังสือมาตรฐาน วสท. 2564 ดาต้าชีต และข้อกำหนดของการไฟฟ้าทุกครั้ง แบบใช้งานจริงต้องลงนามโดยวิศวกร</p>
+  </section>
+
   <section class="tab" id="tab-library" hidden>
     <header><h1>คลังความรู้</h1><p class="sub">บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น อ่านประกอบการจำลอง แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน</p></header>
     <div id="kbhost"></div>
@@ -652,7 +659,7 @@ if(m&&m[1]!=='3ab1da1991'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   </div></main>
 </div>
 
-<script>var LFP_V='0846013d',CALC_V='0cf9ba9a'</script>
+<script>var LFP_V='0846013d',CALC_V='0cf9ba9a',EIT_V='9424de77'</script>
 <script src="js/config.js?v=396a084b"></script>
 <script src="js/catalog.js?v=9b5d6a62"></script>
 <script src="js/pdfimport.js?v=e4c2f177"></script>
@@ -674,7 +681,7 @@ if(m&&m[1]!=='3ab1da1991'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/basics.js?v=a988f584"></script>
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=9c033448"></script>
-<script src="js/worksheets.js?v=9c8e1d3c"></script>
+<script src="js/worksheets.js?v=d151effc"></script>
 <script src="js/hwlog.js?v=28d24151"></script>
 <script src="js/fusion.js?v=5382422e"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
@@ -687,8 +694,9 @@ if(m&&m[1]!=='3ab1da1991'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/solis.js?v=b4f7ce2a"></script>
 <script src="js/lfp.js?v=d3c2d727"></script>
 <script src="js/calc.js?v=0a1172ec"></script>
-<script src="js/access.js?v=f47392bb"></script>
+<script src="js/eit.js?v=ab94596f"></script>
+<script src="js/access.js?v=f9fed18c"></script>
 <script src="js/ctx.js?v=564c4242"></script>
-<script src="js/app.js?v=376436fe"></script>
+<script src="js/app.js?v=aafa5234"></script>
 </body>
 </html>

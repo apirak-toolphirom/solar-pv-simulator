@@ -23,6 +23,7 @@
 | `js/fusion*.js` `js/hwlog.js` | `docs/manual-15-fusion.md` |
 | `js/submit.js` `js/worksheets.js` | `docs/manual-16-submit.md` และ `docs/manual-teacher.md` (ตารางใบงาน) |
 | `calc.html` `js/calc.js` | `docs/manual-17-calc.md` |
+| `eit.html` `js/eit.js` | `docs/manual-18-eit.md` |
 | `js/access.js` `js/app.js` `js/ctx.js` `app.html` (เมนู บทบาท การบันทึก) | `docs/manual-start.md` |
 | `apps-script/*` `dashboard.html` `js/config.js` | `docs/manual-teacher.md` |
 | ส่วนของเมนูใดใน `app.html` | คู่มือของเมนูนั้น |

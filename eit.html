@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){}
+if(window.self!==window.top)document.documentElement.classList.add('embed');</script>
+<title>ออกแบบระบบไฟฟ้า วสท.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: project strip + status bar, step tabs (source · boards · solar · checks · SLD · BOQ), each step one working surface. Report is a hidden print-only document. */
+:root{
+  --bg:#e8edf2; --surface:#ffffff; --surface-2:#eef2f6; --ink:#17212c; --muted:#5a6878; --line:#c8d1db;
+  --accent:#1f5fa8; --accent-ink:#fff; --bus:#c47700; --l1:#c8302a; --l2:#b8860b; --l3:#2a6fc4;
+  --ok:#1a7442; --okbg:#d8eddf; --warn:#8c5a0c; --warnbg:#f3e6c6; --err:#b0302a; --errbg:#f3d9d5; --tip:#2a5f9e; --tipbg:#dce8f6;
+  --f-body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d141b; --surface:#151e28; --surface-2:#1b2632; --ink:#e4eaf1; --muted:#93a2b3; --line:#2c3a4a;
+  --accent:#5b9ce3; --accent-ink:#0b1420; --bus:#f0a22a; --l1:#ef6a5f; --l2:#e3b341; --l3:#5b9ce3;
+  --ok:#47c97d; --okbg:#143324; --warn:#e8ae45; --warnbg:#35290f; --err:#f2766b; --errbg:#3a1a18; --tip:#7fb2ee; --tipbg:#172a40; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d141b; --surface:#151e28; --surface-2:#1b2632; --ink:#e4eaf1; --muted:#93a2b3; --line:#2c3a4a;
+  --accent:#5b9ce3; --accent-ink:#0b1420; --bus:#f0a22a; --l1:#ef6a5f; --l2:#e3b341; --l3:#5b9ce3;
+  --ok:#47c97d; --okbg:#143324; --warn:#e8ae45; --warnbg:#35290f; --err:#f2766b; --errbg:#3a1a18; --tip:#7fb2ee; --tipbg:#172a40; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
+.wrap{padding:14px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));max-width:1500px;margin:0 auto;display:grid;gap:12px}
+.wrap>*,.pane{min-width:0}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-size:1.45rem} h2{font-size:1.08rem} h3{font-size:.95rem}
+p{margin:0}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:12.5px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.embed .top{display:none}
+.top .sub{color:var(--muted);font-size:.9rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;min-width:0}
+.btn{min-height:36px;padding:0 12px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);font-weight:500;font-size:13.5px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.sm{min-height:30px;padding:0 9px;font-size:12.5px}
+.btn.del{color:var(--err)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.grow{flex:1}
+/* status + steps */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px 12px;min-width:110px}
+.kpi b{display:block;font:600 18px/1.25 var(--f-mono)}
+.kpi span{font-size:11.5px;color:var(--muted)}
+.kpi.ok b{color:var(--ok)} .kpi.err b{color:var(--err)} .kpi.warn b{color:var(--warn)}
+.steps{display:flex;flex-wrap:wrap;gap:6px}
+.step{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px 5px 6px;display:inline-flex;gap:8px;align-items:center;font-weight:500;font-size:13.5px}
+.step i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);font:600 12px var(--f-mono)}
+.step[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.step[aria-selected="true"] i{background:var(--accent);color:var(--accent-ink)}
+.step .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)} .step .dot.err{background:var(--err)} .step .dot.warn{background:var(--warn)}
+.pane[hidden]{display:none!important}
+/* forms */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 14px}
+label.f{display:grid;gap:3px;font-size:12.5px;color:var(--muted);min-width:0}
+label.f input,label.f select,label.f textarea{width:100%;min-width:0;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:6px 8px;min-height:34px;font-size:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:7px 12px;font-size:13.5px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.chk{display:inline-flex;gap:6px;align-items:center;font-size:13.5px}
+/* boards editor */
+.bcard{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-width:0}
+.bhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.bname{background:#17212c;color:#fff;border-radius:5px;padding:6px 10px;min-width:120px}
+[data-theme="dark"] .bname{background:#000}
+.bname b{display:block;font-size:15px}.bname span{font-size:11.5px;opacity:.75}
+.bsum{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--muted)}
+.bsum b{color:var(--ink);font-family:var(--f-mono);font-weight:600}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.ed{border-collapse:collapse;width:100%;min-width:1180px;font-size:13px}
+table.ed th{font-size:11.5px;font-weight:600;color:var(--muted);text-align:left;padding:5px 4px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface-2)}
+table.ed td{padding:3px 4px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.ed tr.res td{border-bottom:2px solid var(--line);padding:2px 6px 6px;font-size:12px;color:var(--muted)}
+table.ed tr.hl td{background:var(--tipbg)}
+table.ed input,table.ed select{width:100%;min-width:0;border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:4px 5px;font-size:13px;min-height:30px}
+table.ed input.nm{min-width:150px}
+table.ed td.n{width:92px} table.ed td.nn{width:70px}
+.tag{display:inline-block;border-radius:4px;padding:0 6px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.tag.ok{background:var(--okbg);color:var(--ok)} .tag.err{background:var(--errbg);color:var(--err)} .tag.warn{background:var(--warnbg);color:var(--warn)} .tag.tip{background:var(--tipbg);color:var(--tip)}
+.res .k{color:var(--ink);font-family:var(--f-mono)}
+.ph1{color:var(--l1)} .ph2{color:var(--l2)} .ph3{color:var(--l3)}
+.bfoot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px}
+/* checks */
+.iss{display:grid;gap:6px}
+.iss button{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 10px}
+.iss button:hover{border-color:var(--accent)}
+table.rt{border-collapse:collapse;width:100%;font-size:12.5px}
+table.rt th,table.rt td{border:1px solid var(--line);padding:4px 6px;vertical-align:top}
+table.rt th{background:var(--surface-2);text-align:left;font-weight:600;font-size:11.5px}
+table.rt td.r{text-align:right;font-family:var(--f-mono)}
+table.rt tr.grp td{background:#17212c;color:#fff;font-weight:600}
+[data-theme="dark"] table.rt tr.grp td{background:#000}
+table.rt tr.tot td{font-weight:600;background:var(--surface-2)}
+/* SLD */
+.sldw{overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);max-height:80vh}
+.embed .sldw{max-height:none}
+svg.sld{display:block;font-family:var(--f-mono)}
+svg.sld .ln{stroke:var(--ink);stroke-width:1.4;fill:none}
+svg.sld .bus{stroke:var(--bus);stroke-width:5}
+svg.sld .gnd{stroke:var(--ok);stroke-width:2}
+svg.sld .frm{stroke:var(--ink);fill:none}
+svg.sld text{fill:var(--ink);font-size:10.5px}
+svg.sld text.t{font-weight:600;font-size:12px}
+svg.sld text.m{fill:var(--muted)}
+svg.sld text.e{fill:var(--err)}
+svg.sld .sym{stroke:var(--ink);stroke-width:1.4;fill:var(--surface)}
+svg.sld .bad .ln,svg.sld .bad .sym{stroke:var(--err)}
+svg.sld g.ck{cursor:pointer}
+svg.sld g.ck:hover .ln{stroke:var(--accent)}
+.hint{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.note{font-size:12.5px;color:var(--muted)}
+.foot{font-size:12px;color:var(--muted)}
+#rep{display:none}
+@media (max-width:640px){.bhead{grid-template-columns:1fr}.kpi{min-width:0;flex:1 1 40%}}
+/* ---------- print: the report only ---------- */
+@media print{
+  @page{size:A4;margin:12mm 10mm}
+  @page land{size:A4 landscape;margin:8mm}
+  :root{--ink:#000;--muted:#444;--line:#999;--surface:#fff;--surface-2:#eee;--bus:#000;--ok:#1a7442;--err:#b0302a}
+  body{background:#fff;color:#000;font-size:11px}
+  .app{display:none!important}
+  #rep{display:block}
+  .rp{break-after:page;padding:0}
+  .rp:last-child{break-after:auto}
+  .rp.land{page:land}
+  .rp h2{font-size:15px;border-bottom:2px solid #000;padding-bottom:4px;margin:0 0 8px}
+  .rp h3{font-size:12px;margin:10px 0 4px}
+  table.rt{font-size:9.5px} table.rt th{font-size:9px}
+  table.rt tr.grp td{background:#222!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tag{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  svg.sld{width:100%;height:auto;max-height:185mm}
+  svg.sld text{fill:#000} svg.sld .sym{fill:#fff}
+}
+.rhead{display:grid;grid-template-columns:1fr 1.4fr 1fr;border:1.5px solid #000;font-size:9.5px;margin-bottom:8px}
+.rhead div{padding:4px 6px}.rhead div+div{border-left:1px solid #000}
+.cover{display:grid;gap:14px;padding-top:30mm}
+.cover h1{font-size:26px;line-height:1.2}
+.cover .bar2{border-left:6px solid #000;padding-left:14px;display:grid;gap:6px}
+.cover table td{padding:6px 4px;border-bottom:1px solid #bbb;font-size:12px}
+.stamp{display:inline-block;border:2px solid #000;padding:6px 18px;font-weight:700}
+.concl{border:1.5px solid #000;padding:8px 10px;font-weight:600;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="wrap">
+  <header class="top"><h1>ออกแบบระบบไฟฟ้าแรงต่ำ ตามมาตรฐาน วสท. 2564</h1>
+    <p class="sub">แหล่งจ่าย → ตู้ MDB / DB → วงจรย่อย + Solar PV · คำนวณเบรกเกอร์ สายไฟ สายดิน แรงดันตก กระแสลัดวงจร สมดุลเฟส มิเตอร์ แล้วออกแบบ SLD, BOQ และรายงาน</p></header>
+
+  <div class="row">
+    <label class="f grow" style="min-width:200px">ชื่อโครงการ<input id="pname"></label>
+    <label class="f" style="min-width:210px">ตัวอย่าง / เริ่มใหม่<select id="sample"><option value="">— เลือกเพื่อโหลด —</option></select></label>
+    <div class="row" style="align-self:end">
+      <button class="btn" id="bsave" title="บันทึกโครงการเป็นไฟล์ .json">บันทึกไฟล์</button>
+      <label class="btn" title="เปิดไฟล์ .json ที่บันทึกไว้">เปิดไฟล์<input type="file" id="bopen" accept=".json,application/json" hidden></label>
+      <button class="btn" id="bxlsx">BOQ Excel</button>
+      <button class="btn pri" id="bpdf">รายงาน PDF</button>
+    </div>
+  </div>
+
+  <div class="bar" id="kpis"></div>
+  <nav class="steps" role="tablist" id="steps"></nav>
+
+  <!-- 1 source -->
+  <section class="pane card" id="p-src" role="tabpanel">
+    <h2>1 ข้อมูลโครงการและแหล่งจ่าย</h2>
+    <div class="grid" style="margin-top:10px">
+      <label class="f">เจ้าของโครงการ<input data-i="owner"></label>
+      <label class="f">สถานที่<input data-i="loc"></label>
+      <label class="f">ประเภทอาคาร (ใช้กับดีมานด์แฟกเตอร์)<select data-i="bldg"></select></label>
+      <label class="f">ผู้ออกแบบ<input data-i="designer"></label>
+      <label class="f">เลขที่เอกสาร<input data-i="doc"></label>
+      <label class="f">ฉบับแก้ไข (Rev.)<input data-i="rev"></label>
+    </div>
+    <h3 style="margin-top:16px">แหล่งจ่าย</h3>
+    <div class="row" style="margin:6px 0 10px"><div class="seg" id="srcseg"></div></div>
+    <div class="grid" id="srcform"></div>
+    <h3 style="margin-top:16px">เงื่อนไขการติดตั้ง</h3>
+    <div class="grid" style="margin-top:6px">
+      <label class="f">อุณหภูมิแวดล้อมในอากาศ (°C)<input type="number" data-s="ta" min="25" max="60" step="5"></label>
+      <label class="f">อุณหภูมิดิน (°C)<input type="number" data-s="tg" min="20" max="40" step="5"></label>
+      <label class="f">แรงดันตกสะสมสูงสุด (%)<input type="number" data-s="vdmax" min="2" max="5" step="0.5"></label>
+      <label class="f">ชนิดท่อร้อยสาย<select data-s="cond"><option value="emt">ท่อเหล็กบาง EMT</option><option value="imc">ท่อเหล็ก IMC</option><option value="pvc">ท่อ PVC</option></select></label>
+      <label class="chk" style="align-self:end"><input type="checkbox" data-s="df"> คิดดีมานด์แฟกเตอร์กับสายป้อน/สายประธาน</label>
+    </div>
+    <p class="hint" style="margin-top:12px">ค่าเริ่มตามตารางขนาดกระแสของ วสท. (อุณหภูมิอ้างอิงในอากาศ 40 °C ใต้ดิน 30 °C) ถ้าอุณหภูมิต่างจากนี้ โปรแกรมคูณตัวคูณปรับค่า k<sub>t</sub> ให้</p>
+  </section>
+
+  <!-- 2 boards -->
+  <section class="pane" id="p-brd" role="tabpanel" hidden>
+    <div id="boards" style="display:grid;gap:12px"></div>
+    <p class="hint" style="margin-top:10px">ช่อง "สาย" และ "CB" เลือก "อัตโนมัติ" ได้ โปรแกรมเลือกขนาดเล็กที่สุดที่ผ่านทั้งกระแส (I<sub>z</sub> ≥ I<sub>n</sub> ≥ I<sub>d</sub>) และแรงดันตกสะสม · "ร่วมท่อ" คือจำนวนวงจรที่เดินในท่อ/รางเดียวกัน ใช้หาตัวคูณ k<sub>g</sub> · วงจร 1 เฟสในตู้ 3 เฟส เลือก "อัตโนมัติ" เพื่อจัดเฟสให้สมดุล</p>
+  </section>
+
+  <!-- 3 solar -->
+  <section class="pane" id="p-pv" role="tabpanel" hidden>
+    <div class="card"><div class="row"><h2 class="grow">3 Solar PV</h2>
+      <label class="f">เพิ่มอินเวอร์เตอร์ที่ตู้<select id="pvboard"></select></label>
+      <button class="btn pri" id="pvadd" style="align-self:end">＋ เพิ่มระบบ Solar</button></div>
+      <p class="note" style="margin-top:6px">อินเวอร์เตอร์ต่อเข้าตู้เป็นวงจรหนึ่ง (ขนาดฝั่ง AC คำนวณเหมือนวงจรอื่น) ตรงนี้ตั้งฝั่ง DC: แผง สตริง MPPT และตรวจแรงดัน กระแส สาย PV ฟิวส์ สวิตช์ DC และ SPD</p></div>
+    <div id="pvlist" style="display:grid;gap:12px;margin-top:12px"></div>
+  </section>
+
+  <!-- 4 checks -->
+  <section class="pane" id="p-chk" role="tabpanel" hidden>
+    <div class="card"><h2>4 ตรวจผลการออกแบบ</h2><div id="chksum" style="margin-top:8px"></div></div>
+    <div class="card" style="margin-top:12px"><h3>รายการที่ต้องแก้ / ข้อแนะนำ</h3><p class="note">คลิกรายการเพื่อไปยังวงจรนั้น</p><div class="iss" id="isslist" style="margin-top:8px"></div></div>
+    <div class="card" style="margin-top:12px"><h3>ตารางโหลดและสมดุลเฟส</h3><div class="tw" id="loadtbl" style="margin-top:6px"></div></div>
+    <div class="card" style="margin-top:12px"><h3>สรุปรายการคำนวณทุกวงจร</h3><div class="tw" id="calctbl" style="margin-top:6px"></div></div>
+  </section>
+
+  <!-- 5 SLD -->
+  <section class="pane" id="p-sld" role="tabpanel" hidden>
+    <div class="row" style="margin-bottom:8px"><h2 class="grow">5 Single Line Diagram</h2>
+      <button class="btn sm" id="sldsvg">ดาวน์โหลด SVG</button></div>
+    <div class="sldw" id="sldw"></div>
+    <p class="hint" style="margin-top:8px">วาดอัตโนมัติจากตู้และวงจรในขั้นที่ 2 คลิกวงจรในแบบเพื่อไปแก้ค่า วงจรที่ไม่ผ่านเกณฑ์แสดงเป็นสีแดง</p>
+  </section>
+
+  <!-- 6 BOQ -->
+  <section class="pane card" id="p-boq" role="tabpanel" hidden>
+    <div class="row"><h2 class="grow">6 BOQ รายการวัสดุอุปกรณ์</h2><button class="btn sm" id="bxlsx2">ดาวน์โหลด Excel</button></div>
+    <p class="note" style="margin:4px 0 8px">จำนวนตามแบบ · เผื่อสาย/ท่อ 10% · ไฟล์ Excel มีช่องราคา/หน่วย และสูตรรวมราคา + VAT 7% ให้กรอกต่อ</p>
+    <div class="tw" id="boqtbl"></div>
+  </section>
+
+  <p class="foot">ผลคำนวณเป็นค่าประมาณเพื่อการเรียนรู้และการออกแบบเบื้องต้น ตารางกระแสคำนวณจากตารางฐาน IEC 60364-5-52 ปรับเป็นอุณหภูมิอ้างอิงของ วสท. ตรวจกับหนังสือมาตรฐาน วสท. 2564 ดาต้าชีตอุปกรณ์ และข้อกำหนดของการไฟฟ้าก่อนใช้งานจริง แบบใช้งานจริงต้องลงนามโดยวิศวกรผู้มีใบอนุญาต</p>
+</div>
+</div>
+<div id="rep"></div>
+
+<script>
+/* =====================================================================
+   เมนู 18 ออกแบบระบบไฟฟ้า วสท. 2564 — หน้าเดี่ยว (เปิดตรงได้ หรือฝังใน iframe ของโปรแกรมจำลอง)
+   ข้อมูลโครงการเก็บใน localStorage 'pvsim:eit' และบันทึก/เปิดเป็นไฟล์ .json
+   ===================================================================== */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f=(x,d=1)=>isFinite(x)?Number(x).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'–';
+const std=(list,v)=>list.find(x=>x>=v-1e-9);
+const uid=()=>Math.random().toString(36).slice(2,8);
+const SQ3=Math.sqrt(3),U0=400/SQ3,C_MAX=1.05;
+
+/* ---------- reference data ---------- */
+const SZ=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240];
+/* IEC 60364-5-52 base ampacity (copper, air 30 °C / ground 20 °C), loaded conductors 2 / 3 */
+const IEC={
+ pvc:{2:{A1:[14.5,19.5,26,34,46,61,80,99,119,151,182,210,240,273,321],B1:[17.5,24,32,41,57,76,101,125,151,192,232,269,300,341,400],B2:[16.5,23,30,38,52,69,90,111,133,168,201,232,258,294,344],C:[19.5,27,36,46,63,85,112,138,168,213,258,299,344,392,461],E:[22,30,40,51,70,94,119,148,180,232,282,328,379,434,514],D:[22,29,37,46,60,78,99,119,140,173,204,231,261,292,336]},
+      3:{A1:[13.5,18,24,31,42,56,73,89,108,136,164,188,216,245,286],B1:[15.5,21,28,36,50,68,89,110,134,171,207,239,262,296,346],B2:[15,20,27,34,46,62,80,99,118,149,179,206,225,258,297],C:[17.5,24,32,41,57,76,96,119,144,184,223,259,299,341,403],E:[18.5,25,34,43,60,80,101,126,153,196,238,276,319,364,430],D:[18,24,30,38,50,64,82,98,116,143,169,192,217,243,280]}},
+ xlpe:{2:{A1:[19,26,35,45,61,81,106,131,158,200,241,278,318,362,424],B1:[23,31,42,54,75,100,133,164,198,253,306,354,393,449,528],B2:[22,30,40,51,69,91,119,146,175,221,265,305,334,384,459],C:[24,33,45,58,80,107,138,171,209,269,328,382,441,506,599],E:[26,36,49,63,86,115,149,185,225,289,352,410,473,542,641],D:[25,33,43,53,71,91,116,139,164,203,239,271,306,343,395]},
+       3:{A1:[17,23,31,40,54,73,95,117,141,179,216,249,285,324,380],B1:[20,28,37,48,66,88,117,144,175,222,269,312,344,392,461],B2:[19.5,26,35,44,60,80,105,128,154,194,233,268,294,336,394],C:[22,30,40,52,71,96,119,147,179,229,278,322,371,424,500],E:[23,32,42,54,75,100,127,158,192,246,298,346,399,456,538],D:[21,28,36,44,58,75,96,115,135,167,197,223,251,281,324]}}};
+const KTA={pvc:{25:1.06,30:1,35:.94,40:.87,45:.79,50:.71,55:.61,60:.5},xlpe:{25:1.04,30:1,35:.96,40:.91,45:.87,50:.82,55:.76,60:.71}};
+const KTG={pvc:{20:1,25:.95,30:.89,35:.84,40:.77},xlpe:{20:1,25:.96,30:.93,35:.89,40:.85}};
+const KG={1:1,2:.8,3:.7,4:.65,5:.6,6:.57,7:.54,8:.52,9:.5,12:.45,16:.41,20:.38};
+const R20=[12.1,7.41,4.61,3.08,1.83,1.15,0.727,0.524,0.387,0.268,0.193,0.153,0.124,0.0991,0.0754];/* Ω/km IEC 60228 class 2 */
+const GRP={g1:{n:'กลุ่ม 1 ร้อยท่อในผนัง/ฝ้าที่มีฉนวนความร้อน',s:'กลุ่ม 1',m1:'A1',mm:'A1',cd:1},g2:{n:'กลุ่ม 2 ร้อยท่อเดินเกาะผนัง/ใต้ฝ้า',s:'กลุ่ม 2',m1:'B1',mm:'B2',cd:1},
+  g3:{n:'กลุ่ม 3 เดินเกาะผนัง (ไม่ร้อยท่อ)',s:'กลุ่ม 3',m1:'C',mm:'C'},g5:{n:'บนรางเคเบิลแบบมีรู / ลอยในอากาศ',s:'รางเคเบิล',m1:'E',mm:'E'},g7:{n:'ร้อยท่อฝังดิน',s:'ท่อฝังดิน',m1:'D',mm:'D',cd:1}};
+const CK={
+  THW:{n:'THW',full:'THW แกนเดียว PVC 70 °C 450/750 V',ins:'pvc',mc:0,g:['g2','g1'],std:'มอก. 11-2553 (60227 IEC 01)',od:[3.3,3.9,4.4,5,6.6,7.8,9.7,10.9,12.8,14.6,17.1,18.8,21,23.3,26.6]},
+  CV:{n:'CV',full:'CV แกนเดียว XLPE 90 °C 0.6/1 kV',ins:'xlpe',mc:0,g:['g2','g3','g5','g7'],std:'มอก. 2143 / IEC 60502-1',od:[6,6.5,7.2,7.8,9,10,12,13,14.5,16.5,18.5,20,22,24.5,27.5]},
+  CVM:{n:'CV',full:'CV หลายแกน XLPE 90 °C 0.6/1 kV',ins:'xlpe',mc:1,g:['g3','g2','g5','g7'],std:'มอก. 2143 / IEC 60502-1',od:[10,11,12.5,14,16,18,22,25,28,32,37,41,45,50,56]},
+  NYY:{n:'NYY',full:'NYY หลายแกน PVC 70 °C 0.6/1 kV',ins:'pvc',mc:1,g:['g3','g2','g5','g7'],std:'มอก. 11-2553 / IEC 60502-1',od:[11,12,13.5,15,17,19,23,26,29,33,38,42,46,51,57]}};
+const COND={emt:{n:'EMT',s:[['1/2"',15.8],['3/4"',20.9],['1"',26.6],['1 1/4"',35.1],['1 1/2"',40.9],['2"',52.5],['2 1/2"',69.4],['3"',85.2],['4"',108.2]]},
+  imc:{n:'IMC',s:[['1/2"',16.8],['3/4"',21.9],['1"',28.1],['1 1/4"',36.8],['1 1/2"',42.7],['2"',54.6],['2 1/2"',64.9],['3"',80.7],['4"',105.4]]},
+  pvc:{n:'PVC',s:[['1/2"',15.3],['3/4"',20.4],['1"',26.1],['1 1/4"',34.5],['1 1/2"',40.4],['2"',52],['2 1/2"',62.1],['3"',77.3],['4"',101.5]]}};
+const BRK=[6,10,16,20,25,32,40,50,63,80,100,125,160,200,225,250,320,400,500,630,800,1000,1250,1600,2000,2500,3200,4000];
+const ICU={MCB:[6,10,15,25],RCBO:[6,10],MCCB:[10,18,25,36,50,65,85,100],ACB:[50,65,85,100]};
+const BUS=[63,100,125,160,250,400,630,800,1000,1250,1600,2000,2500,3200,4000];
+const TRS=[50,100,160,250,315,400,500,630,800,1000,1250,1600,2000,2500];
+const CTR=[50,75,100,150,200,250,300,400,500,600,800,1000,1200,1500,2000,2500,3000,4000];
+const MC=[9,12,18,25,32,40,50,65,80,95,115,150,185,225,265,330,400,500];/* contactor AC-3 */
+/* ตาราง 4-2 สายดินของบริภัณฑ์ตามพิกัดเครื่องป้องกันกระแสเกิน (แถวแรก ≤ 10 A ตั้งแบบปลอดภัย) */
+const G42=[[10,1.5],[20,2.5],[40,4],[70,6],[100,10],[200,16],[400,25],[500,35],[800,50],[1000,70],[1250,95],[2000,120],[2500,185],[4000,240]];
+/* มิเตอร์การไฟฟ้า: พิกัด → เบรกเกอร์เมนสูงสุด / สายประธานต่ำสุด (ตารางที่ใช้ทั่วไป ตรวจกับประกาศของ กฟน./กฟภ. ล่าสุด) */
+const METER=[{n:'5(15) A',cb:16,sz:4},{n:'15(45) A',cb:50,sz:10},{n:'30(100) A',cb:100,sz:35},{n:'50(150) A',cb:125,sz:50}];
+/* PV cable EN 50618 (2 cables touching / in conduit, ambient 60 °C) */
+const PVSZ=[1.5,2.5,4,6,10,16,25,35],PVIZ=[24,33,44,57,79,107,142,176],PVR=[13.7,8.21,5.09,3.39,1.95,1.24,0.795,0.565];
+const FUSEPV=[2,3,4,5,6,8,10,12,15,16,20,25,30,32,40],VDC=[600,800,1000,1100,1500];
+const BLDG={res:'ที่อยู่อาศัย',office:'สำนักงาน / ร้านค้า / ห้าง',hotel:'โรงแรม / หอพัก',hosp:'โรงพยาบาล',store:'โกดัง / คลังสินค้า',fact:'โรงงาน / อื่นๆ'};
+/* ดีมานด์แฟกเตอร์ (แนวทางตาราง 3-1 ถึง 3-3) เป็นขั้น kVA: [ถึง kVA, DF] */
+const DFL={res:[[3,1],[120,.35],[1e9,.25]],hotel:[[20,.5],[100,.4],[1e9,.3]],hosp:[[50,.4],[1e9,.2]],store:[[12.5,1],[1e9,.5]],office:[[1e9,1]],fact:[[1e9,1]]};
+const DFR=[[10,1],[1e9,.5]];
+const LT={
+  light:{n:'แสงสว่าง',pf:.9,cont:1,dfg:'light',min:1.5},
+  recep:{n:'เต้ารับ',pf:1,cont:0,dfg:'recep',min:2.5},
+  recepw:{n:'เต้ารับห้องน้ำ/นอกอาคาร',pf:1,cont:0,dfg:'recep',min:2.5,rcd:1},
+  ac:{n:'เครื่องปรับอากาศ',pf:.9,cont:1,min:1.5},
+  wh:{n:'เครื่องทำน้ำอุ่น',pf:1,cont:1,min:2.5,rcd:1},
+  motor:{n:'มอเตอร์/ปั๊ม',pf:.85,cont:1,min:1.5,curve:'D'},
+  ev:{n:'EV Charger',pf:.99,cont:1,min:2.5,rcd:1},
+  other:{n:'โหลดทั่วไป',pf:.9,cont:1,min:1.5},
+  db:{n:'ตู้ย่อย (DB)',min:4},
+  pv:{n:'Solar PV',pf:1,cont:1,min:2.5}};
+const PRESET=[
+  ['light','แสงสว่าง',1,1],['recep','เต้ารับ',1.8,1],['recepw','เต้ารับห้องน้ำ/นอกอาคาร',1.8,1],
+  ['ac','แอร์ 9,000 BTU',.8,1],['ac','แอร์ 12,000 BTU',1.1,1],['ac','แอร์ 18,000 BTU',1.7,1],['ac','แอร์ 24,000 BTU',2.3,1],['ac','แอร์ 36,000 BTU',3.5,3],
+  ['wh','เครื่องทำน้ำอุ่น',4.5,1],['motor','ปั๊มน้ำ 1 เฟส',.75,1],['motor','มอเตอร์ 3 เฟส 7.5 kW',7.5,3],
+  ['ev','EV Charger 7.4 kW',7.4,1],['ev','EV Charger 22 kW',22,3],['other','โหลดทั่วไป',1,1],['db','ตู้ย่อย DB',0,0]];
+
+/* ---------- project model ---------- */
+const KEY='pvsim:eit';
+let P,R,TAB='src',HL=null;
+function mkCirc(b,t,name,kw,ph,o={}){const L=LT[t];return Object.assign({id:uid(),b,t,name,kw,pf:L.pf||.9,ph,pa:'auto',len:15,ck:'THW',g:'g2',n:1,sz:0,inx:0,rcd:'auto',cont:L.cont},o)}
+function mkPV(b,kw,ph){return mkCirc(b,'pv','Solar PV '+kw+' kW',kw,ph,{len:10,pv:{pm:550,voc:49.9,isc:14,vmp:41.9,imp:13.13,tc:-.27,ns:ph===3?10:9,np:ph===3?2:1,mppt:2,vmax:ph===3?1100:600,mpmin:ph===3?160:90,mpmax:ph===3?1000:550,imax:16,len:25,tmin:15,tcell:70}})}
+function blank(){return{v:1,info:{name:'โครงการใหม่',owner:'',loc:'',bldg:'res',designer:'',doc:'E-001',rev:'0',date:new Date().toISOString().slice(0,10)},
+  src:{kind:'m1',util:'กฟภ.',isc:6,kva:250,uk:4,ssc:500,len:10,ck:'THW',g:'g2',sz:0,inx:0,ta:40,tg:30,vdmax:5,cond:'emt',df:true},
+  boards:[{id:'MDB',name:'MDB',ph:1,meter:false}],circ:[]}}
+const SAMPLES={
+  house1:()=>{const p=blank();p.info.name='บ้านพักอาศัย 2 ชั้น (1 เฟส)';p.info.loc='อุบลราชธานี';
+    const c=(...a)=>p.circ.push(mkCirc('MDB',...a));
+    c('light','แสงสว่าง ชั้น 1',.8,1,{len:15});c('light','แสงสว่าง ชั้น 2',.6,1,{len:20});c('recep','เต้ารับ ชั้น 1',1.8,1,{len:15});c('recep','เต้ารับ ชั้น 2',1.8,1,{len:20});
+    c('ac','แอร์ห้องนอน 18,000 BTU',1.7,1,{len:12});c('wh','เครื่องทำน้ำอุ่น',4.5,1,{len:10});return p},
+  housepv:()=>{const p=SAMPLES.house1();p.info.name='บ้าน 1 เฟส + Solar 5 kW';p.circ.push(mkPV('MDB',5,1));return p},
+  house3:()=>{const p=blank();p.info.name='บ้าน 3 เฟส + Solar Hybrid 10 kW';p.src.kind='m3';p.src.isc=10;p.boards[0].ph=3;
+    const c=(...a)=>p.circ.push(mkCirc('MDB',...a));
+    c('light','แสงสว่าง ชั้น 1',1,1,{len:15});c('light','แสงสว่าง ชั้น 2',.8,1,{len:20});c('recep','เต้ารับ ชั้น 1',1.8,1,{len:15});c('recep','เต้ารับ ชั้น 2',1.8,1,{len:20});
+    c('ac','แอร์ห้องนั่งเล่น 24,000 BTU',2.3,1,{len:12});c('ac','แอร์ห้องนอน 1 12,000 BTU',1.1,1,{len:18});c('ac','แอร์ห้องนอน 2 12,000 BTU',1.1,1,{len:22});
+    c('wh','เครื่องทำน้ำอุ่น',4.5,1,{len:12});c('ev','EV Charger 7.4 kW',7.4,1,{len:20});
+    p.circ.push(mkPV('MDB',10,3));return p},
+  office:()=>{const p=blank();Object.assign(p.info,{name:'ตัวอย่าง อาคารสำนักงาน 3 ชั้น',owner:'บริษัท ตัวอย่าง จำกัด',loc:'กรุงเทพฯ',bldg:'office',doc:'E-CAL-001'});
+    Object.assign(p.src,{kind:'tr',util:'กฟน.',kva:250,uk:4,ssc:500,len:15,ck:'CVM',g:'g3'});p.boards=[{id:'MDB',name:'MDB',ph:3,meter:true}];
+    const add=(b,...a)=>{const x=mkCirc(b,...a);p.circ.push(x);return x};
+    const db=(b,name,ph,o)=>{const id='B'+uid();p.boards.push({id,name,ph,meter:false});add(b,'db',name,0,ph,Object.assign({to:id,n:1},o));return id};
+    const d1=db('MDB','DB-1 ชั้น 1',3,{len:35,n:2});
+    add('MDB','motor','ปั๊มน้ำ P-1',15,3,{len:40,n:2});add('MDB','ev','EV Charger 22 kW',22,3,{len:30,n:2,pf:.99});
+    const d2=db('MDB','DB-2 ชั้น 2',3,{len:50,n:2});const dp=db('MDB','DB-PUMP ห้องปั๊ม',3,{len:30});
+    p.boards.find(b=>b.id===dp).meter=true;
+    add(d1,'light','แสงสว่าง ชั้น 1',2,1,{len:30,n:3});add(d1,'recep','เต้ารับ ชั้น 1',2.88,1,{len:25,n:3});add(d1,'ac','แอร์ 36,000 BTU',3.5,3,{len:20});add(d1,'wh','เครื่องทำน้ำอุ่น',3.5,1,{len:18});
+    add(d2,'ac','แอร์ 18,000 BTU',1.7,1,{len:15});add(d2,'ac','แอร์ 24,000 BTU',2.3,1,{len:22});add(d2,'light','แสงสว่าง ชั้น 2',1.5,1,{len:35,n:2});
+    add(dp,'motor','ปั๊มน้ำดี 15 kW',15,3,{len:20});add(dp,'motor','ปั๊มดับเพลิง 37 kW',37,3,{len:25,ck:'CVM',g:'g2',pf:.86});
+    return p}};
+const SAMPLE_NAMES={house1:'บ้านพักอาศัย 2 ชั้น (1 เฟส)',housepv:'บ้าน 1 เฟส + Solar 5 kW',house3:'บ้าน 3 เฟส + Solar 10 kW + EV',office:'อาคารสำนักงาน 3 ชั้น (หม้อแปลง 250 kVA)',blank:'เริ่มโครงการใหม่ (ว่าง)'};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===1&&s.boards&&s.circ)return s}catch(e){}return SAMPLES.house1()}
+const bOf=id=>P.boards.find(b=>b.id===id);
+const kids=bid=>P.circ.filter(c=>c.b===bid);
+
+/* ---------- engine ---------- */
+function interp(t,x){const ks=Object.keys(t).map(Number).sort((a,b)=>a-b);if(x<=ks[0])return t[ks[0]];if(x>=ks[ks.length-1])return t[ks[ks.length-1]];
+  for(let i=1;i<ks.length;i++)if(x<=ks[i]){const a=ks[i-1],b=ks[i];return t[a]+(t[b]-t[a])*(x-a)/(b-a)}}
+function dfApply(steps,kva){let left=kva,prev=0,out=0;for(const[to,d]of steps){const seg=Math.min(left,to-prev);if(seg<=0)break;out+=seg*d;left-=seg;prev=to}return out}
+/* ampacity of one size as the วสท. table states it (rounded at the reference temperature) times kt */
+function ampTable(ck,g,nl,i){const K=CK[ck],G=GRP[g]||GRP[K.g[0]],m=K.mc?G.mm:G.m1,ins=K.ins;
+  const base=m==='D'?KTG[ins][30]:KTA[ins][40];return Math.round(IEC[ins][nl][m][i]*base)}
+function ktOf(ck,g){const K=CK[ck],m=K.mc?GRP[g].mm:GRP[g].m1;return m==='D'?interp(KTG[K.ins],P.src.tg)/KTG[K.ins][30]:interp(KTA[K.ins],P.src.ta)/KTA[K.ins][40]}
+const kgOf=n=>{n=Math.max(1,n|0);const ks=Object.keys(KG).map(Number).sort((a,b)=>a-b);let v=1;for(const k of ks)if(n>=k)v=KG[k];return v};
+function zc(ck,i,hot){const K=CK[ck],T=hot?(K.ins==='xlpe'?90:70):20,r=R20[i]*(1+.00393*(T-20)),x=K.mc?.08:.09;return{r,x}}/* Ω/km */
+function vdOf(ck,i,par,ph3,Ib,len){const z=zc(ck,i,1),Z=Math.hypot(z.r,z.x)/par;return ph3?SQ3*Ib*len*Z/1000/400*100:2*Ib*len*Z/1000/230*100}
+function groundOf(In,phSz){const g=(G42.find(r=>In<=r[0])||G42[G42.length-1])[1];return Math.min(g,phSz)}
+function brkType(In,rcd){return In<=63?(rcd?'RCBO':'MCB'):In<=1600?'MCCB':'ACB'}
+function icuOf(type,isc){const L=ICU[type]||ICU.MCCB;return std(L,isc)||L[L.length-1]}
+function conduitOf(ck,i,ncond,par,gsz){const K=CK[ck];
+  const od=K.od[i],god=CK.THW.od[SZ.indexOf(gsz)]||3.9;
+  let n,area;if(K.mc){area=Math.PI/4*od*od+Math.PI/4*god*god;n=2}else{n=ncond+1;area=ncond*Math.PI/4*od*od+Math.PI/4*god*god}
+  const fill=n===1?.53:n===2?.31:.4,C=COND[P.src.cond]||COND.emt;const s=C.s.find(([,d])=>Math.PI/4*d*d*fill>=area);return s?s[0]:'> 4"'}
+/* size one circuit/feeder: breaker → cable (ampacity + voltage drop) → ground → conduit */
+function sizeRun(o){
+  const out={Ib:o.Ib,Id:o.Id};
+  out.In=o.inx||std(BRK,Math.max(o.Id,o.inMin||0))||BRK[BRK.length-1];
+  out.type=brkType(out.In,o.rcd);out.icu=icuOf(out.type,o.isc);out.isc=o.isc;
+  const nl=o.ph3?3:2,K=CK[o.ck],g=K.g.includes(o.g)?o.g:K.g[0];out.g=g;
+  out.kt=ktOf(o.ck,g);out.kg=kgOf(o.n);
+  const minI=Math.max(0,SZ.indexOf(o.min));
+  const tryS=(i,par)=>{const It=ampTable(o.ck,g,nl,i),Iz=It*out.kt*out.kg*par,vd=vdOf(o.ck,i,par,o.ph3,o.Ib,o.len);return{i,par,It,Iz,vd}};
+  let pick=null,ampOnly=null;
+  if(o.sz){const i=SZ.indexOf(+o.sz);pick=tryS(i<0?0:i,o.par||1)}
+  else{for(let par=1;par<=6&&!pick;par++)for(let i=par>1?SZ.indexOf(50):minI;i<SZ.length;i++){const t=tryS(i,par);if(t.Iz>=out.In-1e-9){if(!ampOnly)ampOnly=t;if(t.vd<=o.vdT+1e-9&&o.vdUp+t.vd<=o.vdMax+1e-9){pick=t;break}}}
+    if(!pick)pick=ampOnly||tryS(SZ.length-1,6)}
+  Object.assign(out,{sz:SZ[pick.i],si:pick.i,par:pick.par,It:pick.It,Iz:pick.Iz,vd:pick.vd,vdSum:o.vdUp+pick.vd});
+  out.gsz=groundOf(out.In,out.sz*pick.par);
+  out.ncond=o.ph3?(o.noN?3:4):2;
+  out.cond=GRP[g].cd?conduitOf(o.ck,pick.i,out.ncond,pick.par,out.gsz):null;
+  const z=zc(o.ck,pick.i,0);out.zr=z.r*o.len/1000/pick.par;out.zx=z.x*o.len/1000/pick.par;
+  out.cable=cableLabel(o.ck,out.ncond,out.sz,out.par,out.gsz);out.ck=o.ck;out.len=o.len;out.ph3=o.ph3;
+  return out}
+function cableLabel(ck,nc,sz,par,g){const K=CK[ck],core=`${nc}×${sz}`;return(par>1?`${par}(${K.n} ${core})`:`${K.n} ${core}`)+` + G${g}`}
+function brkLabel(r,poles){return`${r.type} ${r.In}A ${poles}P ${r.icu}kA`}
+
+function compute(){
+  const S=P.src,root=P.boards[0],sys3=S.kind!=='m1',iss=[];
+  if(!sys3)P.boards.forEach(b=>b.ph=1);
+  const RB={},RC={};
+  P.circ.forEach(c=>{if(!sys3)c.ph=1;const b=bOf(c.b);if(b&&b.ph===1)c.ph=1;
+    if(c.t==='db'){const sb=bOf(c.to);if(sb){if(b&&b.ph===1)sb.ph=1;c.ph=sb.ph;sb.name=c.name}}});
+  /* 1 leaf currents */
+  P.circ.forEach(c=>{if(c.t==='db')return;const pf=c.t==='pv'?1:Math.min(1,Math.max(.5,+c.pf||.9)),ph3=c.ph===3;
+    RC[c.id]={ph3,pf,kw:+c.kw||0,Ib:(+c.kw||0)*1000/((ph3?SQ3*400:230)*pf)}});
+  /* 2 phase assignment (postorder, raw currents) */
+  function post(bid,depth){const B=bOf(bid),rb=RB[bid]={id:bid,ph3:B.ph===3,depth},cs=kids(bid);
+    cs.forEach(c=>{if(c.t==='db'){RC[c.id]={ph3:c.ph===3};const s=post(c.to,depth+1);RC[c.id].raw=s}});
+    if(rb.ph3){const acc=[0,0,0];const val=c=>{const r=RC[c.id];return c.t==='db'?(r.ph3?null:r.raw):(r.ph3?null:r.Ib)};
+      cs.forEach(c=>{const r=RC[c.id];if(c.t==='pv')return;if(r.ph3){const v=c.t==='db'?r.raw:[r.Ib,r.Ib,r.Ib];for(let k=0;k<3;k++)acc[k]+=v[k]}});
+      cs.filter(c=>c.t!=='pv'&&!RC[c.id].ph3&&c.pa!=='auto').forEach(c=>{const k=+c.pa.slice(1)-1;RC[c.id].phase=k;acc[k]+=val(c)});
+      cs.filter(c=>c.t!=='pv'&&!RC[c.id].ph3&&c.pa==='auto').sort((a,b)=>val(b)-val(a)).forEach(c=>{let k=0;for(let j=1;j<3;j++)if(acc[j]<acc[k]-1e-9)k=j;RC[c.id].phase=k;acc[k]+=val(c)});
+      cs.filter(c=>c.t==='pv'&&!RC[c.id].ph3).forEach(c=>{let k=c.pa!=='auto'?+c.pa.slice(1)-1:acc.indexOf(Math.max(...acc));RC[c.id].phase=k});
+      return acc}
+    let s=0;cs.forEach(c=>{if(c.t==='pv'){RC[c.id].phase=0;return}s+=c.t==='db'?RC[c.id].raw:RC[c.id].Ib;RC[c.id].phase=0});return s}
+  post(root.id,0);
+  /* 3 top-down: root phases, leaf vectors, demand per board */
+  const bldg=P.info.bldg||'office';
+  function down(bid,rp){const rb=RB[bid],cs=kids(bid);let leaves=[];
+    cs.forEach(c=>{const r=RC[c.id];const k=rb.ph3?r.phase:rp;
+      if(c.t==='db'){const sub=down(c.to,rb.ph3?r.phase:rp);leaves=leaves.concat(sub);r.rphase=k;return}
+      r.rphase=k;const v=[0,0,0];if(r.ph3){v[0]=v[1]=v[2]=r.Ib}else v[k]=r.Ib;r.vec=v;
+      if(c.t!=='pv')leaves.push({c,v,kw:r.kw,kvar:r.kw*Math.tan(Math.acos(r.pf)),kva:r.kw/r.pf,g:LT[c.t].dfg||'x',motor:c.t==='motor'?r.Ib:0})});
+    const Sl=leaves.filter(l=>l.g==='light').reduce((a,l)=>a+l.kva,0),Sr=leaves.filter(l=>l.g==='recep').reduce((a,l)=>a+l.kva,0);
+    const on=P.src.df!==false,fl=on&&Sl?dfApply(DFL[bldg]||DFL.office,Sl)/Sl:1,fr=on&&Sr?dfApply(DFR,Sr)/Sr:1;
+    const fac=l=>l.g==='light'?fl:l.g==='recep'?fr:1;
+    const dem=[0,0,0];let kw=0,kvar=0,ckw=0,ckvar=0;leaves.forEach(l=>{const q=fac(l);for(let j=0;j<3;j++)dem[j]+=l.v[j]*q;kw+=l.kw*q;kvar+=l.kvar*q;ckw+=l.kw;ckvar+=l.kvar});
+    Object.assign(rb,{dem,kw,kvar,ckw,ckvar,kva:Math.hypot(kw,kvar),ckva:Math.hypot(ckw,ckvar),pf:kw?kw/Math.hypot(kw,kvar):1,df:ckw?Math.hypot(kw,kvar)/Math.hypot(ckw,ckvar):1,fl,fr,rp});
+    /* board rows: leaves raw, sub-feeders their demand */
+    const tot=[0,0,0];cs.forEach(c=>{if(c.t==='pv')return;const v=c.t==='db'?RB[c.to].dem:RC[c.id].vec;for(let j=0;j<3;j++)tot[j]+=v[j]});
+    rb.tot=tot;const act=rb.ph3?tot:[tot[rp]],avg=act.reduce((a,b)=>a+b,0)/act.length;rb.unb=rb.ph3&&avg>0?(Math.max(...tot)-avg)/avg*100:0;
+    return leaves}
+  down(root.id,0);
+  P.circ.forEach(c=>{if(c.t==='db'){const r=RC[c.id],sb=RB[c.to];r.vec=sb.dem;r.kw=sb.kw;r.pf=sb.pf;r.Ib=sb.ph3?Math.max(...sb.dem):sb.dem[sb.rp]}});
+  /* 4 source impedance */
+  const src={};
+  if(S.kind==='tr'){const zs=1.1*400*400/(S.ssc*1e6),rs=zs/Math.sqrt(101),xs=10*rs,zt=(S.uk/100)*400*400/(S.kva*1000),rt=zt/Math.sqrt(26),xt=5*rt;
+    src.r=rs+rt;src.x=xs+xt;src.isc=C_MAX*U0/Math.hypot(src.r,src.x)/1000;src.fla=S.kva*1000/(SQ3*400)}
+  else{const Uo=sys3?U0:230,z=C_MAX*Uo/(S.isc*1000);src.r=z/Math.SQRT2;src.x=z/Math.SQRT2;src.isc=S.isc}
+  /* 5 main feeder */
+  const rr=RB[root.id],mIb=rr.ph3?Math.max(...rr.dem):rr.dem[0];
+  const main=sizeRun({Ib:mIb,Id:1.25*mIb,ph3:root.ph===3,len:+S.len||1,ck:S.ck,g:S.g,n:1,sz:+S.sz||0,inx:+S.inx||0,isc:src.isc,vdUp:0,vdT:2,vdMax:+S.vdmax||5,min:4,rcd:false});
+  main.poles=root.ph===3?3:2;
+  if(S.kind!=='tr'){const need=main.In;const m=METER.find(x=>x.cb>=need);src.meter=m||null;
+    if(m&&!S.sz&&main.sz<m.sz){const i=SZ.indexOf(m.sz);const t=sizeRun(Object.assign({},{Ib:mIb,Id:1.25*mIb,ph3:root.ph===3,len:+S.len||1,ck:S.ck,g:S.g,n:1,sz:m.sz,inx:main.In,isc:src.isc,vdUp:0,vdT:2,vdMax:+S.vdmax||5,min:4}));Object.assign(main,t);main.poles=root.ph===3?3:2;void i}}
+  else{src.ct=std(CTR,src.fla)||CTR[CTR.length-1];src.trUse=rr.kva/S.kva*100;src.trNeed=std(TRS,rr.kva/.8)}
+  /* 6 top-down sizing */
+  function walk(bid,zr,zx,vdBus){const B=bOf(bid),rb=RB[bid];rb.zr=zr;rb.zx=zx;rb.vd=vdBus;
+    rb.isc3=sys3?C_MAX*U0/Math.hypot(zr,zx)/1000:0;rb.isc1=C_MAX*230/Math.hypot(sys3?zr:zr,zx)/1000;
+    /* 1-phase loop: source loop already in zr for a 1-phase supply; cables add twice in the loop (see note) */
+    rb.isc=rb.ph3?rb.isc3:rb.isc1;
+    kids(bid).forEach(c=>{const r=RC[c.id],L=LT[c.t];
+      const rcdNeed=L.rcd||(c.t==='recep'&&P.info.bldg==='res');const rcd=c.rcd==='y'||(c.rcd==='auto'&&rcdNeed);
+      const cont=c.t==='db'?true:(c.cont!=null?!!c.cont:!!L.cont);
+      const Ib=r.Ib,Id=cont?1.25*Ib:Ib;
+      const s=sizeRun({Ib,Id,ph3:r.ph3,len:+c.len||1,ck:c.ck,g:c.g,n:+c.n||1,sz:+c.sz||0,inx:+c.inx||0,isc:rb.isc,vdUp:vdBus,vdT:c.t==='db'||c.t==='pv'?2:99,vdMax:+S.vdmax||5,min:L.min||1.5,rcd,noN:c.t==='motor'&&r.ph3});
+      Object.assign(r,s,{rcd,rcdNeed,cont,poles:r.ph3?3:1,curve:L.curve||'C'});
+      if(c.t==='db')walk(c.to,zr+(sys3?1:2)*s.zr,zx+(sys3?1:2)*s.zx,s.vdSum)})}
+  walk(root.id,src.r+(sys3?1:2)*main.zr,src.x+(sys3?1:2)*main.zx,main.vd);
+  /* 7 checks */
+  const add=(lv,msg,at,ref)=>iss.push({lv,msg,at,ref});
+  const nameOf=c=>`${bOf(c.b).name} · ${c.name}`;
+  const chkRun=(r,label,at)=>{let ok=true;
+    if(r.In<r.Id-1e-9){add('err',`${label}: เบรกเกอร์ ${r.In} A เล็กกว่ากระแสออกแบบ ${f(r.Id)} A`,at,'In ≥ Id');ok=false}
+    if(r.Iz<r.In-1e-9){add('err',`${label}: สาย ${r.cable} รับกระแสได้ ${f(r.Iz)} A น้อยกว่าเบรกเกอร์ ${r.In} A`,at,'Iz ≥ In');ok=false}
+    if(r.vdSum>(+S.vdmax||5)+1e-9){add('err',`${label}: แรงดันตกสะสม ${f(r.vdSum,2)}% เกิน ${S.vdmax||5}% · เพิ่มขนาดสายหรือย้ายตู้ให้ใกล้โหลด`,at,'ΣVD');ok=false}
+    if(r.icu<r.isc-1e-9){add('err',`${label}: พิกัดตัดกระแส ${r.icu} kA น้อยกว่ากระแสลัดวงจร ${f(r.isc,2)} kA`,at,'Icu ≥ Isc');ok=false}
+    return ok};
+  main.ok=chkRun(main,'สายเมน',{src:1});
+  if(S.kind!=='tr'){if(!src.meter){add('err',sys3?`กระแสเมน ${f(main.Id)} A เกินมิเตอร์ 50(150) A ต้องใช้มิเตอร์ประกอบ CT หรือขอหม้อแปลงเฉพาะราย`:`กระแสเมน ${f(main.Id)} A เกินมิเตอร์ 1 เฟส ใหญ่สุด 50(150) A · เปลี่ยนเป็นระบบ 3 เฟส`,{src:1},'มิเตอร์');main.ok=false}}
+  else{if(src.trUse>80)add('err',`หม้อแปลง ${S.kva} kVA ใช้งาน ${f(src.trUse,0)}% เกิน 80% · แนะนำ ${src.trNeed||'มากกว่า 2500'} kVA`,{src:1},'หม้อแปลง');
+    if(rr.pf<.95&&rr.kw>0){const kvar=rr.kw*(Math.tan(Math.acos(rr.pf))-Math.tan(Math.acos(.95)));src.cap=Math.ceil(kvar/5)*5;add('tip',`ตัวประกอบกำลังรวม ${f(rr.pf,2)} ต่ำกว่า 0.95 · แนะนำ capacitor ${src.cap} kvar ที่ MDB`,{src:1},'PF')}}
+  P.circ.forEach(c=>{const r=RC[c.id],at={c:c.id},lb=nameOf(c);if(!r||r.In==null)return;
+    r.ok=chkRun(r,lb,at);
+    if(c.sz&&SZ.indexOf(+c.sz)<SZ.indexOf(LT[c.t].min||1.5)){add('err',`${lb}: สาย ${c.sz} mm² เล็กกว่าขนาดต่ำสุด ${LT[c.t].min} mm²`,at,'ขนาดต่ำสุด');r.ok=false}
+    if(r.rcdNeed&&!r.rcd){add('err',`${lb}: ต้องมีเครื่องตัดไฟรั่ว I∆n ≤ 30 mA`,at,'ข้อ 3.1.8 / 3.1.9');r.ok=false}
+    if(c.t==='ev'&&r.rcd)r.rcdType='type A (+ ตรวจจับ DC 6 mA) หรือ type B';
+    if(c.t==='motor'){r.tor=r.Ib;r.mc=std(MC,r.Ib)}});
+  P.boards.forEach(b=>{const rb=RB[b.id];if(rb&&rb.ph3&&rb.unb>20)add('warn',`ตู้ ${b.name}: ไม่สมดุล ${f(rb.unb,0)}% เกิน 20% · ย้ายวงจร 1 เฟสข้ามเฟส`,{b:b.id},'สมดุลเฟส')});
+  /* PV */
+  const pvs=P.circ.filter(c=>c.t==='pv');src.pvkw=pvs.reduce((a,c)=>a+(+c.kw||0),0);
+  pvs.forEach(c=>{const r=RC[c.id],v=c.pv||{},lb=nameOf(c),at={c:c.id};const d=r.dc={};
+    d.kwp=v.pm*v.ns*v.np/1000;d.ratio=d.kwp/(+c.kw||1);d.voc=v.voc*v.ns*(1+v.tc/100*(v.tmin-25));d.vmpHot=v.vmp*v.ns*(1+v.tc/100*(v.tcell-25));d.vmp=v.vmp*v.ns;
+    d.spm=Math.ceil(v.np/Math.max(1,v.mppt));d.mppts=Math.min(v.mppt,v.np);d.iin=v.isc*d.spm;d.fuse=d.spm>=3;
+    d.fuseIn=d.fuse?(FUSEPV.find(x=>x>=1.5*v.isc&&x<=2.4*v.isc)||std(FUSEPV,1.5*v.isc)):0;
+    const need=Math.max(1.25*v.isc,d.fuseIn);let i=PVSZ.indexOf(4);while(i<PVSZ.length-1&&PVIZ[i]<need)i++;
+    const vdF=k=>2*v.imp*v.len*PVR[k]*1.275/1000/d.vmp*100;while(i<PVSZ.length-1&&vdF(i)>3)i++;
+    d.cab=PVSZ[i];d.cabIz=PVIZ[i];d.vd=vdF(i);d.swI=std(BRK.concat([13]).sort((a,b)=>a-b),1.25*v.isc*d.spm);d.swV=std(VDC,d.voc)||1500;d.spd=std(VDC,d.voc)||1500;
+    if(d.voc>v.vmax)add('err',`${lb}: Voc ที่ ${v.tmin} °C = ${f(d.voc,0)} V เกินแรงดันสูงสุดอินเวอร์เตอร์ ${v.vmax} V · ลดจำนวนแผงต่อสตริง`,at,'Voc,max');
+    if(d.vmpHot<v.mpmin)add('warn',`${lb}: Vmp ตอนร้อน (${v.tcell} °C) = ${f(d.vmpHot,0)} V ต่ำกว่าช่วง MPPT ${v.mpmin} V`,at,'MPPT');
+    if(d.vmp>v.mpmax)add('warn',`${lb}: Vmp = ${f(d.vmp,0)} V สูงกว่าช่วง MPPT ${v.mpmax} V`,at,'MPPT');
+    if(d.iin>v.imax)add('err',`${lb}: กระแสเข้า MPPT ${f(d.iin,1)} A (Isc × ${d.spm} สตริง) เกินพิกัด ${v.imax} A`,at,'I MPPT');
+    if(d.ratio>1.35||d.ratio<.9)add('tip',`${lb}: DC/AC ratio ${f(d.ratio,2)} (แนะนำ 1.0–1.3)`,at,'DC/AC');
+    if(!r.ph3&&c.kw>5)add('warn',`${lb}: อินเวอร์เตอร์ 1 เฟส ${c.kw} kW เกิน 5 kW · การไฟฟ้ากำหนดให้ใช้ 3 เฟส`,at,'ข้อกำหนดการไฟฟ้า');
+    if(r.vd>2)add('tip',`${lb}: แรงดันตกสาย AC อินเวอร์เตอร์ ${f(r.vd,2)}% (แนะนำ ≤ 2% กันอินเวอร์เตอร์ตัดเพราะแรงดันสูง)`,at,'VD AC PV');
+    r.ok=r.ok&&!iss.some(x=>x.at.c===c.id&&x.lv==='err')});
+  if(S.kind==='tr'&&src.pvkw>.15*S.kva)add('warn',`Solar รวม ${src.pvkw} kW เกิน 15% ของหม้อแปลง (${f(.15*S.kva,0)} kW) ต้องศึกษาผลกระทบตามระเบียบการไฟฟ้า`,{src:1},'ข้อกำหนดการไฟฟ้า');
+  if(S.kind!=='tr'&&src.meter&&src.pvkw){const iac=src.pvkw*1000/(sys3?SQ3*400:230);if(iac>main.In)add('warn',`กระแส Solar ${f(iac)} A เกินเบรกเกอร์เมน ${main.In} A`,{src:1},'ข้อกำหนดการไฟฟ้า')}
+  P.circ.forEach(c=>{const r=RC[c.id];if(r&&r.In!=null)r.ok=r.ok!==false&&!iss.some(x=>x.at.c===c.id&&x.lv==='err')});
+  const order={err:0,warn:1,tip:2};iss.sort((a,b)=>order[a.lv]-order[b.lv]);
+  const vds=P.circ.filter(c=>c.t!=='db'&&RC[c.id]&&RC[c.id].vdSum!=null).map(c=>({c,v:RC[c.id].vdSum}));
+  const vmax=vds.reduce((a,x)=>x.v>a.v?x:a,{v:0,c:null});
+  R={src,main,b:RB,c:RC,iss,vmax,sys3,root:root.id};return R}
+
+/* ---------- UI: tabs + KPIs ---------- */
+const STEPS=[['src','แหล่งจ่าย'],['brd','ตู้และวงจร'],['pv','Solar PV'],['chk','ตรวจผล'],['sld','SLD'],['boq','BOQ']];
+function renderSteps(){const n=x=>R.iss.filter(i=>i.lv===x).length,e=n('err'),w=n('warn');
+  $('#steps').innerHTML=STEPS.map(([k,t],i)=>`<button class="step" role="tab" data-tab="${k}" aria-selected="${TAB===k}"><i>${i+1}</i>${t}${k==='chk'?`<span class="dot ${e?'err':w?'warn':''}"></span>`:''}</button>`).join('');
+  $$('#steps .step').forEach(b=>b.onclick=()=>show(b.dataset.tab))}
+function renderKpis(){const S=P.src,rr=R.b[R.root],e=R.iss.filter(i=>i.lv==='err').length,nC=P.circ.filter(c=>c.t!=='db').length;
+  const srcK=S.kind==='tr'?`<div class="kpi ${R.src.trUse>80?'err':''}"><span>หม้อแปลง ${S.kva} kVA</span><b>${f(R.src.trUse,0)}%</b></div>`:
+    `<div class="kpi ${R.src.meter?'':'err'}"><span>มิเตอร์ ${esc(S.util)} ${R.sys3?'3 เฟส':'1 เฟส'}</span><b>${R.src.meter?esc(R.src.meter.n):'เกิน'}</b></div>`;
+  $('#kpis').innerHTML=`<div class="kpi"><span>โหลดหลังดีมานด์</span><b>${f(rr.kw,1)} kW</b></div>${srcK}
+   <div class="kpi"><span>เมน ${R.main.type}</span><b>${R.main.In} A</b></div>
+   <div class="kpi ${R.vmax.v>(S.vdmax||5)?'err':''}"><span>VD สะสมสูงสุด</span><b>${f(R.vmax.v,2)}%</b></div>
+   ${R.src.pvkw?`<div class="kpi"><span>Solar รวม</span><b>${f(R.src.pvkw,1)} kW</b></div>`:''}
+   <div class="kpi ${e?'err':'ok'}"><span>${e?'ต้องแก้':'ผ่านทุกเกณฑ์'} · ${nC} วงจร</span><b>${e?e+' รายการ':'✓ ผ่าน'}</b></div>`}
+function show(t){TAB=t;$$('.pane').forEach(p=>p.hidden=p.id!=='p-'+t);renderSteps();renderTab();post()}
+function renderTab(){if(TAB==='brd'&&!$('#boards').childElementCount)renderBoards();
+  if(TAB==='brd')updateBoards();if(TAB==='pv')renderPV();if(TAB==='chk')renderChecks();if(TAB==='sld')renderSLD();if(TAB==='boq')renderBOQ();if(TAB==='src')renderSrc()}
+function recalc(struct){compute();save();renderKpis();renderSteps();if(struct&&TAB==='brd'){renderBoards()}renderTab();post()}
+
+/* ---------- step 1 source ---------- */
+function renderSrc(){const S=P.src,k=S.kind;
+  $('#srcseg').innerHTML=[['m1','มิเตอร์ 1 เฟส 230 V'],['m3','มิเตอร์ 3 เฟส 400 V'],['tr','หม้อแปลงเฉพาะราย']].map(([v,t])=>`<button data-k="${v}" aria-pressed="${k===v}">${t}</button>`).join('');
+  $$('#srcseg button').forEach(b=>b.onclick=()=>{S.kind=b.dataset.k;if(S.kind!=='m1')P.boards[0].ph=3;else P.boards.forEach(x=>x.ph=1);
+    if(S.kind==='tr'){S.ck='CVM';S.g='g3'}else{S.ck='THW';S.g='g2'};$('#boards').innerHTML='';recalc(1)});
+  const sel=(key,opts,val)=>`<select data-s="${key}">${opts.map(([v,t])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
+  const m=R.main;let h='';
+  if(k==='tr')h+=`<label class="f">ขนาดหม้อแปลง (kVA)${sel('kva',TRS.map(x=>[x,x+' kVA']),S.kva)}</label>
+    <label class="f">อิมพีแดนซ์ u<sub>k</sub> (%)<input type="number" data-s="uk" step="0.5" min="3" max="8" value="${S.uk}"></label>
+    <label class="f">ระดับลัดวงจรระบบแรงสูง (MVA)<input type="number" data-s="ssc" step="50" min="50" value="${S.ssc}"></label>`;
+  else h+=`<label class="f">การไฟฟ้า${sel('util',[['กฟภ.','กฟภ. (PEA)'],['กฟน.','กฟน. (MEA)']],S.util)}</label>
+    <label class="f">กระแสลัดวงจรที่มิเตอร์ (kA)<input type="number" data-s="isc" step="0.5" min="1" max="50" value="${S.isc}"></label>`;
+  const ckOpts=Object.entries(CK).map(([v,K])=>[v,K.full]);const K=CK[S.ck];
+  h+=`<label class="f">สายเมน ${k==='tr'?'หม้อแปลง → MDB':'มิเตอร์ → MDB'} ยาว (m)<input type="number" data-s="len" min="1" value="${S.len}"></label>
+    <label class="f">ชนิดสายเมน${sel('ck',ckOpts,S.ck)}</label>
+    <label class="f">วิธีเดินสาย${sel('g',K.g.map(g=>[g,GRP[g].n]),S.g)}</label>
+    <label class="f">ขนาดสาย${sel('sz',[[0,'อัตโนมัติ']].concat(SZ.map(s=>[s,s+' mm²'])),S.sz)}</label>
+    <label class="f">เบรกเกอร์เมน${sel('inx',[[0,'อัตโนมัติ']].concat(BRK.map(s=>[s,s+' A'])),S.inx)}</label>`;
+  $('#srcform').innerHTML=h+`<div class="card" style="grid-column:1/-1;background:var(--surface-2)"><b>ผล:</b> ${k==='tr'?`หม้อแปลง ${S.kva} kVA กระแสพิกัด ${f(R.src.fla,0)} A · ใช้งาน ${f(R.src.trUse,0)}% · มิเตอร์การไฟฟ้าประกอบ CT ${R.src.ct}/5 A · `:`มิเตอร์ ${R.src.meter?esc(R.src.meter.n):'<span class="tag err">เกินพิกัด</span>'} · `}
+    เมน ${brkLabel(m,m.poles)} · สาย ${esc(m.cable)} (I<sub>z</sub> ${f(m.Iz,0)} A) · VD ${f(m.vd,2)}% · I<sub>sc</sub> ที่เมน ${f(m.isc,2)} kA ที่ MDB ${f(R.b[R.root].isc,2)} kA</div>`;
+  $$('#p-src [data-s]').forEach(el=>{const key=el.dataset.s;if(el.type==='checkbox')el.checked=S[key]!==false;else if(el.tagName!=='SELECT'||!el.closest('#srcform'))el.value=S[key];
+    el.onchange=el.oninput=e=>{if(e.type==='input'&&el.tagName==='SELECT')return;const v=el.type==='checkbox'?el.checked:el.type==='number'||/^(kva|sz|inx)$/.test(key)?+el.value:el.value;S[key]=v;
+      if(key==='ck'){const g=CK[v].g;if(!g.includes(S.g))S.g=g[0]}if(e.type==='change'&&el.closest('#srcform'))recalc(1),renderSrc();else recalc()}});
+  $$('#p-src [data-i]').forEach(el=>{const key=el.dataset.i;if(el.tagName==='SELECT'&&!el.options.length)el.innerHTML=Object.entries(BLDG).map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+    el.value=P.info[key]||'';el.oninput=el.onchange=()=>{P.info[key]=el.value;recalc()}})}
+
+/* ---------- step 2 boards ---------- */
+function boardOrder(){const out=[];const go=(bid)=>{out.push(bid);kids(bid).filter(c=>c.t==='db').forEach(c=>go(c.to))};go(P.boards[0].id);return out}
+function renderBoards(){const host=$('#boards');
+  host.innerHTML=boardOrder().map(bid=>{const B=bOf(bid),fe=P.circ.find(c=>c.to===bid);
+    const rows=kids(bid).map(c=>rowHtml(c,B)).join('');
+    return`<div class="bcard" id="bc-${bid}"><div class="bhead"><div class="bname"><b>${esc(B.name)}</b><span>${B.ph===3?'3 เฟส 4 สาย 230/400 V':'1 เฟส 2 สาย 230 V'}</span></div>
+      <div class="bsum" id="bs-${bid}"></div>
+      <label class="chk"><input type="checkbox" data-bm="${bid}" ${B.meter?'checked':''}> มิเตอร์ย่อย + CT</label></div>
+      <div class="tw"><table class="ed"><thead><tr><th>#</th><th>วงจร</th><th>ชนิด</th><th>kW</th><th>PF</th><th>เฟส</th><th>ต่อเฟส</th><th>ยาว m</th><th>สาย</th><th>วิธีเดินสาย</th><th>ร่วมท่อ</th><th>ขนาด mm²</th><th>CB A</th><th>RCD</th><th></th></tr></thead>
+      <tbody>${rows||`<tr><td colspan="15" class="muted" style="padding:10px">ยังไม่มีวงจร เลือกจาก "＋ เพิ่มวงจร" ด้านล่าง</td></tr>`}</tbody></table></div>
+      <div class="bfoot"><select class="btn" data-add="${bid}"><option value="">＋ เพิ่มวงจร…</option>${PRESET.map((p,i)=>(B.ph===1&&p[3]===3)?'':`<option value="${i}">${esc(p[1])}${p[2]?` ${p[2]} kW`:''}${p[3]===3?' (3 เฟส)':''}</option>`).join('')}</select>
+      ${fe?`<span class="note">ป้อนจาก ${esc(bOf(fe.b).name)} · ลบตู้นี้ได้ที่แถวของตู้ในตู้ต้นทาง</span>`:''}</div></div>`}).join('');
+  host.querySelectorAll('[data-add]').forEach(s=>s.onchange=()=>{const p=PRESET[+s.value];if(!p)return;const bid=s.dataset.add,B=bOf(bid);
+    if(p[0]==='db'){const id='B'+uid(),n=P.boards.filter(b=>b.id!=='MDB').length+1;P.boards.push({id,name:'DB-'+n,ph:B.ph,meter:false});P.circ.push(mkCirc(bid,'db','DB-'+n,0,B.ph,{to:id,len:20}))}
+    else P.circ.push(mkCirc(bid,p[0],p[1],p[2],B.ph===1?1:p[3],p[0]==='motor'&&p[3]===3?{ck:'THW'}:{}));
+    recalc(1)});
+  host.querySelectorAll('[data-bm]').forEach(el=>el.onchange=()=>{bOf(el.dataset.bm).meter=el.checked;recalc()});
+  host.querySelectorAll('[data-c]').forEach(el=>{el.oninput=el.onchange=e=>{const c=P.circ.find(x=>x.id===el.dataset.c),k=el.dataset.k;if(!c)return;
+    if(e.type==='input'&&el.tagName==='SELECT')return;
+    let v=el.value;if(['kw','pf','len','n','sz','inx','ph'].includes(k))v=+v;c[k]=v;
+    let struct=false;if(k==='ck'){const g=CK[v].g;if(!g.includes(c.g)){c.g=g[0];struct=true}}
+    if(k==='ph'){struct=true;if(c.t==='db'){const sb=bOf(c.to);sb.ph=v;if(v===1)P.circ.filter(x=>x.b===c.to).forEach(x=>x.ph=1)}}
+    if(k==='name'&&c.t==='db'){bOf(c.to).name=v;const hn=document.querySelector(`#bc-${c.to} .bname b`);if(hn)hn.textContent=v}
+    recalc(struct&&e.type==='change')}});
+  host.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const c=P.circ.find(x=>x.id===b.dataset.del);if(!c)return;
+    if(c.t==='db'){const n=countSub(c.to);if(n&&!confirm(`ลบตู้ ${c.name} และวงจรข้างใน ${n} วงจร?`))return;dropBoard(c.to)}
+    P.circ=P.circ.filter(x=>x!==c);recalc(1)});
+  updateBoards()}
+function countSub(bid){let n=0;kids(bid).forEach(c=>{n++;if(c.t==='db')n+=countSub(c.to)});return n}
+function dropBoard(bid){kids(bid).forEach(c=>{if(c.t==='db')dropBoard(c.to)});P.circ=P.circ.filter(c=>c.b!==bid);P.boards=P.boards.filter(b=>b.id!==bid)}
+function rowHtml(c,B){const opt=(list,val)=>list.map(([v,t])=>`<option value="${v}" ${String(v)===String(val)?'selected':''}>${esc(t)}</option>`).join('');
+  const i=kids(c.b).indexOf(c)+1,K=CK[c.ck],isDb=c.t==='db',isPv=c.t==='pv';
+  const typeSel=isDb||isPv?`<span class="tag tip">${LT[c.t].n}</span>`:`<select data-c="${c.id}" data-k="t">${opt(Object.entries(LT).filter(([k])=>k!=='db'&&k!=='pv').map(([k,L])=>[k,L.n]),c.t)}</select>`;
+  return`<tr id="row-${c.id}" class="${HL===c.id?'hl':''}"><td class="mono">${i}</td><td><input class="nm" data-c="${c.id}" data-k="name" value="${esc(c.name)}"></td><td>${typeSel}</td>
+   <td class="n">${isDb?'<span class="muted small">ตามตู้</span>':`<input type="number" step="0.1" min="0" data-c="${c.id}" data-k="kw" value="${c.kw}">`}</td>
+   <td class="nn">${isDb||isPv?'<span class="muted small">–</span>':`<input type="number" step="0.01" min="0.5" max="1" data-c="${c.id}" data-k="pf" value="${c.pf}">`}</td>
+   <td class="nn"><select data-c="${c.id}" data-k="ph" ${B.ph===1?'disabled':''}>${opt([[1,'1φ'],[3,'3φ']],c.ph)}</select></td>
+   <td class="nn">${B.ph===3&&c.ph===1?`<select data-c="${c.id}" data-k="pa">${opt([['auto','อัตโนมัติ'],['L1','L1'],['L2','L2'],['L3','L3']],c.pa)}</select>`:'<span class="muted small">–</span>'}</td>
+   <td class="nn"><input type="number" min="1" data-c="${c.id}" data-k="len" value="${c.len}"></td>
+   <td><select data-c="${c.id}" data-k="ck">${opt(Object.entries(CK).map(([k,K])=>[k,K.n+(K.mc?' หลายแกน':' แกนเดียว')]),c.ck)}</select></td>
+   <td><select data-c="${c.id}" data-k="g">${opt(K.g.map(g=>[g,GRP[g].n]),c.g)}</select></td>
+   <td class="nn"><input type="number" min="1" max="20" data-c="${c.id}" data-k="n" value="${c.n}"></td>
+   <td class="n"><select data-c="${c.id}" data-k="sz">${opt([[0,'อัตโนมัติ']].concat(SZ.map(s=>[s,s])),c.sz)}</select></td>
+   <td class="n"><select data-c="${c.id}" data-k="inx">${opt([[0,'อัตโนมัติ']].concat(BRK.map(s=>[s,s])),c.inx)}</select></td>
+   <td class="n"><select data-c="${c.id}" data-k="rcd">${opt([['auto','อัตโนมัติ'],['y','มี'],['n','ไม่มี']],c.rcd)}</select></td>
+   <td><button class="btn sm del" data-del="${c.id}" title="ลบวงจร" aria-label="ลบวงจร">✕</button></td></tr>
+   <tr class="res"><td></td><td colspan="14" id="r-${c.id}"></td></tr>`}
+function resLine(c){const r=R.c[c.id];if(!r||r.In==null)return'';const ph=r.ph3?'3φ':['L1','L2','L3'][r.rphase]||'L';
+  const tg=r.ok?'<span class="tag ok">✓ ผ่าน</span>':'<span class="tag err">ไม่ผ่าน</span>';
+  return`${tg} <span class="k">I<sub>b</sub> ${f(r.Ib)}</span> · I<sub>d</sub> ${f(r.Id)} A · <span class="k">${esc(brkLabel(r,r.poles))}</span>${r.rcd?' + RCD 30 mA':''}${c.t==='motor'?' curve D':''}
+   · <span class="k">${esc(r.cable)}</span> (I<sub>t</sub> ${r.It}×${f(r.kt,2)}×${f(r.kg,2)}${r.par>1?'×'+r.par:''} = I<sub>z</sub> ${f(r.Iz)} A)
+   · VD ${f(r.vd,2)}% Σ <b class="${r.vdSum>(P.src.vdmax||5)?'ph1':''}">${f(r.vdSum,2)}%</b> · I<sub>sc</sub> ${f(r.isc,2)} kA${r.cond?` · ท่อ ${COND[P.src.cond].n} ${r.cond}`:''}${R.sys3&&!r.ph3&&c.t!=='db'?` · <b class="ph${r.rphase+1}">${ph}</b>`:R.sys3&&c.t==='db'&&!r.ph3?` · <b class="ph${r.rphase+1}">${ph}</b>`:''}${c.t==='motor'?` · TOR ตั้ง ${f(r.tor)} A`:''}`}
+function updateBoards(){P.boards.forEach(B=>{const rb=R.b[B.id],el=$('#bs-'+B.id);if(!rb||!el)return;const fe=P.circ.find(c=>c.to===B.id),fr=fe?R.c[fe.id]:R.main;
+    const ph=rb.ph3?`<span>L1 <b class="ph1">${f(rb.tot[0])}</b> L2 <b class="ph2">${f(rb.tot[1])}</b> L3 <b class="ph3">${f(rb.tot[2])}</b> A · ไม่สมดุล <b>${f(rb.unb,0)}%</b>${rb.unb>20?' <span class="tag warn">เกิน 20%</span>':''}</span>`:`<span>กระแส <b>${f(rb.tot[rb.rp])}</b> A</span>`;
+    el.innerHTML=`<span>โหลดต่อ <b>${f(rb.ckw,2)}</b> kW → ดีมานด์ <b>${f(rb.kw,2)}</b> kW (${f(rb.kva,2)} kVA · PF ${f(rb.pf,2)})</span>${ph}<span>ป้อนด้วย <b>${esc(brkLabel(fr,fr.poles||(rb.ph3?3:2)))}</b> · ${esc(fr.cable)}</span><span>I<sub>sc</sub> บัส <b>${f(rb.isc,2)}</b> kA</span>`});
+  P.circ.forEach(c=>{const el=$('#r-'+c.id);if(el)el.innerHTML=resLine(c)})}
+
+/* ---------- step 3 solar ---------- */
+function renderPV(){const sel=$('#pvboard');sel.innerHTML=boardOrder().map(b=>`<option value="${b}">${esc(bOf(b).name)}</option>`).join('');
+  const pvs=P.circ.filter(c=>c.t==='pv');
+  $('#pvlist').innerHTML=pvs.length?pvs.map(c=>{const v=c.pv,r=R.c[c.id],d=r.dc,B=bOf(c.b);
+    const fld=(k,lab,step=1)=>`<label class="f">${lab}<input type="number" step="${step}" data-pv="${c.id}" data-k="${k}" value="${v[k]}"></label>`;
+    const rows=[['ขนาดแผงรวม',`${f(d.kwp,2)} kWp (${v.ns*v.np} แผง × ${v.pm} W) · DC/AC ${f(d.ratio,2)}`],
+      ['Voc สตริงที่ '+v.tmin+' °C',`${f(d.voc,0)} V ≤ ${v.vmax} V`,d.voc<=v.vmax],['Vmp ตอนร้อน / ปกติ',`${f(d.vmpHot,0)} / ${f(d.vmp,0)} V ในช่วง ${v.mpmin}–${v.mpmax} V`,d.vmpHot>=v.mpmin&&d.vmp<=v.mpmax],
+      ['กระแสเข้า MPPT',`${d.spm} สตริง × ${v.isc} A = ${f(d.iin,1)} A ≤ ${v.imax} A`,d.iin<=v.imax],
+      ['สาย PV (EN 50618)',`PV1-F / H1Z2Z2-K ${d.cab} mm² · I<sub>z</sub> ${d.cabIz} A ≥ 1.25·I<sub>sc</sub> ${f(1.25*v.isc,1)} A · VD ${f(d.vd,2)}%`,d.vd<=3],
+      ['ฟิวส์สตริง',d.fuse?`gPV ${d.fuseIn} A ${d.swV} Vdc (1.5–2.4 × I<sub>sc</sub>)`:'ไม่ต้องใช้ (≤ 2 สตริงต่อ MPPT)'],
+      ['สวิตช์ตัดตอน DC',`${d.swI} A ${d.swV} Vdc ต่อ MPPT · SPD DC Type 2 U<sub>cpv</sub> ≥ ${d.spd} V`],
+      ['ฝั่ง AC',`${esc(brkLabel(r,r.poles))} · ${esc(r.cable)} · ${c.len} m · VD ${f(r.vd,2)}% · SPD AC Type 2`,r.vd<=2]];
+    return`<div class="card" id="pv-${c.id}"><div class="row"><h3 class="grow">${esc(c.name)} · ต่อที่ ${esc(B.name)} · ${c.ph===3?'3 เฟส':'1 เฟส'}</h3>
+      <label class="f">ขนาดอินเวอร์เตอร์ AC (kW)<input type="number" step="0.5" min="1" data-pvc="${c.id}" data-k="kw" value="${c.kw}"></label>
+      <label class="f">เฟส<select data-pvc="${c.id}" data-k="ph" ${B.ph===1?'disabled':''}><option value="1" ${c.ph===1?'selected':''}>1 เฟส</option><option value="3" ${c.ph===3?'selected':''}>3 เฟส</option></select></label>
+      <button class="btn sm del" data-pvdel="${c.id}" style="align-self:end">ลบ</button></div>
+      <div class="grid" style="margin-top:8px">${fld('pm','กำลังแผง (W)',5)}${fld('voc','Voc แผง (V)',.1)}${fld('isc','Isc แผง (A)',.01)}${fld('vmp','Vmp แผง (V)',.1)}${fld('imp','Imp แผง (A)',.01)}${fld('tc','สัมประสิทธิ์ Voc (%/°C)',.01)}
+      ${fld('ns','แผงต่อสตริง',1)}${fld('np','จำนวนสตริง',1)}${fld('mppt','จำนวน MPPT',1)}${fld('vmax','แรงดัน DC สูงสุดอินเวอร์เตอร์ (V)',10)}${fld('mpmin','MPPT ต่ำสุด (V)',10)}${fld('mpmax','MPPT สูงสุด (V)',10)}${fld('imax','กระแสเข้าสูงสุดต่อ MPPT (A)',.5)}
+      ${fld('len','ความยาวสาย DC แผง → อินเวอร์เตอร์ (m)',1)}${fld('tmin','อุณหภูมิต่ำสุด (°C)',1)}${fld('tcell','อุณหภูมิเซลล์ตอนร้อน (°C)',1)}</div>
+      <table class="rt" style="margin-top:10px">${rows.map(([a,b,ok])=>`<tr><th style="width:190px">${a}</th><td>${b}</td><td style="width:70px">${ok===undefined?'':ok?'<span class="tag ok">✓ ผ่าน</span>':'<span class="tag err">ตรวจ</span>'}</td></tr>`).join('')}</table>
+      <p class="note" style="margin-top:6px">ค่าแผงเริ่มต้นเป็นค่าสมมติของแผง ~550 W ไม่ใช่ข้อมูลรุ่นจริง ใส่ค่าจากดาต้าชีตของแผงและอินเวอร์เตอร์ที่ใช้</p></div>`}).join(''):'<div class="card muted">ยังไม่มีระบบ Solar · เลือกตู้แล้วกด "＋ เพิ่มระบบ Solar"</div>';
+  $$('[data-pv]').forEach(el=>el.onchange=()=>{const c=P.circ.find(x=>x.id===el.dataset.pv);c.pv[el.dataset.k]=+el.value;recalc();});
+  $$('[data-pvc]').forEach(el=>el.onchange=()=>{const c=P.circ.find(x=>x.id===el.dataset.pvc);c[el.dataset.k]=+el.value;if(el.dataset.k==='kw')c.name='Solar PV '+c.kw+' kW';$('#boards').innerHTML='';recalc()});
+  $$('[data-pvdel]').forEach(el=>el.onclick=()=>{P.circ=P.circ.filter(x=>x.id!==el.dataset.pvdel);$('#boards').innerHTML='';recalc()})}
+
+/* ---------- step 4 checks + tables (shared with the report) ---------- */
+function summaryRows(){const S=P.src,m=R.main,rr=R.b[R.root],e=R.iss.filter(i=>i.lv==='err');const T=(ok,warn)=>ok?'<span class="tag ok">✓ ผ่าน</span>':warn?'<span class="tag warn">ข้อแนะนำ</span>':'<span class="tag err">ไม่ผ่าน</span>';
+  const rows=[];
+  if(S.kind==='tr')rows.push(['หม้อแปลง',`${S.kva} kVA 22–24/0.4 kV · ใช้งาน ${f(R.src.trUse,0)}% (${f(rr.kva,1)} kVA)`,'≤ 80% เผื่อโหลดเพิ่ม',T(R.src.trUse<=80)]);
+  else rows.push(['มิเตอร์การไฟฟ้า',`${esc(S.util)} ${R.sys3?'3 เฟส':'1 เฟส'} ${R.src.meter?esc(R.src.meter.n):'เกินพิกัด'}`,'CB เมนไม่เกินพิกัดตามขนาดมิเตอร์',T(!!R.src.meter)]);
+  rows.push(['เบรกเกอร์เมน',`${brkLabel(m,m.poles)}`,`I<sub>cu</sub> ≥ I<sub>sc</sub> ${f(m.isc,2)} kA`,T(m.icu>=m.isc)]);
+  rows.push(['สายเมน',`${esc(m.cable)} mm² · ${S.len} m · I<sub>z</sub> ${f(m.Iz,0)} A`,`I<sub>z</sub> ≥ I<sub>n</sub> ${m.In} A`,T(m.Iz>=m.In)]);
+  rows.push(['แรงดันตกสูงสุด',`${f(R.vmax.v,2)}%${R.vmax.c?' · '+esc(R.vmax.c.name):''}`,`≤ ${S.vdmax||5}%`,T(R.vmax.v<=(S.vdmax||5))]);
+  if(rr.ph3)rows.push(['สมดุลเฟสที่ '+esc(bOf(R.root).name),`L1 ${f(rr.tot[0])} · L2 ${f(rr.tot[1])} · L3 ${f(rr.tot[2])} A · ไม่สมดุล ${f(rr.unb,0)}%`,'≤ 20%',T(rr.unb<=20,true)]);
+  if(S.kind==='tr')rows.push(['ตัวประกอบกำลังรวม',`PF ${f(rr.pf,2)}${R.src.cap?` · แนะนำ capacitor ${R.src.cap} kvar`:''}`,'≥ 0.95',T(rr.pf>=.95,true)]);
+  const nr=P.circ.filter(c=>R.c[c.id]&&R.c[c.id].rcdNeed).length;rows.push(['เครื่องตัดไฟรั่ว 30 mA',`${nr} วงจรที่ต้องมี`,'ข้อ 3.1.8 / 3.1.9',T(!R.iss.some(i=>i.ref==='ข้อ 3.1.8 / 3.1.9'))]);
+  rows.push(['โหลดหลังคิดดีมานด์',`${f(rr.ckva,1)} → ${f(rr.kva,1)} kVA (DF ${f(rr.df*100,0)}%)`,'ตาราง 3-1 ถึง 3-3',T(true)]);
+  if(R.src.pvkw)rows.push(['Solar PV',`${f(R.src.pvkw,1)} kW ${P.circ.filter(c=>c.t==='pv').length} ชุด`,'Voc · MPPT · สาย DC/AC',T(!R.iss.some(i=>i.lv==='err'&&i.at.c&&P.circ.find(c=>c.id===i.at.c&&c.t==='pv')))]);
+  rows.push(['ตรวจสอบรายวงจร',`${P.circ.length} วงจร`,'ผ่านทุกเกณฑ์',T(!e.length)]);
+  return`<table class="rt"><tr><th>รายการ</th><th>ผลการออกแบบ</th><th>เกณฑ์</th><th>ผล</th></tr>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table>`}
+function loadTables(){const S3=R.sys3;return boardOrder().map(bid=>{const B=bOf(bid),rb=R.b[bid],fe=P.circ.find(c=>c.to===bid),fr=fe?R.c[fe.id]:R.main;
+  const src=fe?`${esc(bOf(fe.b).name)} → ${esc(brkLabel(fr,fr.poles))} → ${esc(fr.cable)} mm² ยาว ${fe.len} m`:(P.src.kind==='tr'?`หม้อแปลง ${P.src.kva} kVA → `:`มิเตอร์ ${esc(P.src.util)} → `)+`${esc(brkLabel(fr,fr.poles))} → ${esc(fr.cable)} mm² ยาว ${P.src.len} m`;
+  const rows=kids(bid).map((c,i)=>{const r=R.c[c.id],v=c.t==='db'?R.b[c.to].dem:(r.vec||[0,0,0]);const cell=k=>c.t==='pv'?'<td class="r">–</td>':`<td class="r">${v[k]>0?f(v[k]):'–'}</td>`;
+    return`<tr><td>${i+1}</td><td>${esc(c.name)}</td><td>${LT[c.t].n}</td><td class="r">${f(r.kw,2)}</td><td class="r">${f(r.pf,2)}</td><td class="r">${f(r.Ib)}</td>${S3?cell(0)+cell(1)+cell(2):''}
+      <td>${esc(brkLabel(r,r.poles))}${r.rcd?' 30mA':''}</td><td>${esc(r.cable)}</td><td class="r">${c.len}</td><td class="r">${f(r.vd,2)}</td><td class="r">${f(r.vdSum,2)}</td><td>${r.ok?'<span class="tag ok">✓ ผ่าน</span>':'<span class="tag err">ไม่ผ่าน</span>'}</td></tr>`}).join('');
+  return`<table class="rt" style="margin-bottom:12px"><tr class="grp"><td colspan="${S3?16:13}">${esc(B.name)} · ${B.ph===3?'3 เฟส 4 สาย 230/400 V':'1 เฟส 230 V'} · โหลด ${f(rb.kw,2)} kW (${f(rb.kva,2)} kVA · PF ${f(rb.pf,2)}) · I<sub>sc</sub> บัส ${f(rb.isc,2)} kA</td></tr>
+   <tr><td colspan="${S3?16:13}" class="small">สายป้อน: ${src}</td></tr>
+   <tr><th>#</th><th>วงจร</th><th>ชนิด</th><th>kW</th><th>PF</th><th>I<sub>b</sub> A</th>${S3?'<th class="ph1">L1</th><th class="ph2">L2</th><th class="ph3">L3</th>':''}<th>เบรกเกอร์</th><th>สายไฟ (+ สายดิน)</th><th>ยาว m</th><th>VD %</th><th>ΣVD %</th><th>ผล</th></tr>${rows}
+   <tr class="tot"><td colspan="6">รวมกระแสแต่ละเฟส (ผลรวมวงจร)</td>${S3?`<td class="r">${f(rb.tot[0])}</td><td class="r">${f(rb.tot[1])}</td><td class="r">${f(rb.tot[2])}</td>`:''}<td colspan="6">${rb.ph3?`ไม่สมดุล ${f(rb.unb,0)}% ${rb.unb>20?'<span class="tag warn">เกิน 20% ตรวจการจัดเฟส</span>':'<span class="tag ok">สมดุล</span>'}`:`รวม ${f(rb.tot[rb.rp])} A`}</td></tr></table>`}).join('')}
+function calcTable(){let n=0;const row=(name,r,len)=>`<tr><td>${++n}</td><td>${esc(name)}</td><td class="r">${f(r.Ib)}</td><td class="r">${f(r.Id)}</td><td class="r">${r.In}</td><td>${esc(r.cable)}<br><span class="muted small">${CK[r.ck].mc?'หลายแกน':'แกนเดียว'} · ${GRP[r.g].s}</span></td><td class="r">${r.It}</td><td class="r">${f(r.kt,2)}</td><td class="r">${f(r.kg,2)}</td><td class="r">${f(r.Iz)}</td><td class="r">${f(r.vd,2)}</td><td class="r">${f(r.vdSum,2)}</td><td class="r">${f(r.isc,2)}</td><td class="r">${r.icu}</td><td class="r">${r.gsz}</td><td>${r.ok!==false?'<span class="tag ok">✓</span>':'<span class="tag err">✕</span>'}</td></tr>`;
+  let h=`<table class="rt"><tr><th>#</th><th>วงจร</th><th>I<sub>b</sub> A</th><th>I<sub>d</sub> A</th><th>I<sub>n</sub> A</th><th>สายไฟ</th><th>I<sub>t</sub> A</th><th>k<sub>t</sub></th><th>k<sub>g</sub></th><th>I<sub>z</sub> A</th><th>VD %</th><th>ΣVD %</th><th>I<sub>sc</sub> kA</th><th>I<sub>cu</sub> kA</th><th>G mm²</th><th>ผล</th></tr>`;
+  h+=`<tr class="grp"><td colspan="16">${P.src.kind==='tr'?'หม้อแปลง':'มิเตอร์'} → ${esc(bOf(R.root).name)}</td></tr>`+row('สายเมน '+bOf(R.root).name,R.main);
+  boardOrder().forEach(bid=>{const cs=kids(bid);if(!cs.length)return;h+=`<tr class="grp"><td colspan="16">${esc(bOf(bid).name)}</td></tr>`+cs.map(c=>row(c.name,R.c[c.id])).join('')});
+  return h+'</table><p class="note">I<sub>t</sub> ขนาดกระแสตามตาราง (อุณหภูมิอ้างอิง วสท.) · I<sub>z</sub> = I<sub>t</sub>·k<sub>t</sub>·k<sub>g</sub>·จำนวนชุดขนาน · I<sub>sc</sub> ณ ตำแหน่งติดตั้งเบรกเกอร์ · G สายดินตามตาราง 4-2</p>'}
+function renderChecks(){$('#chksum').innerHTML=summaryRows();
+  $('#isslist').innerHTML=R.iss.length?R.iss.map((x,i)=>`<button data-i="${i}"><span class="tag ${x.lv}">${{err:'ต้องแก้',warn:'เตือน',tip:'แนะนำ'}[x.lv]}</span><span>${esc(x.msg)} <span class="muted small">· ${esc(x.ref||'')}</span></span></button>`).join(''):'<p class="tag ok" style="padding:6px 10px">✓ ผ่านทุกเกณฑ์ ไม่มีรายการที่ต้องแก้</p>';
+  $$('#isslist button').forEach(b=>b.onclick=()=>jump(R.iss[+b.dataset.i].at));
+  $('#loadtbl').innerHTML=loadTables();$('#calctbl').innerHTML=calcTable()}
+function jump(at){if(at.src)return show('src');if(at.b){show('brd');const el=$('#bc-'+at.b);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});return}
+  const c=P.circ.find(x=>x.id===at.c);if(!c)return;if(c.t==='pv'&&TAB!=='sld'){show('pv');const el=$('#pv-'+c.id);if(el)el.scrollIntoView({behavior:'smooth'});return}
+  HL=c.id;$('#boards').innerHTML='';show('brd');const el=$('#row-'+c.id);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});try{parent.postMessage({eitScroll:el.getBoundingClientRect().top+scrollY},'*')}catch(e){}}
+  setTimeout(()=>{HL=null;const r=$('#row-'+c.id);if(r)r.classList.remove('hl')},2500)}
+
+/* ---------- step 5 SLD (auto layout) ---------- */
+function sym(type,x,y){const s=`class="sym"`;switch(type){
+  case'light':return`<circle ${s} cx="${x}" cy="${y}" r="11"/><path class="ln" d="M${x-8} ${y-8}L${x+8} ${y+8}M${x+8} ${y-8}L${x-8} ${y+8}"/>`;
+  case'recep':case'recepw':return`<path ${s} d="M${x-12} ${y-4}A12 12 0 0 0 ${x+12} ${y-4}Z"/><path class="ln" d="M${x-12} ${y-10}H${x+12}"/>`;
+  case'motor':return`<circle ${s} cx="${x}" cy="${y}" r="12"/><text x="${x}" y="${y+4}" text-anchor="middle" class="t">M</text>`;
+  case'db':return`<rect ${s} x="${x-22}" y="${y-12}" width="44" height="24"/><text x="${x}" y="${y+4}" text-anchor="middle" class="t">DB</text>`;
+  case'pv':return`<rect ${s} x="${x-14}" y="${y-14}" width="28" height="28"/><path class="ln" d="M${x-14} ${y+14}L${x+14} ${y-14}"/><text x="${x-8}" y="${y-3}" font-size="8">=</text><text x="${x+3}" y="${y+10}" font-size="8">~</text>
+    <rect ${s} x="${x-16}" y="${y+26}" width="32" height="18"/><path class="ln" d="M${x-16} ${y+35}H${x+16}M${x} ${y+26}V${y+44}M${x} ${y+14}V${y+26}"/>`;
+  default:{const t={ac:'AC',wh:'WH',ev:'EV',other:'L'}[type]||'L';return`<rect ${s} x="${x-14}" y="${y-11}" width="28" height="22" rx="3"/><text x="${x}" y="${y+4}" text-anchor="middle" class="t">${t}</text>`}}}
+function brkSym(x,y,rcd){return`<path class="ln" d="M${x} ${y-12}V${y-4}M${x} ${y+12}V${y+4}M${x} ${y+4}L${x-8} ${y-6}"/><circle class="sym" cx="${x}" cy="${y-4}" r="1.6"/>${rcd?`<ellipse class="ln" cx="${x}" cy="${y+18}" rx="7" ry="3.5"/>`:''}`}
+function sldSvg(print){const W=150,X0=90,order=boardOrder(),nmax=Math.max(3,...order.map(b=>kids(b).length));
+  const width=X0+nmax*W+190,BH=290,HEAD=230;let y=HEAD,g='';const S=P.src,m=R.main,rootB=bOf(R.root);
+  /* source */
+  const sx=X0+40;
+  if(S.kind==='tr')g+=`<circle class="sym" cx="${sx}" cy="48" r="16"/><circle class="sym" cx="${sx}" cy="70" r="16" fill-opacity=".6"/><text x="${sx+26}" y="46" class="t">หม้อแปลง ${S.kva} kVA</text><text x="${sx+26}" y="60">22–24 kV / 400–230 V · Dyn11 · u<tspan font-size="8" dy="2">k</tspan><tspan dy="-2"> ${S.uk}%</tspan></text><text x="${sx+26}" y="74" class="m">มิเตอร์ ${esc(S.util)} CT ${R.src.ct}/5 A · I<tspan font-size="8" dy="2">sc</tspan><tspan dy="-2"> ${f(R.src.isc,1)} kA</tspan></text><path class="ln" d="M${sx} 86V${130}"/>`;
+  else g+=`<path class="ln" d="M${sx} 20V36"/><rect class="sym" x="${sx-18}" y="36" width="36" height="26"/><text x="${sx}" y="53" text-anchor="middle" class="t">kWh</text><text x="${sx+30}" y="34" class="e">${esc(S.util)} · ${R.sys3?'3φ 400/230 V':'1φ 230 V'} · I<tspan font-size="8" dy="2">sc</tspan><tspan dy="-2"> ${f(S.isc,1)} kA</tspan></text><text x="${sx+30}" y="50" class="t">มิเตอร์ ${R.src.meter?esc(R.src.meter.n):'เกินพิกัด'}</text><text x="${sx+30}" y="64" class="m">CB เมนไม่เกิน ${R.src.meter?R.src.meter.cb:'–'} A</text><path class="ln" d="M${sx} 62V130"/>`;
+  g+=`<g class="ck ${m.ok?'':'bad'}" data-src="1">${brkSym(sx,142,false)}<text x="${sx+14}" y="140" class="t">${esc(brkLabel(m,m.poles))}</text><path class="ln" d="M${sx} 154V${HEAD}"/><text x="${sx+14}" y="178">${esc(m.cable)} mm²</text><text x="${sx+14}" y="191" class="m">${S.len} m · I<tspan font-size="8" dy="2">z</tspan><tspan dy="-2"> ${f(m.Iz,0)} A · VD ${f(m.vd,2)}%</tspan></text></g>`;
+  if(rootB.meter)g+=`<circle class="sym" cx="${sx}" cy="${HEAD-28}" r="5"/><text x="${sx+12}" y="${HEAD-24}" class="m">CT ${std(CTR,m.In)}/5 A · Digital kWh</text>`;
+  order.forEach((bid,bi)=>{const B=bOf(bid),rb=R.b[bid],cs=kids(bid),fe=P.circ.find(c=>c.to===bid);const bw=Math.max(2,cs.length)*W+40;
+    if(bi>0){g+=`<path class="ln" d="M${X0-30} ${y-40}V${y}"/><text x="${X0-24}" y="${y-30}" class="m">จาก ${esc(bOf(fe.b).name)} · ${esc(brkLabel(R.c[fe.id],R.c[fe.id].poles))}</text>${B.meter?`<text x="${X0-24}" y="${y-16}" class="m">CT ${std(CTR,R.c[fe.id].In)}/5 · kWh</text>`:''}`}
+    g+=`<path class="bus" d="M${X0-30} ${y}H${X0-30+bw}"/><text x="${X0-30}" y="${y-8}" class="t" style="font-size:13px">${esc(B.name)}</text>
+      <text x="${X0+90}" y="${y-8}" class="m">${B.ph===3?'3φ 4W 400/230 V':'1φ 230 V'} · ${f(rb.kw,1)} kW · I<tspan font-size="8" dy="2">sc</tspan><tspan dy="-2"> ${f(rb.isc,2)} kA</tspan>${rb.ph3?` · L1 ${f(rb.tot[0])} L2 ${f(rb.tot[1])} L3 ${f(rb.tot[2])} A`:''}</text>`;
+    cs.forEach((c,i)=>{const r=R.c[c.id],x=X0+i*W+20;const ph=r.ph3?'3φ':R.sys3?['L1','L2','L3'][r.rphase]:'L';
+      g+=`<g class="ck ${r.ok?'':'bad'}" data-c="${c.id}"><path class="ln" d="M${x} ${y}V${y+28}"/>${brkSym(x,y+40,r.rcd)}<path class="ln" d="M${x} ${y+52}V${y+170}"/>
+        <text x="${x+8}" y="${y+38}" class="t">${r.type} ${r.In}A</text><text x="${x+8}" y="${y+50}" class="m">${r.poles}P ${r.icu}kA${r.rcd?' 30mA':''}${c.t==='motor'?' D':''}</text>
+        <text x="${x+6}" y="${y+86}">${esc(CK[r.ck].n)} ${r.ncond}×${r.sz}${r.par>1?' ×'+r.par:''}</text><text x="${x+6}" y="${y+99}">+ G${r.gsz}</text><text x="${x+6}" y="${y+112}" class="m">${c.len} m · VD ${f(r.vd,1)}%</text>${r.cond?`<text x="${x+6}" y="${y+125}" class="m">${COND[P.src.cond].n} ${r.cond}</text>`:''}
+        ${sym(c.t,x,y+184)}<text x="${x}" y="${y+(c.t==='pv'?248:214)}" text-anchor="middle" class="t">${esc(c.name.length>18?c.name.slice(0,17)+'…':c.name)}</text>
+        <text x="${x}" y="${y+(c.t==='pv'?261:227)}" text-anchor="middle" class="m">${c.t==='db'?'ดูตู้ด้านล่าง':f(r.kw,2)+' kW'} · ${ph}</text>${c.t==='pv'&&r.dc?`<text x="${x}" y="${y+274}" text-anchor="middle" class="m">${f(r.dc.kwp,2)} kWp ${c.pv.ns}S${c.pv.np}P</text>`:''}</g>`});
+    if(!cs.length)g+=`<text x="${X0}" y="${y+40}" class="m">ยังไม่มีวงจร</text>`;
+    y+=BH+40});
+  /* ground bar + title block */
+  g+=`<path class="gnd" d="M${X0-30} ${y-30}H${width-40}"/><text x="${X0-30}" y="${y-36}" class="m">PE · หลักดิน ≥ 2.4 m · ความต้านทานดิน ≤ 5 Ω</text>`;
+  const tb=y,H=tb+120,tw=520,tx=width-tw-20;
+  g+=`<rect class="frm" x="10" y="10" width="${width-20}" height="${H-20}"/><rect class="frm" x="${tx}" y="${tb}" width="${tw}" height="90"/>
+   <text x="${tx+10}" y="${tb+18}" class="m">PROJECT</text><text x="${tx+10}" y="${tb+34}" class="t" style="font-size:14px">${esc(P.info.name)}</text>
+   <text x="${tx+10}" y="${tb+52}" class="m">${esc(P.info.owner||'')} ${esc(P.info.loc||'')}</text><text x="${tx+10}" y="${tb+72}" class="t">SINGLE LINE DIAGRAM</text>
+   <text x="${tx+300}" y="${tb+18}" class="m">ผู้ออกแบบ ${esc(P.info.designer||'–')}</text><text x="${tx+300}" y="${tb+36}" class="m">เลขที่ ${esc(P.info.doc||'')} Rev.${esc(P.info.rev||'0')}</text><text x="${tx+300}" y="${tb+54}" class="m">วันที่ ${esc(P.info.date||'')} · NTS</text><text x="${tx+300}" y="${tb+72}" class="m">วสท. 2564</text>
+   <text x="24" y="${tb+18}" class="t">หมายเหตุ</text><text x="24" y="${tb+34}" class="m">1. ขนาดสาย เบรกเกอร์ สายดิน ตามมาตรฐาน วสท. 2564</text><text x="24" y="${tb+48}" class="m">2. Isc คำนวณตาม IEC 60909 (c = 1.05)</text>
+   <text x="24" y="${tb+62}" class="m">3. ${R.sys3?'ระบบ 3 เฟส 4 สาย 400/230 V 50 Hz':'ระบบ 1 เฟส 2 สาย 230 V 50 Hz'} · RCD = เครื่องตัดไฟรั่ว 30 mA</text><text x="24" y="${tb+76}" class="m">4. แบบนี้สร้างจากโปรแกรมจำลองเพื่อการเรียนรู้ ต้องตรวจโดยวิศวกรก่อนใช้งาน</text>`;
+  return`<svg class="sld" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${H}" width="${width}" height="${H}">${print?'<style>text{font-family:monospace;font-size:10.5px}.t{font-weight:600}.m{fill:#444}.ln,.frm{stroke:#000;fill:none;stroke-width:1.4}.bus{stroke:#000;stroke-width:5}.gnd{stroke:#1a7442;stroke-width:2}.sym{stroke:#000;fill:#fff;stroke-width:1.4}.e{fill:#b0302a}.bad .ln,.bad .sym{stroke:#b0302a}</style>':''}${g}</svg>`}
+function renderSLD(){$('#sldw').innerHTML=sldSvg(false);$$('#sldw g.ck').forEach(el=>el.onclick=()=>jump(el.dataset.src?{src:1}:{c:el.dataset.c}))}
+
+/* ---------- step 6 BOQ ---------- */
+function boqRows(){const rows=[],S=P.src;const add=(cat,item,spec,stdx,qty,unit,waste,note)=>{const k=cat+'|'+item+'|'+spec;const e=rows.find(r=>r.k===k);
+    if(e){e.qty+=qty;if(note&&!e.note.split(', ').includes(note))e.note+=(e.note?', ':'')+note}else rows.push({k,cat,item,spec,std:stdx,qty,unit,waste,note:note||''})};
+  if(S.kind==='tr')add('หม้อแปลงไฟฟ้า',`หม้อแปลงจำหน่าย ${S.kva} kVA`,`3 เฟส 22–24 kV / 0.4 kV · Dyn11 · u_k ${S.uk}% · 50 Hz · ชนิดน้ำมัน`,'IEC 60076 / มาตรฐานการไฟฟ้า',1,'ชุด',0,'ลานหม้อแปลง');
+  boardOrder().forEach(bid=>{const B=bOf(bid),rb=R.b[bid],fe=P.circ.find(c=>c.to===bid),fr=fe?R.c[fe.id]:R.main,n=kids(bid).length;
+    add('ตู้ไฟฟ้า',`${fe?'ตู้ย่อย DB':'ตู้เมน MDB'} · ${B.name}`,`${B.ph===3?'3 เฟส 4 สาย 230/400 V':'1 เฟส 2 สาย 230 V'} · บัสบาร์ ≥ ${std(BUS,fr.In)||fr.In} A · ทนกระแสลัดวงจร ≥ ${f(rb.isc,1)} kA · Main ${fr.type} ${fr.In} A · วงจรย่อย ${n} + สำรอง ${Math.max(2,Math.ceil(n*.2))} · บัสบาร์ N และ G`,'IEC 61439-1/2',1,'ตู้',0,'')});
+  const brk=(r,poles,curve,note)=>add('เบรกเกอร์',`${r.type} ${r.In} A ${poles}P`,`I_cu ≥ ${r.icu} kA @ ${poles===1?230:400} V${r.type==='MCB'||r.type==='RCBO'?' · curve '+curve:' · thermal-magnetic ปรับ Ir ได้'}${r.rcd?' · ตัดไฟรั่ว 30 mA type A':''}`,r.type==='MCCB'||r.type==='ACB'?'IEC 60947-2':r.rcd?'IEC 61009-1':'IEC 60898-1',1,'ตัว',0,note);
+  brk(R.main,R.main.poles,'C','เมน '+bOf(R.root).name);
+  const cab=(r,note)=>{const K=CK[r.ck];if(K.mc){add('สายไฟฟ้า',`${K.n} ${r.ncond}C × ${r.sz} mm²`,`ตัวนำทองแดง ${r.ncond} แกน · ${K.full}`,K.std,r.len*r.par,'m',10,note)}
+      else add('สายไฟฟ้า',`${K.n} 1C × ${r.sz} mm²`,K.full,K.std,r.len*r.ncond*r.par,'m',10,note);
+    add('สายดิน',`THW 1C × ${r.gsz} mm² สีเขียวแถบเหลือง`,'ตัวนำทองแดง · ฉนวน PVC · ตาราง 4-2','มอก. 11-2553',r.len,'m',10,note);
+    if(r.cond){const C=COND[P.src.cond];add('ท่อร้อยสาย',`ท่อ ${C.n} ${r.cond}`,`พื้นที่สายไม่เกิน 40% ของพื้นที่ท่อ · พร้อมข้อต่อ/อุปกรณ์จับยึด`,C.n==='PVC'?'มอก. 216':'มอก. 770',r.len*r.par,'m',10,note)}};
+  cab(R.main,'สายเมน');
+  P.circ.forEach(c=>{const r=R.c[c.id],B=bOf(c.b);if(!r||r.In==null)return;brk(r,r.poles,r.curve,B.name);cab(r,c.name);
+    if(c.t==='db'&&bOf(c.to)){const sb=bOf(c.to);add('เบรกเกอร์',`${r.type} ${r.In} A ${r.poles}P`,`I_cu ≥ ${icuOf(r.type,R.b[c.to].isc)} kA · Main ในตู้`,r.type==='MCCB'?'IEC 60947-2':'IEC 60898-1',1,'ตัว',0,'Main '+sb.name)}
+    if(c.t==='motor'){add('ชุดสตาร์ทมอเตอร์',`Magnetic contactor AC-3 ≥ ${r.mc} A`,'คอยล์ 230 V AC','IEC 60947-4-1',1,'ตัว',0,c.name);add('ชุดสตาร์ทมอเตอร์',`Thermal overload relay ตั้ง ${f(r.tor)} A`,`class ${r.kw>=30?20:10} · ช่วงปรับครอบคลุม ${f(r.tor)} A`,'IEC 60947-4-1',1,'ตัว',0,c.name)}
+    if(c.t==='ev')add('EV Charger',`EV Charger ${c.kw} kW ${r.ph3?'3 เฟส':'1 เฟส'}`,`Type 2 · ${f(r.Ib,0)} A · RCD ${r.rcdType||'type A'}`,'IEC 61851-1',1,'เครื่อง',0,c.name);
+    if(c.t==='pv'&&r.dc){const v=c.pv,d=r.dc;add('Solar PV',`แผงโซลาร์ ${v.pm} W`,`Voc ${v.voc} V · Isc ${v.isc} A · ${v.ns} แผง/สตริง × ${v.np} สตริง`,'IEC 61215 / IEC 61730',v.ns*v.np,'แผง',0,c.name);
+      add('Solar PV',`อินเวอร์เตอร์ ${c.kw} kW ${r.ph3?'3 เฟส':'1 เฟส'}`,`DC สูงสุด ${v.vmax} V · ${v.mppt} MPPT · ผ่านรายการอุปกรณ์ที่การไฟฟ้ารับรอง`,'IEC 62109 / IEC 61727',1,'เครื่อง',0,c.name);
+      add('Solar PV',`สาย PV1-F / H1Z2Z2-K 1C × ${d.cab} mm²`,'ตัวนำทองแดงชุบดีบุก 1.5 kV DC 120 °C','EN 50618 / IEC 62930',2*v.len*v.np,'m',10,c.name);
+      add('Solar PV',`สวิตช์ตัดตอน DC ${d.swI} A ${d.swV} Vdc`,'DC-PV2 · ตัดได้ขณะมีโหลด','IEC 60947-3',d.mppts,'ตัว',0,c.name);
+      add('Solar PV',`SPD DC Type 2 U_cpv ≥ ${d.spd} V`,'I_n ≥ 20 kA','IEC 61643-31',d.mppts,'ชุด',0,c.name);
+      if(d.fuse)add('Solar PV',`ฟิวส์ gPV ${d.fuseIn} A ${d.swV} Vdc + ฐานฟิวส์`,'ทั้งขั้วบวกและลบ','IEC 60269-6',2*v.np,'ตัว',0,c.name);
+      add('Solar PV',`SPD AC Type 2 ${r.ph3?'3P+N':'1P+N'}`,'U_c ≥ 275 V · I_n ≥ 20 kA','IEC 61643-11',1,'ชุด',0,c.name)}});
+  if(S.kind==='tr')add('มิเตอร์และ CT',`มิเตอร์การไฟฟ้า 3 เฟส 5(6) A ประกอบ CT ${R.src.ct}/5 A`,`ตามแบบมาตรฐาน${S.util}`,S.util,1,'ชุด',0,'จัดหาโดย/ประสานการไฟฟ้า');
+  else add('มิเตอร์และ CT',`มิเตอร์การไฟฟ้า ${R.sys3?'3 เฟส':'1 เฟส'} ${R.src.meter?R.src.meter.n:''}`,`ยื่นขอกับ${S.util}`,S.util,1,'ชุด',0,'ขอใช้ไฟ');
+  P.boards.filter(b=>b.meter).forEach(b=>{const fe=P.circ.find(c=>c.to===b.id),fr=fe?R.c[fe.id]:R.main,ct=std(CTR,fr.In),n=b.ph===3?3:1;
+    add('มิเตอร์และ CT',`Current transformer ${ct}/5 A`,'class 1 · 5 VA · ชนิดแกนทะลุ','IEC 61869-2',n,'ตัว',0,b.name);
+    add('มิเตอร์และ CT',`Digital kWh meter ${b.ph===3?'3 เฟส':'1 เฟส'} 5(6) A`,`วัด kWh/kW/V/A/PF · Modbus RTU · ใช้ร่วม CT ${ct}/5 A`,'IEC 62053-21',1,'ตัว',0,b.name)});
+  if(R.src.cap)add('ตัวเก็บประจุ',`Capacitor bank ${R.src.cap} kvar`,'400 V 3 เฟส · ควบคุมอัตโนมัติ · ปรับ PF ≥ 0.95','IEC 60831',1,'ชุด',0,bOf(R.root).name);
+  const cats=['หม้อแปลงไฟฟ้า','ตู้ไฟฟ้า','เบรกเกอร์','สายไฟฟ้า','สายดิน','ท่อร้อยสาย','มิเตอร์และ CT','ชุดสตาร์ทมอเตอร์','EV Charger','Solar PV','ตัวเก็บประจุ'];
+  rows.forEach(r=>r.qty=Math.round(r.qty*10)/10);
+  return rows.sort((a,b)=>cats.indexOf(a.cat)-cats.indexOf(b.cat)||a.item.localeCompare(b.item,'th',{numeric:true}))}
+function renderBOQ(){const rows=boqRows();let cat='',n=0;
+  $('#boqtbl').innerHTML=`<table class="rt"><tr><th>#</th><th>รายการ</th><th>สเปค / รายละเอียด</th><th>มาตรฐาน</th><th>จำนวน</th><th>หน่วย</th><th>เผื่อ %</th><th>สั่งซื้อ</th><th>ตำแหน่ง</th></tr>${rows.map(r=>{let h='';if(r.cat!==cat){cat=r.cat;h=`<tr class="grp"><td colspan="9">${esc(cat)}</td></tr>`}
+    return h+`<tr><td>${++n}</td><td>${esc(r.item)}</td><td class="small">${esc(r.spec)}</td><td class="small">${esc(r.std)}</td><td class="r">${f(r.qty,r.qty%1?1:0)}</td><td>${r.unit}</td><td class="r">${r.waste}</td><td class="r">${Math.ceil(r.qty*(1+r.waste/100))}</td><td class="small">${esc(r.note)}</td></tr>`}).join('')}</table>`}
+let XLSXP=null;
+function loadXLSX(){if(window.XLSX)return Promise.resolve(window.XLSX);if(XLSXP)return XLSXP;
+  const one=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+  XLSXP=(async()=>{for(const u of['vendor/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js']){try{await one(u);if(window.XLSX)return window.XLSX}catch(e){}}XLSXP=null;throw new Error('โหลดตัวสร้าง Excel ไม่ได้ (ต้องมีอินเทอร์เน็ต)')})();return XLSXP}
+async function exportXLSX(){let X;try{X=await loadXLSX()}catch(e){alert(e.message);return}
+  const rows=boqRows(),I=P.info,aoa=[[`BOQ · รายการวัสดุอุปกรณ์ไฟฟ้า — ${I.name}`],[`เจ้าของ ${I.owner||'-'} · สถานที่ ${I.loc||'-'} · เลขที่ ${I.doc} Rev.${I.rev} · ${I.date} · ${R.sys3?'ระบบ 3 เฟส 4 สาย 230/400 V':'ระบบ 1 เฟส 230 V'} 50 Hz`],
+    ['กรอกราคาต่อหน่วย (คอลัมน์ J) และปรับ % เผื่อ (H) ได้ · ช่องอื่นคำนวณด้วยสูตร · สเปคตามผลคำนวณ วสท. 2564 จากโปรแกรมจำลองเพื่อการเรียนรู้'],[],
+    ['ลำดับ','หมวด','รายการ','สเปค / รายละเอียด','มาตรฐาน','จำนวนตามแบบ','หน่วย','เผื่อ %','จำนวนสั่งซื้อ','ราคา/หน่วย (บาท)','รวม (บาท)','ตำแหน่ง / หมายเหตุ']];
+  let cat='',n=0;const first=aoa.length+1;
+  rows.forEach(r=>{if(r.cat!==cat){cat=r.cat;aoa.push([cat])}const rn=aoa.length+1;
+    aoa.push([++n,r.cat,r.item,r.spec,r.std,r.qty,r.unit,r.waste,{t:'n',f:`ROUNDUP(F${rn}*(1+H${rn}/100),0)`},'',{t:'n',f:`IF(J${rn}="","",I${rn}*J${rn})`},r.note])});
+  const last=aoa.length;aoa.push([]);const t=aoa.length+1;
+  aoa.push(['','','','','','','','','','รวมทั้งสิ้น (ไม่รวม VAT)',{t:'n',f:`SUM(K${first}:K${last})`}]);aoa.push(['','','','','','','','','','VAT 7%',{t:'n',f:`ROUND(K${t}*0.07,2)`}]);aoa.push(['','','','','','','','','','รวมทั้งสิ้น',{t:'n',f:`K${t}+K${t+1}`}]);
+  const ws=X.utils.aoa_to_sheet(aoa);ws['!cols']=[6,16,36,60,24,10,7,7,10,14,14,30].map(w=>({wch:w}));ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:11}},{s:{r:1,c:0},e:{r:1,c:11}},{s:{r:2,c:0},e:{r:2,c:11}}];
+  /* sheet 2: calculation summary */
+  const c2=[['วงจร','ตู้','Ib (A)','Id (A)','In (A)','เบรกเกอร์','สายไฟ','It (A)','kt','kg','Iz (A)','ยาว (m)','VD %','ΣVD %','Isc (kA)','Icu (kA)','ผล']];
+  const pr=(name,bn,r,len)=>c2.push([name,bn,+f(r.Ib),+f(r.Id),r.In,brkLabel(r,r.poles),r.cable,r.It,+f(r.kt,2),+f(r.kg,2),+f(r.Iz),len,+f(r.vd,2),+f(r.vdSum,2),+f(r.isc,2),r.icu,r.ok!==false?'ผ่าน':'ไม่ผ่าน']);
+  pr('สายเมน','แหล่งจ่าย',R.main,P.src.len);boardOrder().forEach(b=>kids(b).forEach(c=>pr(c.name,bOf(b).name,R.c[c.id],c.len)));
+  const ws2=X.utils.aoa_to_sheet(c2);ws2['!cols']=[28,16,8,8,8,22,24,8,6,6,8,8,8,8,8,8,8].map(w=>({wch:w}));
+  const wb=X.utils.book_new();X.utils.book_append_sheet(wb,ws,'BOQ');X.utils.book_append_sheet(wb,ws2,'สรุปคำนวณ');
+  X.writeFile(wb,`BOQ-${(I.name||'project').replace(/[\\/:*?"<>|]/g,'_')}.xlsx`)}
+
+/* ---------- report (print) ---------- */
+function buildReport(){const I=P.info,S=P.src,rr=R.b[R.root];let pg=0;const pages=[];
+  const head=()=>`<div class="rhead"><div>สถานที่ / Location<br>${esc(I.loc||'-')}<br>Ref. ${esc(I.doc)}</div><div>โครงการ / Project<br>${esc(I.name)}<br>รายการคำนวณออกแบบระบบไฟฟ้า</div><div>Rev. ${esc(I.rev)} · ${esc(I.date)}</div></div>`;
+  const page=(h,cls='')=>pages.push(`<section class="rp ${cls}">${cls.includes('land')?'':head()}${h}</section>`);
+  page(`<div class="cover"><div class="bar2"><p>รายการคำนวณออกแบบระบบไฟฟ้า</p><h1>Electrical Design Calculation Report</h1><p class="mono">${R.sys3?'ระบบไฟฟ้าแรงต่ำ 230/400 V':'ระบบไฟฟ้า 1 เฟส 230 V'} · ${S.kind==='tr'?'หม้อแปลง '+S.kva+' kVA':'มิเตอร์ '+(R.src.meter?R.src.meter.n:'')} · ${P.boards.length} ตู้ · ${P.circ.length} วงจร</p></div>
+    <table>${[['โครงการ',I.name],['สถานที่',I.loc],['เจ้าของโครงการ',I.owner],['ประเภทอาคาร',BLDG[I.bldg]],['เลขที่เอกสาร',`${I.doc} · Rev. ${I.rev}`],['วันที่',I.date]].map(([a,b])=>`<tr><td style="width:150px;color:#555">${a}</td><td><b>${esc(b||'-')}</b></td></tr>`).join('')}</table>
+    <p><span class="stamp">ออกเพื่อขออนุมัติ · FOR APPROVAL</span></p>
+    <table class="rt"><tr><th></th><th>ชื่อ - สกุล</th><th style="width:30%">ลายมือชื่อ</th><th style="width:15%">วันที่</th></tr><tr><td>จัดทำ</td><td>${esc(I.designer||'')}</td><td style="height:34px"></td><td></td></tr><tr><td>ตรวจสอบ</td><td></td><td style="height:34px"></td><td></td></tr><tr><td>อนุมัติ</td><td></td><td style="height:34px"></td><td></td></tr></table>
+    <p class="note">เอกสารนี้สร้างจากโปรแกรมจำลองระบบโซลาร์ (เมนู 18) เพื่อการเรียนรู้ มีผลเมื่อลงนามโดยวิศวกรผู้ได้รับใบอนุญาตประกอบวิชาชีพวิศวกรรมควบคุม</p></div>`);
+  page(`<h2>1 สรุปผลการออกแบบ</h2>${summaryRows()}<div class="concl">${R.iss.some(i=>i.lv==='err')?'ยังมีรายการไม่ผ่านเกณฑ์ (ดูหัวข้อ 4) ต้องแก้ไขก่อนเสนออนุมัติ':'ขนาดเครื่องป้องกันกระแสเกิน สายไฟฟ้า สายดิน แรงดันตก และพิกัดตัดกระแสลัดวงจรของทุกวงจร เป็นไปตามเกณฑ์ในหัวข้อ 2 และมาตรฐาน วสท. 2564 จึงเสนอเพื่อพิจารณาอนุมัติ'}</div>
+    ${R.iss.length?`<h3>รายการที่ต้องแก้ / ข้อแนะนำ</h3><table class="rt">${R.iss.map(x=>`<tr><td style="width:70px"><span class="tag ${x.lv}">${{err:'ต้องแก้',warn:'เตือน',tip:'แนะนำ'}[x.lv]}</span></td><td>${esc(x.msg)}</td></tr>`).join('')}</table>`:''}`);
+  page(`<h2>2 ข้อมูลและเกณฑ์การออกแบบ</h2><h3>2.1 ข้อมูลระบบไฟฟ้า</h3><table class="rt">${[['ระบบไฟฟ้า',R.sys3?'3 เฟส 4 สาย 230/400 V, 50 Hz':'1 เฟส 2 สาย 230 V, 50 Hz'],
+    S.kind==='tr'?['หม้อแปลง',`${S.kva} kVA, 22–24/0.4 kV, Dyn11, u<sub>k</sub> ${S.uk}% · ระบบแรงสูง ${S.ssc} MVA`]:['แหล่งจ่าย',`มิเตอร์ ${esc(S.util)} ${R.src.meter?R.src.meter.n:''} · I<sub>sc</sub> ที่มิเตอร์ ${S.isc} kA`],
+    ['อุณหภูมิแวดล้อมอ้างอิง',`ในอากาศ ${S.ta} °C · ใต้ดิน ${S.tg} °C`],['ประเภทอาคาร',BLDG[I.bldg]],['ดีมานด์แฟกเตอร์',S.df!==false?'คิดกับสายป้อนและสายประธาน':'ไม่คิด (100%)']].map(([a,b])=>`<tr><th style="width:35%">${a}</th><td>${b}</td></tr>`).join('')}</table>
+    <h3>2.2 เกณฑ์การออกแบบ</h3><table class="rt"><tr><th>หัวข้อ</th><th>เกณฑ์</th><th>อ้างอิง</th></tr>${[['กระแสออกแบบ','I<sub>d</sub> = 1.25 I<sub>b</sub> สำหรับโหลดต่อเนื่อง (เต้ารับทั่วไป I<sub>d</sub> = I<sub>b</sub>)','[1]'],['เครื่องป้องกันกระแสเกิน','I<sub>n</sub> ≥ I<sub>d</sub> (พิกัดมาตรฐาน)','[1] [4]'],['ขนาดสายไฟฟ้า','I<sub>z</sub> = I<sub>t</sub>·k<sub>t</sub>·k<sub>g</sub>·n ≥ I<sub>n</sub>','[1] ตารางขนาดกระแส'],['ตัวคูณปรับค่า','k<sub>t</sub> อุณหภูมิ · k<sub>g</sub> จำนวนวงจรในกลุ่ม','[1]'],['แรงดันตก',`ΣVD จากแหล่งจ่ายถึงโหลด ≤ ${S.vdmax||5}% (ตั้งเป้าสายป้อน ≤ 2%)`,'[1]'],['สายดินของบริภัณฑ์','ตามพิกัดเครื่องป้องกัน ไม่ใหญ่กว่าสายเฟส','[1] ตาราง 4-2'],['เครื่องตัดไฟรั่ว','วงจรตามข้อกำหนด I<sub>∆n</sub> ≤ 30 mA','[1] ข้อ 3.1.8, 3.1.9'],['ดีมานด์แฟกเตอร์','ใช้กับสายป้อนและสายประธานเท่านั้น','[1] ตาราง 3-1 ถึง 3-3'],['ขนาดสายต่ำสุด','แสงสว่าง 1.5 · เต้ารับ 2.5 · สายป้อน 4 mm²','[1]'],['พิกัดตัดกระแสลัดวงจร','I<sub>cu</sub> ≥ I<sub>sc</sub> ณ จุดติดตั้ง','[3]'],['Solar PV','Voc ที่อุณหภูมิต่ำสุด ≤ V<sub>max</sub> · สาย DC ≥ 1.25 I<sub>sc</sub> · ฟิวส์ 1.5–2.4 I<sub>sc</sub> เมื่อ ≥ 3 สตริง','[5] [6]']].map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table>
+    <h3>2.3 วิธีคำนวณ</h3><table class="rt">${[['กระแสโหลด','I<sub>b</sub> = P / (√3 · 400 · cosφ) สำหรับ 3 เฟส · P / (230 · cosφ) สำหรับ 1 เฟส · ตู้ 3 เฟสที่มีโหลด 1 เฟสใช้กระแสเฟสสูงสุด'],['แรงดันตก','ΔV = k · I<sub>b</sub> · L · |Z| (k = √3 สำหรับ 3 เฟส, 2 สำหรับ 1 เฟส) · |Z| จากความต้านทานที่อุณหภูมิใช้งาน (PVC 70 °C / XLPE 90 °C) และรีแอกแตนซ์ 0.08–0.09 Ω/km · ค่ากรณีเลวร้ายสุด ไม่ขึ้นกับ PF'],['กระแสลัดวงจร','I<sub>sc</sub> = 1.05 · U<sub>0</sub> / |Z| รวมอิมพีแดนซ์แหล่งจ่าย หม้อแปลง และสายแต่ละช่วง (ความต้านทานที่ 20 °C) · X/R แหล่งจ่าย 10 หม้อแปลง 5'],['ไม่รวม','กระแสลัดวงจรจากมอเตอร์ ผลของฮาร์มอนิก และการคำนวณ TCC/selectivity']].map(([a,b])=>`<tr><th style="width:22%">${a}</th><td>${b}</td></tr>`).join('')}</table>`);
+  page(`<h2>3 ตารางโหลดและการจัดสมดุลเฟส</h2><p class="note" style="margin-bottom:6px">ทีมติดตั้ง: ต่อวงจร 1 เฟสเข้าเฟส L1 / L2 / L3 ตามช่องที่มีค่ากระแส</p>${loadTables()}`);
+  page(`<h2>4 สรุปรายการคำนวณ</h2>${calcTable()}`);
+  if(P.circ.some(c=>c.t==='pv'))page(`<h2>4.1 Solar PV</h2>${P.circ.filter(c=>c.t==='pv').map(c=>{const d=R.c[c.id].dc,v=c.pv;return`<h3>${esc(c.name)} · ${esc(bOf(c.b).name)}</h3><table class="rt">${[['แผง',`${v.ns*v.np} × ${v.pm} W = ${f(d.kwp,2)} kWp · ${v.ns} แผง/สตริง × ${v.np} สตริง · DC/AC ${f(d.ratio,2)}`],['Voc ที่ '+v.tmin+' °C',`${f(d.voc,0)} V (≤ ${v.vmax} V)`],['Vmp',`${f(d.vmpHot,0)}–${f(d.vmp,0)} V (MPPT ${v.mpmin}–${v.mpmax} V)`],['สาย DC',`PV1-F ${d.cab} mm² · VD ${f(d.vd,2)}%`],['ฟิวส์ / สวิตช์ DC / SPD',`${d.fuse?'gPV '+d.fuseIn+' A · ':''}DC switch ${d.swI} A ${d.swV} V · SPD DC ${d.spd} V`],['ฝั่ง AC',`${esc(brkLabel(R.c[c.id],R.c[c.id].poles))} · ${esc(R.c[c.id].cable)} · VD ${f(R.c[c.id].vd,2)}%`]].map(([a,b])=>`<tr><th style="width:28%">${a}</th><td>${b}</td></tr>`).join('')}</table>`}).join('')}`);
+  const br=boqRows();page(`<h2>5 รายการอุปกรณ์หลัก (BOQ)</h2><table class="rt"><tr><th>#</th><th>หมวด</th><th>รายการ</th><th>จำนวน</th><th>หน่วย</th><th>ตำแหน่ง</th></tr>${br.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.cat)}</td><td>${esc(r.item)}</td><td class="r">${f(r.qty,r.qty%1?1:0)}</td><td>${r.unit}</td><td class="small">${esc(r.note)}</td></tr>`).join('')}</table><p class="note">ปริมาณสาย = ความยาววงจร × จำนวนเส้น ไม่รวมเผื่อ (ไฟล์ Excel เผื่อ 10%)</p>`);
+  page(`<h2>6 เอกสารอ้างอิง</h2><table class="rt">${['มาตรฐานการติดตั้งทางไฟฟ้าสำหรับประเทศไทย พ.ศ. 2564 (วสท. 2564), วิศวกรรมสถานแห่งประเทศไทยฯ','IEC 60364-5-52 / IEC 60228 Conductors of insulated cables','IEC 60909-0 Short-circuit currents in three-phase a.c. systems','IEC 60947-2 (MCCB/ACB) และ IEC 60898-1 (MCB), IEC 61009-1 (RCBO)','IEC 62548 / แนวทาง วสท. สำหรับระบบ Solar Rooftop','EN 50618 สาย PV · ข้อกำหนดการเชื่อมต่อระบบผลิตไฟฟ้าของ กฟน. / กฟภ.'].map((t,i)=>`<tr><td style="width:40px">[${i+1}]</td><td>${t}</td></tr>`).join('')}</table>`);
+  page(`${sldSvg(true)}`,'land');
+  $('#rep').innerHTML=pages.join('')}
+function doPrint(){buildReport();setTimeout(()=>{try{window.print()}catch(e){alert('พิมพ์ไม่ได้ในหน้านี้ ลองเปิด eit.html ตรงๆ')}},50)}
+
+/* ---------- top bar ---------- */
+function initTop(){const s=$('#sample');s.innerHTML='<option value="">— เลือกเพื่อโหลด —</option>'+Object.entries(SAMPLE_NAMES).map(([k,t])=>`<option value="${k}">${t}</option>`).join('');
+  s.onchange=()=>{const k=s.value;s.value='';if(!k)return;if(!confirm('แทนที่โครงการที่เปิดอยู่ด้วย "'+SAMPLE_NAMES[k]+'"? (บันทึกไฟล์ไว้ก่อนถ้าต้องการเก็บ)'))return;P=k==='blank'?blank():SAMPLES[k]();$('#boards').innerHTML='';syncName();recalc(1)};
+  const nm=$('#pname');nm.oninput=()=>{P.info.name=nm.value;save()};
+  $('#bsave').onclick=()=>{const b=new Blob([JSON.stringify(P,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(P.info.name||'project')+'.eit.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+  $('#bopen').onchange=e=>{const fl=e.target.files[0];if(!fl)return;fl.text().then(t=>{const o=JSON.parse(t);if(!o||o.v!==1||!o.boards)throw 0;P=o;$('#boards').innerHTML='';syncName();recalc(1)}).catch(()=>alert('ไฟล์นี้ไม่ใช่โครงการของเมนูนี้'));e.target.value=''};
+  $('#bxlsx').onclick=$('#bxlsx2').onclick=exportXLSX;$('#bpdf').onclick=doPrint;
+  $('#pvadd').onclick=()=>{const b=$('#pvboard').value||P.boards[0].id,B=bOf(b);P.circ.push(mkPV(b,B.ph===3?10:5,B.ph));$('#boards').innerHTML='';recalc()};
+  $('#sldsvg').onclick=()=>{const b=new Blob([sldSvg(true)],{type:'image/svg+xml'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SLD-'+(P.info.name||'project')+'.svg';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}}
+function syncName(){$('#pname').value=P.info.name||''}
+/* inside the simulator (menu 18): report page height so the iframe grows with the content, follow the app theme */
+function post(){if(window.self===window.top)return;try{parent.postMessage({eitH:Math.ceil(document.documentElement.scrollHeight)},'*')}catch(e){}}
+addEventListener('message',e=>{if(e.data&&e.data.pvTheme){document.documentElement.dataset.theme=e.data.pvTheme}});
+P=load();initTop();syncName();compute();renderKpis();show('src');
+if(window.self!==window.top){try{new ResizeObserver(post).observe(document.body)}catch(e){setInterval(post,1000)}}
+</script>
+</body>
+</html>

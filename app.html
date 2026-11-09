@@ -22,6 +22,7 @@
       <button class="navb" data-tab="systems"><span class="ic">11</span>จำลองระบบ 4 แบบ</button>
       <button class="navb" data-tab="events"><span class="ic">12</span>จำลองเหตุการณ์</button>
       <button class="navb" data-tab="calc"><span class="ic">17</span>คำนวณความคุ้มค่า</button>
+      <button class="navb" data-tab="eit"><span class="ic">18</span>ออกแบบระบบไฟฟ้า วสท.</button>
     </details>
     <details class="ngrp" data-grp="real"><summary>ติดตั้งตามรุ่นจริง</summary>
       <button class="navb" data-tab="solis"><span class="ic">13</span>Solis Commissioning</button>
@@ -510,6 +511,12 @@
     <header><h1>คำนวณความคุ้มค่าโซลาร์ภาคประชาชน</h1><p class="sub">กรอกค่าไฟต่อเดือนและช่วงเวลาที่ใช้ไฟ เลือกขนาดแผง อินเวอร์เตอร์ แบตเตอรี่ แล้วเทียบกู้ธนาคารกับจ่ายสด ดูผลประหยัดต่อเดือน ค่างวด จุดคุ้มทุน และผลประหยัดสะสม 25 ปี หลังหักเงินสนับสนุนจากรัฐ</p></header>
     <iframe id="calcframe" class="lfpframe" title="คำนวณความคุ้มค่าโซลาร์" loading="lazy"></iframe>
     <p class="hint">ราคา เงินสนับสนุน และเงื่อนไขสินเชื่อเป็นค่าตั้งต้นที่ผู้สอนแก้ได้ใน calc.html ผลลัพธ์เป็นค่าประมาณ ไม่ใช่ใบเสนอราคา ตรวจเงื่อนไขโครงการจากหน่วยงานรัฐก่อนใช้งานจริง</p>
+  </section>
+
+  <section class="tab" id="tab-eit" hidden>
+    <header><h1>ออกแบบระบบไฟฟ้า ตามมาตรฐาน วสท. 2564</h1><p class="sub">ตั้งแหล่งจ่าย (มิเตอร์ 1 เฟส / 3 เฟส หรือหม้อแปลง) เพิ่มตู้ MDB / DB วงจรย่อย และ Solar PV แล้วโปรแกรมเลือกขนาดเบรกเกอร์ สายไฟ สายดิน ท่อ ตรวจแรงดันตก กระแสลัดวงจร สมดุลเฟส เครื่องตัดไฟรั่ว และขนาดมิเตอร์ พร้อมวาด SLD ทำ BOQ (Excel) และรายงานคำนวณ (PDF)</p></header>
+    <iframe id="eitframe" class="lfpframe" title="ออกแบบระบบไฟฟ้า วสท. 2564" loading="lazy"></iframe>
+    <p class="hint">ตารางกระแสคำนวณจากตารางฐาน IEC 60364-5-52 ปรับเป็นอุณหภูมิอ้างอิงของ วสท. ดีมานด์แฟกเตอร์และตารางมิเตอร์เป็นแนวทางทั่วไป ผลเป็นการออกแบบเบื้องต้นเพื่อการเรียนรู้ ตรวจกับหนังสือมาตรฐาน วสท. 2564 ดาต้าชีต และข้อกำหนดของการไฟฟ้าทุกครั้ง แบบใช้งานจริงต้องลงนามโดยวิศวกร</p>
   </section>
 
   <section class="tab" id="tab-library" hidden>

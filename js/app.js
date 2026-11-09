@@ -1,7 +1,7 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc','eit'];
 /* manual of each menu: docs/manual-<file>.md (keep in step with docs/README.md) */
-const MANUAL={basics:'00-basics',library:'01-library',equip:'02-equip',wiring:'03-wiring',ac:'04-ac',bench:'05-bench',cable:'06-cable',pv:'07-pv',site:'08-site',load:'09-load',backup:'10-backup',systems:'11-systems',events:'12-events',solis:'13-solis',lfp:'14-lfp',fusion:'15-fusion',submit:'16-submit',calc:'17-calc'};
+const MANUAL={basics:'00-basics',library:'01-library',equip:'02-equip',wiring:'03-wiring',ac:'04-ac',bench:'05-bench',cable:'06-cable',pv:'07-pv',site:'08-site',load:'09-load',backup:'10-backup',systems:'11-systems',events:'12-events',solis:'13-solis',lfp:'14-lfp',fusion:'15-fusion',submit:'16-submit',calc:'17-calc',eit:'18-eit'};
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -47,6 +47,7 @@ function showTab(t,fromHash){
     else if(t==='solis')slRenderTab();
     else if(t==='lfp')lfpOpen();
     else if(t==='calc')calcOpen();
+    else if(t==='eit')eitOpen();
     window.scrollTo(0,0);
   });
   touch();
