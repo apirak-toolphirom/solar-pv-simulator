@@ -206,3 +206,30 @@ function syncAidUI(){
   document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>aidLog('โหลดตัวอย่าง: '+b.textContent.trim(),'idle')));
   syncAidUI();
 })();
+
+/* ---- shared wiring helpers for menus 04 and 05 (same look and feel as menu 03) ---- */
+const LOGS={};
+function logTo(id,msg,lvl){
+  const d=new Date(),t=[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+  const L=LOGS[id]=LOGS[id]||[];L.unshift({t,msg,lvl:lvl||'idle'});if(L.length>40)L.length=40;logShow(id);
+}
+function logShow(id){
+  const el=document.getElementById(id);if(!el)return;const L=LOGS[id]||[];
+  el.innerHTML=L.length?L.map(x=>`<li class="${x.lvl}"><time>${x.t}</time><span>${esc(x.msg)}</span></li>`).join(''):'<li class="idle"><time>--:--</time><span>ยังไม่มีรายการ ลองต่อสายหรือลบสาย</span></li>';
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-logclr]');if(b){LOGS[b.dataset.logclr]=[];logShow(b.dataset.logclr)}});
+/* mark the terminals a wire from `from` may go to (dashed ring = right kind) */
+function pickMark(svg,attr,from,ok){
+  svg.querySelectorAll(`[data-${attr}]`).forEach(g=>{const id=g.dataset[attr];g.classList.toggle('pick',!!from&&id!==from&&ok(from,id));g.classList.toggle('nopick',!!from&&id!==from&&!ok(from,id))});
+}
+/* floating tag beside the pointer (or a terminal) while wiring */
+function hintAt(svg,x,y,txt,lvl){
+  let g=svg.querySelector('g.wtag.hint');
+  if(!txt){if(g)g.remove();return}
+  if(!g){g=document.createElementNS('http://www.w3.org/2000/svg','g');svg.appendChild(g)}
+  const w=Math.max(30,txt.length*6.6+14);
+  g.setAttribute('class','wtag hint '+(lvl||'idle'));g.setAttribute('transform',`translate(${(x+w/2+14).toFixed(1)} ${(y-22).toFixed(1)})`);
+  g.innerHTML=`<rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10"/><text y="4">${esc(txt)}</text>`;
+}
+const KIND_TH={L:'L',L1:'L1',L2:'L2',L3:'L3',N:'N',PE:'PE','dc+':'DC+','dc-':'DC−',ba:'RS485 A',bb:'RS485 B',a:'RS485 A',b:'RS485 B',canh:'CAN H',canl:'CAN L',ct1:'CT S1',ct2:'CT S2','en+':'Enable+','en-':'Enable−',p:'DC+',n:'DC−',l:'AC L',nn:'AC N',g:'PE'};
+const kindTh=k=>KIND_TH[k]||k;

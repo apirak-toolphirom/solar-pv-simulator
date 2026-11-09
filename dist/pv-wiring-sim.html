@@ -1097,6 +1097,9 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 .wlog{list-style:none;margin:8px 0 0;padding:8px;max-height:240px;overflow:auto;background:#14191e;border-radius:8px;font:12px/1.5 var(--mono);color:#cfd8de}
 .wlog li{display:flex;gap:8px}.wlog time{color:#7d8a94;flex:none}
 .wlog li.ok span{color:#7fe0a4}.wlog li.warn span{color:#f3c56b}.wlog li.err span{color:#ff8f86}
+/* 04/05: terminals a wire may go to (dashed ring) and those of the wrong kind (dimmed) while wiring */
+.act.pick .acterm,.bpt.pick .acterm{stroke-width:4;stroke-dasharray:3 2}
+.act.nopick,.bpt.nopick{opacity:.35}
 </style>
 <div class="app">
   <nav class="side" id="nav" aria-label="เมนูหลัก">
@@ -1318,6 +1321,7 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
       </div>
     </div>
     <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
+    <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" data-logclr="aclog">ล้าง</button></div><ul id="aclog" class="wlog"></ul></div>
     <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
     </div>
@@ -1507,6 +1511,7 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
     <div class="metrics" id="bnmx"></div>
     <div id="bnfault" class="panelbox bfault"></div>
     <h2 class="sech">ผลการตรวจ</h2><ul class="checks" id="bnchecks"></ul>
+    <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" data-logclr="bnlog">ล้าง</button></div><ul id="bnlog" class="wlog"></ul></div>
     <div id="bnctl" class="bnctl"></div>
     <p class="hint">ค่าในเครื่องมือนี้เป็นแบบจำลองเพื่อการเรียนรู้ (ค่าแบต แผง และตัวควบคุมเป็นตัวอย่าง) ตรวจกับคู่มือรุ่นจริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตตรวจก่อนติดตั้งทุกครั้ง</p>
   </section>
@@ -3345,6 +3350,33 @@ function syncAidUI(){
   syncAidUI();
 })();
 
+/* ---- shared wiring helpers for menus 04 and 05 (same look and feel as menu 03) ---- */
+const LOGS={};
+function logTo(id,msg,lvl){
+  const d=new Date(),t=[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+  const L=LOGS[id]=LOGS[id]||[];L.unshift({t,msg,lvl:lvl||'idle'});if(L.length>40)L.length=40;logShow(id);
+}
+function logShow(id){
+  const el=document.getElementById(id);if(!el)return;const L=LOGS[id]||[];
+  el.innerHTML=L.length?L.map(x=>`<li class="${x.lvl}"><time>${x.t}</time><span>${esc(x.msg)}</span></li>`).join(''):'<li class="idle"><time>--:--</time><span>ยังไม่มีรายการ ลองต่อสายหรือลบสาย</span></li>';
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-logclr]');if(b){LOGS[b.dataset.logclr]=[];logShow(b.dataset.logclr)}});
+/* mark the terminals a wire from `from` may go to (dashed ring = right kind) */
+function pickMark(svg,attr,from,ok){
+  svg.querySelectorAll(`[data-${attr}]`).forEach(g=>{const id=g.dataset[attr];g.classList.toggle('pick',!!from&&id!==from&&ok(from,id));g.classList.toggle('nopick',!!from&&id!==from&&!ok(from,id))});
+}
+/* floating tag beside the pointer (or a terminal) while wiring */
+function hintAt(svg,x,y,txt,lvl){
+  let g=svg.querySelector('g.wtag.hint');
+  if(!txt){if(g)g.remove();return}
+  if(!g){g=document.createElementNS('http://www.w3.org/2000/svg','g');svg.appendChild(g)}
+  const w=Math.max(30,txt.length*6.6+14);
+  g.setAttribute('class','wtag hint '+(lvl||'idle'));g.setAttribute('transform',`translate(${(x+w/2+14).toFixed(1)} ${(y-22).toFixed(1)})`);
+  g.innerHTML=`<rect x="${-w/2}" y="-10" width="${w}" height="20" rx="10"/><text y="4">${esc(txt)}</text>`;
+}
+const KIND_TH={L:'L',L1:'L1',L2:'L2',L3:'L3',N:'N',PE:'PE','dc+':'DC+','dc-':'DC−',ba:'RS485 A',bb:'RS485 B',a:'RS485 A',b:'RS485 B',canh:'CAN H',canl:'CAN L',ct1:'CT S1',ct2:'CT S2','en+':'Enable+','en-':'Enable−',p:'DC+',n:'DC−',l:'AC L',nn:'AC N',g:'PE'};
+const kindTh=k=>KIND_TH[k]||k;
+
 /* ---- AC tab artwork: simple illustrations of real equipment (terminal positions come from acsys.js) ---- */
 const AI={
   pylon:(x,y,s)=>`<g transform="translate(${x} ${y}) scale(${s||1})"><path d="M0 -40L-14 38M0 -40L14 38M-9 -2H9M-12 16H12M-9 -2L12 16M9 -2L-12 16" class="a-line"/><path d="M-28 -30H28M-19 -16H19" class="a-line a-th"/><path d="M0 -40V-50" class="a-line"/><g class="a-fill"><circle cx="-28" cy="-26" r="3.2"/><circle cx="28" cy="-26" r="3.2"/><circle cx="-19" cy="-12" r="3.2"/><circle cx="19" cy="-12" r="3.2"/></g></g>`,
@@ -3999,6 +4031,7 @@ function acRender(){
   });
   if(ACS.selMod&&AC_CL[ACS.selMod]){const c=AC_CL[ACS.selMod];s=s.replace(`<g class="acmod" data-c="${ACS.selMod}">`,`<g class="acmod sel" data-c="${ACS.selMod}"><rect class="acselbox" x="${c.x-5}" y="${c.y-5}" width="${c.w*c.s+10}" height="${c.h*c.s+10}" rx="12"/>`)}
   svg.innerHTML=s;
+  if(ACS.armed&&AC_TM[ACS.armed]&&typeof pickMark==='function'){pickMark(svg,'t',ACS.armed,acOkTo);const T=AC_TM[ACS.armed];hintAt(svg,T.x,T.y,`เลือก ${acNm(ACS.armed)} แล้ว แตะขั้วที่สอง`,'idle')}
   {const k=ACS.selMod,b=document.getElementById('acmods');if(b){b.hidden=!k||!AC_C[k];if(k&&AC_C[k]){document.getElementById('acmodn').textContent=AC_MNAME[k]||k;const r=document.getElementById('acmsr');if(document.activeElement!==r)r.value=Math.round(acSc(k)*100);document.getElementById('acmodv').textContent=Math.round(acSc(k)*100)+'%'}}}
   const v=document.getElementById('acverdict');
   const txt=A.nE?`พบข้อผิดพลาด ${A.nE} จุด`:A.nW?`ใช้งานได้ แต่มี ${A.nW} ข้อควรระวัง`:A.ck.length?'ต่อสายและตั้งค่าถูกต้องตามที่ตรวจได้':'ยังไม่ได้ต่อสาย';
@@ -4088,13 +4121,19 @@ function acPreset(name){
   }
   acRender();touch();
 }
+const acNm=id=>{const T=AC_TM[id];return`${AC_MNAME[id.split('.')[0]]||id.split('.')[0]} ${T?T.lab:''}`.trim()};
+const acOkTo=(a,b)=>{const A=AC_TM[a],B=AC_TM[b];return!!(A&&B&&acAvail(B)&&acKindOk(A.kind,B.kind)&&!hasWire(a,b))};
+function acHintTxt(a,b){const A=AC_TM[a],B=AC_TM[b];if(!B||a===b)return null;if(!acAvail(B))return[`${acNm(b)} ใช้ไม่ได้กับอินเวอร์เตอร์รุ่นนี้`,'warn'];if(hasWire(a,b))return['ต่อสายเส้นนี้ไว้แล้ว','warn'];return acKindOk(A.kind,B.kind)?[`${acNm(a)} → ${acNm(b)} ถูกชนิด (${kindTh(A.kind)})`,'ok']:[`ชนิดไม่ตรง: ${kindTh(A.kind)} กับ ${kindTh(B.kind)}`,'err']}
 function acPoint(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
 function acAdd(a,b){
   acEnsureMode();
   if(a===b)return;
   if(!AC_TM[a]||!AC_TM[b]||!acAvail(AC_TM[a])||!acAvail(AC_TM[b]))return;
   if(hasWire(a,b))return;
-  ACS.wires.push({a,b});ACS.armed=null;acRender();touch();
+  const h=acHintTxt(a,b)||['',''];
+  ACS.wires.push({a,b});ACS.armed=null;
+  {if(typeof logTo==='function')logTo('aclog','ต่อสาย: '+(h[1]==='ok'?h[0]:`${acNm(a)} → ${acNm(b)} · `+h[0]),h[1]||'idle')}
+  acRender();touch();
 }
 function initAC(){
   const svg=document.getElementById('acsvg');
@@ -4114,6 +4153,7 @@ function initAC(){
     if(t&&!t.classList.contains('off')){
       e.preventDefault();
       drag={id:t.dataset.t,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','acw tmp');svg.appendChild(tmp);
+      pickMark(svg,'t',drag.id,acOkTo);
       try{svg.setPointerCapture(e.pointerId)}catch(_){}
     }
   });
@@ -4129,7 +4169,11 @@ function initAC(){
     if(!drag)return;
     const p=acPoint(svg,e),a=AC_TM[drag.id];
     if(Math.hypot(p.x-a.x,p.y-a.y)>8)drag.moved=true;
-    if(drag.moved)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+    if(drag.moved){
+      tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+      const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-t]'),h=t?acHintTxt(drag.id,t.dataset.t):null;
+      hintAt(svg,p.x,p.y,h?h[0]:`จาก ${acNm(drag.id)} ลากไปปล่อยที่ขั้วปลายทาง`,h?h[1]:'idle');
+    }
   });
   const end=e=>{
     if(mv){const m=mv;mv=null;if(m.moved){acRender();touch()}else if(m.flip){acFlipCT()}else{ACS.selMod=ACS.selMod===m.k?null:m.k;acRender()}return}
@@ -4144,7 +4188,9 @@ function initAC(){
     }
   };
   svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{mv=null;drag=null;if(tmp){tmp.remove();tmp=null}});
-  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){ACS.wires.splice(+w.dataset.w,1);acRender();touch()}});
+  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){const x=ACS.wires[+w.dataset.w];ACS.wires.splice(+w.dataset.w,1);if(x)logTo('aclog',`ลบสาย: ${acNm(x.a)} → ${acNm(x.b)}`,'idle');acRender();touch()}});
+  document.getElementById('acpre').addEventListener('click',e=>{const b=e.target.closest('[data-acp]');if(b)logTo('aclog','โหลดตัวอย่าง: '+b.textContent.trim(),'idle')});
+  logShow('aclog');
   document.getElementById('acpre').addEventListener('click',e=>{const b=e.target.closest('[data-acp]');if(b)acPreset(b.dataset.acp)});
   const S=ACS.set,q=id=>document.getElementById(id);
   const bindSel=(id,key,num)=>q(id).addEventListener('change',e=>{S[key]=num?+e.target.value:e.target.value;acRender();rerunBk();touch()});
@@ -6866,7 +6912,7 @@ function bRender(){
   s+=`<path d="M${vm.x+40} ${vm.y+56}C${vm.x+40} ${vm.y+110} ${pr[0]} ${pr[1]+70} ${pr[0]} ${pr[1]}" class="blead" style="stroke:#d62828"/><path d="M${vm.x+80} ${vm.y+56}C${vm.x+80} ${vm.y+110} ${pb[0]} ${pb[1]+70} ${pb[0]} ${pb[1]}" class="blead" style="stroke:#14191e"/>`;
   s+=`<g class="bmeter" data-m="VB"><rect x="${vm.x}" y="${vm.y}" width="120" height="56" rx="8" fill="#e4b400" stroke="#8a6d00" stroke-width="2"/><rect x="${vm.x+8}" y="${vm.y+8}" width="104" height="26" rx="3" fill="#222"/><text x="${vm.x+60}" y="${vm.y+27}" text-anchor="middle" fill="#9dff9d" font-family="var(--mono)" font-size="14">${rv.txt}</text><text x="${vm.x+60}" y="${vm.y+49}" text-anchor="middle" font-size="10" fill="#4a3a00">มัลติมิเตอร์ (โวลต์)</text></g>`;
   s+=`<g class="bmeter" data-m="PR"><circle cx="${pr[0]}" cy="${pr[1]}" r="9" fill="#d62828" stroke="#fff" stroke-width="2"/><circle cx="${pr[0]}" cy="${pr[1]}" r="20" fill="transparent"/></g><g class="bmeter" data-m="PB"><circle cx="${pb[0]}" cy="${pb[1]}" r="9" fill="#14191e" stroke="#fff" stroke-width="2"/><circle cx="${pb[0]}" cy="${pb[1]}" r="20" fill="transparent"/></g>`;
-  svg.innerHTML=s;
+  svg.innerHTML=s;if(window.BN_PICK)BN_PICK();
   bPanels(r,rv);
 }
 function bPanels(r,rv){
@@ -7024,18 +7070,22 @@ function initBench(){
   root.addEventListener('input',onInput);root.addEventListener('change',onInput);
   const mt=document.getElementById('bnmeters');
   mt.addEventListener('change',e=>{const el=e.target,k=el.dataset.mk;if(!k)return;const [id,f2]=k.split('.');BN.m[id][f2]=el.type==='checkbox'?el.checked:el.value;bRender();touch()});
+  const q0=(id,f)=>{const el=document.getElementById(id);if(el)el.addEventListener('click',f)};
   /* svg interaction */
   let mv=null,md=null,raf=0,wd=null,tmp=null;
   const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
   const later=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;bRender()})};
+  const has=(a,b)=>(BN.wires||[]).some(w=>bWkey(w.a,w.b)===bWkey(a,b));
+  const okTo=(a,b)=>!!(BPORT[a]&&BPORT[b]&&BPORT[a][5]===BPORT[b][5]&&!has(a,b));
+  const htxt=(a,b)=>{if(!BPORT[b]||a===b)return null;if(has(a,b))return['ต่อสายเส้นนี้ไว้แล้ว','warn'];const ka=BPORT[a][5],kb=BPORT[b][5];return ka===kb?[`${bPName(a)} → ${bPName(b)} ถูกชนิด (${kindTh(ka)})`,'ok']:[`ชนิดไม่ตรง: ${kindTh(ka)} กับ ${kindTh(kb)}${(ka==='p'&&kb==='n')||(ka==='n'&&kb==='p')?' = ลัดวงจร!':''}`,'err']};
   const wireAdd=(a,b)=>{
     if(a===b)return;
-    if(!(BN.wires||[]).some(w=>bWkey(w.a,w.b)===bWkey(a,b)))BN.wires.push({a,b});
+    if(!has(a,b)){const h=htxt(a,b);BN.wires.push({a,b});logTo('bnlog','ต่อสาย: '+(h[1]==='ok'?h[0]:`${bPName(a)} → ${bPName(b)} · ${h[0]}`),h[1])}
     BARM=null;BLATCH={};bRender();touch();
   };
   svg.addEventListener('pointerdown',e=>{
     const pe=e.target.closest('[data-p]');
-    if(pe){e.preventDefault();wd={id:pe.dataset.p,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','bw tmp');tmp.setAttribute('style','stroke:#888;stroke-dasharray:5 5');svg.appendChild(tmp);try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
+    if(pe){e.preventDefault();wd={id:pe.dataset.p,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','bw tmp');tmp.setAttribute('style','stroke:#888;stroke-dasharray:5 5;pointer-events:none');svg.appendChild(tmp);pickMark(svg,'p',wd.id,okTo);try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
     const m=e.target.closest('[data-m]');
     if(m){e.preventDefault();md={id:m.dataset.m};try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
     const c=e.target.closest('[data-c]');
@@ -7045,7 +7095,11 @@ function initBench(){
     if(wd){
       const p=pt(e),a=BPT[wd.id];
       if(Math.hypot(p.x-a.x,p.y-a.y)>8)wd.moved=true;
-      if(wd.moved&&tmp)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+      if(wd.moved&&tmp){
+        tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+        const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-p]'),h=t?htxt(wd.id,t.dataset.p):null;
+        hintAt(svg,p.x,p.y,h?h[0]:`จาก ${bPName(wd.id)} ลากไปปล่อยที่จุดต่อปลายทาง`,h?h[1]:'idle');
+      }
       return;
     }
     if(md){
@@ -7089,7 +7143,11 @@ function initBench(){
     }
   };
   svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{md=null;mv=null;wd=null;if(tmp){tmp.remove();tmp=null}});
-  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){BN.wires.splice(+w.dataset.w,1);BLATCH={};bRender();touch()}});
+  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){const x=BN.wires[+w.dataset.w];BN.wires.splice(+w.dataset.w,1);if(x)logTo('bnlog',`ลบสาย: ${bPName(x.a)} → ${bPName(x.b)}`,'idle');BLATCH={};bRender();touch()}});
+  document.getElementById('bnpre').addEventListener('click',e=>{const b=e.target.closest('[data-bp]');if(b)logTo('bnlog','โหลดตัวอย่าง: '+b.textContent.trim(),'idle')});
+  q0('bnauto',()=>logTo('bnlog','ต่ออัตโนมัติตามเฉลย','idle'));q0('bnclear',()=>logTo('bnlog','ล้างสายทั้งหมด','idle'));
+  logShow('bnlog');
+  window.BN_PICK=()=>{if(BARM&&BPT[BARM]){pickMark(svg,'p',BARM,okTo);hintAt(svg,BPT[BARM].x,BPT[BARM].y,`เลือก ${bPName(BARM)} แล้ว แตะจุดที่สอง`,'idle')}};
   const q=id=>document.getElementById(id);
   q('bnzoom').addEventListener('input',e=>bSetZoom(+e.target.value/100));q('bnzoom').addEventListener('change',()=>touch());
   q('bnzin').addEventListener('click',()=>{bSetZoom(BN.zoom+.1);touch()});q('bnzout').addEventListener('click',()=>{bSetZoom(BN.zoom-.1);touch()});

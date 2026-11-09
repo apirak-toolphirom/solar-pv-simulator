@@ -166,7 +166,7 @@ function bRender(){
   s+=`<path d="M${vm.x+40} ${vm.y+56}C${vm.x+40} ${vm.y+110} ${pr[0]} ${pr[1]+70} ${pr[0]} ${pr[1]}" class="blead" style="stroke:#d62828"/><path d="M${vm.x+80} ${vm.y+56}C${vm.x+80} ${vm.y+110} ${pb[0]} ${pb[1]+70} ${pb[0]} ${pb[1]}" class="blead" style="stroke:#14191e"/>`;
   s+=`<g class="bmeter" data-m="VB"><rect x="${vm.x}" y="${vm.y}" width="120" height="56" rx="8" fill="#e4b400" stroke="#8a6d00" stroke-width="2"/><rect x="${vm.x+8}" y="${vm.y+8}" width="104" height="26" rx="3" fill="#222"/><text x="${vm.x+60}" y="${vm.y+27}" text-anchor="middle" fill="#9dff9d" font-family="var(--mono)" font-size="14">${rv.txt}</text><text x="${vm.x+60}" y="${vm.y+49}" text-anchor="middle" font-size="10" fill="#4a3a00">มัลติมิเตอร์ (โวลต์)</text></g>`;
   s+=`<g class="bmeter" data-m="PR"><circle cx="${pr[0]}" cy="${pr[1]}" r="9" fill="#d62828" stroke="#fff" stroke-width="2"/><circle cx="${pr[0]}" cy="${pr[1]}" r="20" fill="transparent"/></g><g class="bmeter" data-m="PB"><circle cx="${pb[0]}" cy="${pb[1]}" r="9" fill="#14191e" stroke="#fff" stroke-width="2"/><circle cx="${pb[0]}" cy="${pb[1]}" r="20" fill="transparent"/></g>`;
-  svg.innerHTML=s;
+  svg.innerHTML=s;if(window.BN_PICK)BN_PICK();
   bPanels(r,rv);
 }
 function bPanels(r,rv){
@@ -324,18 +324,22 @@ function initBench(){
   root.addEventListener('input',onInput);root.addEventListener('change',onInput);
   const mt=document.getElementById('bnmeters');
   mt.addEventListener('change',e=>{const el=e.target,k=el.dataset.mk;if(!k)return;const [id,f2]=k.split('.');BN.m[id][f2]=el.type==='checkbox'?el.checked:el.value;bRender();touch()});
+  const q0=(id,f)=>{const el=document.getElementById(id);if(el)el.addEventListener('click',f)};
   /* svg interaction */
   let mv=null,md=null,raf=0,wd=null,tmp=null;
   const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
   const later=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;bRender()})};
+  const has=(a,b)=>(BN.wires||[]).some(w=>bWkey(w.a,w.b)===bWkey(a,b));
+  const okTo=(a,b)=>!!(BPORT[a]&&BPORT[b]&&BPORT[a][5]===BPORT[b][5]&&!has(a,b));
+  const htxt=(a,b)=>{if(!BPORT[b]||a===b)return null;if(has(a,b))return['ต่อสายเส้นนี้ไว้แล้ว','warn'];const ka=BPORT[a][5],kb=BPORT[b][5];return ka===kb?[`${bPName(a)} → ${bPName(b)} ถูกชนิด (${kindTh(ka)})`,'ok']:[`ชนิดไม่ตรง: ${kindTh(ka)} กับ ${kindTh(kb)}${(ka==='p'&&kb==='n')||(ka==='n'&&kb==='p')?' = ลัดวงจร!':''}`,'err']};
   const wireAdd=(a,b)=>{
     if(a===b)return;
-    if(!(BN.wires||[]).some(w=>bWkey(w.a,w.b)===bWkey(a,b)))BN.wires.push({a,b});
+    if(!has(a,b)){const h=htxt(a,b);BN.wires.push({a,b});logTo('bnlog','ต่อสาย: '+(h[1]==='ok'?h[0]:`${bPName(a)} → ${bPName(b)} · ${h[0]}`),h[1])}
     BARM=null;BLATCH={};bRender();touch();
   };
   svg.addEventListener('pointerdown',e=>{
     const pe=e.target.closest('[data-p]');
-    if(pe){e.preventDefault();wd={id:pe.dataset.p,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','bw tmp');tmp.setAttribute('style','stroke:#888;stroke-dasharray:5 5');svg.appendChild(tmp);try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
+    if(pe){e.preventDefault();wd={id:pe.dataset.p,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','bw tmp');tmp.setAttribute('style','stroke:#888;stroke-dasharray:5 5;pointer-events:none');svg.appendChild(tmp);pickMark(svg,'p',wd.id,okTo);try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
     const m=e.target.closest('[data-m]');
     if(m){e.preventDefault();md={id:m.dataset.m};try{svg.setPointerCapture(e.pointerId)}catch(_){}return}
     const c=e.target.closest('[data-c]');
@@ -345,7 +349,11 @@ function initBench(){
     if(wd){
       const p=pt(e),a=BPT[wd.id];
       if(Math.hypot(p.x-a.x,p.y-a.y)>8)wd.moved=true;
-      if(wd.moved&&tmp)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+      if(wd.moved&&tmp){
+        tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+        const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-p]'),h=t?htxt(wd.id,t.dataset.p):null;
+        hintAt(svg,p.x,p.y,h?h[0]:`จาก ${bPName(wd.id)} ลากไปปล่อยที่จุดต่อปลายทาง`,h?h[1]:'idle');
+      }
       return;
     }
     if(md){
@@ -389,7 +397,11 @@ function initBench(){
     }
   };
   svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{md=null;mv=null;wd=null;if(tmp){tmp.remove();tmp=null}});
-  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){BN.wires.splice(+w.dataset.w,1);BLATCH={};bRender();touch()}});
+  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){const x=BN.wires[+w.dataset.w];BN.wires.splice(+w.dataset.w,1);if(x)logTo('bnlog',`ลบสาย: ${bPName(x.a)} → ${bPName(x.b)}`,'idle');BLATCH={};bRender();touch()}});
+  document.getElementById('bnpre').addEventListener('click',e=>{const b=e.target.closest('[data-bp]');if(b)logTo('bnlog','โหลดตัวอย่าง: '+b.textContent.trim(),'idle')});
+  q0('bnauto',()=>logTo('bnlog','ต่ออัตโนมัติตามเฉลย','idle'));q0('bnclear',()=>logTo('bnlog','ล้างสายทั้งหมด','idle'));
+  logShow('bnlog');
+  window.BN_PICK=()=>{if(BARM&&BPT[BARM]){pickMark(svg,'p',BARM,okTo);hintAt(svg,BPT[BARM].x,BPT[BARM].y,`เลือก ${bPName(BARM)} แล้ว แตะจุดที่สอง`,'idle')}};
   const q=id=>document.getElementById(id);
   q('bnzoom').addEventListener('input',e=>bSetZoom(+e.target.value/100));q('bnzoom').addEventListener('change',()=>touch());
   q('bnzin').addEventListener('click',()=>{bSetZoom(BN.zoom+.1);touch()});q('bnzout').addEventListener('click',()=>{bSetZoom(BN.zoom-.1);touch()});

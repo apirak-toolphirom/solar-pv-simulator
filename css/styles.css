@@ -1091,3 +1091,6 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 .wlog{list-style:none;margin:8px 0 0;padding:8px;max-height:240px;overflow:auto;background:#14191e;border-radius:8px;font:12px/1.5 var(--mono);color:#cfd8de}
 .wlog li{display:flex;gap:8px}.wlog time{color:#7d8a94;flex:none}
 .wlog li.ok span{color:#7fe0a4}.wlog li.warn span{color:#f3c56b}.wlog li.err span{color:#ff8f86}
+/* 04/05: terminals a wire may go to (dashed ring) and those of the wrong kind (dimmed) while wiring */
+.act.pick .acterm,.bpt.pick .acterm{stroke-width:4;stroke-dasharray:3 2}
+.act.nopick,.bpt.nopick{opacity:.35}

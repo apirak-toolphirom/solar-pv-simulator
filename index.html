@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="f1d04744d3">
+<meta name="build" content="f198f9bf66">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='f1d04744d3'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='f198f9bf66'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=d83e920e">
+<link rel="stylesheet" href="css/styles.css?v=cfa75a86">
 </head>
 <body>
 <div class="app">
@@ -234,6 +234,7 @@ if(m&&m[1]!=='f1d04744d3'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       </div>
     </div>
     <div><h2>ผลการตรวจ</h2><ul id="acchecks" class="checks"></ul></div>
+    <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" data-logclr="aclog">ล้าง</button></div><ul id="aclog" class="wlog"></ul></div>
     <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
     </div>
@@ -423,6 +424,7 @@ if(m&&m[1]!=='f1d04744d3'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <div class="metrics" id="bnmx"></div>
     <div id="bnfault" class="panelbox bfault"></div>
     <h2 class="sech">ผลการตรวจ</h2><ul class="checks" id="bnchecks"></ul>
+    <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" data-logclr="bnlog">ล้าง</button></div><ul id="bnlog" class="wlog"></ul></div>
     <div id="bnctl" class="bnctl"></div>
     <p class="hint">ค่าในเครื่องมือนี้เป็นแบบจำลองเพื่อการเรียนรู้ (ค่าแบต แผง และตัวควบคุมเป็นตัวอย่าง) ตรวจกับคู่มือรุ่นจริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตตรวจก่อนติดตั้งทุกครั้ง</p>
   </section>
@@ -685,9 +687,9 @@ if(m&&m[1]!=='f1d04744d3'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/model.js?v=f5bf7887"></script>
 <script src="js/engine.js?v=0c08839d"></script>
 <script src="js/wiring.js?v=3151bc8e"></script>
-<script src="js/wireaid.js?v=83b92691"></script>
+<script src="js/wireaid.js?v=4077e2a2"></script>
 <script src="js/acart.js?v=a67bdc03"></script>
-<script src="js/acsys.js?v=1455dcc2"></script>
+<script src="js/acsys.js?v=ab032419"></script>
 <script src="js/acmicro.js?v=622b90f2"></script>
 <script src="js/solar.js?v=7451b1ff"></script>
 <script src="js/site.js?v=68afc494"></script>
@@ -697,7 +699,7 @@ if(m&&m[1]!=='f1d04744d3'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/systems.js?v=1a24ac25"></script>
 <script src="js/events.js?v=2db707bf"></script>
 <script src="js/bench.js?v=ebe5032f"></script>
-<script src="js/benchui.js?v=266c0de5"></script>
+<script src="js/benchui.js?v=d3b8e61f"></script>
 <script src="js/basics.js?v=a988f584"></script>
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=9c033448"></script>

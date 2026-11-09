@@ -544,6 +544,7 @@ function acRender(){
   });
   if(ACS.selMod&&AC_CL[ACS.selMod]){const c=AC_CL[ACS.selMod];s=s.replace(`<g class="acmod" data-c="${ACS.selMod}">`,`<g class="acmod sel" data-c="${ACS.selMod}"><rect class="acselbox" x="${c.x-5}" y="${c.y-5}" width="${c.w*c.s+10}" height="${c.h*c.s+10}" rx="12"/>`)}
   svg.innerHTML=s;
+  if(ACS.armed&&AC_TM[ACS.armed]&&typeof pickMark==='function'){pickMark(svg,'t',ACS.armed,acOkTo);const T=AC_TM[ACS.armed];hintAt(svg,T.x,T.y,`เลือก ${acNm(ACS.armed)} แล้ว แตะขั้วที่สอง`,'idle')}
   {const k=ACS.selMod,b=document.getElementById('acmods');if(b){b.hidden=!k||!AC_C[k];if(k&&AC_C[k]){document.getElementById('acmodn').textContent=AC_MNAME[k]||k;const r=document.getElementById('acmsr');if(document.activeElement!==r)r.value=Math.round(acSc(k)*100);document.getElementById('acmodv').textContent=Math.round(acSc(k)*100)+'%'}}}
   const v=document.getElementById('acverdict');
   const txt=A.nE?`พบข้อผิดพลาด ${A.nE} จุด`:A.nW?`ใช้งานได้ แต่มี ${A.nW} ข้อควรระวัง`:A.ck.length?'ต่อสายและตั้งค่าถูกต้องตามที่ตรวจได้':'ยังไม่ได้ต่อสาย';
@@ -633,13 +634,19 @@ function acPreset(name){
   }
   acRender();touch();
 }
+const acNm=id=>{const T=AC_TM[id];return`${AC_MNAME[id.split('.')[0]]||id.split('.')[0]} ${T?T.lab:''}`.trim()};
+const acOkTo=(a,b)=>{const A=AC_TM[a],B=AC_TM[b];return!!(A&&B&&acAvail(B)&&acKindOk(A.kind,B.kind)&&!hasWire(a,b))};
+function acHintTxt(a,b){const A=AC_TM[a],B=AC_TM[b];if(!B||a===b)return null;if(!acAvail(B))return[`${acNm(b)} ใช้ไม่ได้กับอินเวอร์เตอร์รุ่นนี้`,'warn'];if(hasWire(a,b))return['ต่อสายเส้นนี้ไว้แล้ว','warn'];return acKindOk(A.kind,B.kind)?[`${acNm(a)} → ${acNm(b)} ถูกชนิด (${kindTh(A.kind)})`,'ok']:[`ชนิดไม่ตรง: ${kindTh(A.kind)} กับ ${kindTh(B.kind)}`,'err']}
 function acPoint(svg,e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
 function acAdd(a,b){
   acEnsureMode();
   if(a===b)return;
   if(!AC_TM[a]||!AC_TM[b]||!acAvail(AC_TM[a])||!acAvail(AC_TM[b]))return;
   if(hasWire(a,b))return;
-  ACS.wires.push({a,b});ACS.armed=null;acRender();touch();
+  const h=acHintTxt(a,b)||['',''];
+  ACS.wires.push({a,b});ACS.armed=null;
+  {if(typeof logTo==='function')logTo('aclog','ต่อสาย: '+(h[1]==='ok'?h[0]:`${acNm(a)} → ${acNm(b)} · `+h[0]),h[1]||'idle')}
+  acRender();touch();
 }
 function initAC(){
   const svg=document.getElementById('acsvg');
@@ -659,6 +666,7 @@ function initAC(){
     if(t&&!t.classList.contains('off')){
       e.preventDefault();
       drag={id:t.dataset.t,moved:false};tmp=document.createElementNS('http://www.w3.org/2000/svg','path');tmp.setAttribute('class','acw tmp');svg.appendChild(tmp);
+      pickMark(svg,'t',drag.id,acOkTo);
       try{svg.setPointerCapture(e.pointerId)}catch(_){}
     }
   });
@@ -674,7 +682,11 @@ function initAC(){
     if(!drag)return;
     const p=acPoint(svg,e),a=AC_TM[drag.id];
     if(Math.hypot(p.x-a.x,p.y-a.y)>8)drag.moved=true;
-    if(drag.moved)tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+    if(drag.moved){
+      tmp.setAttribute('d',`M${a.x} ${a.y}L${p.x} ${p.y}`);
+      const el=document.elementFromPoint(e.clientX,e.clientY),t=el&&el.closest&&el.closest('[data-t]'),h=t?acHintTxt(drag.id,t.dataset.t):null;
+      hintAt(svg,p.x,p.y,h?h[0]:`จาก ${acNm(drag.id)} ลากไปปล่อยที่ขั้วปลายทาง`,h?h[1]:'idle');
+    }
   });
   const end=e=>{
     if(mv){const m=mv;mv=null;if(m.moved){acRender();touch()}else if(m.flip){acFlipCT()}else{ACS.selMod=ACS.selMod===m.k?null:m.k;acRender()}return}
@@ -689,7 +701,9 @@ function initAC(){
     }
   };
   svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',()=>{mv=null;drag=null;if(tmp){tmp.remove();tmp=null}});
-  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){ACS.wires.splice(+w.dataset.w,1);acRender();touch()}});
+  svg.addEventListener('click',e=>{const w=e.target.closest('[data-w]');if(w){const x=ACS.wires[+w.dataset.w];ACS.wires.splice(+w.dataset.w,1);if(x)logTo('aclog',`ลบสาย: ${acNm(x.a)} → ${acNm(x.b)}`,'idle');acRender();touch()}});
+  document.getElementById('acpre').addEventListener('click',e=>{const b=e.target.closest('[data-acp]');if(b)logTo('aclog','โหลดตัวอย่าง: '+b.textContent.trim(),'idle')});
+  logShow('aclog');
   document.getElementById('acpre').addEventListener('click',e=>{const b=e.target.closest('[data-acp]');if(b)acPreset(b.dataset.acp)});
   const S=ACS.set,q=id=>document.getElementById(id);
   const bindSel=(id,key,num)=>q(id).addEventListener('change',e=>{S[key]=num?+e.target.value:e.target.value;acRender();rerunBk();touch()});
