@@ -65,14 +65,14 @@ function ahAnalyze(){
     if(fedL&&fedN)add('ok',`${nm}: รับไฟ L และ N จากเมนเบรกเกอร์เข้า RCBO หลักของตู้`);
     else if(same(W,p+'.IL','UT.N')||same(W,p+'.IN','UT.L'))add('err',`${nm}: สลับ L กับ N ที่ขาเข้า RCBO`);
     else add('warn',`${nm}: ยังไม่ได้ต่อไฟเข้า (L และ N จากเมนเบรกเกอร์เข้าขั้วบนของ RCBO)`);
-    if(same(W,p+'.G1','ROD.T'))add('ok',`${nm}: บาร์ G ต่อถึงหลักดิน`);else add('err',`${nm}: บาร์ G ยังไม่ต่อถึงหลักดิน เครื่องใช้ไฟฟ้าจะไม่มีทางให้ไฟรั่วลงดิน`);
+    if(same(W,p+'.G1','ROD.T'))add('ok',`${nm}: บาร์ G ต่อถึงหลักดิน${p==='D1'?' (สายต่อหลักดินตามตาราง 4-1 · ความต้านทานดินไม่เกิน 5 Ω วสท. ข้อ 4.27)':''}`);else add('err',`${nm}: บาร์ G ยังไม่ต่อถึงหลักดิน เครื่องใช้ไฟฟ้าจะไม่มีทางให้ไฟรั่วลงดิน`);
   });
   /* neutral–earth bond: only at the main board */
   const bonds=AH.wires.filter(w=>{const a=AH_TM[w.a].kind,b=AH_TM[w.b].kind;return(a==='N'&&b==='PE')||(a==='PE'&&b==='N')});
   const bAt=bonds.map(w=>[w.a,w.b].map(x=>x.split('.')[0]).find(c=>c!=='ROD')||'ROD');
   if(bAt.includes('D1')&&!bAt.some(c=>c!=='D1'))add('ok','ต่อฝาก N กับ G ที่ตู้ชั้น 1 (ตู้เมน) จุดเดียว');
-  if(!bonds.length)add('warn','ยังไม่ได้ต่อฝาก N กับ G ที่ตู้เมน (ต่อสายจากบาร์ N ไปบาร์ G ในตู้ชั้น 1 หนึ่งเส้น) ไม่อย่างนั้นไฟรั่วจะไหลกลับหม้อแปลงได้ยาก');
-  bAt.filter(c=>c!=='D1').forEach(c=>add('err',`ห้ามต่อฝาก N กับ G ที่${AH_NM[c]||c} ต่อฝากได้ที่ตู้เมนจุดเดียว ตู้ย่อยต้องแยกบาร์ N กับบาร์ G`));
+  if(!bonds.length)add('warn','ยังไม่ได้ต่อฝาก N กับ G ที่ตู้เมน (ต่อสายจากบาร์ N ไปบาร์ G ในตู้ชั้น 1 หนึ่งเส้น) ไม่อย่างนั้นไฟรั่วจะไหลกลับหม้อแปลงได้ยาก (วสท. 022001-22 ข้อ 4.3.1)');
+  bAt.filter(c=>c!=='D1').forEach(c=>add('err',`ห้ามต่อฝาก N กับ G ที่${AH_NM[c]||c} ต่อฝากได้ที่ตู้เมนจุดเดียว ตู้ย่อยต้องแยกบาร์ N กับบาร์ G (ข้อ 4.3.1, 4.4.2.1)`));
   /* outlets */
   const pw={},gnd={};
   [['O1','D1','ชั้น 1'],['O2','D2','ชั้น 2']].forEach(([o,p,nm])=>{
@@ -160,7 +160,7 @@ function ahArt(A){
     +`<rect x="118" y="672" width="14" height="222" rx="3" style="fill:#e8862f;stroke:#a85a14"/><path d="M118 894L125 910L132 894Z" style="fill:#e8862f"/>`
     +`<path d="M24 642V684M20 642H28M20 684H28" class="a-line"/>${T(22,666,'≥0.3 ม.','acnote','end','font-size:9.5px;fill:#fff')}`
     +`<path d="M24 690V906M20 690H28M20 906H28" class="a-line"/>${T(22,800,'≥2.4 ม.','acnote','end','font-size:9.5px')}`
-    +T(170,860,'Ø ≥16 มม.','acnote','start','fill:#fff;font-size:9.5px')+T(125,622,'หลักดิน (แท่งทองแดงหุ้มเหล็ก)','actitle')+'</g>';
+    +T(150,860,'Ø 5/8 นิ้ว','acnote','start','fill:#fff;font-size:9.5px')+T(150,876,'≤5 Ω','acnote','start','fill:#fff;font-size:9.5px')+T(125,622,'หลักดิน (แท่งทองแดงหุ้มเหล็ก)','actitle')+'</g>';
   return s;
 }
 function ahRender(){
