@@ -11,6 +11,11 @@ const WS_DEFAULT=[
   {id:'W6',name:'จำลองเหตุการณ์',tabs:'events',crit:'ev_any',q:'เหตุการณ์ไหนทำให้ไฟหายมากที่สุด จะป้องกันหรือแก้อย่างไร',img:'none'},
   {id:'W7',name:'วงจร DC 12 / 24 / 48 V',tabs:'bench',crit:'bench_pass',q:'ทำไมต้องมีฟิวส์หรือเบรกเกอร์ระหว่างแบตกับอุปกรณ์',img:'bench'},
   {id:'W8',name:'Commissioning Solis Hybrid',tabs:'solis',crit:'solis_done>=1;solis_diag>=1',q:'ทำไมต้องวัดแรงดันและขั้ว PV ก่อนเปิด DC switch|ถ้า CT ติดกลับทิศ ค่าบนจอและการชาร์จแบตจะผิดอย่างไร',img:'none',open:false,status:'ปิด'},
+  {id:'W9',name:'สายไฟและเบรกเกอร์',tabs:'cable',crit:'cable_ok>=2',q:'เลือกขนาดสาย AC ของอินเวอร์เตอร์ได้กี่ mm² เพราะอะไร|ทำไมเบรกเกอร์ฝั่ง DC ต้องใช้รุ่นสำหรับ DC ไม่ใช้เบรกเกอร์ AC แทน',img:'none',open:false,status:'ปิด'},
+  {id:'W10',name:'คำนวณความคุ้มค่า',tabs:'calc',crit:'calc_done',q:'บ้านตัวอย่างควรติดกี่ kWp และคืนทุนกี่ปี|ถ้าใช้ไฟกลางวันน้อยลง ความคุ้มค่าเปลี่ยนอย่างไร เพราะอะไร',img:'none',open:false,status:'ปิด'},
+  {id:'W11',name:'ออกแบบระบบไฟฟ้า วสท.',tabs:'eit',crit:'eit_circ>=5;eit_ok',q:'เบรกเกอร์เมนของบ้านที่ออกแบบขนาดเท่าไร คิดจากอะไร|ทำไมวงจรเต้ารับในห้องน้ำต้องมี RCD',img:'none',open:false,status:'ปิด'},
+  {id:'W12',name:'แบต LiFePO4 + JK-BMS',tabs:'lfp',crit:'lfp_layout;lfp_wire;lfp_bms',q:'ทำไมต้องต่อบัสบาร์ + ของเซลล์หนึ่งเข้า − ของเซลล์ถัดไป|ค่า OVP / UVP ของเซลล์ LiFePO4 ที่ตั้งไว้เท่าไร เพราะอะไร',img:'none',open:false,status:'ปิด'},
+  {id:'W13',name:'อ่าน log Huawei FusionSolar',tabs:'fusion',crit:'hw_file>=1',q:'จาก log วันที่เลือก ระบบผลิตไฟได้กี่ kWh และมีแจ้งเตือนอะไรบ้าง|ถ้าเจอแจ้งเตือน Low insulation resistance ควรตรวจอะไรก่อน',img:'none',open:false,status:'ปิด'},
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
@@ -42,6 +47,14 @@ function wsCrit(key){
     case'solis_done':{const c=typeof slDoneCount==='function'?slDoneCount():0;return[`Commissioning Solis ผ่านครบอย่างน้อย ${n} ระบบ (ตอนนี้ ${c}/4)`,c>=n]}
     case'solis_diag':{const c=typeof SL!=='undefined'?SL.diagOk:0;return[`โจทย์หาข้อผิดพลาด Solis ผ่านอย่างน้อย ${n} โจทย์ (ตอนนี้ ${c})`,c>=n]}
     case'bench_pass':{const b=window.lastBN;return['ต่อวงจร DC ผ่าน ไม่มีข้อผิดพลาด',!!(b&&b.lvl==='ok')]}
+    case'cable_ok':{const c=typeof cbWsCount==='function'?cbWsCount():{n:0,pages:[]};return[`คำนวณสายไฟ/เบรกเกอร์ไม่มีข้อไม่ผ่าน อย่างน้อย ${n} หน้า จาก AC · DC แผง · DC แบต · เบรกเกอร์ (ปรับค่าเองแล้ว ตอนนี้ ${c.n}${c.pages.length?' · '+c.pages.join(', '):''})`,c.n>=n]}
+    case'calc_done':{const c=window.lastCALC;return[c?`คำนวณความคุ้มค่าด้วยค่าที่ปรับเอง (ค่าไฟ ${c.bill} บาท/เดือน · ${c.kwp} kWp${c.payback?` · คืนทุน ${f(c.payback,1)} ปี`:''})`:'คำนวณความคุ้มค่าด้วยค่าที่ปรับเอง (เปิดเมนู 13 แล้วปรับค่าไฟหรือขนาดระบบ)',!!(c&&c.user)]}
+    case'eit_circ':{const c=window.lastEIT;return[`ออกแบบวงจรย่อยของบ้านเองอย่างน้อย ${n} วงจร (${c?`ตอนนี้ ${c.nC}${c.user?'':' · ยังเป็นแบบตัวอย่าง ต้องแก้หรือเพิ่มวงจรเอง'}`:'เปิดเมนู 14 ก่อนส่ง'})`,!!(c&&c.user&&c.nC>=n)]}
+    case'eit_ok':{const c=window.lastEIT;return[`ผลตรวจตาม วสท. ไม่มีข้อไม่ผ่าน${c&&c.err?` (ตอนนี้ ${c.err} ข้อ)`:''}`,!!(c&&c.nC>0&&c.err===0)]}
+    case'lfp_layout':{const c=window.lastLFP;return[`จัดวางเซลล์ลงตู้ผ่าน${c?'':' (เปิดเมนู 16 ก่อนส่ง)'}`,!!(c&&c.lay)]}
+    case'lfp_wire':{const c=window.lastLFP;return['ต่อบัสบาร์และสาย BMS ผ่าน (แพ็กทำงาน)',!!(c&&c.wire)]}
+    case'lfp_bms':{const c=window.lastLFP;return['ตั้งค่า JK-BMS ผ่าน',!!(c&&c.bms)]}
+    case'hw_file':{const c=typeof HW!=='undefined'?HW.files.length:0;return[`นำเข้าไฟล์ log Huawei อย่างน้อย ${n} ไฟล์ (ตอนนี้ ${c})`,c>=n]}
   }
   return[`${key} (ผู้สอนตรวจเอง)`,null];
 }

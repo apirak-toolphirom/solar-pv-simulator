@@ -1607,6 +1607,7 @@ function updateSteps(parL){
   const set=(id,ok,bad)=>{const e=$('#st-'+id);if(!e)return;e.className='step'+(ok?' ok':bad?' bad':'');};
   set('layout',layOk,!layOk);set('wire',wOk,r.shorts.length||r.conflict||S.damaged);set('bms',sOk&&bmsReady(),false);
   if(pL)set('par',!pL.some(x=>x[0]!=='ok'),pL.some(x=>x[0]==='bad'));
+  try{if(window.self!==window.top)parent.postMessage({lfpRes:{lay:layOk,wire:!!wOk,bms:!!(sOk&&bmsReady())}},'*')}catch(e){}
 }
 function showTab(t){if(LOCKED)setLock(null);PAN=null;S.tab=t;$$('#tabs [role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   $$('section[role=tabpanel]').forEach(s=>s.hidden=s.id!=='tab-'+t);

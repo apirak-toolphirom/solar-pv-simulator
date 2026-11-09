@@ -16,5 +16,15 @@ load().then(({ w, ev }) => {
     if (NAME[t]) eq(`${t}: ACC_NAME number`, NAME[t].slice(0, 2), n);
     if (def[t]) eq(`${t}: Code.gs MENU_DEF number`, def[t], n);
   });
+  /* worksheets: the default list in the page and WS_DEF in Code.gs must match (id, menus, criteria) */
+  const WS = ev('WS_DEFAULT'), rows = (gs.match(/\n  \['W\d+'[^\n]*/g) || []).map(l => l.match(/'([^']*)'/g).map(x => x.slice(1, -1)));
+  const byId = {}; rows.forEach(r => byId[r[0]] = r);
+  WS.forEach(w => {
+    const r = byId[w.id];
+    eq(`${w.id}: in Code.gs WS_DEF`, !!r, true);
+    if (r) { eq(`${w.id}: same menus`, r[2], w.tabs); eq(`${w.id}: same criteria`, r[6], w.crit); }
+    String(w.tabs || '').split(',').filter(Boolean).forEach(t => eq(`${w.id}: menu ${t} exists`, nav.some(n => n[0] === t), true));
+    String(w.crit || '').split(';').filter(Boolean).forEach(k => eq(`${w.id}: criterion ${k} is known`, /ผู้สอนตรวจเอง/.test(ev(`wsCrit(${JSON.stringify(k)})[0]`)), false));
+  });
   done('structure');
 });

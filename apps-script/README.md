@@ -67,7 +67,7 @@ SUBMIT_URL:'https://script.google.com/macros/s/xxxxxxxx/exec',
 - คอลัมน์: รหัส · ชื่อใบงาน · เมนู (equip, wiring, ac, pv, site, load, backup, systems, events, bench) · เปิดวันที่ · ปิดวันที่ · สถานะ · เกณฑ์ · คำถาม · ภาพ
 - สถานะ `auto` = เปิดรับตามช่วงวันที่ (ว่าง = ไม่จำกัด) · `เปิด` / `ปิด` = บังคับ เปลี่ยนได้ในชีตหรือในหน้า dashboard.html (ต้องใช้ TEACHER_CODE)
 - ใบงานที่ปิดรับ ผู้เรียนส่งไม่ได้
-- เกณฑ์คั่นด้วย `;` ใช้ได้: `dc_pass` `panels>=8` `dcac=0.9-1.5` `ac_pass` `pv_sim` `site_pv` `site_on` `shade<=15` `loads>=5` `bk_outage>=6` `bk_ok` `sys_seen` `ev_any` `bench_pass` (คีย์อื่นจะแสดงเป็น "ผู้สอนตรวจเอง")
+- เกณฑ์คั่นด้วย `;` ใช้ได้: `dc_pass` `panels>=8` `dcac=0.9-1.5` `ac_pass` `pv_sim` `site_pv` `site_on` `shade<=15` `loads>=5` `bk_outage>=6` `bk_ok` `sys_seen` `ev_any` `bench_pass` `basics_done>=15` `solis_done>=1` `solis_diag>=1` `cable_ok>=2` `calc_done` `eit_circ>=5` `eit_ok` `lfp_layout` `lfp_wire` `lfp_bms` `hw_file>=1` (คีย์อื่นจะแสดงเป็น "ผู้สอนตรวจเอง") · เกณฑ์ของเมนู 13 14 16 ต้องเปิดเมนูนั้นในเครื่องก่อนส่งงาน
 - คำถามคั่นด้วย `|` ผู้เรียนต้องตอบข้อละอย่างน้อย 10 ตัวอักษรจึงนับว่าครบ
 - ภาพ: `dc` `ac` `site` `bench` หรือ `none` ภาพรายงานเก็บในโฟลเดอร์ "ภาพงานส่ง" ใต้ `DRIVE_FOLDER_ID` (ถ้าไม่ตั้ง จะไม่เก็บภาพ) ลิงก์อยู่ในคอลัมน์ "ภาพ"
 - แผ่น Submissions เพิ่มคอลัมน์ ใบงาน · ชื่อใบงาน · ผ่านเกณฑ์ใบงาน · เกณฑ์ที่ยังไม่ผ่าน · คำตอบ · ภาพ (หัวคอลัมน์เดิมต่อท้ายให้เอง)

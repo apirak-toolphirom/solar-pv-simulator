@@ -797,9 +797,12 @@ function initTop(){const s=$('#sample');s.innerHTML='<option value="">— เล
   $('#sldsvg').onclick=()=>{const b=new Blob([sldSvg(true)],{type:'image/svg+xml'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='SLD-'+(P.info.name||'project')+'.svg';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}}
 function syncName(){$('#pname').value=P.info.name||''}
 /* inside the simulator (menu 14): report page height so the iframe grows with the content, follow the app theme */
-function post(){if(window.self===window.top)return;try{parent.postMessage({eitH:Math.ceil(document.documentElement.scrollHeight)},'*')}catch(e){}}
+function post(){if(window.self===window.top)return;try{parent.postMessage({eitH:Math.ceil(document.documentElement.scrollHeight),eitRes:{user:typeof EIT_SAMPLE==="string"&&JSON.stringify(P)!==EIT_SAMPLE,nC:P.circ.filter(c=>c.t!=='db').length,err:R.iss.filter(i=>i.lv==='err').length,warn:R.iss.filter(i=>i.lv==='warn').length}},'*')}catch(e){}}
 addEventListener('message',e=>{if(e.data&&e.data.pvTheme){document.documentElement.dataset.theme=e.data.pvTheme}});
 P=load();initTop();syncName();compute();renderKpis();show('src');
+/* worksheet W11 counts only a design the trainee changed: baseline = the design this browser first opened with */
+var EIT_SAMPLE=null;try{EIT_SAMPLE=localStorage.getItem(KEY+':base')}catch(e){}
+if(!EIT_SAMPLE){EIT_SAMPLE=JSON.stringify(P);try{localStorage.setItem(KEY+':base',EIT_SAMPLE)}catch(e){}}
 if(window.self!==window.top){try{new ResizeObserver(post).observe(document.body)}catch(e){setInterval(post,1000)}}
 </script>
 </body>

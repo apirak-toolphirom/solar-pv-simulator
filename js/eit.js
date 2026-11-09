@@ -10,6 +10,7 @@ function eitOpen(){
 }
 function eitTheme(){const f=document.getElementById('eitframe');if(f&&f.contentWindow)try{f.contentWindow.postMessage({pvTheme:document.documentElement.dataset.theme},'*')}catch(e){}}
 addEventListener('message',e=>{const f=document.getElementById('eitframe');if(!f||e.source!==f.contentWindow||!e.data)return;
+  if(e.data.eitRes)window.lastEIT=e.data.eitRes;
   if(e.data.eitH)f.style.height=Math.max(600,e.data.eitH)+'px';
   if(typeof e.data.eitScroll==='number')window.scrollTo({top:f.getBoundingClientRect().top+window.scrollY+e.data.eitScroll-120,behavior:'smooth'})});
 document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('themebtn');if(b)b.addEventListener('click',()=>setTimeout(eitTheme,0))});

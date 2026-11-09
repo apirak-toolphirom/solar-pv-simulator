@@ -7,4 +7,5 @@ function calcOpen(){
     if(typeof CALC_DOC==='string')f.srcdoc=CALC_DOC;else f.src='calc.html'+(typeof CALC_V==='string'?'?v='+CALC_V:'');}
 }
 addEventListener('message',e=>{const f=document.getElementById('calcframe');if(!f||e.source!==f.contentWindow||!e.data)return;
+  if(e.data.calcRes)window.lastCALC=e.data.calcRes;
   if(e.data.calcH)f.style.height=Math.max(600,e.data.calcH)+'px'});

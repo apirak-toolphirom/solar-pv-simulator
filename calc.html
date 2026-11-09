@@ -332,6 +332,7 @@ const C = CONFIG;
 const fmt = n => Math.round(n).toLocaleString("th-TH");
 const baht = n => "฿" + fmt(n);
 const S = { bill: 4000, day: 50, kwp: 5, inv: 5, batt: 0, pay: "loan", pk: 0 };
+let CALC_USER = false; /* set once the trainee changes a value (worksheet W10) */
 
 /* ---------- build static parts ---------- */
 const P = C.provider;
@@ -461,6 +462,8 @@ function render(fromUser) {
   if ($("auto").checked) $("price").value = autoPrice();
 
   const r = calc();
+  if (S.bill !== 4000 || S.day !== 50 || S.kwp !== 5 || S.batt !== 0 || S.pay !== "loan") CALC_USER = true;
+  if (window.self !== window.top) try { parent.postMessage({ calcRes: { user: CALC_USER, bill: S.bill, kwp: S.kwp, pay: S.pay, payback: r.payback } }, "*"); } catch (e) {}
   $("units").textContent = fmt(r.units);
 
   const w = $("warn");

@@ -586,3 +586,11 @@ function cbInit(){
   cbRenderPage();
 }
 if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',()=>{try{cbInit()}catch(e){}});
+
+/* worksheet W9: pages the trainee changed from the defaults whose result has no failing check */
+function cbWsCount(){
+  const D=CB_DEF(),pages=[],nm={ac:'AC',dc:'DC แผง',bat:'DC แบต',brk:'เบรกเกอร์'};
+  const run={ac:()=>cbCalcAC(CB.ac,cbInvForAC()),dc:()=>cbCalcDC(CB.dc),bat:()=>cbCalcBat(CB.bat,cbBatCtx()),brk:()=>cbCalcBrk(CB.brk)};
+  Object.keys(run).forEach(k=>{try{if(JSON.stringify(CB[k])===JSON.stringify(D[k]))return;const r=run[k]();if(!(r.ck||[]).some(c=>c.lvl==='err'))pages.push(nm[k])}catch(e){}});
+  return{n:pages.length,pages};
+}

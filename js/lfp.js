@@ -9,6 +9,7 @@ function lfpOpen(){
 }
 function lfpTheme(){const f=document.getElementById('lfpframe');if(f&&f.contentWindow)try{f.contentWindow.postMessage({pvTheme:document.documentElement.dataset.theme},'*')}catch(e){}}
 addEventListener('message',e=>{const f=document.getElementById('lfpframe');if(!f||e.source!==f.contentWindow||!e.data)return;
+  if(e.data.lfpRes){window.lastLFP=e.data.lfpRes;return}
   if('lfpLock' in e.data){/* screen lock: the page inside takes the whole screen, the app nav and page scroll stay out of the way */
     f.classList.toggle('locked',!!e.data.lfpLock);document.documentElement.classList.toggle('lfplocked',!!e.data.lfpLock);return;}
   if('lfpCompact' in e.data){document.documentElement.classList.toggle('lfpcompact',!!e.data.lfpCompact);return;}
