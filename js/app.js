@@ -228,7 +228,7 @@ function initReset(){
 (function boot(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
-  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();initBench();initFusion();initFupar();initFudet();initFuov();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();if(typeof initLibrary==='function')initLibrary();initAccess();initReset();initFile();initCloud();initConfirm();
+  initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();if(typeof initAH==='function')initAH();initBench();initFusion();initFupar();initFudet();initFuov();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();if(typeof initLibrary==='function')initLibrary();initAccess();initReset();initFile();initCloud();initConfirm();
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#navcur').addEventListener('click',e=>{e.stopPropagation();navOpen(!$('#nav').classList.contains('open'))});
   document.addEventListener('click',e=>{if(!e.target.closest('#nav'))navOpen(false)});

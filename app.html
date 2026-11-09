@@ -240,6 +240,22 @@
     <label class="panelbox chk acapp"><input id="acapply" type="checkbox"> นำผลการต่อสายและการตั้งค่านี้ไปใช้ในแท็บ "จำลองการไหลของไฟ" (ถ้าต่อ BACKUP ผิด ตอนไฟดับจะไม่มีไฟ ถ้าตั้ง Export limit ขายไฟเกินที่กำหนดไม่ได้ ถ้าตั้ง SOC สำรอง แบตจะไม่จ่ายต่ำกว่าค่านั้นตอนมีกริด)</label>
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
     </div>
+
+    <section class="panelbox ahwrap" id="ahwrap">
+      <h2>ต่อสายไฟบ้าน: ไฟการไฟฟ้า → มิเตอร์ → เมนเบรกเกอร์ + SPD → ตู้ชั้น 1 / ชั้น 2 → เต้ารับ + หลักดิน</h2>
+      <p class="hint tight">ต่อสายเองด้วยสายน้ำตาล L · ฟ้า N · เขียว G ตามผังไฟบ้านตู้ 2 ชั้น ด้านสายเข้ามิเตอร์การไฟฟ้าต่อให้แล้ว ต่อฝาก N กับ G ที่ตู้ชั้น 1 (ตู้เมน) จุดเดียว ตู้ชั้น 2 แยกบาร์ N กับบาร์ G แตะเบรกเกอร์เพื่อเปิด/ปิด กด ▶ เปิดโหลด เพื่อดูไฟไหล หรือ ทดสอบไฟรั่ว เพื่อดูว่าสายดินกับ RCBO ช่วยอย่างไร</p>
+      <div class="bar"><div class="grp"><span class="lab">ตัวอย่าง</span>
+        <button class="chip" data-ahp="good">ต่อถูก (เฉลย)</button><button class="chip bad" data-ahp="bad">ตัวอย่างต่อผิด</button><button class="chip" data-ahp="clear">ล้างสาย</button></div>
+        <span class="sp"></span>
+        <div class="grp"><button class="chip tog pri" id="ahload">▶ เปิดโหลด</button><button class="chip" data-ahf="O1">ทดสอบไฟรั่ว ชั้น 1</button><button class="chip" data-ahf="O2">ทดสอบไฟรั่ว ชั้น 2</button><button class="chip" id="ahreset">รีเซ็ตเบรกเกอร์</button></div>
+      </div>
+      <div id="ahverdict" class="verdict"></div>
+      <div class="canvas acscroll"><svg id="ahsvg" viewBox="0 0 1100 930" role="img" aria-label="ผังต่อสายไฟบ้าน มิเตอร์ เมนเบรกเกอร์ ตู้ชั้น 1 ตู้ชั้น 2 เต้ารับ และหลักดิน"></svg></div>
+      <div class="key"><span><i style="background:#8b5a2b"></i>L สายไลน์ (น้ำตาล)</span><span><i style="background:#2a78d6"></i>N สายนิวทรัล (ฟ้า)</span><span><i style="background:#1baf7a"></i>G สายดิน (เขียว)</span><span><i style="background:linear-gradient(90deg,#2a78d6 50%,#1baf7a 50%)"></i>ต่อฝาก N–G</span></div>
+      <div class="waidrow"><div><h2>ผลการตรวจ</h2><ul id="ahchecks" class="checks"></ul></div>
+        <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" data-logclr="ahlog">ล้าง</button></div><ul id="ahlog" class="wlog"></ul></div></div>
+      <p class="hint">ผังนี้เพื่อการเรียนรู้หลักการ (ขนาดเบรกเกอร์ ขนาดสาย ค่าความต้านทานดิน และรายละเอียดหลักดินจริง ให้ช่างไฟฟ้าผู้ได้รับอนุญาตออกแบบตามมาตรฐาน วสท. และข้อกำหนดของการไฟฟ้า)</p>
+    </section>
   </section>
 
   <section class="tab" id="tab-pv" hidden>
