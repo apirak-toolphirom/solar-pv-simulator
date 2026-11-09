@@ -169,6 +169,8 @@
 
   <section class="tab" id="tab-ac" hidden>
     <header><h1>ต่อสาย AC และพอร์ตอินเวอร์เตอร์</h1><p class="sub">ต่อสายตามจุดต่อจริงของอินเวอร์เตอร์ ได้แก่ GRID, BACKUP, GEN, CT, สมาร์ทมิเตอร์ RS485, แบตเตอรี่ และ BMS แล้วตั้งค่าการทำงาน ระบบจะตรวจว่าต่อถูกหรือผิดอย่างไร ลากจากขั้วหนึ่งไปอีกขั้ว หรือแตะขั้วแรกแล้วแตะขั้วที่สอง แตะสายเพื่อลบ</p></header>
+    <nav class="acpages" aria-label="หน้าในเมนู 04"><button class="chip" data-acpg="inv" aria-pressed="true">พอร์ตอินเวอร์เตอร์</button><button class="chip" data-acpg="house" aria-pressed="false">ไฟบ้าน + หลักดิน</button><button class="chip" data-acpg="solar" aria-pressed="false">ตู้ไฟงานโซลาร์ (แยกโหลด / Full backup)</button></nav>
+    <div class="acpg" data-pg="inv">
     <div id="acverdict" class="verdict"></div>
     <div id="acmicro" class="acmicro" hidden></div>
     <div id="acstdwrap">
@@ -241,7 +243,8 @@
     <p class="hint">ตำแหน่งขั้วในภาพจัดเรียงเพื่อการเรียนรู้ ไม่ใช่ตำแหน่งจริงบนเครื่อง ชื่อพอร์ตอ้างอิงอินเวอร์เตอร์ไฮบริดทั่วไป ทิศลูกศร CT ตามคู่มือ Solis ("ลูกศรต้องชี้ไปทางกริด" คล้องสายเส้นเปลวที่จุดต่อกริด) แต่ยี่ห้ออื่นอาจต่างกัน ตรวจกับคู่มือรุ่นที่ใช้จริงและให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งทุกครั้ง</p>
     </div>
 
-    <section class="panelbox ahwrap" id="ahwrap">
+    </div>
+    <section class="panelbox ahwrap acpg" data-pg="house" id="ahwrap" hidden>
       <h2>ต่อสายไฟบ้าน: ไฟการไฟฟ้า → มิเตอร์ → เมนเบรกเกอร์ + SPD → ตู้ชั้น 1 / ชั้น 2 → เต้ารับ + หลักดิน</h2>
       <p class="hint tight">ต่อสายเองด้วยสายน้ำตาล L · ฟ้า N · เขียว G ตามผังไฟบ้านตู้ 2 ชั้น ด้านสายเข้ามิเตอร์การไฟฟ้าต่อให้แล้ว ต่อฝาก N กับ G ที่ตู้ชั้น 1 (ตู้เมน) จุดเดียว ตู้ชั้น 2 แยกบาร์ N กับบาร์ G แตะเบรกเกอร์เพื่อเปิด/ปิด กด ▶ เปิดโหลด เพื่อดูไฟไหล หรือ ทดสอบไฟรั่ว เพื่อดูว่าสายดินกับ RCBO ช่วยอย่างไร</p>
       <div class="bar"><div class="grp"><span class="lab">ตัวอย่าง</span>
@@ -255,6 +258,24 @@
       <div class="waidrow"><div><h2>ผลการตรวจ</h2><ul id="ahchecks" class="checks"></ul></div>
         <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" data-logclr="ahlog">ล้าง</button></div><ul id="ahlog" class="wlog"></ul></div></div>
       <p class="hint">ผังนี้เพื่อการเรียนรู้หลักการ (ขนาดเบรกเกอร์ ขนาดสาย ค่าความต้านทานดิน และรายละเอียดหลักดินจริง ให้ช่างไฟฟ้าผู้ได้รับอนุญาตออกแบบตามมาตรฐาน วสท. และข้อกำหนดของการไฟฟ้า)</p>
+    </section>
+
+    <section class="panelbox ahwrap acpg" data-pg="solar" id="aswrap" hidden>
+      <h2>ตู้ไฟงานโซลาร์: ต่อสายบนผนัง (มุมมองด้านหน้า)</h2>
+      <p class="hint tight">ตู้ทุกใบยึดกับผนัง สายเข้า–ออกด้านล่างของตู้ ลากสายเองจากขั้วหนึ่งไปอีกขั้ว (หรือแตะขั้วแรกแล้วแตะขั้วที่สอง) แตะเส้นสายเพื่อลบ แตะเบรกเกอร์เพื่อเปิด/ปิด สลับ <b>ไฟการไฟฟ้า</b> เป็น "ไฟดับ" เพื่อดูว่าโหลดไหนยังมีไฟจากแบต</p>
+      <div class="bar"><div class="grp"><span class="lab">รูปแบบ</span>
+        <button class="chip" data-asmode="split" aria-pressed="true">แยกโหลด (ตู้โหลดสำรอง)</button><button class="chip" data-asmode="full" aria-pressed="false">Full backup (ทั้งบ้าน)</button></div>
+        <span class="sp"></span>
+        <div class="grp"><span class="lab">ตัวอย่าง</span><button class="chip" data-asp="good">ต่อถูก (เฉลย)</button><button class="chip bad" data-asp="bad">ตัวอย่างต่อผิด</button><button class="chip" data-asp="clear">ล้างสาย</button></div>
+      </div>
+      <div class="bar"><div class="grp"><button class="chip tog" id="asgrid">ไฟการไฟฟ้า: มีไฟ</button><button class="chip tog pri" id="asload">▶ เปิดโหลด</button><button class="chip" data-asf="LD1">ทดสอบไฟรั่ว โหลด 1</button><button class="chip" data-asf="LD2">ทดสอบไฟรั่ว โหลด 2</button><button class="chip" id="asreset">รีเซ็ตเบรกเกอร์</button></div></div>
+      <div id="asverdict" class="verdict"></div>
+      <div class="canvas acscroll"><svg id="assvg" viewBox="0 0 1200 960" role="img" aria-label="ผนังติดตั้งตู้ไฟงานโซลาร์ มิเตอร์ ตู้เมน อินเวอร์เตอร์ ตู้โหลด และหลักดิน"></svg></div>
+      <div class="key"><span><i style="background:#8b5a2b"></i>L (น้ำตาล)</span><span><i style="background:#2a78d6"></i>N (ฟ้า)</span><span><i style="background:#1baf7a"></i>G / PE (เขียว)</span><span><i style="background:#d62828"></i>DC + / <i style="background:#14191e"></i>DC − (ต่อไว้แล้ว)</span></div>
+      <div class="waidrow"><div><h2>ผลการตรวจ</h2><ul id="aschecks" class="checks"></ul></div>
+        <div class="panelbox"><div class="wlogh"><h2>บันทึกการทำงาน</h2><button class="chip" data-logclr="aslog">ล้าง</button></div><ul id="aslog" class="wlog"></ul></div></div>
+      <div class="panelbox"><h2>การต่อลงดินระบบ TN-C-S (ตามแนวทาง วสท.)</h2><div class="canvas"><svg id="astncs" viewBox="0 0 1200 560" role="img" aria-label="ผังการต่อลงดินระบบ TN-C-S"></svg></div><ol id="astnote" class="asnote"></ol></div>
+      <p class="hint">ผังเพื่อการเรียนรู้หลักการต่อสาย ขนาดเบรกเกอร์ ขนาดสาย ค่าความต้านทานดิน การต่อ N–PE ด้าน BACKUP ของอินเวอร์เตอร์ (บางรุ่นมีรีเลย์ภายใน) และรายละเอียดจริง ให้ตรวจกับคู่มือรุ่นนั้น มาตรฐาน วสท. ข้อกำหนดการไฟฟ้า และให้ช่างไฟฟ้าผู้ได้รับอนุญาตออกแบบ</p>
     </section>
   </section>
 

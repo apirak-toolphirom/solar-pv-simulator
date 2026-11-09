@@ -9,7 +9,7 @@
 | `js/library.js` `js/kb_*.js` | `docs/manual-01-library.md` (ตารางบทความ) |
 | `js/catalog.js` `js/pdfimport.js` | `docs/manual-02-equip.md` |
 | `js/wiring.js` `js/wireaid.js` `js/engine.js` `js/model.js` | `docs/manual-03-wiring.md` |
-| `js/acsys.js` `js/acart.js` `js/acbrand.js` `js/acmicro.js` `js/achouse.js` | `docs/manual-04-ac.md` |
+| `js/acsys.js` `js/acart.js` `js/acbrand.js` `js/acmicro.js` `js/achouse.js` `js/acsolar.js` | `docs/manual-04-ac.md` |
 | `js/bench.js` `js/benchui.js` | `docs/manual-05-bench.md` |
 | `js/cable.js` | `docs/manual-06-cable.md` |
 | `js/solar.js` | `docs/manual-07-pv.md` |
@@ -43,5 +43,5 @@
 - `tests/smoke.js` เปิดทุกเมนูใน jsdom ตรวจ error และว่าทุกเมนูมีปุ่ม section ชื่อ และคู่มือ
 - `tests/structure.test.js` เลขเมนูเรียง 00, 01, 02 … ตามแถบเมนู และตรงกันใน ACC_NAME ชื่อไฟล์คู่มือ และ `Code.gs`
 - `tests/menu03.test.js` ตัวเลขตัวอย่างในคู่มือเมนู 03 ต้องตรงกับที่โปรแกรมคำนวณ ถ้าตั้งใจเปลี่ยนการคำนวณ ให้แก้คู่มือและไฟล์ทดสอบพร้อมกัน
-- `tests/menu04.test.js` ส่วนต่อสายไฟบ้านของเมนู 04: เฉลยผ่าน ตัวอย่างผิด 3 ข้อ ทดสอบไฟรั่ว
+- `tests/menu04.test.js` เมนู 04 หน้าไฟบ้าน และหน้าตู้ไฟงานโซลาร์ (แยกโหลด / Full backup): เฉลยผ่าน ตัวอย่างผิด ไฟดับ ไฟรั่ว ไฟย้อน
 - `tests/mobile.py` (ถ้ามี Python Playwright + Chrome) ทุกเมนูที่จอ 390 px ไม่ล้นจอ ไม่มีตารางต้องเลื่อนซ้ายขวา และปุ่มสูงพอให้แตะ

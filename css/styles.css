@@ -1144,3 +1144,8 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 .ahwrap{margin-top:16px;display:grid;gap:10px}.ahwrap h2{margin:0}
 .ahsw{cursor:pointer}
 #ahverdict{position:static}
+/* 04: pages and the solar board page */
+.acpages{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}
+.acpages .chip[aria-pressed="true"]{background:var(--accentbg);border-color:var(--accent);font-weight:600}
+.asnote{margin:8px 0 0;padding-left:22px;display:grid;gap:4px;font-size:13.5px}
+#asverdict{position:static}
