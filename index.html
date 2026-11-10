@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="82eba3080b">
+<meta name="build" content="23ce3a1ee2">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='82eba3080b'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='23ce3a1ee2'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=6740dfb0">
+<link rel="stylesheet" href="css/styles.css?v=4ced017b">
 </head>
 <body>
 <div class="app">
@@ -46,8 +46,9 @@ if(m&&m[1]!=='82eba3080b'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       <button class="navb" data-tab="fusion"><span class="ic">17</span>Huawei FusionSolar</button>
       <button class="navb" data-tab="deye"><span class="ic">18</span>Deye Commissioning</button>
       <button class="navb" data-tab="accouple"><span class="ic">19</span>AC Coupling (GEN port)</button>
+      <button class="navb" data-tab="smartload"><span class="ic">20</span>Smart Load (GEN → EV)</button>
     </details>
-      <button class="navb navsubmit" data-tab="submit"><span class="ic">20</span>ส่งงาน</button>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">21</span>ส่งงาน</button>
       <a class="manlink" id="manlink" href="https://github.com/apirak-toolphirom/solar-pv-simulator/blob/main/docs/README.md" target="_blank" rel="noopener">📘 คู่มือเมนูนี้</a>
     </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
@@ -607,6 +608,12 @@ if(m&&m[1]!=='82eba3080b'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p class="hint">ชื่อรายการตั้งค่า (Gen Port Use, Smart Port, AC couple, กันย้อน) อ้างอิงคู่มือผู้ผลิตเท่าที่ทราบ ส่วนค่ากำลัง โหลด ช่วงความถี่ และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง และให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งจริง</p>
   </section>
 
+  <section class="tab" id="tab-smartload" hidden>
+    <header><h1>Smart Load: พอร์ต GEN ชาร์จรถไฟฟ้า</h1><p class="sub">ต่อ wall charger รถ EV เข้าพอร์ต GEN ของ Deye หรือ Solis Hybrid ตั้งเกณฑ์ ON/OFF ของ Smart Load (SOC แบต กำลัง PV On Grid always on) แล้วดูผลในวันที่มีกลางคืน เมฆ ไฟดับ ระบบ On-grid / Off-grid ปรับโหลดบ้านและกระแสชาร์จได้</p></header>
+    <div id="sghost"></div>
+    <p class="hint">ชื่อรายการตั้งค่า (Gen Port Use, Smart Port, Smart Load ON/OFF) อ้างอิงคู่มือผู้ผลิตเท่าที่ทราบ ส่วนกำลังพอร์ต GEN เกณฑ์ และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง และให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งจริง</p>
+  </section>
+
   <section class="tab" id="tab-lfp" hidden>
     <header><h1>แบตเตอรี่ LiFePO4 + JK-BMS</h1><p class="sub">จัดวางเซลล์ 280 / 314 Ah ลงตู้ (มุมบน ด้านข้าง ไอโซเมตริก) ต่อบัสบาร์ 4S / 8S / 16S วัดด้วยมัลติมิเตอร์ ต่อสายและตั้งค่า JK-BMS ทดสอบการป้องกัน และขนานแบตหลายตู้เข้าอินเวอร์เตอร์</p></header>
     <iframe id="lfpframe" class="lfpframe" title="จำลองแพ็กแบตเตอรี่ LiFePO4" loading="lazy"></iframe>
@@ -776,7 +783,7 @@ if(m&&m[1]!=='82eba3080b'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/basics.js?v=a988f584"></script>
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=9c033448"></script>
-<script src="js/worksheets.js?v=aa6f34ee"></script>
+<script src="js/worksheets.js?v=41a3da69"></script>
 <script src="js/hwlog.js?v=28d24151"></script>
 <script src="js/fusion.js?v=04e4187c"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
@@ -791,11 +798,12 @@ if(m&&m[1]!=='82eba3080b'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/deye.js?v=45b821d8"></script>
 <script src="js/deyemi.js?v=7c97579e"></script>
 <script src="js/accouple.js?v=ea756d44"></script>
+<script src="js/smartload.js?v=3610451c"></script>
 <script src="js/lfp.js?v=3e093b67"></script>
 <script src="js/calc.js?v=e12f24cc"></script>
 <script src="js/eit.js?v=2ad0f7a2"></script>
-<script src="js/access.js?v=3325a312"></script>
+<script src="js/access.js?v=0e92bdbd"></script>
 <script src="js/ctx.js?v=f19791ef"></script>
-<script src="js/app.js?v=20c452de"></script>
+<script src="js/app.js?v=9d904565"></script>
 </body>
 </html>

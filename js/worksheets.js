@@ -19,10 +19,11 @@ const WS_DEFAULT=[
   {id:'W14',name:'Commissioning Huawei SUN2000',tabs:'fusion',crit:'fc_pre;fc_con;fc_qs;fc_on;fc_ver',q:'ผลวัดก่อนเปิดเครื่องของคุณเจอความผิดปกติอะไร ดูจากค่าไหน และแก้อย่างไร (ถ้ารอบของคุณปกติ ให้อธิบายว่าค่าไหนบอกว่าปกติ)|ทำไมต้องเปิดเบรกเกอร์ AC ก่อนสวิตช์ DC และทำไมต้องเลือก Grid code ให้ตรงเขตการไฟฟ้า|ถ้า LED ของ Smart Dongle เป็นสีแดงกะพริบเร็ว หมายถึงอะไร และต้องกลับไปแก้ค่าไหน',img:'none',open:false,status:'ปิด'},
   {id:'W15',name:'Commissioning Deye (Hybrid และ Microinverter)',tabs:'deye',crit:'deye_done>=1;deye_diag>=1',q:'ทำไมต้องวัดแรงดันและขั้ว PV ก่อนเปิด DC switch|ถ้า CT ติดกลับทิศ ค่าบนจอและการชาร์จแบตของ Deye จะผิดอย่างไร|ทำไมต้องเปิดเบรกเกอร์สายย่อยก่อนเบรกเกอร์เมนของไมโครอินเวอร์เตอร์ และทำไมห้ามเสียบ DC ขณะถอดขั้ว AC',img:'none',open:false,status:'ปิด'},
   {id:'W16',name:'AC Coupling: ต่ออินเวอร์เตอร์ AC เข้าพอร์ต GEN',tabs:'accouple',crit:'acc_done>=1;acc_diag>=1',q:'ทำไมอินเวอร์เตอร์ AC ที่ต่อพอร์ต GEN ต้องถูกลดกำลังด้วยความถี่เมื่อไฟดับและแบตเต็ม|ถ้าเปิดกันย้อนแต่ไม่ติด CT หรือ CT อยู่ผิดตำแหน่ง จะเกิดอะไรขึ้นกับอินเวอร์เตอร์ AC|พื้นที่ห้ามขายไฟกับพื้นที่ขายไฟได้ ต้องตั้งค่า Hybrid และอินเวอร์เตอร์ AC ต่างกันอย่างไร',img:'none',open:false,status:'ปิด'},
+  {id:'W17',name:'Smart Load: ชาร์จรถ EV ที่พอร์ต GEN',tabs:'smartload',crit:'sg_done>=2',q:'ทำไมต้องตั้ง SOC ON สูงกว่า SOC OFF และถ้าตั้งเท่ากันจะเกิดอะไรขึ้น|ถ้าชาร์จรถด้วยกระแสสูงเกินไป เครื่อง Hybrid จะตัด Smart Load เพราะอะไร|ตอนไฟดับ ควรตั้งเกณฑ์ SOC OFF ของ Smart Load อย่างไร เพื่อไม่ให้โหลดบ้านดับ',img:'none',open:false,status:'ปิด'},
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
-const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC',ac:'04 ต่อสาย AC',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 การไหลของไฟ',systems:'11 ระบบ 4 แบบ',events:'12 เหตุการณ์',bench:'05 วงจร DC',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.',deye:'18 Deye Commissioning',accouple:'19 AC Coupling'};
+const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC',ac:'04 ต่อสาย AC',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 การไหลของไฟ',systems:'11 ระบบ 4 แบบ',events:'12 เหตุการณ์',bench:'05 วงจร DC',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.',deye:'18 Deye Commissioning',accouple:'19 AC Coupling',smartload:'20 Smart Load'};
 let WS=WS_DEFAULT.slice(),WSSEL=null,WSSRC='default',WS_MINE=null;
 window.SY_SEEN=false;
 
@@ -52,6 +53,7 @@ function wsCrit(key){
     case'deye_diag':{const c=typeof DY!=='undefined'?DY.diagOk:0;return[`โจทย์หาข้อผิดพลาด Deye ผ่านอย่างน้อย ${n} โจทย์ (ตอนนี้ ${c})`,c>=n]}
     case'acc_done':{const c=typeof cpDone==='function'?cpDone():0;return[`AC Coupling ผ่านครบอย่างน้อย ${n} ระบบ (ตอนนี้ ${c}/4)`,c>=n]}
     case'acc_diag':{const c=typeof CP!=='undefined'?CP.diagOk:0;return[`โจทย์หาข้อผิดพลาด AC Coupling ผ่านอย่างน้อย ${n} โจทย์ (ตอนนี้ ${c})`,c>=n]}
+    case'sg_done':{const c=typeof sgDone==='function'?sgDone():0;return[`Smart Load ผ่านครบอย่างน้อย ${n} ระบบ (ตอนนี้ ${c}/4)`,c>=n]}
     case'solis_diag':{const c=typeof SL!=='undefined'?SL.diagOk:0;return[`โจทย์หาข้อผิดพลาด Solis ผ่านอย่างน้อย ${n} โจทย์ (ตอนนี้ ${c})`,c>=n]}
     case'bench_pass':{const b=window.lastBN;return['ต่อวงจร DC ผ่าน ไม่มีข้อผิดพลาด',!!(b&&b.lvl==='ok')]}
     case'cable_ok':{const c=typeof cbWsCount==='function'?cbWsCount():{n:0,pages:[]};return[`คำนวณสายไฟ/เบรกเกอร์ไม่มีข้อไม่ผ่าน อย่างน้อย ${n} หน้า จาก AC · DC แผง · DC แบต · เบรกเกอร์ (ปรับค่าเองแล้ว ตอนนี้ ${c.n}${c.pages.length?' · '+c.pages.join(', '):''})`,c.n>=n]}
