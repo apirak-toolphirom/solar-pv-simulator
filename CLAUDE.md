@@ -21,9 +21,10 @@
 | `calc.html` `js/calc.js` | `docs/manual-13-calc.md` |
 | `eit.html` `js/eit.js` | `docs/manual-14-eit.md` |
 | `js/solis.js` | `docs/manual-15-solis.md` |
+| `js/deye.js` `js/deyemi.js` | `docs/manual-18-deye.md` |
 | `lfp.html` `js/lfp.js` | `docs/manual-16-lfp.md` |
 | `js/fusion*.js` `js/hwlog.js` | `docs/manual-17-fusion.md` |
-| `js/submit.js` `js/worksheets.js` | `docs/manual-18-submit.md` และ `docs/manual-teacher.md` (ตารางใบงาน) |
+| `js/submit.js` `js/worksheets.js` | `docs/manual-19-submit.md` และ `docs/manual-teacher.md` (ตารางใบงาน) |
 | `js/access.js` `js/app.js` `js/ctx.js` `app.html` (เมนู บทบาท การบันทึก) | `docs/manual-start.md` |
 | `apps-script/*` `dashboard.html` `js/config.js` | `docs/manual-teacher.md` |
 | ส่วนของเมนูใดใน `app.html` | คู่มือของเมนูนั้น |

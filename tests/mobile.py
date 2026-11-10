@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TABS = ['basics', 'library', 'equip', 'wiring', 'ac', 'bench', 'cable', 'pv', 'site', 'load', 'backup', 'systems',
-        'events', 'calc', 'eit', 'solis', 'lfp', 'fusion', 'submit']
+        'events', 'calc', 'eit', 'solis', 'deye', 'lfp', 'fusion', 'submit']
 CHECK = """t=>{showTab(t);document.querySelectorAll('.tab').forEach(x=>x.hidden=x.id!=='tab-'+t);
   const W=document.documentElement.clientWidth,root=document.getElementById('tab-'+t);
   const scroller=e=>{for(let p=e.parentElement;p&&p!==root;p=p.parentElement){const s=getComputedStyle(p).overflowX;if(s==='auto'||s==='scroll')return true}return false};

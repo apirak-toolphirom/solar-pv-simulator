@@ -17,10 +17,11 @@ const WS_DEFAULT=[
   {id:'W12',name:'แบต LiFePO4 + JK-BMS',tabs:'lfp',crit:'lfp_layout;lfp_wire;lfp_bms',q:'ทำไมต้องต่อบัสบาร์ + ของเซลล์หนึ่งเข้า − ของเซลล์ถัดไป|ค่า OVP / UVP ของเซลล์ LiFePO4 ที่ตั้งไว้เท่าไร เพราะอะไร',img:'none',open:false,status:'ปิด'},
   {id:'W13',name:'อ่าน log Huawei FusionSolar',tabs:'fusion',crit:'hw_file>=1',q:'จาก log วันที่เลือก ระบบผลิตไฟได้กี่ kWh และมีแจ้งเตือนอะไรบ้าง|ถ้าเจอแจ้งเตือน Low insulation resistance ควรตรวจอะไรก่อน',img:'none',open:false,status:'ปิด'},
   {id:'W14',name:'Commissioning Huawei SUN2000',tabs:'fusion',crit:'fc_pre;fc_con;fc_qs;fc_on;fc_ver',q:'ผลวัดก่อนเปิดเครื่องของคุณเจอความผิดปกติอะไร ดูจากค่าไหน และแก้อย่างไร (ถ้ารอบของคุณปกติ ให้อธิบายว่าค่าไหนบอกว่าปกติ)|ทำไมต้องเปิดเบรกเกอร์ AC ก่อนสวิตช์ DC และทำไมต้องเลือก Grid code ให้ตรงเขตการไฟฟ้า|ถ้า LED ของ Smart Dongle เป็นสีแดงกะพริบเร็ว หมายถึงอะไร และต้องกลับไปแก้ค่าไหน',img:'none',open:false,status:'ปิด'},
+  {id:'W15',name:'Commissioning Deye (Hybrid และ Microinverter)',tabs:'deye',crit:'deye_done>=1;deye_diag>=1',q:'ทำไมต้องวัดแรงดันและขั้ว PV ก่อนเปิด DC switch|ถ้า CT ติดกลับทิศ ค่าบนจอและการชาร์จแบตของ Deye จะผิดอย่างไร|ทำไมต้องเปิดเบรกเกอร์สายย่อยก่อนเบรกเกอร์เมนของไมโครอินเวอร์เตอร์ และทำไมห้ามเสียบ DC ขณะถอดขั้ว AC',img:'none',open:false,status:'ปิด'},
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
-const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC',ac:'04 ต่อสาย AC',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 การไหลของไฟ',systems:'11 ระบบ 4 แบบ',events:'12 เหตุการณ์',bench:'05 วงจร DC',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.'};
+const TAB_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC',ac:'04 ต่อสาย AC',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 การไหลของไฟ',systems:'11 ระบบ 4 แบบ',events:'12 เหตุการณ์',bench:'05 วงจร DC',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.',deye:'18 Deye Commissioning'};
 let WS=WS_DEFAULT.slice(),WSSEL=null,WSSRC='default',WS_MINE=null;
 window.SY_SEEN=false;
 
@@ -46,6 +47,8 @@ function wsCrit(key){
     case'ev_any':return['เปิดเหตุการณ์อย่างน้อย 1 อย่าง',typeof evActive==='function'&&evActive()];
     case'basics_done':{const c=typeof b0Count==='function'?b0Count():0,ms=typeof b0Missing==='function'?b0Missing():[];return[`แบบฝึก 00 ผ่านอย่างน้อย ${n} หัวข้อ (ตอนนี้ ${c}${ms.length&&c<n?' · ยังไม่ผ่าน '+ms.join(', '):''})`,c>=n]}
     case'solis_done':{const c=typeof slDoneCount==='function'?slDoneCount():0;return[`Commissioning Solis ผ่านครบอย่างน้อย ${n} ระบบ (ตอนนี้ ${c}/4)`,c>=n]}
+    case'deye_done':{const c=typeof dyDoneCount==='function'?dyDoneCount():0;return[`Commissioning Deye ผ่านครบอย่างน้อย ${n} ระบบ (ตอนนี้ ${c}/4)`,c>=n]}
+    case'deye_diag':{const c=typeof DY!=='undefined'?DY.diagOk:0;return[`โจทย์หาข้อผิดพลาด Deye ผ่านอย่างน้อย ${n} โจทย์ (ตอนนี้ ${c})`,c>=n]}
     case'solis_diag':{const c=typeof SL!=='undefined'?SL.diagOk:0;return[`โจทย์หาข้อผิดพลาด Solis ผ่านอย่างน้อย ${n} โจทย์ (ตอนนี้ ${c})`,c>=n]}
     case'bench_pass':{const b=window.lastBN;return['ต่อวงจร DC ผ่าน ไม่มีข้อผิดพลาด',!!(b&&b.lvl==='ok')]}
     case'cable_ok':{const c=typeof cbWsCount==='function'?cbWsCount():{n:0,pages:[]};return[`คำนวณสายไฟ/เบรกเกอร์ไม่มีข้อไม่ผ่าน อย่างน้อย ${n} หน้า จาก AC · DC แผง · DC แบต · เบรกเกอร์ (ปรับค่าเองแล้ว ตอนนี้ ${c.n}${c.pages.length?' · '+c.pages.join(', '):''})`,c.n>=n]}
