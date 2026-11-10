@@ -35,6 +35,7 @@ var WS_DEF = [
   ['W11', 'ออกแบบระบบไฟฟ้า วสท.', 'eit', '', '', 'ปิด', 'eit_circ>=5;eit_ok', 'เบรกเกอร์เมนของบ้านที่ออกแบบขนาดเท่าไร คิดจากอะไร|ทำไมวงจรเต้ารับในห้องน้ำต้องมี RCD', 'none'],
   ['W12', 'แบต LiFePO4 + JK-BMS', 'lfp', '', '', 'ปิด', 'lfp_layout;lfp_wire;lfp_bms', 'ทำไมต้องต่อบัสบาร์ + ของเซลล์หนึ่งเข้า − ของเซลล์ถัดไป|ค่า OVP / UVP ของเซลล์ LiFePO4 ที่ตั้งไว้เท่าไร เพราะอะไร', 'none'],
   ['W13', 'อ่าน log Huawei FusionSolar', 'fusion', '', '', 'ปิด', 'hw_file>=1', 'จาก log วันที่เลือก ระบบผลิตไฟได้กี่ kWh และมีแจ้งเตือนอะไรบ้าง|ถ้าเจอแจ้งเตือน Low insulation resistance ควรตรวจอะไรก่อน', 'none'],
+  ['W14', 'Commissioning Huawei SUN2000', 'fusion', '', '', 'ปิด', 'fc_pre;fc_con;fc_qs;fc_on;fc_ver', 'ผลวัดก่อนเปิดเครื่องของคุณเจอความผิดปกติอะไร ดูจากค่าไหน และแก้อย่างไร (ถ้ารอบของคุณปกติ ให้อธิบายว่าค่าไหนบอกว่าปกติ)|ทำไมต้องเปิดเบรกเกอร์ AC ก่อนสวิตช์ DC และทำไมต้องเลือก Grid code ให้ตรงเขตการไฟฟ้า|ถ้า LED ของ Smart Dongle เป็นสีแดงกะพริบเร็ว หมายถึงอะไร และต้องกลับไปแก้ค่าไหน', 'none'],
   ['W0', 'ส่งรวม (ทุกเมนู)', '', '', '', 'ปิด', '', '', 'dc']
 ];
 function wsSheet_() {
@@ -52,6 +53,7 @@ function wsSheet_() {
     var p = PropertiesService.getScriptProperties();
     if (have.indexOf('W00') < 0 && p.getProperty('WS_W00_ADDED') !== '1') { sh.appendRow(WS_DEF[0]); p.setProperty('WS_W00_ADDED', '1'); }
     if (have.indexOf('W8') < 0 && p.getProperty('WS_W8_ADDED') !== '1') { WS_DEF.forEach(function (w) { if (w[0] === 'W8') sh.appendRow(w); }); p.setProperty('WS_W8_ADDED', '1'); }
+    if (have.indexOf('W14') < 0 && p.getProperty('WS_W14_ADDED') !== '1') { WS_DEF.forEach(function (w) { if (w[0] === 'W14') sh.appendRow(w); }); p.setProperty('WS_W14_ADDED', '1'); }
   }
   return sh;
 }

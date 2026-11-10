@@ -16,6 +16,7 @@ const WS_DEFAULT=[
   {id:'W11',name:'ออกแบบระบบไฟฟ้า วสท.',tabs:'eit',crit:'eit_circ>=5;eit_ok',q:'เบรกเกอร์เมนของบ้านที่ออกแบบขนาดเท่าไร คิดจากอะไร|ทำไมวงจรเต้ารับในห้องน้ำต้องมี RCD',img:'none',open:false,status:'ปิด'},
   {id:'W12',name:'แบต LiFePO4 + JK-BMS',tabs:'lfp',crit:'lfp_layout;lfp_wire;lfp_bms',q:'ทำไมต้องต่อบัสบาร์ + ของเซลล์หนึ่งเข้า − ของเซลล์ถัดไป|ค่า OVP / UVP ของเซลล์ LiFePO4 ที่ตั้งไว้เท่าไร เพราะอะไร',img:'none',open:false,status:'ปิด'},
   {id:'W13',name:'อ่าน log Huawei FusionSolar',tabs:'fusion',crit:'hw_file>=1',q:'จาก log วันที่เลือก ระบบผลิตไฟได้กี่ kWh และมีแจ้งเตือนอะไรบ้าง|ถ้าเจอแจ้งเตือน Low insulation resistance ควรตรวจอะไรก่อน',img:'none',open:false,status:'ปิด'},
+  {id:'W14',name:'Commissioning Huawei SUN2000',tabs:'fusion',crit:'fc_pre;fc_con;fc_qs;fc_on;fc_ver',q:'ผลวัดก่อนเปิดเครื่องของคุณเจอความผิดปกติอะไร ดูจากค่าไหน และแก้อย่างไร (ถ้ารอบของคุณปกติ ให้อธิบายว่าค่าไหนบอกว่าปกติ)|ทำไมต้องเปิดเบรกเกอร์ AC ก่อนสวิตช์ DC และทำไมต้องเลือก Grid code ให้ตรงเขตการไฟฟ้า|ถ้า LED ของ Smart Dongle เป็นสีแดงกะพริบเร็ว หมายถึงอะไร และต้องกลับไปแก้ค่าไหน',img:'none',open:false,status:'ปิด'},
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
@@ -54,6 +55,10 @@ function wsCrit(key){
     case'lfp_layout':{const c=window.lastLFP;return[`จัดวางเซลล์ลงตู้ผ่าน${c?'':' (เปิดเมนู 16 ก่อนส่ง)'}`,!!(c&&c.lay)]}
     case'lfp_wire':{const c=window.lastLFP;return['ต่อบัสบาร์และสาย BMS ผ่าน (แพ็กทำงาน)',!!(c&&c.wire)]}
     case'lfp_bms':{const c=window.lastLFP;return['ตั้งค่า JK-BMS ผ่าน',!!(c&&c.bms)]}
+    case'fc_pre':case'fc_con':case'fc_qs':case'fc_on':case'fc_ver':{
+      const g={fc_pre:['pre','ตรวจและวัดก่อนเปิดเครื่อง'],fc_con:['con','เชื่อมต่อแอปและล็อกอิน'],fc_qs:['qs','Quick settings'],fc_on:['pw','เปิดเครื่องถึง On-grid'],fc_ver:['ve','ตรวจหลังเดินเครื่อง']}[k];
+      const L=typeof fcChecks==='function'?fcChecks()[g[0]]:[],c=L.filter(x=>x[0]).length;
+      return[`Commissioning Huawei: ${g[1]} ผ่านครบ (ตอนนี้ ${c}/${L.length||'?'})`,!!L.length&&c===L.length]}
     case'hw_file':{const c=typeof HW!=='undefined'?HW.files.length:0;return[`นำเข้าไฟล์ log Huawei อย่างน้อย ${n} ไฟล์ (ตอนนี้ ${c})`,c>=n]}
   }
   return[`${key} (ผู้สอนตรวจเอง)`,null];
