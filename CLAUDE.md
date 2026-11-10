@@ -22,6 +22,7 @@
 | `eit.html` `js/eit.js` | `docs/manual-14-eit.md` |
 | `js/solis.js` | `docs/manual-15-solis.md` |
 | `js/deye.js` `js/deyemi.js` | `docs/manual-18-deye.md` |
+| `js/hylcd.js` | `docs/manual-19-accouple.md` และ `docs/manual-20-smartload.md` |
 | `js/accouple.js` | `docs/manual-19-accouple.md` |
 | `js/smartload.js` | `docs/manual-20-smartload.md` |
 | `lfp.html` `js/lfp.js` | `docs/manual-16-lfp.md` |

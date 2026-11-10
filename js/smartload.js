@@ -1,6 +1,6 @@
 /* ---- เมนู 20 Smart Load: พอร์ต GEN ของ Deye / Solis ใช้เป็น Smart Load output ต่อ wall charger รถไฟฟ้า ----
-   ฝึกต่อ wall charger เข้าพอร์ต GEN ตั้งค่าเกณฑ์ ON/OFF ของ Smart Load (SOC แบต, กำลัง PV, On Grid always on) แล้วดูผลในวันที่มีกลางคืน เมฆ ไฟดับ On-grid / Off-grid
-   ค่ากำลัง แผง โหลด เกณฑ์ และพฤติกรรมเป็นแบบจำลอง ชื่อรายการตั้งค่าอ้างอิงคู่มือเท่าที่ทราบ ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง */
+   ฝึกต่อ wall charger เข้าพอร์ต GEN ตั้งค่าที่จอเครื่องตามคู่มือ (Deye: System Setup › Gen Port Use › Smart Load Output / Solis: SYSTEM SETTING › SMART PORT › Smart load output) แล้วดูผลในวันที่มีกลางคืน เมฆ ไฟดับ On-grid / Off-grid
+   ชื่อรายการและคำอธิบายบนจอเครื่องตามคู่มือ Deye SM2 (2026-01) และ Solis V1.3 ส่วนกำลัง แผง โหลด และพฤติกรรมควบคุมเป็นแบบจำลอง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง */
 const SG_HOST={
   deye:{n:'Deye SUN-6K-SG04LP1-EU-SM2',kwp:3.9,cap:10.24,cmax:5,pac:6,port:4.6,gen:'Gen Port Use',menu:'System Setup › Grid Setup',lab:'DEYE'},
   solis:{n:'Solis S6-EH1P6K-L-PLUS',kwp:3.9,cap:14.3,cmax:5,pac:6,port:4.6,gen:'Smart Port',menu:'SYSTEM SETTING › SMART PORT',lab:'SOLIS'}
@@ -15,19 +15,20 @@ const SG_SC={
 const SG_GEN_OPTS=[['none','ว่าง'],['ev','Wall charger รถ EV'],['house','ตู้เมนบ้าน (ผิด)']];
 const SG_OUT=[['none','ไม่ดับ'],['mid','ไฟดับ 10:00–15:00'],['eve','ไฟดับ 18:00–22:00'],['all','ไฟดับทั้งวัน']];
 const SG_MODE=[['on','On-grid (มีกริด)'],['off','Off-grid (ไม่มีกริด)']];
-const SG_DEFSET=sc=>({genUse:SG_SC[sc].host==='deye'?'gen':'none',socOff:20,socOn:90,gridOn:true,pvMin:0,reserve:20});
 const SG_DEFDASH=()=>({t:24,mode:'on',out:'none',cloud:0,load:100,soc0:50,car0:30,arr:9,dep:17});
-const SG={sc:'deye_sun',page:'job',gen:'none',chA:32,set:SG_DEFSET('deye_sun'),dash:SG_DEFDASH(),done:{},_c:null};
+const SG={sc:'deye_sun',page:'job',gen:'none',chA:32,hs:hlDef('deye'),lcd:{scr:'home',stack:[]},dash:SG_DEFDASH(),done:{},_c:null};
 const sgF=(v,d=0)=>(+v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
 const sgHM=i=>String(Math.floor(i/2)).padStart(2,'0')+':'+(i%2?'30':'00');
 const sgSc=()=>SG_SC[SG.sc],sgHost=()=>SG_HOST[sgSc().host];
 const sgLoad=h=>{let w=.35;if(h>=6&&h<8)w+=.8;if(h>=10&&h<16)w+=.5;if(h>=18&&h<22)w+=1.8;return w};
 const sgChargerKW=S=>230*S.chA/1000;
-function sgCorrect(S){const t=SG_SC[S.sc].task;S.gen='ev';S.chA=16;S.set=SG_DEFSET(S.sc);S.set.genUse='smart';
-  if(t==='sun'){S.set.gridOn=false;S.set.pvMin=1.5;S.set.socOff=30;S.set.socOn=45}else{S.set.gridOn=false;S.set.socOff=60;S.set.socOn=80;S.set.pvMin=0}return S}
+function sgReset(S){S.gen='none';S.chA=32;S.hs=hlDef(SG_SC[S.sc].host);S.lcd={scr:'home',stack:[]}}
+function sgCorrect(S){const sc=SG_SC[S.sc],d=sc.host==='deye',sun=sc.task==='sun';sgReset(S);S.gen='ev';S.chA=16;
+  const sl=d?S.hs.gen.sl:S.hs.sp.sl;if(d)S.hs.gen.use='smart';else S.hs.sp.use='smart';
+  sl.gridOn=false;if(sun){if(d)sl.pv=1500;sl.off=30;sl.on=45;if(!d)S.hs.st.reserve=20}else{sl.off=60;sl.on=80}return S}
 /* ---- จำลอง 1 วัน (ทุก 30 นาที) ---- */
 function sgRun(o,S){
-  S=S||SG;o=Object.assign(SG_DEFDASH(),o||{});const sc=SG_SC[S.sc],H=SG_HOST[sc.host],E=S.set,dt=.5,kw=sgChargerKW(S);
+  S=S||SG;o=Object.assign(SG_DEFDASH(),o||{});const sc=SG_SC[S.sc],H=SG_HOST[sc.host],M=hlMap(sc.host,S.hs),E={genUse:M.genUse,socOn:M.sl.on,socOff:M.sl.off,gridOn:M.sl.gridOn,offGridOff:M.sl.offGridOff,pvMin:M.sl.pvMin,reserve:M.reserve,floor:M.floorOff},dt=.5,kw=sgChargerKW(S);
   const w0={none:[0,0],mid:[10,15],eve:[18,22],all:[0,24]}[o.out];let soc=o.soc0/100,car=o.car0,on=false;
   const rows=[],T={pv:0,load:0,sl:0,slPv:0,slBat:0,slGrid:0,imp:0,chg:0,dis:0,cut:0,uns:0,over:0,minSoc:100,minSocSL:100,car0:o.car0,car1:o.car0};
   for(let i=0;i<48;i++){
@@ -38,7 +39,8 @@ function sgRun(o,S){
     /* ตัดสินใจ ON/OFF ของ Smart Load */
     let want=false;
     if(gen&&plug&&car<100){
-      if(up&&E.gridOn)want=true;
+      if(!up&&E.offGridOff)on=false;
+      else if(up&&E.gridOn)want=true;
       else{
         if(soc*100>=E.socOn)on=true;else if(soc*100<E.socOff)on=false;
         want=on&&(E.pvMin<=0||pH>=E.pvMin)}
@@ -46,7 +48,7 @@ function sgRun(o,S){
     let sl=want?kw:0,over=false;
     if(sl>H.port){sl=0;over=true}                      /* เกินกำลังพอร์ต GEN: เครื่องตัด Smart Load */
     if(L+sl>H.pac){sl=Math.max(0,H.pac-L);over=true}  /* เกินกำลังพิกัดเครื่อง */
-    const dmax=Math.min(H.cmax,Math.max(0,(soc-(up?E.reserve/100:.05))*H.cap/dt)),cmaxNow=Math.min(H.cmax,Math.max(0,(1-soc)*H.cap/dt));
+    const dmax=Math.min(H.cmax,Math.max(0,(soc-(up?E.reserve/100:E.floor/100))*H.cap/dt)),cmaxNow=Math.min(H.cmax,Math.max(0,(1-soc)*H.cap/dt));
     if(!up)sl=Math.min(sl,Math.max(0,pH+dmax-L));      /* ไฟดับ: ต้องเหลือให้โหลดบ้านก่อน */
     const dem=L+sl,direct=Math.min(pH,dem);let sur=pH-direct,ch=Math.min(sur,cmaxNow),cut=0,dis=0,imp=0,uns=0;sur-=ch;cut=sur;
     const def=dem-direct;if(def>1e-9){dis=Math.min(def,dmax);const r=def-dis;if(up)imp=r;else uns=r}
@@ -61,14 +63,15 @@ function sgRun(o,S){
 function sgDay(){if(!SG._c)SG._c=sgRun(SG.dash);return SG._c}
 /* ---- เช็กลิสต์ ---- */
 function sgChecks(){
-  const sc=sgSc(),H=sgHost(),E=SG.set,deye=sc.host==='deye',sun=sc.task==='sun';
+  const sc=sgSc(),H=sgHost(),M=hlMap(sc.host,SG.hs),E=M.sl,deye=sc.host==='deye',sun=sc.task==='sun';
   const job=[[SG.gen==='ev',`Wall charger รถ EV ต่อที่พอร์ต GEN ของ ${H.n}`,SG.gen==='house'?'err':''],
     [SG.chA<=16,`ตั้งกระแส wall charger ≤ 16 A (ตอนนี้ ${SG.chA} A = ${sgF(sgChargerKW(SG),2)} kW) ให้รวมกับโหลดบ้านไม่เกินพิกัด ${H.pac} kW`,SG.chA>20?'err':'']];
-  const set=[[E.genUse==='smart',deye?'Gen Port Use = Smart Load output':'Smart Port = Smart load output',E.genUse==='gen'||E.genUse==='genset'||E.genUse==='gensetgrid'||E.genUse==='ac'?'err':''],
-    [E.socOn>=E.socOff+10,`SOC ON สูงกว่า SOC OFF อย่างน้อย 10% เพื่อไม่ให้สลับถี่ (ตอนนี้ ON ${E.socOn}% / OFF ${E.socOff}%)`]];
-  if(sun)set.push([!E.gridOn,deye?'ปิด On Grid always on (ไม่ใช้ไฟกริดชาร์จรถ)':'ปิด Allow grid supply (ไม่ใช้ไฟกริดชาร์จรถ)'],[E.pvMin>=1.5,'ตั้ง PV Power ≥ 1.5 kW (เริ่มชาร์จเมื่อมีแดดพอ)'],[E.socOff>=30,'SOC OFF ≥ 30% ไม่ดึงแบตต่ำกว่า 30%']);
-  else set.push([E.socOff>=60,`SOC OFF ≥ 60% เหลือแบตไว้ให้โหลดบ้านตลอดช่วงไฟดับ (ตอนนี้ ${E.socOff}%)`],[!E.gridOn,deye?'ปิด On Grid always on':'ปิด Allow grid supply']);
-  const D=sgRun({mode:'on',out:'none',cloud:20,soc0:50,car0:30,arr:9,dep:17,load:100}),X=sgRun({mode:'on',out:'eve',cloud:0,soc0:100,car0:30,arr:17,dep:7,load:50});
+  const set=[[M.genUse==='smart',deye?'Gen Port Use = Smart Load Output':'Smart Port = Smart load output',M.genUse==='gen'||M.genUse==='genset'||M.genUse==='gensetgrid'||M.genUse==='ac'?'err':''],
+    [E.on>=E.off+5,`${deye?'Smart Load ON Batt':'Smart load ON SOC'} สูงกว่า OFF อย่างน้อย 5% เพื่อไม่ให้สลับถี่ (ตอนนี้ ON ${E.on}% / OFF ${E.off}%)`]];
+  if(sun)set.push([!E.gridOn,deye?'ปิด On Grid always on (ไม่ใช้ไฟกริดชาร์จรถ)':'ปิด On grid always on (ไม่ใช้ไฟกริดชาร์จรถ)'],[E.off>=30,`${deye?'Smart Load OFF Batt':'Smart load OFF SOC'} ≥ 30% ไม่ดึงแบตต่ำกว่า 30%`],[M.reserve<=E.off,`${deye?'Low Batt':'Battery reserve'} (${M.reserve}%) ไม่เกิน OFF (${E.off}%) ไม่เช่นนั้นแบตไม่จ่ายให้รถแล้วดึงไฟกริดแทน`]);
+  if(sun&&deye)set.push([E.pvMin>=1.5,'Power (PV ≥) ตั้ง 1500 W เริ่มชาร์จเมื่อแผงผลิตพอ']);
+  if(!sun)set.push([E.off>=60,`${deye?'Smart Load OFF Batt':'Smart load OFF SOC'} ≥ 60% เหลือแบตไว้ให้โหลดบ้านตลอดช่วงไฟดับ (ตอนนี้ ${E.off}%)`],[!E.gridOn,deye?'ปิด On Grid always on':'ปิด On grid always on']);
+  const D=sgRun({mode:'on',out:'none',cloud:20,soc0:50,car0:30,arr:9,dep:17,load:100}),X=sgRun(Object.assign({mode:'on',out:'eve',soc0:100,car0:30,dep:7,load:50},deye?{cloud:30,arr:14}:{cloud:0,arr:17}));
   const dash=[[D.T.over+X.T.over===0,'ไม่ overload ตัด Smart Load (ทดสอบวันปกติและวันไฟดับตอนเย็น)',D.T.over+X.T.over>0?'err':'']];
   if(sun)dash.push([D.T.sl>=4,`วันมีแดด: ชาร์จรถได้ ${sgF(D.T.sl,1)} kWh (ต้อง ≥ 4)`],[D.T.slGrid<=.3,`ไม่ใช้ไฟกริดชาร์จรถ (ใช้ ${sgF(D.T.slGrid,1)} kWh ต้อง ≤ 0.3)`,D.T.slGrid>.3?'err':''],[D.T.minSocSL>=28,`ไม่ดึงแบตชาร์จรถเมื่อ SOC ต่ำกว่า 30% (ตอนชาร์จต่ำสุด ${sgF(D.T.minSocSL)}%)`]);
   else dash.push([X.T.uns<.05,`ไฟดับตอนเย็น: โหลดบ้านไม่ดับ (ขาด ${sgF(X.T.uns,2)} kWh)`,X.T.uns>=.05?'err':''],[X.T.sl>=.5,`ยังชาร์จรถได้ตอนมีแบตเหลือ (${sgF(X.T.sl,1)} kWh ต้อง ≥ 0.5)`]);
@@ -83,7 +86,7 @@ const sgSel=(path,opts,v)=>`<select class="hn" data-sgs="${path}" id="sgs-${path
 const sgNum=(path,v,min,max,step,u)=>`<span class="slnum"><input class="hn" type="number" data-sgs="${path}" id="sgs-${path.replace(/\./g,'-')}" value="${v}" min="${min}" max="${max}" step="${step||1}"><i>${u||''}</i></span>`;
 const sgChk=(path,v,t)=>`<label class="slck"><input class="hn" type="checkbox" data-sgs="${path}" id="sgs-${path.replace(/\./g,'-')}" ${v?'checked':''}> ${t||''}</label>`;
 const sgRow=(l,c)=>`<div class="slrow"><span>${l}</span><span>${c}</span></div>`;
-const sgPages=()=>[['job','1 ใบสั่งงานและการต่อ'],['host',`2 ตั้งค่า ${sgSc().host==='deye'?'Deye':'Solis'} Smart Load`],['dash','3 แดชบอร์ดและทดสอบ']];
+const sgPages=()=>[['job','1 ใบสั่งงานและการต่อ'],['host',`2 จอเครื่อง ${sgSc().host==='deye'?'Deye':'Solis'}`],['dash','3 แดชบอร์ดและทดสอบ']];
 function sgRender(){
   const host=document.getElementById('sghost');if(!host)return;
   const s=sgScore(),sc=sgSc();if(!sgPages().some(p=>p[0]===SG.page))SG.page='job';const pg=SG.page;
@@ -112,19 +115,12 @@ function sgPgJob(s){
     <p class="hint tight">1 เฟส 230 V · กระแสสูงเกินพอร์ต GEN หรือพิกัดเครื่องเมื่อรวมโหลดบ้าน เครื่องจะตัด Smart Load</p>
     <h3>ตรวจการต่อ</h3>${sgList(s.c.job)}</div></div>`;
 }
+function sgHome(){const r=sgDay().rows[SG.dash.t];
+  return `<table class="t"><tbody><tr><th>เวลา</th><td>${sgHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>Smart Load (GEN)</th><td>${r.slOn?'ON':'OFF'} ${sgF(r.sl*1000)} W</td></tr><tr><th>PV</th><td>${sgF(r.pH*1000)} W</td><th>โหลด Backup</th><td>${sgF(r.L*1000)} W</td></tr><tr><th>กริด</th><td>${sgF(r.grid*1000)} W</td><th>แบต / SOC</th><td>${sgF(r.bat*1000)} W / ${sgF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
 function sgPgHost(s){
-  const E=SG.set,deye=sgSc().host==='deye',H=sgHost(),bar=t=>`<div class="hmibar"><span>${t}</span><span>${esc(H.n)}</span></div>`;
-  let body;
-  if(deye)body=sgRow('Gen Port Use',sgSel('set.genUse',[['gen','Gen input'],['smart','Smart Load output'],['ac','Micro Inv input']],E.genUse))
-    +(E.genUse==='smart'?sgRow('Smart Load OFF Batt',sgNum('set.socOff',E.socOff,0,100,1,'%'))+sgRow('Smart Load ON Batt',sgNum('set.socOn',E.socOn,0,100,1,'%'))+sgRow('PV Power ≥',sgNum('set.pvMin',E.pvMin,0,6,.1,'kW'))+sgRow('On Grid always on',sgChk('set.gridOn',E.gridOn,'')):'')
-    +sgRow('Batt Low (กริดปกติ)',sgNum('set.reserve',E.reserve,10,50,1,'%'))
-    +`<p class="hmiinfo">Smart Load output: ไฟออกที่พอร์ต GEN เมื่อ SOC แบตถึงค่า ON และตัดเมื่อต่ำกว่าค่า OFF ถ้าเปิด On Grid always on ไฟออกทุกครั้งที่มีกริด ชื่อรายการและช่วงค่าตรวจกับคู่มือ Deye ฉบับล่าสุด</p>`;
-  else body=sgRow('Smart Port',sgSel('set.genUse',[['none','ไม่ใช้งาน'],['genset','Genset input'],['gensetgrid','Genset connected to grid'],['smart','Smart load output'],['ac','AC couple input']],E.genUse))
-    +(E.genUse==='smart'?sgRow('Smart load OFF SOC',sgNum('set.socOff',E.socOff,0,100,1,'%'))+sgRow('Smart load ON SOC',sgNum('set.socOn',E.socOn,0,100,1,'%'))+sgRow('PV power ≥',sgNum('set.pvMin',E.pvMin,0,6,.1,'kW'))+sgRow('Allow grid supply',sgChk('set.gridOn',E.gridOn,'')):'')
-    +sgRow('Battery reserve',sgNum('set.reserve',E.reserve,10,50,1,'%'))
-    +`<p class="hmiinfo">Smart load output: ตัดไฟโหลดที่พอร์ต GEN เมื่อ SOC ต่ำกว่าค่า OFF และจ่ายใหม่เมื่อ SOC ถึงค่า ON ชื่อรายการและช่วงค่าตรวจกับคู่มือ Solis ฉบับล่าสุด</p>`;
-  return `<div class="cards"><div class="card sldevcard"><div class="sldev"><div class="sldevtop"><span>${H.lab}</span><span>${esc(H.menu)}</span></div><div class="slscr">${bar(deye?'GRID SETUP › GEN':'SMART PORT')}<div class="hmibody">${body}</div></div></div></div>
-    <div class="card"><h3>ตรวจการตั้งค่า</h3>${sgList(s.c.set)}<p class="hint tight">ผลจากการตั้งค่านี้ดูที่หน้า "แดชบอร์ดและทดสอบ"</p></div></div>`;
+  const deye=sgSc().host==='deye';
+  return `<div class="cards"><div class="card sldevcard">${hlDevice(sgSc().host,SG,sgHome(),'')}<p class="hint tight">${deye?'ไป System Setup › Gen Port Use เลือก Smart Load Output':'ไป SYSTEM SETTING › SMART PORT เลือก Smart load output'}</p></div>
+    <div class="card"><h3>ตรวจการตั้งค่า</h3>${sgList(s.c.set)}<p class="hint tight">ชื่อรายการบนจอและคำอธิบายตามคู่มือ ${deye?'Deye SUN-3/3.6/5/6K-SG04LP1-EU-SM2 (2026-01) ข้อ 5.10':'Solis S6-EH1P(3-8)K-L-PLUS V1.3 ข้อ 5.4.3 Step 7'} · ผลของการตั้งค่านี้ดูที่หน้า "แดชบอร์ดและทดสอบ"</p></div></div>`;
 }
 function sgLive(){
   const el=document.getElementById('sglive');if(!el)return;const r=sgDay().rows[SG.dash.t];
@@ -153,19 +149,19 @@ function sgPgDash(s){
     <div id="sglive"></div></div>
   <div class="cards"><div class="card"><h3>ทั้งวัน</h3><div class="tblwrap">${sgChart()}</div>
     <table class="t"><tbody><tr><th>แผงผลิต</th><td>${sgF(T.pv,1)} kWh</td><th>โหลดบ้าน</th><td>${sgF(T.load,1)} kWh</td></tr><tr><th>ชาร์จรถรวม</th><td>${sgF(T.sl,1)} kWh</td><th>แบตรถ</th><td>${sgF(T.car0)}% → ${sgF(T.car1)}%</td></tr><tr><th>ชาร์จรถจากแผง / แบต / กริด</th><td>${sgF(T.slPv,1)} / ${sgF(T.slBat,1)} / ${sgF(T.slGrid,1)} kWh</td><th>ซื้อไฟรวม</th><td>${sgF(T.imp,1)} kWh</td></tr><tr><th>SOC แบตบ้านต่ำสุด</th><td>${sgF(T.minSoc)}%</td><th>โหลดบ้านขาดไฟ</th><td>${sgF(T.uns,2)} kWh</td></tr></tbody></table></div>
-   <div class="card"><h3>ผลทดสอบการทำงาน</h3>${sgList([...s.c.job.slice(1),...s.c.dash])}<p class="hint tight">ทดสอบอัตโนมัติ 2 วัน: วันมีแดด (เมฆ 20%, รถเสียบ 9–17 น.) และไฟดับ 18:00–22:00 (แบต 100%, โหลดบ้าน 50%, รถเสียบ 17–07 น.) ไม่ขึ้นกับตัวเลือกที่ปรับบนหน้านี้</p></div></div>`;
+   <div class="card"><h3>ผลทดสอบการทำงาน</h3>${sgList([...s.c.job.slice(1),...s.c.dash])}<p class="hint tight">ทดสอบอัตโนมัติ 2 วัน: วันมีแดด (เมฆ 20%, รถเสียบ 9–17 น.) และไฟดับ 18:00–22:00 (แบต 100%, โหลดบ้าน 50%, ${sgSc().host==='deye'?'เมฆ 30%, รถเสียบ 14–07 น.':'รถเสียบ 17–07 น.'}) ไม่ขึ้นกับตัวเลือกที่ปรับบนหน้านี้</p></div></div>`;
 }
-function sgSetPath(path,v){
-  if(path==='chA'){SG.chA=v;return}const[g,k]=path.split('.');
-  if(g==='dash'){SG.dash[k]=v;return}if(g==='set')SG.set[k]=v}
+function sgSetPath(path,v){if(path==='chA'){SG.chA=v;return}const[g,k]=path.split('.');if(g==='dash')SG.dash[k]=v}
 function sgEvents(){
   const host=document.getElementById('sghost');if(!host||host.dataset.on)return;host.dataset.on='1';
   host.addEventListener('click',e=>{
+    if(hlClick(e,SG)){sgRender();return}
     const t=e.target.closest('[data-sgsc],[data-sgpg]');if(!t)return;const d=t.dataset;
-    if(d.sgsc){if(SG.sc!==d.sgsc){SG.sc=d.sgsc;SG.gen='none';SG.chA=32;SG.set=SG_DEFSET(SG.sc)}sgChanged();return}
+    if(d.sgsc){if(SG.sc!==d.sgsc){SG.sc=d.sgsc;sgReset(SG)}sgChanged();return}
     if(d.sgpg){SG.page=d.sgpg;sgRender();if(typeof touch==='function')touch()}
   });
   host.addEventListener('change',e=>{
+    if(hlChange(e,SG)){const keep=document.activeElement&&document.activeElement.id;sgChanged();if(keep){const el=document.getElementById(keep);if(el&&el!==document.activeElement)try{el.focus()}catch(_){}}return}
     const t=e.target,d=t.dataset;if(d.sgs==null)return;
     let v;if(t.type==='checkbox')v=t.checked;else if(t.type==='number'){v=+t.value;if(!isFinite(v))v=0;if(t.min!=='')v=Math.max(+t.min,v);if(t.max!=='')v=Math.min(+t.max,v)}else v=t.value;
     if(d.sgs==='gen')SG.gen=v;else sgSetPath(d.sgs,v);
@@ -180,7 +176,7 @@ function sgRestore(o){
   if(!o||typeof o!=='object')return;
   if(SG_SC[o.sc])SG.sc=o.sc;if(['job','host','dash'].includes(o.page))SG.page=o.page;
   if(SG_GEN_OPTS.some(x=>x[0]===o.gen))SG.gen=o.gen;if(Number.isFinite(o.chA))SG.chA=Math.max(6,Math.min(32,o.chA));
-  SG.set=SG_DEFSET(SG.sc);if(o.set&&typeof o.set==='object')Object.keys(SG.set).forEach(k=>{if(typeof o.set[k]===typeof SG.set[k])SG.set[k]=o.set[k]});
+  SG.hs=hlMerge(hlDef(SG_SC[SG.sc].host),o.hs);SG.lcd={scr:'home',stack:[]};if(o.lcd&&typeof o.lcd.scr==='string'&&/^[a-z]{2,10}$/.test(o.lcd.scr))SG.lcd.scr=o.lcd.scr;
   if(o.dash&&typeof o.dash==='object'){const d=SG_DEFDASH();Object.keys(d).forEach(k=>{if(typeof o.dash[k]===typeof d[k])d[k]=o.dash[k]});if(!SG_OUT.some(x=>x[0]===d.out))d.out='none';if(!SG_MODE.some(x=>x[0]===d.mode))d.mode='on';SG.dash=d}
   if(o.done&&typeof o.done==='object')Object.keys(SG_SC).forEach(k=>SG.done[k]=!!o.done[k]);
   SG._c=null;

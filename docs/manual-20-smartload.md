@@ -1,6 +1,6 @@
 # เมนู 20 Smart Load (พอร์ต GEN → wall charger รถ EV)
 
-**ฉบับ 1.0 · ปรับปรุงล่าสุด 10 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/smartload.js`
+**ฉบับ 1.1 · ปรับปรุงล่าสุด 10 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/smartload.js`
 
 ฝึกต่อ wall charger รถไฟฟ้าเข้าพอร์ต GEN ของ **Deye** (Gen Port Use = Smart Load output) หรือ **Solis** (Smart Port = Smart load output) ตั้งเกณฑ์ ON/OFF ของ Smart Load แล้วดูผลในวันที่มีกลางคืน เมฆ ไฟดับ ระบบ On-grid / Off-grid โดยปรับโหลดบ้านและกระแสชาร์จได้
 
@@ -18,27 +18,29 @@ Hybrid ในแบบจำลอง: Deye SUN-6K (แบต 10.24 kWh) แล�
 
 ## ขั้นตอน
 1. **ใบสั่งงานและการต่อ**: เลือก "สิ่งที่ต่อที่พอร์ต GEN" (ถูก = Wall charger รถ EV, ต่อเข้าตู้เมนบ้านผิด) และตั้ง "กระแสชาร์จของ wall charger" (6–32 A, 230 V) กระแสสูงทำให้รวมกับโหลดบ้านเกินพิกัด 6 kW หรือเกินพอร์ต GEN แล้วเครื่องตัด Smart Load
-2. **ตั้งค่า Deye / Solis Smart Load**: จอจำลองของเครื่อง
-   - Deye: Gen Port Use (ต้องเป็น Smart Load output), Smart Load OFF Batt, Smart Load ON Batt, PV Power ≥, On Grid always on, Batt Low
-   - Solis: Smart Port (ต้องเป็น Smart load output), Smart load OFF SOC, ON SOC, PV power ≥, Allow grid supply, Battery reserve
+2. **จอเครื่อง Deye / Solis**: จำลองหน้าจอเครื่องตามคู่มือ กด **System Setup** (Deye) หรือ **SYSTEM SETTING** (Solis) แล้วเข้าเมนูย่อยเหมือนบนเครื่อง ปุ่ม **◀ Back** และ **⌂ Home** อยู่ด้านล่างจอ
+   - **Deye**: System Setup › **Gen Port Use** เลือก **Smart Load Output** แล้วตั้ง **Power** (กำลัง PV ขั้นต่ำ, W), **Smart Load ON Batt** (%), **Smart Load OFF Batt** (%), **On Grid always on**, **off grid immediately off** และ System Setup › **Battery Setting** (Shutdown, Low Batt, Restart)
+   - **Solis**: SYSTEM SETTING › **SMART PORT** เลือก **Smart load output** แล้วตั้ง **Smart load OFF SOC**, **ON SOC**, **On grid always on**, **Off grid always off** และ SYSTEM SETTING › **STORAGE MODE** (Battery reserve ค่าเริ่ม 80%)
 3. **แดชบอร์ดและทดสอบ**: เลื่อนเวลาทุก 30 นาที (เห็นกลางคืน) เลือก **ระบบ** On-grid / Off-grid, **ไฟดับ** (10:00–15:00, 18:00–22:00, ทั้งวัน), เมฆ, โหลดบ้าน, SOC แบตบ้านและแบตรถตอนเริ่มวัน, ช่วงเวลาที่รถเสียบ และกระแสชาร์จ ดูกราฟ ตารางสถานะ และสรุป kWh ว่ารถได้ไฟจากแผง แบต หรือกริดเท่าไร
 
-## อ่านผล
-- **Smart Load ON/OFF**: จ่ายไฟพอร์ต GEN เมื่อ SOC ถึงค่า ON ตัดเมื่อต่ำกว่าค่า OFF (ระหว่างสองค่าคงสถานะเดิม) ถ้าตั้ง ON = OFF สลับถี่ จึงต้องห่างอย่างน้อย 10%
-- **PV Power ≥**: เริ่มชาร์จเมื่อแผงผลิตถึงค่านี้ ตั้ง 1.5 kW ให้ชาร์จช่วงมีแดดพอ
-- **On Grid always on / Allow grid supply**: ถ้าเปิด รถชาร์จเมื่อมีไฟกริดเสมอ แม้แบตต่ำ (ชาร์จด้วยไฟกริดได้) ปิดเพื่อชาร์จจากแผงและแบตเท่านั้น
-- **ไฟดับหรือ Off-grid**: Smart Load ถูกลดกำลังก่อนเสมอ เพื่อเหลือไฟให้โหลดบ้าน ถ้าแบตหมด โหลดบ้านจะขาดไฟ
-- **Overload**: กระแสชาร์จสูง (เช่น 32 A = 7.36 kW) เกินพอร์ต GEN เครื่องตัด Smart Load ทั้งช่วงนั้น
+## อ่านผล (ตามคู่มือ)
+- **Deye Smart Load Output** (ข้อ 5.10): ตัวอย่างในคู่มือ Power = 500 W, ON 100%, OFF 95% เมื่อ PV เกิน 500 W และ SOC ถึง 100% Smart Load เปิดอัตโนมัติ เมื่อ SOC ต่ำกว่า 95% หรือ PV ต่ำกว่า 500 W จะปิด · **On Grid always on**: เปิดทุกครั้งที่มีกริด · **off grid immediately off**: ตัดทันทีเมื่อกริดดับ
+- **Solis Smart load output** (ข้อ 5.4.3 Step 7): เมื่อ SOC/Volt ของแบตลดถึง **OFF** ระบบตัดไฟ Smart load เพื่อเหลือไฟให้โหลด Backup เมื่อถึง **ON** จึงจ่ายไฟ · **On grid always on**: จ่ายทุกครั้งที่มีกริด · **Off grid always off**: ตัดเมื่อกริดดับ Solis ไม่มีค่า PV power ขั้นต่ำ
+- **Battery reserve (Solis) / Low Batt (Deye)**: ต่ำกว่าค่านี้แบตหยุดจ่ายตอนมีกริด ถ้าสูงกว่า OFF ของ Smart Load รถจะได้ไฟกริดแทนแบต (Solis ค่าเริ่ม 80%)
+- **ไฟดับหรือ Off-grid**: ในแบบจำลอง Smart Load ถูกลดกำลังก่อนเสมอเพื่อเหลือไฟให้โหลดบ้าน ถ้าแบตหมด โหลดบ้านจะขาดไฟ
+- **Overload**: กระแสชาร์จสูง (เช่น 32 A = 7.36 kW) เกินพอร์ต GEN เครื่องตัด Smart Load ทั้งช่วงนั้น (กำลังพอร์ต GEN 4.6 kW เป็นค่าสมมติ)
 
 ตัวอย่างผลจากแบบจำลอง (ตั้งถูกทั้งหมด)
 
 | กรณี | ผล |
 |---|---|
-| Deye ชาร์จด้วยแดด วันมีแดด (เมฆ 20%, แบต 50%, รถเสียบ 9–17 น., 16 A, ON 45% OFF 30%, PV ≥ 1.5 kW, ปิด On Grid always on) | รถรับ 9.2 kWh (จากแผง 5.0 + แบต 4.2 + กริด 0) แบตรถ 30% → 44% |
-| Solis ไฟดับ 18:00–22:00 (แบต 100%, โหลดบ้าน 50%, รถเสียบ 17–07 น., ON 80% OFF 60%) | โหลดบ้านไม่ดับ รถรับ 12.9 kWh |
-| กระแสชาร์จ 32 A | Overload 28 ช่วง (30 นาที) ในวันเดียว รถไม่ได้ชาร์จเลย |
-| ตั้ง OFF 10% ON 30% ตอนไฟดับ | โหลดบ้านขาดไฟ 1.6 kWh |
-| เปิด On Grid always on (วันมีแดด) | รถรับไฟกริด 13.3 kWh |
+| Deye ชาร์จด้วยแดด วันมีแดด (เมฆ 20%, แบต 50%, รถเสียบ 9–17 น., 16 A, ON 45% OFF 30%, Power 1500 W, ปิด On Grid always on) | รถรับ 9.2 kWh (จากแผง 5.0 + แบต 4.2 + กริด 0) แบตรถ 30% → 44% |
+| Solis ชาร์จด้วยแดด วันเดียวกัน (ON 45% OFF 30%, Battery reserve 20%) | รถรับ 11.0 kWh (จากแผง 5.8 + แบต 5.3 + กริด 0) |
+| Solis เหมือนข้อบน แต่ Battery reserve 80% (ค่าเริ่ม) | รถรับ 29.4 kWh ใช้ไฟกริดชาร์จรถ 15.1 kWh |
+| Deye ไฟดับ 18:00–22:00 (เมฆ 30%, โหลดบ้าน 50%, รถเสียบ 14–07 น., ON 80% OFF 60%) | โหลดบ้านไม่ดับ รถรับ 7.4 kWh |
+| Deye เหมือนข้อบน แต่ OFF 10% ON 30% | โหลดบ้านขาดไฟ 3.2 kWh |
+| กระแสชาร์จ 32 A | Overload 12 ช่วง (30 นาที) ในวันมีแดด รถไม่ได้ชาร์จเลย |
+| เปิด On Grid always on (Deye วันมีแดด) | รถรับรวม 29.4 kWh เป็นไฟกริด 14.1 kWh |
 
 ## เชื่อมกับเมนูอื่น
 - เมนู 15 Solis และเมนู 18 Deye (commissioning เครื่อง) · เมนู 19 AC Coupling (พอร์ต GEN เหมือนกัน ใช้ต่างโหมด: ห้ามตั้งซ้อนกัน) · เมนู 09 จำลองโหลด
@@ -48,15 +50,16 @@ Hybrid ในแบบจำลอง: Deye SUN-6K (แบต 10.24 kWh) แล�
 | อาการ | สาเหตุ / วิธีแก้ |
 |---|---|
 | ไม่เห็นเมนู | ค่าเริ่มปิด ให้ผู้สอนเปิดที่ dashboard (วาง Code.gs ล่าสุด + Deploy New version) |
-| รถไม่ชาร์จเลย | ยังไม่ต่อ wall charger ที่ GEN, ไม่ได้ตั้งเป็น Smart Load output, SOC ยังไม่ถึงค่า ON, PV ต่ำกว่าค่า PV Power ≥ หรือรถไม่ได้เสียบในช่วงเวลานั้น |
+| รถไม่ชาร์จเลย | ยังไม่ต่อ wall charger ที่ GEN, Gen Port Use / Smart Port ไม่ใช่ Smart Load, SOC ยังไม่ถึงค่า ON (Deye ค่าตัวอย่าง ON 100% ต้องรอแบตเต็ม), PV ต่ำกว่าค่า Power หรือรถไม่ได้เสียบในช่วงเวลานั้น |
 | ขึ้น Overload ตัด Smart Load | ลดกระแสชาร์จ (≤ 16 A) |
 | ไฟกริดถูกใช้ชาร์จรถทั้งที่ต้องการแดด | ปิด On Grid always on / Allow grid supply |
-| ไฟดับแล้วโหลดบ้านดับ | ตั้ง OFF สูงขึ้น (≥ 60%) เพื่อเหลือแบตไว้ให้บ้าน |
+| ไฟดับแล้วโหลดบ้านดับ | ตั้ง OFF สูงขึ้น (≥ 60%) เพื่อเหลือแบตไว้ให้บ้าน หรือเปิด off grid immediately off (Deye) / Off grid always off (Solis) |
 
 ## ข้อจำกัดของแบบจำลอง
-ชื่อรายการและช่วงค่า Smart Load (ON/OFF Batt, PV Power ≥, On Grid always on) กำลังพอร์ต GEN 4.6 kW เกณฑ์การทดสอบ และพฤติกรรมตัดโหลดเป็นค่าสมมติเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ต้องตรวจกับคู่มือ Deye/Solis และข้อกำหนด wall charger (ต้องมี RCD/PE และเบรกเกอร์ตามมาตรฐาน) ก่อนติดตั้งจริง ไม่มีโหมดโซลาร์ล้วนของ wall charger และไม่มีการสื่อสารกับรถ
+ชื่อรายการ เมนู และคำอธิบายบนจอเครื่องตามคู่มือ Deye SUN-3/3.6/5/6K-SG04LP1-EU-SM2 (2026-01) ข้อ 5.6, 5.7, 5.10 และ Solis S6-EH1P(3-8)K-L-PLUS V1.3 ข้อ 5.4 ค่าตัวอย่าง Power 500 W / ON 100% / OFF 95% ของ Deye และ Battery reserve 80% ของ Solis ตามคู่มือ ส่วนค่าเริ่มของ Solis Smart load (ON 90%, OFF 80%) ค่า Shutdown/Low Batt/Restart ของ Deye (10/20/40%) กำลังพอร์ต GEN 4.6 kW เกณฑ์การทดสอบ และพฤติกรรมตัดโหลดเป็นค่าสมมติของแบบจำลอง ไม่ใช่เฟิร์มแวร์จริง ต้องตรวจกับคู่มือ Deye/Solis และข้อกำหนด wall charger (ต้องมี RCD/PE และเบรกเกอร์ตามมาตรฐาน) ก่อนติดตั้งจริง ไม่มีโหมดโซลาร์ล้วนของ wall charger และไม่มีการสื่อสารกับรถ
 
 ## ประวัติการแก้ไข
 | ฉบับ | วันที่ | การเปลี่ยนแปลง |
 |---|---|---|
 | 1.0 | 10 พ.ย. 2569 | ฉบับแรก |
+| 1.1 | 10 พ.ย. 2569 | จอเครื่อง Deye/Solis เปลี่ยนเป็นเมนูตามคู่มือจริง (Gen Port Use › Smart Load Output: Power/ON/OFF/On Grid always on/off grid immediately off, SMART PORT › Smart load output: OFF/ON SOC, On grid always on, Off grid always off) |
