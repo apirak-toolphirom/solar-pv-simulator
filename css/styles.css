@@ -1149,3 +1149,16 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 .acpages .chip[aria-pressed="true"]{background:var(--accentbg);border-color:var(--accent);font-weight:600}
 .asnote{margin:8px 0 0;padding-left:22px;display:grid;gap:4px;font-size:13.5px}
 #asverdict{position:static}
+
+/* 17: หน้า Commissioning (ฝึกเปิดเครื่อง) */
+#fupg-com .card{margin:10px 0}
+#fupg-com .fcrow{display:flex;gap:8px;align-items:flex-start;margin:6px 0;min-height:32px}
+#fupg-com .fcpt{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+#fupg-com .fcpt:first-of-type{border-top:0}
+#fupg-com .fcval{font-variant-numeric:tabular-nums}
+#fupg-com .fcf{display:grid;gap:4px;margin:8px 0}
+#fupg-com .fcf select,#fupg-com .fcf input,#fupg-com .grp input{min-height:40px;max-width:100%}
+#fupg-com .fctl{margin:8px 0;padding-left:22px;display:grid;gap:4px;font-size:14px}
+#fupg-com .fcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0}
+#fupg-com .fcgrid>div{display:grid;gap:2px}
+#fupg-com .chip[aria-pressed="true"]{background:var(--accentbg);border-color:var(--accent);font-weight:600}

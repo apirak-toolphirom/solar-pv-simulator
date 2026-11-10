@@ -33,8 +33,20 @@ def main():
             ok = not (r['wide'] or r['small'] or r['sidescroll'] or new)
             bad += 0 if ok else 1
             print(('  ok ' if ok else '  FAIL') + f" {t}: {r}" + (f" errors={new}" if new else ''))
+        # fusion menu: every step of the Commissioning page
+        pg.evaluate("""()=>{fcReset();FC.login.ok=true;FC.login.pw2=true;FC.sw.ac=true;FC.sw.dc=true;FC.sw.log=['ac_on','dc_on'];FC.fault='none';FC.fault0='none'}""")
+        for i in range(6):
+            n = len(errs)
+            pg.evaluate(f"()=>{{FU.page='com';FC.step={i}}}")
+            r = pg.evaluate(CHECK, 'fusion')
+            pg.evaluate(f"()=>{{FU.page='com';FC.step={i};fuRender()}}")
+            r = pg.evaluate(CHECK, 'fusion')
+            new = errs[n:]
+            ok = not (r['wide'] or r['small'] or r['sidescroll'] or new)
+            bad += 0 if ok else 1
+            print(('  ok ' if ok else '  FAIL') + f" fusion commissioning step {i + 1}: {r}" + (f" errors={new}" if new else ''))
         b.close()
-    print(f"mobile: {len(TABS) - bad} ok, {bad} with problems")
+    print(f"mobile: {len(TABS) + 6 - bad} ok, {bad} with problems")
     sys.exit(1 if bad else 0)
 
 main()
