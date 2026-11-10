@@ -940,8 +940,8 @@ table.kbt th,table.kbt td{text-align:left;white-space:normal;vertical-align:top}
 table.kbt td,table.kbt th{font-family:var(--body);font-size:13px}table.kbt td.mono{font-family:var(--mono)}table.kbt.kbwide{min-width:640px}
 
 /* ---- 15 Solis commissioning: wire-box ports, switches, multimeter, 7" HMI with keypad, Devices Status flow ---- */
-#tab-solis .bar .slnum input,#tab-deye .bar .slnum input{width:64px;min-height:34px;padding:2px 6px}
-#tab-solis .bar .slck,#tab-deye .bar .slck{font-size:13px}
+#tab-solis .bar .slnum input,#tab-deye .bar .slnum input,#tab-accouple .bar .slnum input{width:64px;min-height:34px;padding:2px 6px}
+#tab-solis .bar .slck,#tab-deye .bar .slck,#tab-accouple .bar .slck{font-size:13px}
 .sltxt{margin:0;font-size:14px;line-height:1.6;max-width:70ch}
 .slports{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
 .slport{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);min-width:0}
@@ -1163,3 +1163,5 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 #fupg-com .fcgrid>div{display:grid;gap:2px}
 #fupg-com .chip[aria-pressed="true"]{background:var(--accentbg);border-color:var(--accent);font-weight:600}
 .dmleds{display:grid;gap:6px;margin:8px 0;font-size:13px}.dmleds .slled{align-items:flex-start;font:500 12.5px var(--body);color:var(--ink)}.dmleds .slled i{margin-top:4px;flex:none}
+
+.cpb{fill:var(--accentbg);stroke:var(--accent);stroke-width:1.4}.cpb.hy{fill:#fff4e0;stroke:#e58a12}.cpb.sr{fill:#e6f4ea;stroke:#22a35a}.cpw{stroke:var(--ink);stroke-width:2}.cpw.bad{stroke:var(--err);stroke-dasharray:5 3}.cpct{fill:#fff;stroke:var(--err);stroke-width:1.6}

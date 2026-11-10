@@ -1,7 +1,7 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc','eit','deye'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc','eit','deye','accouple'];
 /* manual of each menu: docs/manual-<file>.md (keep in step with docs/README.md) */
-const MANUAL={basics:'00-basics',library:'01-library',equip:'02-equip',wiring:'03-wiring',ac:'04-ac',bench:'05-bench',cable:'06-cable',pv:'07-pv',site:'08-site',load:'09-load',backup:'10-backup',systems:'11-systems',events:'12-events',solis:'15-solis',lfp:'16-lfp',fusion:'17-fusion',deye:'18-deye',submit:'19-submit',calc:'13-calc',eit:'14-eit'};
+const MANUAL={basics:'00-basics',library:'01-library',equip:'02-equip',wiring:'03-wiring',ac:'04-ac',bench:'05-bench',cable:'06-cable',pv:'07-pv',site:'08-site',load:'09-load',backup:'10-backup',systems:'11-systems',events:'12-events',solis:'15-solis',lfp:'16-lfp',fusion:'17-fusion',deye:'18-deye',accouple:'19-accouple',submit:'20-submit',calc:'13-calc',eit:'14-eit'};
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -46,6 +46,7 @@ function showTab(t,fromHash){
     else if(t==='library')kbRender();
     else if(t==='solis')slRenderTab();
     else if(t==='deye')dyRenderTab();
+    else if(t==='accouple')cpRenderTab();
     else if(t==='lfp')lfpOpen();
     else if(t==='calc')calcOpen();
     else if(t==='eit')eitOpen();
@@ -74,7 +75,7 @@ function snapshot(){
   return{v:1,tab:curTab,act:ACT,bank:BANK,
     wiring:{panels:st.panels,wires:st.wires,nextId:st.nextId,tmin:st.tmin,thot:st.thot,scale:st.scale,mp:INV,pm:MP_PM,micro:MICRO},
     sim:{loc:$('#loc').value,lat:SIM.lat,lon:SIM.lon,refLat:SIM.refLat,refLon:SIM.refLon,date:SIM.date,tz:SIM.tz,tilt:SIM.tilt,az:SIM.az,sky:SIM.sky,amin:SIM.amin,amax:SIM.amax},
-    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),fu:fuSnapshot(),sy:SY,site:siSnapshot(),b0:typeof B0!=='undefined'?B0:null,cb:typeof cbSnapshot==='function'?cbSnapshot():null,sl:typeof slSnapshot==='function'?slSnapshot():null,dy:typeof dySnapshot==='function'?dySnapshot():null};
+    loads:LOADS,nextLoad,bk:BK,ev:EV,ac:{wm:Object.assign({},ACS.wm,AC_KEY?{[AC_KEY]:ACS.wires}:{}),pm:Object.assign({},ACS.pm,AC_KEY?{[AC_KEY]:ACS.pos}:{}),scm:Object.assign({},ACS.scm,AC_KEY?{[AC_KEY]:ACS.msc}:{}),rh:ACS.rh,set:ACS.set,apply:ACS.apply,zoom:ACS.zoom},sc:{view:SC.view,h:SC.h},bn:bSnapshot(),fu:fuSnapshot(),sy:SY,site:siSnapshot(),b0:typeof B0!=='undefined'?B0:null,cb:typeof cbSnapshot==='function'?cbSnapshot():null,sl:typeof slSnapshot==='function'?slSnapshot():null,dy:typeof dySnapshot==='function'?dySnapshot():null,cp:typeof cpSnapshot==='function'?cpSnapshot():null};
 }
 function setSt(t){const e=$('#savest');if(e)e.textContent=t}
 function touch(cat){
@@ -152,6 +153,7 @@ function restoreExtra(p){
   if(p.b0&&typeof b0Restore==='function')b0Restore(p.b0);
   if(p.sl&&typeof slRestore==='function')slRestore(p.sl);
   if(p.dy&&typeof dyRestore==='function')dyRestore(p.dy);
+  if(p.cp&&typeof cpRestore==='function')cpRestore(p.cp);
   if(p.cb&&typeof cbRestore==='function'){cbRestore(p.cb);if(typeof cbRenderPage==='function')cbRenderPage()}
   const num=(v,d,lo,hi)=>clamp(fin(v,d),lo,hi);
   if(p.ev&&typeof p.ev==='object'){

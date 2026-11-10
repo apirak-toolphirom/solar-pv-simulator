@@ -29,8 +29,9 @@
       <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
       <button class="navb" data-tab="fusion"><span class="ic">17</span>Huawei FusionSolar</button>
       <button class="navb" data-tab="deye"><span class="ic">18</span>Deye Commissioning</button>
+      <button class="navb" data-tab="accouple"><span class="ic">19</span>AC Coupling (GEN port)</button>
     </details>
-      <button class="navb navsubmit" data-tab="submit"><span class="ic">19</span>ส่งงาน</button>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">20</span>ส่งงาน</button>
       <a class="manlink" id="manlink" href="https://github.com/apirak-toolphirom/solar-pv-simulator/blob/main/docs/README.md" target="_blank" rel="noopener">📘 คู่มือเมนูนี้</a>
     </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
@@ -582,6 +583,12 @@
     <header><h1>Deye: ติดตั้งและ Commissioning</h1><p class="sub">ฝึกต่อพอร์ต ตรวจวัดก่อนเปิดเครื่อง Power ON/OFF และตั้งค่าหน้าจอ LCD ของ Deye Hybrid SUN-6K-SG04LP1-EU-SM2 ทั้งระบบ On-grid และ Off-grid แล้วฝึกติดตั้ง เปิดระบบ และอ่านไฟ LED ของ Microinverter SUN-M200G4-EU-Q0 ตามคู่มือผู้ผลิต</p></header>
     <div id="dyhost"></div>
     <p class="hint">ขั้นตอนและข้อความบนจออ้างอิงคู่มือ Deye SUN-3/3.6/5/6K-SG04LP1-EU-SM1/SM2 (2026-01) ข้อ 3.4–3.7, 4, 5 และตาราง fault ข้อ 7 กับคู่มือ SUN-M130–200G4-EU-Q0 ส่วนค่าแผง โหลด และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง หน้าจอนี้เลียนแบบเพื่อการสอน ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง และให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งจริง</p>
+  </section>
+
+  <section class="tab" id="tab-accouple" hidden>
+    <header><h1>AC Coupling: Huawei / ไมโคร Deye ต่อพอร์ต GEN</h1><p class="sub">ฝึกต่ออินเวอร์เตอร์ออนกริด Huawei SUN2000 หรือไมโครอินเวอร์เตอร์ Deye เข้าพอร์ต GEN ของ Deye หรือ Solis Hybrid ติด CT เปิด/ปิดกันย้อน ตั้งค่าหน้าจอ Hybrid และอินเวอร์เตอร์ AC แล้วทดสอบวันปกติและไฟดับกลางวัน</p></header>
+    <div id="cphost"></div>
+    <p class="hint">ชื่อรายการตั้งค่า (Gen Port Use, Smart Port, AC couple, กันย้อน) อ้างอิงคู่มือผู้ผลิตเท่าที่ทราบ ส่วนค่ากำลัง โหลด ช่วงความถี่ และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง และให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งจริง</p>
   </section>
 
   <section class="tab" id="tab-lfp" hidden>
