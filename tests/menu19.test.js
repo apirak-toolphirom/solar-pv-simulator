@@ -50,6 +50,21 @@ setTimeout(() => {
   const sv = JSON.stringify(ev('cpSnapshot()')); ev('cpReset(CP)'); ev('cpRestore(' + sv + ')'); ok(ev('CP.cu.lh')==='H'&&ev('CP.cu.la')==='A'&&ev('CP.cu.at')==='grid', 'บันทึก/กู้คืนสถานะสายสัญญาณ');
   ev('CP.sc="dm_deye";cpReset(CP);CP.page="custom";cpRender()');
   ok(!w.document.querySelector('[data-cpdrag="ctA"]'), 'ไมโคร Deye ไม่มี CT ออนกริด');
+  /* ---- ระบบที่ 5: Huawei ต่อช่อง Backup (LOAD) ของ Deye + จอตั้งค่า on-grid เป็นเมนูซ้อน ---- */
+  ev('CP.sc="hw_deye_load";cpReset(CP);CP.page="job";cpRender()');
+  ok(w.document.querySelectorAll('[data-cpsc]').length === 5, 'มีให้เลือก 5 ระบบ');
+  ev('cpCorrect(CP);cpChanged()'); ok(ev('cpScore().ok') && ev('CP.ports.src') === 'load', 'เฉลยระบบ LOAD: ต่อ LOAD + CT กริด + เปิดกันย้อน ผ่านทุกข้อ');
+  ev('CP.ports.src="gen";cpChanged()'); ok(!ev('cpChecks().job[0][0]'), 'ต่อที่ GEN ไม่ผ่านในใบงาน LOAD');
+  ev('cpCorrect(CP);CP.set.src.anti=false;cpChanged()');
+  ok(ev('cpAlarms().some(a=>a.c==="EXPORT-LIMIT-OFF"&&a.to==="src")'), 'ไม่เปิดกันย้อน: มีข้อความแดง + ไกด์ไปแท็บ 3');
+  ev('CP.page="src";CP.sm.scr="home";cpRender()');
+  w.document.querySelector('[data-cpsm="padj"]').click();
+  ok(ev('CP.sm.scr') === 'padj' && !!w.document.querySelector('[data-cps="src.anti"]'), 'จอ on-grid: Settings › Power adjustment มีช่องเปิด Export limitation');
+  const ck = w.document.querySelector('[data-cps="src.anti"]'); ck.checked = true; ck.dispatchEvent(new w.Event('change', { bubbles: true }));
+  ok(ev('CP.set.src.anti') === true && ev('cpScore().ok'), 'เปิดกันย้อนที่จอ on-grid แล้วผ่านทุกข้อ');
+  w.document.querySelector('[data-cpsm="home"]').click(); w.document.querySelector('[data-cpsm="meter"]').click();
+  ok(ev('CP.sm.scr') === 'meter', 'เมนู Communication › Power meter เปิดได้');
+  const sv5 = JSON.stringify(ev('cpSnapshot()')); ev('cpReset(CP)'); ev('cpRestore(' + sv5 + ')'); ok(ev('CP.sc') === 'hw_deye_load' && ev('CP.sm.scr') === 'meter', 'บันทึก/กู้คืนระบบ LOAD และหน้าจอเมนู');
   ok(!errs.filter(e => !/canvas|getContext|not implemented|scrollTo/i.test(e)).length, 'ไม่มี error: ' + errs.join('; '));
   console.log(fail ? 'menu19 FAILED' : 'menu19 OK'); process.exit(fail ? 1 : 0);
 }, 800);
