@@ -72,6 +72,17 @@ setTimeout(() => {
   ev('CP.sc="hw_solis";cpReset(CP);CP.ports.src="load";CP.page="custom";cpRender()');
   ok(!ev('cpCuChecks()[0][0]') && ev('cpRun({out:"mid",soc0:50}).T.pvA')===0, 'Solis: ต่อ LOAD ไม่ผ่านและอินเวอร์เตอร์ AC ไม่ผลิต');
   ok(!/GEN/.test(ev('ACC_NAME.accouple')), 'ชื่อเมนูไม่มีคำว่า GEN');
+  /* ---- จุดต่อใหม่ที่ช่องโหลดบ้าน (Backup) + ผลเสียของการต่อฝั่ง LOAD ---- */
+  ev('CP.sc="hw_deye_load";cpReset(CP);CP.page="job";cpRender()');
+  drag('[data-cpdrag="src"]', [495, 112]); ok(ev('CP.ports.src') === 'bload', 'ลากปลายสายไปช่องโหลดบ้าน (Backup) ได้');
+  ev('CP.ports.ct="grid";cpChanged()'); ok(ev('cpChecks().job[0][0]'), 'ต่อที่โหลดบ้าน (Backup) นับเป็นฝั่ง LOAD ในใบงาน LOAD');
+  ok(ev('cpLoadRisks(CP).some(a=>a.c==="OUTAGE-CURTAIL")&&cpLoadRisks(CP).some(a=>a.c==="SURPLUS")'), 'มีข้อความผลเสียของการต่อฝั่ง LOAD');
+  ev('CP.sc="hw_deye";cpReset(CP);CP.ports.src="gen";'); ok(ev('cpLoadRisks(CP).length')===0, 'ต่อที่ GEN ไม่มีข้อความผลเสียฝั่ง LOAD');
+  ev('CP.sc="hw_deye_load";cpReset(CP);CP.ports.src="load";CP.set.src.anti=true;CP.cu.at="none"');
+  ok(ev('cpLoadRisks(CP,{custom:true}).some(a=>a.c==="HW-METER"&&a.sev==="stop")'), 'เปิด zero export แต่ CT Huawei ไม่อยู่ที่สายกริด: ข้อความแดง HW-METER');
+  ev('CP.cu.at="grid"'); ok(!ev('cpLoadRisks(CP,{custom:true}).some(a=>a.c==="HW-METER")'), 'คล้อง CT Huawei ที่สายกริดแล้วข้อความหาย');
+  ev('CP.sc="hw_deye_load";cpReset(CP);CP.ports.src="bload";CP.ports.ct="grid";CP.set.src.anti=true;CP.cu.at="none"');
+  ok(/ลดกำลังเป็น 0/.test(ev('cpCuSim()')) && !ev('CP.ports.ct==="none"'), 'ผลจำลองหน้า 6 คิด Huawei = 0 เมื่อมิเตอร์ของ Huawei ไม่อยู่ที่สายกริด โดยไม่แก้ค่าหลัก');
   ok(!errs.filter(e => !/canvas|getContext|not implemented|scrollTo/i.test(e)).length, 'ไม่มี error: ' + errs.join('; '));
   console.log(fail ? 'menu19 FAILED' : 'menu19 OK'); process.exit(fail ? 1 : 0);
 }, 800);
