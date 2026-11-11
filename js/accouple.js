@@ -145,27 +145,43 @@ function cpRender(){
   <div id="cppage">${pg==='job'?cpPgJob(s):pg==='host'?cpPgHost(s):pg==='src'?cpPgSrc(s):pg==='dash'?cpPgDash(s):cpPgFault(s)}</div>`;
   cpLive();
 }
+/* ---- ผังการต่อ: ลากปลายสายอินเวอร์เตอร์ AC ไปวางที่จุดต่อ และลาก CT ไปคล้องสาย (ค่าเก็บใน CP.ports เหมือนเดิม) ---- */
+const CP_TI=[335,42];
+const CP_TS={gen:[335,104],main:[175,112],grid:[240,136],load:[430,136]};
+const CP_TC={grid:[115,136],src:[335,62],load:[430,136]};
+const CP_TSN={gen:'พอร์ต GEN',main:'ตู้เมน',grid:'พอร์ต GRID',load:'พอร์ต LOAD'};
+let CPD=null;
+function cpNear(T,x,y,r){let b=null,bd=r;for(const k in T){const d=Math.hypot(T[k][0]-x,T[k][1]-y);if(d<bd){bd=d;b=k}}return b}
+function cpWire(k){const[x,y]=CP_TS[k];return k==='gen'?`M335,42 L335,${y}`:`M335,42 L335,78 L${x},78 L${x},${y}`}
 function cpSLD(){
-  const F=cpFlags(),p=F.p,hn=cpHost().n,sn=cpSrc().n.split(' (')[0];
-  const ln=(a,b,c,d,cl)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" class="${cl||'cpw'}"/>`;
+  const F=cpFlags(),p=F.p,hn=cpHost().n,sn=cpSrc().n.split(' (')[0],D=CPD,dsrc=D&&D.k==='src',dct=D&&D.k==='ct';
   const box=(x,y,w,h,t,t2,cl)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" class="cpb ${cl||''}"/><text x="${x+w/2}" y="${y+h/2-(t2?2:-4)}" text-anchor="middle" class="svgt" font-size="12">${esc(t)}</text>${t2?`<text x="${x+w/2}" y="${y+h/2+13}" text-anchor="middle" class="svgt mut" font-size="10">${esc(t2)}</text>`:''}`;
-  let o=box(10,100,90,44,'กริด','PEA/MEA')+box(130,100,90,44,'ตู้เมน')+box(260,90,150,64,hn.split(' ')[0]+' Hybrid','พอร์ต GRID · GEN · LOAD','hy')+box(450,100,90,44,'โหลดบ้าน','Backup')+box(260,10,150,40,sn,'อินเวอร์เตอร์ AC','sr');
-  o+=ln(100,122,130,122)+ln(220,122,260,122);
-  o+=ln(410,122,450,122);
-  o+=`<text x="335" y="82" text-anchor="middle" class="svgt mut" font-size="10">GEN</text>`;
-  if(p.src==='gen')o+=ln(335,50,335,90);
-  else if(p.src==='main')o+=ln(175,50,175,100)+ln(175,30,260,30);
-  else if(p.src==='grid')o+=ln(240,50,240,122)+ln(240,30,260,30);
-  else if(p.src==='load')o+=ln(430,50,430,122,'cpw bad')+ln(410,30,430,30,'cpw bad');
-  const ct=(x,y)=>`<circle cx="${x}" cy="${y}" r="9" class="cpct"/><text x="${x}" y="${y+4}" text-anchor="middle" class="svgt" font-size="10">CT</text>`;
-  if(p.ct==='grid')o+=ct(115,122);else if(p.ct==='src')o+=ct(335,70);else if(p.ct==='load')o+=ct(430,122);
-  return `<svg viewBox="0 0 560 170" role="img" aria-label="ผังการต่อ AC coupling">${o}</svg>`;
+  const ln=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" class="cpw"/>`;
+  let o=box(10,112,90,48,'กริด','PEA/MEA')+box(130,112,90,48,'ตู้เมน')+box(260,104,150,64,hn.split(' ')[0]+' Hybrid','พอร์ต GRID · GEN · LOAD','hy')+box(450,112,90,48,'โหลดบ้าน','Backup')+box(260,4,150,38,sn,'อินเวอร์เตอร์ AC','sr');
+  o+=ln(100,136,130,136)+ln(220,136,260,136)+ln(410,136,450,136);
+  o+=`<text x="345" y="98" class="svgt mut" font-size="10">GEN</text><text x="240" y="152" text-anchor="middle" class="svgt mut" font-size="9">GRID</text><text x="430" y="152" text-anchor="middle" class="svgt mut" font-size="9">LOAD</text>`;
+  /* สายอินเวอร์เตอร์ AC */
+  if(dsrc)o+=`<path d="M335,42 L${D.x.toFixed(1)},${D.y.toFixed(1)}" class="cpw" stroke-dasharray="4 3" fill="none"/>`;
+  else if(p.src==='none')o+=`<path d="M335,42 L335,56" class="cpw" stroke-dasharray="3 3" fill="none"/><text x="345" y="56" class="svgt mut" font-size="10">ยังไม่ต่อ · ลากปลายสายไปวางที่จุดต่อ</text>`;
+  else o+=`<path d="${cpWire(p.src)}" class="cpw ${p.src==='load'?'bad':''}" fill="none"/>`;
+  /* จุดต่อที่วางได้ */
+  const hotS=dsrc?cpNear(CP_TS,D.x,D.y,28):null,hotC=dct?cpNear(CP_TC,D.x,D.y,30):null;
+  if(dsrc)for(const k in CP_TS){const h=hotS===k;o+=`<circle cx="${CP_TS[k][0]}" cy="${CP_TS[k][1]}" r="${h?10:6}" fill="${h?'var(--accent)':'none'}" fill-opacity=".35" stroke="var(--accent)" stroke-width="2" stroke-dasharray="${h?'none':'3 2'}"/>`+(h?`<text x="${CP_TS[k][0]}" y="${CP_TS[k][1]-14}" text-anchor="middle" class="svgt" font-size="11" font-weight="700">${CP_TSN[k]}</text>`:'')}
+  if(dct)for(const k in CP_TC){const h=hotC===k;o+=`<circle cx="${CP_TC[k][0]}" cy="${CP_TC[k][1]}" r="${h?12:7}" fill="${h?'var(--accent)':'none'}" fill-opacity=".35" stroke="var(--accent)" stroke-width="2" stroke-dasharray="${h?'none':'3 2'}"/>`}
+  /* ปลายสาย (จับลากได้) */
+  o+=`<circle cx="335" cy="42" r="5" fill="var(--ink)"/><circle data-cpdrag="src" cx="335" cy="42" r="13" fill="transparent" style="cursor:grab;touch-action:none"><title>ลากปลายสายอินเวอร์เตอร์ AC ไปวางที่จุดต่อ</title></circle>`;
+  /* CT */
+  const pos=dct?[D.x,D.y]:p.ct!=='none'?CP_TC[p.ct]:[505,40],dx=(F.p.arrow==='ok')===(cpSc().host==='deye')?1:-1,[cx,cy]=pos;
+  o+=`<g data-cpdrag="ct" style="cursor:grab;touch-action:none"><circle cx="${cx}" cy="${cy}" r="${p.ct==='none'&&!dct?11:9}" class="cpct"/><text x="${cx}" y="${cy+4}" text-anchor="middle" class="svgt" font-size="10" style="pointer-events:none">CT</text>`+
+    (p.ct!=='none'||dct?`<path d="M${cx-dx*9},${cy+17} L${cx+dx*9},${cy+17} M${cx+dx*9},${cy+17} l${-dx*5},-3 M${cx+dx*9},${cy+17} l${-dx*5},3" stroke="var(--err)" stroke-width="1.8" fill="none" style="pointer-events:none"/>`:'')+`<title>ลาก CT ไปคล้องสาย · คลิกเพื่อกลับทิศลูกศร</title></g>`;
+  if(p.ct==='none'&&!dct)o+=`<text x="505" y="66" text-anchor="middle" class="svgt mut" font-size="10">ลาก CT ไปคล้องสาย</text>`;
+  return `<svg viewBox="0 0 560 190" role="img" aria-label="ผังการต่อ AC coupling ลากปลายสายและ CT เพื่อต่อ">${o}</svg>`;
 }
 function cpPgJob(s){
   const F=cpFlags(),H=cpHost(),sc=cpSc(),p=CP.ports;
   return `<div class="cards"><div class="card"><h3>ใบสั่งงาน</h3><p>${esc(sc.brief).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</p>
     <table class="t"><tbody><tr><th>Hybrid</th><td>${esc(H.n)} · แบต ${cpF(H.cap,2)} kWh</td></tr><tr><th>อินเวอร์เตอร์ AC</th><td>${esc(cpSrc().n)}</td></tr><tr><th>นโยบายขายไฟ</th><td>${sc.policy==='noexp'?'ห้ามขาย (ต้องกันย้อน)':'ขายได้ ไม่เกิน 5 kW'}</td></tr></tbody></table>
-    <div class="tblwrap">${cpSLD()}</div></div>
+    <div class="tblwrap" id="cpsld">${cpSLD()}</div><p class="hint tight">ลาก<b>ปลายสายอินเวอร์เตอร์ AC</b>ไปวางที่ตู้เมน / พอร์ต GRID / พอร์ต GEN / พอร์ต LOAD · ลาก<b>CT</b>ไปคล้องสายกริด สายอินเวอร์เตอร์ AC หรือสายโหลด · คลิกที่ CT เพื่อกลับทิศลูกศร · วางนอกจุดต่อ = ถอดออก (ตั้งผ่านรายการเลือกด้านขวาก็ได้)</p></div>
     <div class="card"><h3>การต่อสาย</h3>
     ${cpRow('อินเวอร์เตอร์ AC ต่อเข้าที่',`<select class="hn" data-cpp="src" id="cpp-src">${CP_SRC_OPTS.map(([k,t])=>`<option value="${k}" ${p.src===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)}
     ${cpRow('ตำแหน่ง CT',`<select class="hn" data-cpp="ct" id="cpp-ct">${CP_CT_OPTS.map(([k,t])=>`<option value="${k}" ${p.ct===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)}
@@ -234,6 +250,18 @@ function cpDrill(){
 function cpSetPath(path,v){const[g,k]=path.split('.');if(g==='dash'){CP.dash[k]=v;return}if(CP.set[g])CP.set[g][k]=v}
 function cpEvents(){
   const host=document.getElementById('cphost');if(!host||host.dataset.on)return;host.dataset.on='1';
+  /* ลากต่อสาย: ปลายสายอินเวอร์เตอร์ AC และ CT */
+  const cpPt=e=>{const sv=document.querySelector('#cpsld svg');if(!sv)return null;const q=sv.createSVGPoint();q.x=e.clientX;q.y=e.clientY;const m=sv.getScreenCTM();return m?q.matrixTransform(m.inverse()):null};
+  const cpRedraw=()=>{const el=document.getElementById('cpsld');if(el)el.innerHTML=cpSLD()};
+  host.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-cpdrag]');if(!t)return;const pt=cpPt(e);if(!pt)return;e.preventDefault();
+    CPD={k:t.dataset.cpdrag,x:pt.x,y:pt.y,sx:pt.x,sy:pt.y,moved:false};try{host.setPointerCapture(e.pointerId)}catch(_){}cpRedraw()});
+  host.addEventListener('pointermove',e=>{if(!CPD)return;const pt=cpPt(e);if(!pt)return;CPD.x=pt.x;CPD.y=pt.y;if(Math.hypot(pt.x-CPD.sx,pt.y-CPD.sy)>5)CPD.moved=true;cpRedraw()});
+  const cpEnd=e=>{if(!CPD)return;const d=CPD;CPD=null;if(e.type==='pointercancel'){cpRedraw();return}
+    if(d.k==='src'){if(d.moved)CP.ports.src=cpNear(CP_TS,d.x,d.y,28)||'none'}
+    else if(d.moved)CP.ports.ct=cpNear(CP_TC,d.x,d.y,30)||'none';
+    else if(CP.ports.ct!=='none')CP.ports.arrow=CP.ports.arrow==='ok'?'rev':'ok';
+    cpChanged()};
+  host.addEventListener('pointerup',cpEnd);host.addEventListener('pointercancel',cpEnd);
   host.addEventListener('click',e=>{
     if(hlClick(e,CP)){cpRender();return}
     const t=e.target.closest('[data-cpsc],[data-cppg],[data-cpact]');if(!t)return;const d=t.dataset;
