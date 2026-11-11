@@ -15208,7 +15208,7 @@ function accBar(){
     const gm=!!CFG.GOOGLE_CLIENT_ID;
     b.innerHTML=`<div class="accrow"><b>ผู้เยี่ยมชม</b><span class="hint tight">ดูได้เฉพาะ ${esc(vis.join(', ')||'—')} · ${gm?'ผู้เรียนเข้าสู่ระบบด้วยบัญชี Google ที่ผู้สอนลงทะเบียนไว้ในรายชื่อ':'ผู้เรียนกรอกข้อมูลเพื่อเริ่มใช้งานทุกเมนูที่เปิด'}</span></div>
       ${gm?`<div class="accrow"><div id="accgbtn" class="accg"></div></div>
-      <div class="accrow accform"><span class="accsep" style="margin-left:0">ผู้สอน</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>`
+      <div class="accrow accform"><span class="accsep" style="margin-left:0">admin กรอกรหัส</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>`
       :`<div class="accrow accform"><input id="accname" placeholder="ชื่อ-นามสกุล" autocomplete="off" value=""><input id="accsid" placeholder="รหัสผู้เรียน" autocomplete="off" value=""><input id="acccls" type="password" placeholder="รหัสห้องอบรม" autocomplete="off" value=""><button class="btn pri" id="accgo">เข้าใช้งาน</button>
       <span class="accsep">ผู้สอน</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>`}
       <p class="simmsg" id="accmsg" role="status" hidden></p>`;
@@ -15253,6 +15253,7 @@ async function accStudent(name,sid,cls,quiet){
     if(!j||!j.ok){if(!quiet)accMsg((j&&j.error)||'เข้าใช้งานไม่ได้','err');return false}
     if(!j.role){if(!quiet)accMsg('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า ผู้สอนต้องวาง Code.gs ล่าสุดแล้ว Deploy → New version','err');return null}
     ACC.role=j.role==='teacher'?'teacher':'student';if(Array.isArray(j.menus))ACC.menus=j.menus;
+    if(j.role==='teacher'&&typeof TEACH!=='undefined'){TEACH.lvl=j.level||'teacher';TEACH.on=TEACH.lvl==='admin';if(typeof teachSync==='function')teachSync()}/* a teacher signed in with Google (listed in the sheet "ครู"): every menu, but no editing of data */
     const nm=j.name||name,sd=CFG.GOOGLE_CLIENT_ID&&j.sid!=null?j.sid:sid;
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('mname',nm);set('msid',sd);set('mcls',cls);
     if(typeof readMember==='function')readMember();

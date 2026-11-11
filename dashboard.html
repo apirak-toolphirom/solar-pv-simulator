@@ -81,7 +81,8 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
   <div class="top">
     <div><h1>สรุปงานส่ง</h1><p class="sub" id="course">เว็บจำลองระบบโซลาร์</p></div>
     <div class="bar">
-      <input id="tcode" type="password" placeholder="รหัสผู้สอน" aria-label="รหัสผู้สอน" autocomplete="current-password">
+      <input id="tcode" type="password" placeholder="รหัส admin (ครูไม่ต้องกรอก)" aria-label="รหัส admin" autocomplete="current-password">
+      <span id="gsi" hidden><span id="gbtn"></span></span><span class="foot" id="gwho" style="margin:0"></span>
       <button class="btn pri" id="load">โหลดข้อมูล</button>
       <button class="btn" id="demo">ดูข้อมูลตัวอย่าง</button>
       <label class="chk"><input type="checkbox" id="auto"> อัปเดตทุก 1 นาที</label>
@@ -167,18 +168,32 @@ function parse(headers,rows){
 }
 const who=r=>(r.sid||r.gmail||r.name).toLowerCase();
 
+/* teacher sign-in: admin types the code (TEACHER_CODE); a teacher (not admin) signs in with the Google account listed in the sheet "ครู" and types nothing */
+let gTok='',gExp=0,gWait=null;
+function gSet(c){gTok=c;gExp=0;try{const p=JSON.parse(decodeURIComponent(escape(atob(c.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));gExp=(p.exp||0)*1000;$('#gwho').textContent='Google: '+(p.email||'')}catch(e){}}
+async function gEnsure(){if(!window.google||!gTok||gExp-Date.now()>120000)return;await new Promise(res=>{gWait=res;try{google.accounts.id.prompt()}catch(e){res()}setTimeout(res,4000)});gWait=null}
+async function AUTH(){const c=$('#tcode').value.trim();if(c)return{tcode:c};await gEnsure();return gTok?{idToken:gTok}:null}
+function loadGsi(){
+  if(!CFG.GOOGLE_CLIENT_ID)return;
+  const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;
+  sc.onload=()=>{try{
+    google.accounts.id.initialize({client_id:CFG.GOOGLE_CLIENT_ID,auto_select:true,cancel_on_tap_outside:false,callback:r=>{gSet(r.credential);if(gWait)gWait();if(!$('#tcode').value.trim())load()}});
+    $('#gsi').hidden=false;google.accounts.id.renderButton($('#gbtn'),{theme:'outline',size:'medium',text:'signin_with',locale:'th'});
+  }catch(e){}};
+  document.head.appendChild(sc);
+}
 let LVL='admin';/* admin = TEACHER_CODE · teacher = code in the sheet "ครู": views, opens/closes worksheets and menus, cannot import or edit the roster */
 async function load(){
-  const code=$('#tcode').value.trim();
   if(!CFG.SUBMIT_URL){msg('ยังไม่ได้ตั้ง SUBMIT_URL ใน js/config.js','err');return}
-  if(!code){msg('กรอกรหัสผู้สอนก่อน','err');$('#tcode').focus();return}
+  const au=await AUTH();
+  if(!au){msg('admin กรอกรหัสผู้สอน · ครูกดเข้าสู่ระบบด้วย Google','err');$('#tcode').focus();return}
   msg('กำลังโหลด…');$('#load').disabled=true;
   try{
-    const res=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'dash',tcode:code}),redirect:'follow'});
+    const res=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'dash'},au)),redirect:'follow'});
     const j=await res.json();
     if(!j||!j.ok){msg((j&&j.error)||'โหลดไม่สำเร็จ','err');return}
     if(!j.dash){msg('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → Manage deployments → Edit → New version','err');return}
-    ss.set('pvdash.tcode',code);
+    if(au.tcode)ss.set('pvdash.tcode',au.tcode);
     LVL=j.level||'admin';document.querySelectorAll('.radmin').forEach(e=>{e.hidden=LVL!=='admin'});ROWS=parse(j.headers,j.rows);WSL=Array.isArray(j.ws)?j.ws:[];MNL=Array.isArray(j.menus)?j.menus:[];ROST=j.roster;
     {const tn=$('#rteachnote');if(tn)tn.hidden=LVL==='admin'}
     msg(`โหลดแล้ว ${ROWS.length} รายการ · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`+(j.total>j.rows.length?` (แสดง ${j.rows.length} รายการล่าสุดจาก ${j.total})`:''),'ok');
@@ -334,10 +349,10 @@ function drawWsTable(){
     <td><select data-ws="${esc(w.id)}" aria-label="สถานะ ${esc(w.id)}">${['auto','เปิด','ปิด'].map(s=>`<option ${w.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${w.open?'<span class="pill ok">เปิดรับ</span>':'<span class="pill idle">ปิดรับ</span>'}</td></tr>`).join('')+'</tbody>';
 }
 async function wsSet(id,status){
-  const m=$('#wsmsg'),code=$('#tcode').value.trim();
-  if(!CFG.SUBMIT_URL||!code){m.hidden=false;m.className='msg err';m.textContent='โหมดข้อมูลตัวอย่าง: กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อนเปลี่ยนสถานะ';const w=WSL.find(x=>x.id===id);if(w){w.status=status;w.open=status!=='ปิด'}drawWsTable();return}
+  const m=$('#wsmsg'),au=await AUTH();
+  if(!CFG.SUBMIT_URL||!au){m.hidden=false;m.className='msg err';m.textContent='โหมดข้อมูลตัวอย่าง: กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อนเปลี่ยนสถานะ';const w=WSL.find(x=>x.id===id);if(w){w.status=status;w.open=status!=='ปิด'}drawWsTable();return}
   m.hidden=false;m.className='msg info';m.textContent='กำลังบันทึก…';
-  try{const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'wsset',tcode:code,id,status}),redirect:'follow'}),j=await r.json();
+  try{const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'wsset',id,status},au)),redirect:'follow'}),j=await r.json();
     if(j&&j.ok){WSL=j.ws||WSL;m.className='msg ok';m.textContent=`ตั้ง ${id} เป็น "${status}" แล้ว`;drawWsTable();drawMatrix()}else{m.className='msg err';m.textContent=(j&&j.error)||'บันทึกไม่สำเร็จ'}}
   catch(e){m.className='msg err';m.textContent='เชื่อมต่อ Apps Script ไม่ได้'}
 }
@@ -352,10 +367,10 @@ function drawMenus(){
     <td>${pill(m.student)}</td><td>${m.tab==='hwlog'?'<span style="opacity:.7;font-size:12px" title="เมนูนี้ต้องลงชื่อเป็นผู้เรียนหรือผู้สอนเสมอ">ไม่ได้ (ต้องลงชื่อ)</span>':`<input type="checkbox" data-mv="${esc(m.tab)}" ${m.visitorOn?'checked':''} aria-label="ผู้เยี่ยมชมเห็น ${esc(m.name)}">`}</td><td>${pill(m.visitor)}</td></tr>`).join('')+'</tbody>';
 }
 async function menuSet(tab,o){
-  const m=$('#mnmsg'),code=$('#tcode').value.trim();
-  if(!CFG.SUBMIT_URL||!code){m.hidden=false;m.className='msg err';m.textContent='กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อนเปลี่ยนสิทธิ์เมนู';return}
+  const m=$('#mnmsg'),au=await AUTH();
+  if(!CFG.SUBMIT_URL||!au){m.hidden=false;m.className='msg err';m.textContent='กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อนเปลี่ยนสิทธิ์เมนู';return}
   m.hidden=false;m.className='msg info';m.textContent='กำลังบันทึก…';
-  try{const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'menuset',tcode:code,tab},o)),redirect:'follow'}),j=await r.json();
+  try{const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({action:'menuset',tab},o,au)),redirect:'follow'}),j=await r.json();
     if(j&&j.ok){MNL=j.menus||MNL;m.className='msg ok';m.textContent='บันทึกแล้ว มีผลเมื่อผู้เรียนโหลดหน้าใหม่';drawMenus()}else{m.className='msg err';m.textContent=(j&&j.error)||'บันทึกไม่สำเร็จ'}}
   catch(e){m.className='msg err';m.textContent='เชื่อมต่อ Apps Script ไม่ได้'}
 }
@@ -370,11 +385,11 @@ function drawRoster(){
   h.innerHTML=RST.length?'<thead><tr><th>#</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>อีเมล</th><th>สถานะ</th></tr></thead><tbody>'+RST.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.sid)}</td><td>${esc(x.name)}</td><td>${esc(x.email)}</td><td>${x.status==='ระงับ'?'<span class="pill err">ระงับ</span>':'<span class="pill ok">ใช้ได้</span>'}</td></tr>`).join('')+'</tbody>':'<tbody><tr><td class="empty">ยังไม่มีรายชื่อ ใช้ปุ่มด้านบนเพิ่ม</td></tr></tbody>';
 }
 async function rcall(o,quiet){
-  const code=$('#tcode').value.trim();
-  if(!CFG.SUBMIT_URL||!code){if(!quiet)rmsg('กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อน','err');return null}
+  const au=await AUTH();
+  if(!CFG.SUBMIT_URL||!au){if(!quiet)rmsg('กรอกรหัสผู้สอนแล้วกด "โหลดข้อมูล" ก่อน','err');return null}
   if(!quiet)rmsg('กำลังดำเนินการ…');
   try{
-    const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({tcode:code},o)),redirect:'follow'}),j=await r.json();
+    const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify(Object.assign({},o,au)),redirect:'follow'}),j=await r.json();
     if(!j||!j.ok){if(!quiet)rmsg(j&&j.error==='ไม่มีชื่อ'?'Apps Script ยังเป็นโค้ดรุ่นเก่า: วาง Code.gs ล่าสุดแล้ว Deploy → Manage deployments → Edit → New version':(j&&j.error)||'ไม่สำเร็จ','err');return null}
     return j;
   }catch(e){if(!quiet)rmsg('เชื่อมต่อ Apps Script ไม่ได้','err');return null}
@@ -439,13 +454,14 @@ $('#fq').addEventListener('input',render);
 $('#csv').addEventListener('click',csv);
 $('#mnt').addEventListener('change',e=>{const s=e.target.closest('[data-mn]');if(s){menuSet(s.dataset.mn,{status:s.value});return}const v=e.target.closest('[data-mv]');if(v)menuSet(v.dataset.mv,{visitor:v.checked})});
 $('#wst').addEventListener('change',e=>{const t=e.target.closest('[data-ws]');if(t)wsSet(t.dataset.ws,t.value)});
-$('#auto').addEventListener('change',e=>{clearInterval(timer);if(e.target.checked)timer=setInterval(()=>{if($('#tcode').value.trim())load()},60000)});
+$('#auto').addEventListener('change',e=>{clearInterval(timer);if(e.target.checked)timer=setInterval(()=>{if($('#tcode').value.trim()||gTok)load()},60000)});
 $('#thead').addEventListener('click',e=>{const th=e.target.closest('[data-sort]');if(!th)return;const k=th.dataset.sort;SORT=SORT.k===k?{k,dir:-SORT.dir}:{k,dir:k==='t'||k==='n'||k==='kwp'||k==='used'?-1:1};render()});
 $('#tbody').addEventListener('click',e=>{const tr=e.target.closest('tr.main');if(!tr)return;const id=tr.dataset.id;OPEN.has(id)?OPEN.delete(id):OPEN.add(id);render()});
 /* shared tooltip for bars, stacked segments and issue rows */
 const tip=$('#tip');
 document.addEventListener('pointermove',e=>{const t=e.target.closest('[data-tip]');if(!t){tip.hidden=true;return}tip.textContent=t.dataset.tip;tip.hidden=false;const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px'});
 document.addEventListener('pointerleave',()=>tip.hidden=true);
+loadGsi();
 if(ss.get('pvdash.tcode')&&CFG.SUBMIT_URL)load();
 </script>
 </body>

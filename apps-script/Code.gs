@@ -7,7 +7,7 @@
  *   GOOGLE_CLIENT_ID  ใส่ Client ID เดียวกับ js/config.js เพื่อเปิด Google Sign-in · เมื่อตั้งค่านี้ ระบบเข้าโหมดเข้ม:
  *                     ผู้เรียนต้องเข้าด้วย Google และอีเมลต้องอยู่ในแผ่น "รายชื่อ" (ไม่รับรหัสผู้เรียนอย่างเดียว ไม่ถามรหัสห้อง)
  *   DRIVE_FOLDER_ID   ID ของโฟลเดอร์ Drive ที่เก็บไฟล์โปรเจ็คของผู้เรียน (ใช้กับปุ่ม บันทึก/โหลดจาก Drive)
- *   TEACHER_CODE      รหัสผู้สอน ใช้เปิดหน้า dashboard.html (สรุปงานส่ง) ถ้าไม่ตั้ง หน้า dashboard จะใช้ไม่ได้
+ *   TEACHER_CODE      รหัส admin (ทำได้ทุกอย่าง) เฉพาะ admin ที่กรอกรหัสนี้ · ครูที่ไม่ใช่ admin เข้าด้วยอีเมล Google ที่ใส่ในแผ่น "ครู" (เมนู ระบบโซลาร์ > สร้างแผ่นครู) ไม่ต้องกรอกรหัส
  */
 var SHEET_NAME = 'Submissions';
 var HEADERS = ['เวลาที่รับ', 'รหัสใบส่งงาน', 'ชื่อ', 'รหัสผู้เรียน', 'Google (ยืนยันแล้ว)', 'Google (แจ้งเอง)',
@@ -37,7 +37,7 @@ function fixHeaders() {
   ss.toast(ch ? 'แก้หัวคอลัมน์ให้ตรงกับเวอร์ชันล่าสุดแล้ว (' + HEADERS.length + ' คอลัมน์)' : 'หัวคอลัมน์ตรงกับเวอร์ชันล่าสุดอยู่แล้ว (หรือ A1 ไม่ใช่ "เวลาที่รับ" จึงไม่แตะ)', 'ระบบโซลาร์', 8);
 }
 function onOpen() {
-  try { SpreadsheetApp.getUi().createMenu('ระบบโซลาร์').addItem('ซ่อมหัวคอลัมน์ Submissions', 'fixHeaders').addItem('สร้างแผ่นครู (รหัสครู)', 'makeTeacherSheet').addToUi(); } catch (e) {}
+  try { SpreadsheetApp.getUi().createMenu('ระบบโซลาร์').addItem('ซ่อมหัวคอลัมน์ Submissions', 'fixHeaders').addItem('สร้างแผ่นครู (อีเมลครู)', 'makeTeacherSheet').addToUi(); } catch (e) {}
 }
 
 // ---- ใบงาน: แผ่น "ใบงาน" ผู้สอนแก้ได้ในชีตหรือในหน้า dashboard.html ----
@@ -202,37 +202,46 @@ function teacherOk_(d, props) {
   if (!teacherLevel_(d, props)) { Utilities.sleep(1500); return false; }
   return true;
 }
-// ---- ระดับสิทธิ์ของรหัสผู้สอน ----
-// admin   = TEACHER_CODE ใน Script properties: ทำได้ทุกอย่าง (รวมนำเข้า/เพิ่มรายชื่อ และแก้ไขรุ่นอุปกรณ์ในโปรแกรม)
-// teacher = รหัสในแผ่น "ครู" (คอลัมน์ ชื่อครู · รหัสครู · สถานะ): เปิดเมนูและเนื้อหา เปิด/ปิดใบงานและแบบทดสอบ ดู dashboard และรายชื่อได้
-//           แต่ไม่มีสิทธิ์แก้หรือลบข้อมูล (นำเข้า/เพิ่มรายชื่อ แก้ไขรุ่นอุปกรณ์ ฯลฯ)
+// ---- ระดับสิทธิ์ของผู้สอน ----
+// admin   = กรอก TEACHER_CODE (Script properties): ทำได้ทุกอย่าง (รวมนำเข้า/เพิ่มรายชื่อ และแก้ไขรุ่นอุปกรณ์ในโปรแกรม) · มีเฉพาะ admin ที่กรอกรหัส
+// teacher = เข้าสู่ระบบด้วยอีเมล Google ที่ admin ใส่ไว้ในแผ่น "ครู" (ไม่ต้องกรอกรหัส): เปิดเมนูและเนื้อหา เปิด/ปิดใบงานและแบบทดสอบ ดู dashboard และรายชื่อได้
+//           แต่ไม่มีสิทธิ์แก้หรือลบข้อมูล (นำเข้า/เพิ่มรายชื่อ แก้ไขรุ่นอุปกรณ์ ฯลฯ) · ต้องตั้ง GOOGLE_CLIENT_ID ไว้ (ตรวจอีเมลกับ Google ทุกครั้ง)
 var TEACHER_SHEET = 'ครู';
+function googleUser_(idToken, props) {
+  if (!idToken) return null;
+  var r = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken), { muteHttpExceptions: true });
+  if (r.getResponseCode() !== 200) return null;
+  var t = JSON.parse(r.getContentText()), cid = props.getProperty('GOOGLE_CLIENT_ID');
+  if (cid && t.aud === cid && t.email_verified !== 'false' && t.email) return { email: String(t.email).toLowerCase(), name: t.name || '' };
+  return null;
+}
 function teacherLevel_(d, props) {
-  var c = s_(d.tcode, 80).trim();
-  if (!c) return '';
-  var tc = props.getProperty('TEACHER_CODE');
-  if (tc && c === tc) return 'admin';
+  var c = s_(d.tcode, 80).trim(), tc = props.getProperty('TEACHER_CODE');
+  if (c && tc && c === tc) return 'admin';
+  if (!d.idToken) return '';
+  var u = googleUser_(d.idToken, props);
+  if (!u) return '';
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TEACHER_SHEET);
   if (!sh || sh.getLastRow() < 2) return '';
   var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
   for (var i = 0; i < rows.length; i++) {
-    var code = String(rows[i][1]).trim(), st = String(rows[i][2] || 'ใช้งาน').trim();
-    if (code.length >= 6 && code === c && st !== 'ปิด') return 'teacher';
+    var em = String(rows[i][1]).trim().toLowerCase(), st = String(rows[i][2] || 'ใช้งาน').trim();
+    if (em && em === u.email && st !== 'ปิด') return 'teacher';
   }
   return '';
 }
-// เมนู "ระบบโซลาร์ > สร้างแผ่นครู": สร้างแผ่น "ครู" ให้ admin กรอกรหัสครู (รหัสต้องยาวอย่างน้อย 6 ตัว)
+// เมนู "ระบบโซลาร์ > สร้างแผ่นครู": สร้างแผ่น "ครู" ให้ admin กรอกอีเมล Google ของครู (ครูเข้าด้วย Google ไม่ต้องกรอกรหัส)
 function makeTeacherSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TEACHER_SHEET);
   if (!sh) {
     sh = ss.insertSheet(TEACHER_SHEET);
-    sh.getRange(1, 1, 1, 4).setValues([['ชื่อครู', 'รหัสครู (อย่างน้อย 6 ตัว)', 'สถานะ', 'หมายเหตุ']]).setFontWeight('bold');
+    sh.getRange(1, 1, 1, 4).setValues([['ชื่อครู', 'อีเมลครู (บัญชี Google)', 'สถานะ', 'หมายเหตุ']]).setFontWeight('bold');
     sh.getRange(2, 3, 200, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['ใช้งาน', 'ปิด'], true).build());
     sh.setFrozenRows(1);
-    sh.getRange(2, 4).setValue('ครูเปิดเมนู ใบงาน แบบทดสอบ และดู dashboard ได้ แก้หรือลบข้อมูลไม่ได้ ตั้งสถานะ ปิด เพื่อเลิกใช้รหัส');
+    sh.getRange(2, 4).setValue('ครูเข้าด้วยปุ่ม Google ไม่ต้องกรอกรหัส เปิดเมนู ใบงาน แบบทดสอบ และดู dashboard ได้ แก้หรือลบข้อมูลไม่ได้ ตั้งสถานะ ปิด เพื่อเลิกใช้');
   }
   ss.setActiveSheet(sh);
-  ss.toast('กรอกชื่อครูและรหัสครู (คอลัมน์ A–B) แล้วใช้ได้ทันที ไม่ต้อง Deploy ใหม่', 'ระบบโซลาร์', 10);
+  ss.toast('กรอกชื่อครูและอีเมล Google (คอลัมน์ A–B) แล้วใช้ได้ทันที ไม่ต้อง Deploy ใหม่ · ต้องตั้ง GOOGLE_CLIENT_ID ไว้แล้ว', 'ระบบโซลาร์', 10);
 }
 // แผ่น "รายชื่อ" ในไฟล์นี้ (ใช้ตอนนำเข้า/เพิ่ม) · ถ้าตั้ง ROSTER_SHEET_ID ไว้ รายชื่ออยู่ไฟล์อื่น ไม่นำเข้าให้
 function rosterTab_(props) {
@@ -342,10 +351,10 @@ function doPost(e) {
     if (d.action === 'ws') return json_({ ok: true, ws: wsList_() });
     if (d.action === 'menus') return json_({ ok: true, menus: menus_() });
     if (d.action === 'menuset') return menuSet_(d, props);
-    if (d.action === 'access' && d.tcode) {
+    if (d.action === 'access' && (d.tcode || d.idToken)) {
       var lv0 = teacherLevel_(d, props);
       if (lv0) return json_({ ok: true, role: 'teacher', level: lv0, menus: menus_() });
-      Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' });
+      if (d.tcode) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
     }
     if (d.action === 'wsset') return wsSet_(d, props);
     if (d.action === 'rosterlist' || d.action === 'rosteradd' || d.action === 'rosterimport') return rosterAction_(d, props);
