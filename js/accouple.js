@@ -40,12 +40,12 @@ const CP_OUT=[['none','ไม่ดับ'],['mid','ไฟดับ 10:00–15:0
 const CP_DEFSET=()=>({src:{pf:true,anti:false}});
 const CP_FTRIP=51.5; /* ความถี่ที่อินเวอร์เตอร์ AC ตัดออก (คู่มือ Deye ตารางป้องกัน 81>.S1 = 51.5 Hz) */
 const CP_CU0=()=>({at:'none',arrow:'ok',lh:'none',la:'none'});
-const CP={sc:'hw_deye',page:'job',sm:{scr:'home'},ports:{src:'none',ct:'none',arrow:'ok'},cu:CP_CU0(),set:CP_DEFSET(),hs:hlDef('deye'),lcd:{scr:'home',stack:[]},dash:{t:24,out:'none',cloud:0,load:100,soc0:50},done:{},drill:null,diagOk:0,_c:null};
+const CP={sc:'hw_deye',page:'job',sm:{scr:'home'},ports:{src:'none',ct:'none',arrow:'ok'},cu:CP_CU0(),m2:{meter:false},set:CP_DEFSET(),hs:hlDef('deye'),lcd:{scr:'home',stack:[]},dash:{t:24,out:'none',cloud:0,load:100,soc0:50},done:{},drill:null,diagOk:0,_c:null};
 const cpF=(v,d=0)=>(+v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
 const cpHM=i=>String(Math.floor(i/2)).padStart(2,'0')+':'+(i%2?'30':'00');
 const cpSc=()=>CP_SC[CP.sc],cpHost=()=>CP_HOST[cpSc().host],cpSrc=()=>CP_SRC[cpSc().src];
 const cpLoad=h=>{let w=.35;if(h>=6&&h<8)w+=.8;if(h>=10&&h<16)w+=.5;if(h>=18&&h<22)w+=1.8;return w};
-function cpReset(S){S.sm={scr:'home'};S.cu=CP_CU0();S.ports={src:'none',ct:'none',arrow:'ok'};S.set=CP_DEFSET();S.hs=hlDef(CP_SC[S.sc].host);S.lcd={scr:'home',stack:[]}}
+function cpReset(S){S.m2={meter:false};S.sm={scr:'home'};S.cu=CP_CU0();S.ports={src:'none',ct:'none',arrow:'ok'};S.set=CP_DEFSET();S.hs=hlDef(CP_SC[S.sc].host);S.lcd={scr:'home',stack:[]}}
 function cpCorrect(S){const sc=CP_SC[S.sc],d=sc.host==='deye';cpReset(S);S.ports={src:sc.load?'load':'gen',ct:'grid',arrow:'ok'};if(sc.load){S.cu.at='load';S.cu.arrow='ok'}
   if(d){if(!sc.load)S.hs.gen.use='micro';else S.hs.gen.acLoad=true;if(sc.policy==='noexp'){S.hs.work.mode='zeroCT';S.hs.work.solarSell=false}else{S.hs.work.mode='sell';S.hs.work.maxSell=5000}}
   else{S.hs.sp.use='ac';S.hs.st.mode='self';if(sc.policy==='noexp')S.hs.st.allowExp=false;else{S.hs.st.allowExp=true;S.hs.st.maxExp=5000}}
@@ -57,7 +57,8 @@ function cpFlags(S){
   const eff=p.src==='bload'?'load':p.src,gen=(eff==='gen'&&H.genUse==='ac')||(sc.host==='deye'&&eff==='load');
   if(sc.load)H.mi={on:95,off:100,hz:52,fixed:true};
   const pe=Object.assign({},p,{src:eff}),cu=S.cu||CP_CU0(),ls=eff==='load'&&sc.host==='deye'&&sc.src==='hw',am=ls?(cu.at==='load'?(cu.arrow==='ok'?'ok':'rev'):cu.at==='none'?'none':'wrong'):null;
-  return{sc,src,H,s,p:pe,ctS,am,ls,gen,viaGrid:p.src==='main'||p.src==='grid',pf:src.adj?s.pf:true};
+  const m2={tick:!!H.inv2,meter:!!(S.m2&&S.m2.meter)};m2.on=sc.host==='deye'&&m2.tick&&m2.meter;
+  return{sc,src,H,s,p:pe,ctS,am,ls,gen,m2,viaGrid:p.src==='main'||p.src==='grid',pf:src.adj?s.pf:true};
 }
 /* ผลเสีย/ข้อควรระวังของการต่ออินเวอร์เตอร์ออนกริดที่ฝั่ง LOAD (Backup) ของ Deye — ตัวเลขมาจากแบบจำลอง (โหลด 60%) ไม่ใช่ค่าจากคู่มือ */
 function cpLoadRisks(S,opt){
@@ -78,6 +79,8 @@ function cpAlarms(S){
   else if(F.p.src==='load')a.push({c:'LOAD-PORT',d:'คู่มือ Solis (ข้อ 5.4.3 Step 7) ระบุให้ต่ออินเวอร์เตอร์ออนกริดที่พอร์ต GEN (Smart Port = AC couple input) ไม่มีข้อความรองรับการต่อที่ฝั่ง Backup แบบจำลองจึงไม่นับว่าต่อ',sev:'stop'});
   if(hn&&F.p.src==='load'&&!F.H.acLoad)a.push({c:'AC-COUPLE-LOAD',d:'ต่ออินเวอร์เตอร์ AC ที่พอร์ต LOAD แต่ยังไม่ติ๊ก AC couple on load side ที่หน้า Gen Port Use (คู่มือ Deye ข้อ 5.10)',sev:'warn',to:'host',g:'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use › ติ๊ก AC couple on load side'});
   if(hn&&F.p.src==='gen'&&F.H.acLoad)a.push({c:'AC-COUPLE-SIDE',d:'ติ๊ก AC couple on load side ไว้ แต่อินเวอร์เตอร์ AC ต่อที่พอร์ต GEN ไม่ใช่พอร์ต LOAD',sev:'warn',to:'host',g:'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use แล้วเอาติ๊ก AC couple on load side ออก'});
+  if(hn&&F.m2.tick&&!F.m2.meter)a.push({c:'METER2-NO-COMM',d:'เปิด Grid Side INV Meter2 แล้ว แต่ยังไม่มีมิเตอร์ของอินเวอร์เตอร์ออนกริดที่สื่อสารกับ Hybrid จอจึงไม่แสดงกำลังของอินเวอร์เตอร์ออนกริดที่ไอคอน PV (คู่มือข้อ 5.11)',sev:'warn'});
+  if(hn&&F.m2.meter&&!F.m2.tick)a.push({c:'METER2-OFF',d:'ติดมิเตอร์ให้อินเวอร์เตอร์ออนกริดแล้ว แต่ยังไม่เปิด Grid Side INV Meter2 จอ Hybrid จึงไม่แสดงกำลังของมัน',sev:'warn',to:'host',g:'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Advanced Function › ติ๊ก Grid Side INV Meter2'});
   if(F.sc.policy==='noexp'&&!F.s.anti)a.push({c:'EXPORT-LIMIT-OFF',d:'ยังไม่เปิดกันย้อนที่อินเวอร์เตอร์ AC ทั้งที่พื้นที่นี้ห้ามขายไฟ',sev:'warn',to:'src',bt:'ไปที่แท็บ 3 จอ on-grid',g:F.sc.src==='hw'?'ไปปรับที่แท็บ 3 จอ Huawei กด Settings › Power adjustment › Active power control › เปิด Export limitation (Zero export)':'ไปปรับที่แท็บ 3 ของไมโคร Deye เปิด Zero export (กันย้อน)'});
   if(F.p.src==='gen'&&!F.gen)a.push({c:hn?'GEN-PORT-USE':'SMART-PORT',d:(hn?'Gen Port Use ต้องเป็น Micro Inv Input':'Smart Port ต้องเป็น AC couple input')+' เครื่องจึงรับไฟจากพอร์ต GEN',sev:'stop',to:'host',g:hn?'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use › เลือก Micro Inv Input':'ไปปรับที่แท็บ 2 จอเครื่อง Solis กด SYSTEM SETTING › SMART PORT › เลือก AC couple input'});
   if(F.ctS==='none')a.push({c:hn?'CT-LOST':'MET-SLT-Fail',d:'ไม่พบ CT/มิเตอร์ที่จุดต่อกริด'+(F.s.anti?' อินเวอร์เตอร์ AC ที่เปิดกันย้อนจะลดกำลังเป็น 0':''),sev:'warn'});
@@ -312,12 +315,16 @@ function cpPgJob(s){
     ${cpRow('ตำแหน่ง CT',`<select class="hn" data-cpp="ct" id="cpp-ct">${CP_CT_OPTS.map(([k,t])=>`<option value="${k}" ${p.ct===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)}
     ${cpRow('ทิศลูกศร CT',`<select class="hn" data-cpp="arrow" id="cpp-arrow"><option value="ok" ${p.arrow==='ok'?'selected':''}>${esc(H.ctOk)}</option><option value="rev" ${p.arrow==='rev'?'selected':''}>${esc(H.ctBad)}</option></select>`)}
     ${F.am!==null?cpRow('ตำแหน่ง CT ของ Huawei',`<select class="hn" data-cpu="at" id="cpu-at">${CP_CT_OPTS.map(([k,t])=>`<option value="${k}" ${CP.cu.at===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)+cpRow('ทิศลูกศร CT ของ Huawei',`<select class="hn" data-cpu="arrow" id="cpu-arrow"><option value="ok" ${CP.cu.arrow==='ok'?'selected':''}>ชี้ไปทางโหลด</option><option value="rev" ${CP.cu.arrow==='rev'?'selected':''}>ชี้ย้อนกลับ</option></select>`)+'<p class="hint tight">Huawei ต่อฝั่ง LOAD: CT/มิเตอร์ของ Huawei ต้องคล้องที่สายโหลดเพื่อไม่ให้ไฟ Huawei ไหลย้อนเข้าพอร์ต LOAD (วางด้วยการลากได้ที่หน้า 6)</p>':''}
+    ${H.gen==='Gen Port Use'?cpRow('มิเตอร์ของอินเวอร์เตอร์ออนกริดต่อ RS485 เข้า Hybrid',cpChk('m2.meter',CP.m2.meter,'ติดตั้งแล้ว'))+'<p class="hint tight">ไม่นับในคะแนน ใช้ฝึก Grid Side INV Meter2 (System Setup › Advanced Function) ต้องมีมิเตอร์และเปิดฟังก์ชันพร้อมกัน จอ Hybrid จึงแสดงกำลังของอินเวอร์เตอร์ออนกริดที่ไอคอน PV</p>':''}
     <p class="hint tight">${esc(H.ctNote)} · มิเตอร์/CT กันย้อน: ${esc(cpSrc().meter)}</p>
     <h3>ตรวจการต่อสาย</h3>${cpList(s.c.job)}
     ${cpAlarms().map(a=>`<p class="${a.sev==='stop'?'hmierr':'hint tight'}"><b>${esc(a.c)}</b> ${esc(a.d)}</p>`+(a.g?`<p class="cpguide">▶ ${esc(a.g)} <button class="btn sm" data-cppg="${a.to}">${esc(a.bt||'ไปที่แท็บ 2 จอเครื่อง')}</button></p>`:'')).join('')}</div></div>`;
 }
+function cpHomeInv(r){ /* Deye: อินเวอร์เตอร์ออนกริดแสดงที่ไอคอน PV ได้เมื่อเปิด Grid Side INV Meter2 และมีมิเตอร์สื่อสารกับ Hybrid (คู่มือข้อ 5.11) */
+  if(cpSc().host!=='deye')return `<th>GEN (AC couple)</th><td>${cpF(r.pA*1000)} W</td>`;
+  return cpFlags().m2.on?`<th>อินเวอร์เตอร์ออนกริด (Meter2)</th><td>${cpF(r.pA*1000)} W</td>`:`<th>อินเวอร์เตอร์ออนกริด</th><td>ไม่แสดง</td>`}
 function cpHome(){const r=cpDay().rows[CP.dash.t];
-  return `<table class="t wrapt"><tbody><tr><th>เวลา</th><td>${cpHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>ความถี่ที่พอร์ต</th><td>${cpF(r.f,2)} Hz</td></tr><tr><th>PV (เครื่อง)</th><td>${cpF(r.pH*1000)} W</td><th>GEN (AC couple)</th><td>${cpF(r.pA*1000)} W</td></tr><tr><th>โหลด</th><td>${cpF(r.L*1000)} W</td><th>กริด</th><td>${cpF(r.grid*1000)} W</td></tr><tr><th>แบต</th><td>${cpF(r.bat*1000)} W</td><th>SOC</th><td>${cpF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
+  return `<table class="t wrapt"><tbody><tr><th>เวลา</th><td>${cpHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>ความถี่ที่พอร์ต</th><td>${cpF(r.f,2)} Hz</td></tr><tr><th>PV (เครื่อง)</th><td>${cpF(r.pH*1000)} W</td>${cpHomeInv(r)}</tr><tr><th>โหลด</th><td>${cpF(r.L*1000)} W</td><th>กริด</th><td>${cpF(r.grid*1000)} W</td></tr><tr><th>แบต</th><td>${cpF(r.bat*1000)} W</td><th>SOC</th><td>${cpF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
 function cpPgHost(s){
   const deye=cpSc().host==='deye',note=cpSc().host==='solis'?'ค่าในแบบจำลอง: Solis ไม่มีค่าความถี่ให้ตั้ง ใช้ Freq-Watt ของอินเวอร์เตอร์ AC ลดกำลังเมื่อ SOC 95–100% (ค่าสมมติ)':'';
   return `<div class="cards"><div class="card sldevcard">${hlDevice(cpSc().host,CP,cpHome(),note)}<p class="hint tight">${deye?(cpSc().load?'ใบงานนี้ต่อที่ช่อง LOAD: ไป System Setup › Gen Port Use ติ๊ก AC couple on load side (ไม่ต้องเลือก Micro Inv Input) · ตั้งโหมดที่ System Work Mode เป็น Zero Export To CT':'ไป System Setup › Gen Port Use เลือก Micro Inv Input · ตั้งโหมดขายไฟที่ System Work Mode'):'ไป SYSTEM SETTING › SMART PORT เลือก AC couple input · ตั้งโหมดขายไฟที่ STORAGE MODE'}</p></div>
@@ -379,7 +386,7 @@ function cpDrill(){
   if(pick.includes('no_ct')&&pick.includes('ct_loc'))pick[pick.indexOf('ct_loc')]=ks.find(k=>!pick.includes(k)&&k!=='ct_loc'&&k!=='ct_rev');
   pick.forEach(k=>CP_FAULTS[k].f(S));S.drill=pick;S.reveal=false;S.flash='';
 }
-function cpSetPath(path,v){const[g,k]=path.split('.');if(g==='dash'){CP.dash[k]=v;return}if(CP.set[g])CP.set[g][k]=v}
+function cpSetPath(path,v){const[g,k]=path.split('.');if(g==='dash'){CP.dash[k]=v;return}if(g==='m2'){CP.m2[k]=v;return}if(CP.set[g])CP.set[g][k]=v}
 function cpEvents(){
   const host=document.getElementById('cphost');if(!host||host.dataset.on)return;host.dataset.on='1';
   /* ลากต่อสาย: ปลายสายอินเวอร์เตอร์ AC และ CT */
@@ -429,6 +436,7 @@ function cpRestore(o){
   if(o.ports){['src','ct'].forEach(k=>{const l=k==='src'?CP_SRC_OPTS:CP_CT_OPTS;if(l.some(x=>x[0]===o.ports[k]))CP.ports[k]=o.ports[k]});if(o.ports.arrow==='ok'||o.ports.arrow==='rev')CP.ports.arrow=o.ports.arrow}
   if(o.set&&o.set.src&&typeof o.set.src==='object')['pf','anti'].forEach(k=>{if(typeof o.set.src[k]==='boolean')CP.set.src[k]=o.set.src[k]});
   if(o.cu&&typeof o.cu==='object'){const c=o.cu;if(['none','grid','src','load'].includes(c.at))CP.cu.at=c.at;if(c.arrow==='ok'||c.arrow==='rev')CP.cu.arrow=c.arrow;if(['none','H','A'].includes(c.lh))CP.cu.lh=c.lh;if(['none','H','A'].includes(c.la))CP.cu.la=c.la}
+  if(o.m2&&typeof o.m2.meter==='boolean')CP.m2.meter=o.m2.meter;
   CP.hs=hlMerge(hlDef(CP_SC[CP.sc].host),o.hs);
   if(o.sm&&['home','padj','feat','meter'].includes(o.sm.scr))CP.sm.scr=o.sm.scr;
   if(o.lcd&&typeof o.lcd.scr==='string'&&/^[a-z]{2,10}$/.test(o.lcd.scr)){CP.lcd.scr=o.lcd.scr}

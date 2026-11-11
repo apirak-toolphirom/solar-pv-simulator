@@ -61,6 +61,15 @@ setTimeout(() => {
   ev('CP.page="host";CP.lcd={scr:"gen",stack:[]};cpRender()'); ok(/AC couple on load side/.test(w.document.body.innerHTML) && w.document.getElementById('hl-gen-acLoad'), 'จอ Gen Port Use มีช่องติ๊ก AC couple on load side');
   ev('CP.sc="hw_deye";cpReset(CP);CP.ports.src="gen";CP.hs.gen.acLoad=true;'); ok(ev('cpAlarms().some(a=>a.c==="AC-COUPLE-SIDE")'), 'ต่อ GEN แต่ติ๊ก AC couple on load side: มีคำเตือน');
   ev('CP.sc="hw_deye_load";cpReset(CP);cpRender()');
+  /* Grid Side INV Meter2 (คู่มือ Deye ข้อ 5.11): ต้องมีมิเตอร์ + เปิดฟังก์ชัน จอจึงแสดงกำลังอินเวอร์เตอร์ออนกริด */
+  ev('cpCorrect(CP);CP.dash.t=24;CP._c=null'); ok(/ไม่แสดง/.test(ev('cpHome()')) && !ev('cpFlags().m2.on'), 'ยังไม่มีมิเตอร์/ไม่เปิด Meter2: จอไม่แสดงกำลังอินเวอร์เตอร์ออนกริด');
+  ev('CP.hs.adv.inv2=true;CP._c=null'); ok(ev('cpAlarms().some(a=>a.c==="METER2-NO-COMM")') && !ev('cpFlags().m2.on'), 'เปิด Meter2 แต่ไม่มีมิเตอร์: มีคำเตือนและยังไม่แสดง');
+  ev('CP.m2.meter=true;CP._c=null'); ok(ev('cpFlags().m2.on') && /Meter2/.test(ev('cpHome()')) && !ev('cpAlarms().some(a=>/^METER2/.test(a.c))'), 'มีมิเตอร์ + เปิด Meter2: จอแสดงกำลังอินเวอร์เตอร์ออนกริดที่ไอคอน PV');
+  ev('CP.hs.adv.inv2=false;CP._c=null'); ok(ev('cpAlarms().some(a=>a.c==="METER2-OFF"&&a.to==="host")'), 'มีมิเตอร์แต่ไม่เปิด Meter2: คำเตือนพร้อมไกด์ไปจอเครื่อง');
+  ev('CP.m2.meter=true;CP.hs.adv.inv2=true;cpCorrect(CP);CP._c=null'); ok(ev('cpScore().ok') && ev('CP.m2.meter')===false, 'cpCorrect รีเซ็ตมิเตอร์และ Meter2 ผ่านทุกข้อ (ไม่นับคะแนน)');
+  ev('CP.m2.meter=true;CP.hs.adv.inv2=true;CP.lcd={scr:"adv",stack:[]};CP.page="host";cpRender()'); ok(w.document.getElementById('hl-adv-inv2') && /Grid Side INV Meter2/.test(w.document.body.innerHTML), 'จอ Advanced Function มีช่องติ๊ก Grid Side INV Meter2');
+  const sn = JSON.stringify(ev('cpSnapshot()')); ev('cpReset(CP)'); ev('cpRestore(' + sn + ')'); ok(ev('CP.m2.meter')===true && ev('CP.hs.adv.inv2')===true, 'บันทึก/กู้คืนค่ามิเตอร์ Meter2');
+  ev('CP.sc="hw_deye_load";cpReset(CP);cpRender()');
   ev('cpCorrect(CP);CP.set.src.anti=false;cpChanged()');
   ok(ev('cpAlarms().some(a=>a.c==="EXPORT-LIMIT-OFF"&&a.to==="src")'), 'ไม่เปิดกันย้อน: มีข้อความแดง + ไกด์ไปแท็บ 3');
   ev('CP.page="src";CP.sm.scr="home";cpRender()');

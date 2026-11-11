@@ -4,17 +4,18 @@
    ชื่อรายการ ค่าเริ่มที่ระบุในคู่มือ และคำอธิบายตามคู่มือ ส่วนค่าเริ่มที่คู่มือไม่ระบุเป็นค่าตัวอย่างของแบบจำลอง */
 const HL_DEYE=()=>({work:{mode:'zeroLoad',solarSell:false,maxSell:5000,zeroP:20},
   bat:{shutdown:10,low:20,restart:40},
-  gen:{use:'gen',rated:8000,toGrid:false,acGrid:false,acLoad:false,sl:{pv:500,on:100,off:95,gridOn:false,offGridOff:false},mi:{on:95,off:100,hz:52}}});
+  gen:{use:'gen',rated:8000,toGrid:false,acGrid:false,acLoad:false,sl:{pv:500,on:100,off:95,gridOn:false,offGridOff:false},mi:{on:95,off:100,hz:52}},
+  adv:{inv2:false}});
 const HL_SOLIS=()=>({st:{mode:'self',allowExp:false,maxExp:6600,cal:20,reserve:80,gridChg:false,peak:true},
   sp:{use:'none',gen:{ctl:'manual',on:30,off:80},sl:{on:90,off:80,gridOn:false,offGridOff:false}}});
 const hlDef=host=>host==='deye'?HL_DEYE():HL_SOLIS();
 /* ค่าที่โมเดลใช้ (ปรับรูปแบบของสองยี่ห้อให้เหมือนกัน) */
 function hlMap(host,h){
   if(host==='deye'){const w=h.work,g=h.gen;
-    return{exp:w.mode==='sell'||w.solarSell,maxSell:w.maxSell/1000,reserve:h.bat.low,floorOff:h.bat.shutdown,genUse:{gen:'gen',smart:'smart',micro:'ac'}[g.use],acLoad:!!g.acLoad,acGrid:!!g.acGrid,
+    return{exp:w.mode==='sell'||w.solarSell,maxSell:w.maxSell/1000,reserve:h.bat.low,floorOff:h.bat.shutdown,genUse:{gen:'gen',smart:'smart',micro:'ac'}[g.use],acLoad:!!g.acLoad,acGrid:!!g.acGrid,inv2:!!(h.adv&&h.adv.inv2),
       sl:{pvMin:g.sl.pv/1000,on:g.sl.on,off:g.sl.off,gridOn:g.sl.gridOn,offGridOff:g.sl.offGridOff},mi:{on:g.mi.on,off:g.mi.off,hz:g.mi.hz,fixed:false},zeroCT:w.mode==='zeroCT'}}
   const s=h.st,p=h.sp;
-  return{exp:s.mode==='sell'||(s.mode==='self'&&s.allowExp),maxSell:s.maxExp/1000,reserve:s.reserve,floorOff:5,genUse:p.use,acLoad:false,acGrid:false,
+  return{exp:s.mode==='sell'||(s.mode==='self'&&s.allowExp),maxSell:s.maxExp/1000,reserve:s.reserve,floorOff:5,genUse:p.use,acLoad:false,acGrid:false,inv2:false,
     sl:{pvMin:0,on:p.sl.on,off:p.sl.off,gridOn:p.sl.gridOn,offGridOff:p.sl.offGridOff},mi:{on:95,off:100,hz:52,fixed:true},zeroCT:false};
 }
 /* ---- สร้างฟอร์ม ---- */
@@ -54,7 +55,8 @@ function hlScreen(host,S,live,modelNote){
         return bar('Generator Port Use')+`<div class="hmibody">${b}<p class="hmiinfo">${info}${acn}</p></div>`+foot}
       case'gridset':return stub('Grid Setting','ปลดล็อกด้วยรหัส 7777 ก่อนแก้ค่ากริด (ไม่ได้ใช้ในใบงานนี้)');
       case'basic':return stub('Basic','Time Syncs, Beep, Auto Dim · Factory Reset รหัส 9999 · Lock out all changes รหัส 7777 (ไม่ได้ใช้ในใบงานนี้)');
-      case'adv':return stub('Advanced Function','Export power limiter, Import power limiter, Grid Side INV Meter2, Ex_Meter For CT ฯลฯ (ไม่ได้ใช้ในใบงานนี้ ดูเมนู 18)');
+      case'adv':{const a=h.adv||(h.adv={inv2:false});
+        return bar('Advanced Function')+`<div class="hmibody">${hlRow('Grid Side INV Meter2',hlChk('adv.inv2',a.inv2,''))}<p class="hmiinfo">Grid Side INV Meter2: ใช้เมื่อมีอินเวอร์เตอร์ออนกริดต่อ AC couple ที่ฝั่งกริดหรือฝั่งโหลดของ Hybrid และติดมิเตอร์ให้อินเวอร์เตอร์ออนกริดนั้น จอ Hybrid จะแสดงกำลังของอินเวอร์เตอร์ออนกริดที่ไอคอน PV ต้องแน่ใจว่ามิเตอร์สื่อสารกับ Hybrid ได้ (คู่มือข้อ 5.11) · รายการอื่นในหน้านี้ (Parallel, Ex_Meter For CT, Meter Select, ATS, Export/Import power limiter, Low Noise Mode, Low Power Mode&lt;Low Batt, MPPT Multi-Point Scanning) ไม่ได้ใช้ในใบงานนี้ ดูเมนู 18</p></div>`+foot}
       case'devinfo':return stub('Device Info.','รุ่น SUN-6K-SG04LP1-EU-SM2 · เวอร์ชันเฟิร์มแวร์เป็นตัวอย่างในแบบจำลอง');
     }
   }else{
