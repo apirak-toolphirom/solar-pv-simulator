@@ -14309,11 +14309,27 @@ const CP_TSN={gen:'พอร์ต GEN',main:'ตู้เมน',grid:'พอ�
 let CPD=null;
 function cpNear(T,x,y,r){let b=null,bd=r;for(const k in T){const d=Math.hypot(T[k][0]-x,T[k][1]-y);if(d<bd){bd=d;b=k}}return b}
 function cpWire(k){const[x,y]=CP_TS[k];return k==='gen'?`M335,42 L335,${y}`:`M335,42 L335,78 L${x},78 L${x},${y}`}
+/* ---- ภาพอุปกรณ์ในผัง: สีตัวเครื่อง/ฟอร์มอย่างง่ายตามประเภท (ไม่ใช่โลโก้หรือแบบจริงของผู้ผลิต) สีในตัวเครื่องคงที่ อ่านได้ทั้งธีมมืดและสว่าง ---- */
+function cpHybridIcon(x,y,w,h,host,hn){
+  const deye=host==='deye',body=deye?'#dfe5ec':'#eef0f2',stripe=deye?'#1f6fb5':'#e8590c',tx='#1b2430',model=(hn.split(' ')[1]||'').replace('-EU-SM2','');
+  let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${body}" stroke="#7d8b99" stroke-width="1.6"/><rect x="${x+1}" y="${y+1}" width="${w-2}" height="9" rx="6" fill="${stripe}"/>`;
+  s+=`<rect x="${x+w-54}" y="${y+17}" width="46" height="25" rx="3" fill="#10222e" stroke="#5a6b78"/><path d="M${x+w-48},${y+25} h22 M${x+w-48},${y+31} h30 M${x+w-48},${y+37} h16" stroke="#58d68d" stroke-width="2" fill="none"/>`;
+  s+=[0,1,2,3].map(i=>`<circle cx="${x+w-47+i*12}" cy="${y+52}" r="3" fill="#8794a1"/>`).join('');
+  s+=`<text x="${x+9}" y="${y+30}" font-size="12" font-weight="700" fill="${tx}">${deye?'Deye':'Solis'} Hybrid</text><text x="${x+9}" y="${y+43}" font-size="9" fill="${tx}">${esc(model)}</text><text x="${x+9}" y="${y+56}" font-size="8" fill="#52606d">GRID · GEN · LOAD</text>`;
+  return s;}
+function cpAcIcon(src,sn){
+  const hw=src==='hw',tx=hw?'#1b2430':'#f1f4f7';let s='';
+  if(hw){s+=`<rect x="262" y="4" width="146" height="38" rx="6" fill="#eef1f4" stroke="#7d8b99" stroke-width="1.6"/>`+[0,1,2,3,4,5].map(i=>`<line x1="${382+i*5}" y1="9" x2="${382+i*5}" y2="37" stroke="#aab4be" stroke-width="2"/>`).join('')+
+    `<rect x="262" y="4" width="6" height="38" rx="3" fill="#c8102e"/>`+[0,1,2].map(i=>`<circle cx="${277+i*9}" cy="35" r="2.6" fill="${i===0?'#27ae60':'#9aa6b2'}"/>`).join('')+
+    `<text x="276" y="21" font-size="10" font-weight="700" fill="${tx}">${esc(sn.replace('Huawei ',''))}</text>`;}
+  else{s+=`<line x1="270" y1="22" x2="285" y2="22" stroke="#222" stroke-width="3"/><line x1="385" y1="22" x2="400" y2="22" stroke="#222" stroke-width="3"/><rect x="285" y="6" width="100" height="32" rx="7" fill="#323b45" stroke="#7d8b99" stroke-width="1.6"/>`+
+    `<text x="335" y="21" text-anchor="middle" font-size="11" font-weight="700" fill="${tx}">SUN-M200G4</text><text x="335" y="32" text-anchor="middle" font-size="8" fill="#b6c0ca">ไมโครอินเวอร์เตอร์ 2 kW</text><line x1="335" y1="38" x2="335" y2="42" stroke="#222" stroke-width="3"/>`;}
+  return s+`<text x="254" y="26" text-anchor="end" class="svgt mut" font-size="10">อินเวอร์เตอร์ AC</text>`;}
 function cpSLD(){
   const F=cpFlags(),p=F.p,hn=cpHost().n,sn=cpSrc().n.split(' (')[0],D=CPD,dsrc=D&&D.k==='src',dct=D&&D.k==='ct';
   const box=(x,y,w,h,t,t2,cl)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" class="cpb ${cl||''}"/><text x="${x+w/2}" y="${y+h/2-(t2?2:-4)}" text-anchor="middle" class="svgt" font-size="12">${esc(t)}</text>${t2?`<text x="${x+w/2}" y="${y+h/2+13}" text-anchor="middle" class="svgt mut" font-size="10">${esc(t2)}</text>`:''}`;
   const ln=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" class="cpw"/>`;
-  let o=box(10,112,90,48,'กริด','PEA/MEA')+box(130,112,90,48,'ตู้เมน')+box(260,104,150,64,hn.split(' ')[0]+' Hybrid','พอร์ต GRID · GEN · LOAD','hy')+box(450,112,90,48,'โหลดบ้าน','Backup')+box(260,4,150,38,sn,'อินเวอร์เตอร์ AC','sr');
+  let o=box(10,112,90,48,'กริด','PEA/MEA')+box(130,112,90,48,'ตู้เมน')+cpHybridIcon(260,104,150,64,cpSc().host,hn)+box(450,112,90,48,'โหลดบ้าน','Backup')+cpAcIcon(cpSc().src,sn);
   o+=ln(100,136,130,136)+ln(220,136,260,136)+ln(410,136,450,136);
   o+=`<text x="345" y="98" class="svgt mut" font-size="10">GEN</text><text x="240" y="152" text-anchor="middle" class="svgt mut" font-size="9">GRID</text><text x="430" y="152" text-anchor="middle" class="svgt mut" font-size="9">LOAD</text>`;
   /* สายอินเวอร์เตอร์ AC */
@@ -14328,7 +14344,7 @@ function cpSLD(){
   o+=`<circle cx="335" cy="42" r="5" fill="var(--ink)"/><circle data-cpdrag="src" cx="335" cy="42" r="13" fill="transparent" style="cursor:grab;touch-action:none"><title>ลากปลายสายอินเวอร์เตอร์ AC ไปวางที่จุดต่อ</title></circle>`;
   /* CT */
   const pos=dct?[D.x,D.y]:p.ct!=='none'?CP_TC[p.ct]:[505,40],dx=(F.p.arrow==='ok')===(cpSc().host==='deye')?1:-1,[cx,cy]=pos;
-  o+=`<g data-cpdrag="ct" style="cursor:grab;touch-action:none"><circle cx="${cx}" cy="${cy}" r="${p.ct==='none'&&!dct?11:9}" class="cpct"/><text x="${cx}" y="${cy+4}" text-anchor="middle" class="svgt" font-size="10" style="pointer-events:none">CT</text>`+
+  o+=`<g data-cpdrag="ct" style="cursor:grab;touch-action:none"><circle cx="${cx}" cy="${cy}" r="${p.ct==='none'&&!dct?11:9}" class="cpct"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="10" font-weight="700" fill="#1b2430" style="pointer-events:none">CT</text>`+
     (p.ct!=='none'||dct?`<path d="M${cx-dx*9},${cy+17} L${cx+dx*9},${cy+17} M${cx+dx*9},${cy+17} l${-dx*5},-3 M${cx+dx*9},${cy+17} l${-dx*5},3" stroke="var(--err)" stroke-width="1.8" fill="none" style="pointer-events:none"/>`:'')+`<title>ลาก CT ไปคล้องสาย · คลิกเพื่อกลับทิศลูกศร</title></g>`;
   if(p.ct==='none'&&!dct)o+=`<text x="505" y="66" text-anchor="middle" class="svgt mut" font-size="10">ลาก CT ไปคล้องสาย</text>`;
   return `<svg viewBox="0 0 560 190" role="img" aria-label="ผังการต่อ AC coupling ลากปลายสายและ CT เพื่อต่อ">${o}</svg>`;
