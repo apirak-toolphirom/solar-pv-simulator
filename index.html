@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="67f0229630">
+<meta name="build" content="52b16bf902">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='67f0229630'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='52b16bf902'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=7e96db14">
+<link rel="stylesheet" href="css/styles.css?v=aa388cf9">
 </head>
 <body>
 <div class="app">
+  <button class="navtoggle" id="navtoggle" type="button" aria-controls="nav" aria-expanded="true" title="ซ่อนเมนูด้านซ้าย เพื่อเพิ่มพื้นที่ทำงาน">◀</button>
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
     <button class="navcur" id="navcur" type="button" aria-expanded="false" aria-controls="navgroups"><span class="navcuric" aria-hidden="true">☰</span><span id="navcurname">เมนู</span></button>
@@ -805,6 +806,6 @@ if(m&&m[1]!=='67f0229630'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/eit.js?v=2ad0f7a2"></script>
 <script src="js/access.js?v=0e92bdbd"></script>
 <script src="js/ctx.js?v=f19791ef"></script>
-<script src="js/app.js?v=9d904565"></script>
+<script src="js/app.js?v=fa8b13f9"></script>
 </body>
 </html>

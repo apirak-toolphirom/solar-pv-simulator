@@ -15,6 +15,7 @@ function navSync(){
   const b=document.querySelector(`.navb[data-tab="${curTab}"]`),n=document.getElementById('navcurname');
   if(b&&n){const ic=b.querySelector('.ic');n.textContent=(ic?ic.textContent+' ':'')+[...b.childNodes].filter(x=>x!==ic).map(x=>x.textContent).join('').trim();}
 }
+function navHide(on,save){document.body.classList.toggle('navhide',!!on);const b=document.getElementById('navtoggle');if(b){b.textContent=on?'▶':'◀';b.setAttribute('aria-expanded',on?'false':'true');b.title=on?'แสดงเมนูด้านซ้าย':'ซ่อนเมนูด้านซ้าย เพื่อเพิ่มพื้นที่ทำงาน'}if(save!==false)try{localStorage.setItem('pvsim:navhide',on?'1':'0')}catch(e){}}
 function navOpen(on){const nav=document.getElementById('nav'),c=document.getElementById('navcur');if(!nav||!c)return;nav.classList.toggle('open',on);c.setAttribute('aria-expanded',on?'true':'false');}
 function showTab(t,fromHash){
   let sub='';if(typeof t==='string'&&t.includes('/')){sub=t.slice(t.indexOf('/')+1);t=t.slice(0,t.indexOf('/'))}
@@ -235,6 +236,8 @@ function initReset(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
   initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();if(typeof initAH==='function')initAH();if(typeof initAS==='function')initAS();initBench();initFusion();initFupar();initFudet();initFuov();if(typeof initFusionCom==='function')initFusionCom();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();if(typeof initLibrary==='function')initLibrary();initAccess();initReset();initFile();initCloud();initConfirm();
+  $('#navtoggle').addEventListener('click',()=>navHide(!document.body.classList.contains('navhide')));
+  try{if(localStorage.getItem('pvsim:navhide')==='1')navHide(true,false)}catch(e){}
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#navcur').addEventListener('click',e=>{e.stopPropagation();navOpen(!$('#nav').classList.contains('open'))});
   document.addEventListener('click',e=>{if(!e.target.closest('#nav'))navOpen(false)});

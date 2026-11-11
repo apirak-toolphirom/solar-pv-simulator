@@ -1174,8 +1174,19 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 .slleg .ot2{color:var(--s3)}.slc.ot2{stroke:var(--s3);stroke-dasharray:2 3}
 .cpguide{margin:.2rem 0 .6rem;font-weight:600;line-height:1.5;color:#9a6b00}.cpguide .btn{margin-left:.4rem;vertical-align:middle}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cpguide{color:#ffd54a}}:root[data-theme="dark"] .cpguide{color:#ffd54a}
+/* ---- ซ่อน/แสดงแถบเมนูด้านซ้าย (จอใหญ่) เพื่อเพิ่มพื้นที่ทำงาน ---- */
+.app{transition:grid-template-columns .22s ease}
+.navtoggle{position:fixed;top:14px;left:206px;z-index:40;width:28px;height:44px;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--accent);font-size:13px;cursor:pointer;transition:left .22s ease;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.navtoggle:hover{border-color:var(--accent)}
+body.navhide .app{grid-template-columns:0 minmax(0,1fr)}
+body.navhide .side{visibility:hidden;overflow:hidden;padding-left:0;padding-right:0;border-right:0}
+body.navhide .navtoggle{left:8px}
+body.navhide .main{padding-left:48px}
+body.fsmode .navtoggle{display:none}
+@media (max-width:760px){.navtoggle{display:none}body.navhide .app{grid-template-columns:1fr}body.navhide .side{visibility:visible}body.navhide .main{padding-left:16px}}
 </style>
 <div class="app">
+  <button class="navtoggle" id="navtoggle" type="button" aria-controls="nav" aria-expanded="true" title="ซ่อนเมนูด้านซ้าย เพื่อเพิ่มพื้นที่ทำงาน">◀</button>
   <nav class="side" id="nav" aria-label="เมนูหลัก">
     <div class="brand">จำลองระบบโซลาร์<small>แผง · อินเวอร์เตอร์ · แบต · โหลด</small></div>
     <button class="navcur" id="navcur" type="button" aria-expanded="false" aria-controls="navgroups"><span class="navcuric" aria-hidden="true">☰</span><span id="navcurname">เมนู</span></button>
@@ -14919,6 +14930,7 @@ function navSync(){
   const b=document.querySelector(`.navb[data-tab="${curTab}"]`),n=document.getElementById('navcurname');
   if(b&&n){const ic=b.querySelector('.ic');n.textContent=(ic?ic.textContent+' ':'')+[...b.childNodes].filter(x=>x!==ic).map(x=>x.textContent).join('').trim();}
 }
+function navHide(on,save){document.body.classList.toggle('navhide',!!on);const b=document.getElementById('navtoggle');if(b){b.textContent=on?'▶':'◀';b.setAttribute('aria-expanded',on?'false':'true');b.title=on?'แสดงเมนูด้านซ้าย':'ซ่อนเมนูด้านซ้าย เพื่อเพิ่มพื้นที่ทำงาน'}if(save!==false)try{localStorage.setItem('pvsim:navhide',on?'1':'0')}catch(e){}}
 function navOpen(on){const nav=document.getElementById('nav'),c=document.getElementById('navcur');if(!nav||!c)return;nav.classList.toggle('open',on);c.setAttribute('aria-expanded',on?'true':'false');}
 function showTab(t,fromHash){
   let sub='';if(typeof t==='string'&&t.includes('/')){sub=t.slice(t.indexOf('/')+1);t=t.slice(0,t.indexOf('/'))}
@@ -15139,6 +15151,8 @@ function initReset(){
   initSim();resetWith(1);
   ctxInit();initCatalogUI();initTeach();eqRenderAll();initPdfImport();
   initLoads();initSite();initBackup();if(typeof initBkAnim==='function')initBkAnim();initSystems();initAC();if(typeof initAH==='function')initAH();if(typeof initAS==='function')initAS();initBench();initFusion();initFupar();initFudet();initFuov();if(typeof initFusionCom==='function')initFusionCom();initEvents();initSubmit();initWorksheets();if(typeof initBasics==='function')initBasics();if(typeof initHwlog==='function')initHwlog();if(typeof initLibrary==='function')initLibrary();initAccess();initReset();initFile();initCloud();initConfirm();
+  $('#navtoggle').addEventListener('click',()=>navHide(!document.body.classList.contains('navhide')));
+  try{if(localStorage.getItem('pvsim:navhide')==='1')navHide(true,false)}catch(e){}
   document.querySelectorAll('.navb').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   $('#navcur').addEventListener('click',e=>{e.stopPropagation();navOpen(!$('#nav').classList.contains('open'))});
   document.addEventListener('click',e=>{if(!e.target.closest('#nav'))navOpen(false)});
