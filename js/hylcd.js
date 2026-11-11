@@ -4,17 +4,17 @@
    ชื่อรายการ ค่าเริ่มที่ระบุในคู่มือ และคำอธิบายตามคู่มือ ส่วนค่าเริ่มที่คู่มือไม่ระบุเป็นค่าตัวอย่างของแบบจำลอง */
 const HL_DEYE=()=>({work:{mode:'zeroLoad',solarSell:false,maxSell:5000,zeroP:20},
   bat:{shutdown:10,low:20,restart:40},
-  gen:{use:'gen',rated:8000,toGrid:false,sl:{pv:500,on:100,off:95,gridOn:false,offGridOff:false},mi:{on:95,off:100,hz:52}}});
+  gen:{use:'gen',rated:8000,toGrid:false,acGrid:false,acLoad:false,sl:{pv:500,on:100,off:95,gridOn:false,offGridOff:false},mi:{on:95,off:100,hz:52}}});
 const HL_SOLIS=()=>({st:{mode:'self',allowExp:false,maxExp:6600,cal:20,reserve:80,gridChg:false,peak:true},
   sp:{use:'none',gen:{ctl:'manual',on:30,off:80},sl:{on:90,off:80,gridOn:false,offGridOff:false}}});
 const hlDef=host=>host==='deye'?HL_DEYE():HL_SOLIS();
 /* ค่าที่โมเดลใช้ (ปรับรูปแบบของสองยี่ห้อให้เหมือนกัน) */
 function hlMap(host,h){
   if(host==='deye'){const w=h.work,g=h.gen;
-    return{exp:w.mode==='sell'||w.solarSell,maxSell:w.maxSell/1000,reserve:h.bat.low,floorOff:h.bat.shutdown,genUse:{gen:'gen',smart:'smart',micro:'ac'}[g.use],
+    return{exp:w.mode==='sell'||w.solarSell,maxSell:w.maxSell/1000,reserve:h.bat.low,floorOff:h.bat.shutdown,genUse:{gen:'gen',smart:'smart',micro:'ac'}[g.use],acLoad:!!g.acLoad,acGrid:!!g.acGrid,
       sl:{pvMin:g.sl.pv/1000,on:g.sl.on,off:g.sl.off,gridOn:g.sl.gridOn,offGridOff:g.sl.offGridOff},mi:{on:g.mi.on,off:g.mi.off,hz:g.mi.hz,fixed:false},zeroCT:w.mode==='zeroCT'}}
   const s=h.st,p=h.sp;
-  return{exp:s.mode==='sell'||(s.mode==='self'&&s.allowExp),maxSell:s.maxExp/1000,reserve:s.reserve,floorOff:5,genUse:p.use,
+  return{exp:s.mode==='sell'||(s.mode==='self'&&s.allowExp),maxSell:s.maxExp/1000,reserve:s.reserve,floorOff:5,genUse:p.use,acLoad:false,acGrid:false,
     sl:{pvMin:0,on:p.sl.on,off:p.sl.off,gridOn:p.sl.gridOn,offGridOff:p.sl.offGridOff},mi:{on:95,off:100,hz:52,fixed:true},zeroCT:false};
 }
 /* ---- สร้างฟอร์ม ---- */
@@ -46,10 +46,12 @@ function hlScreen(host,S,live,modelNote){
         if(g.use==='gen')b+=hlRow('Generator Input Rated Power',hlNum('gen.rated',g.rated,0,8000,100,'W'))+hlRow('GEN connect to Grid input port',hlChk('gen.toGrid',g.toGrid,''));
         if(g.use==='smart')b+=hlRow('Power (PV ≥)',hlNum('gen.sl.pv',g.sl.pv,0,6000,100,'W'))+hlRow('Smart Load ON Batt',hlNum('gen.sl.on',g.sl.on,0,100,1,'%'))+hlRow('Smart Load OFF Batt',hlNum('gen.sl.off',g.sl.off,0,100,1,'%'))+hlRow('On Grid always on',hlChk('gen.sl.gridOn',g.sl.gridOn,''))+hlRow('off grid immediately off',hlChk('gen.sl.offGridOff',g.sl.offGridOff,''));
         if(g.use==='micro')b+=hlRow('Micro Inv Input ON',hlNum('gen.mi.on',g.mi.on,0,100,1,'%'))+hlRow('Micro Inv Input OFF',hlNum('gen.mi.off',g.mi.off,0,100,1,'%'))+hlRow('AC Couple Fre High',hlNum('gen.mi.hz',g.mi.hz,50,52,.1,'Hz'));
+        b+=hlRow('AC couple on grid side',hlChk('gen.acGrid',g.acGrid,''))+hlRow('AC couple on load side',hlChk('gen.acLoad',g.acLoad,''));
+        const acn=' · AC couple on load side: ต่อเอาต์พุตของอินเวอร์เตอร์ออนกริดที่พอร์ต LOAD ของ Hybrid ซึ่งเครื่องจะแสดงกำลังโหลดไม่ถูกต้อง · AC couple on grid side: ต่อที่พอร์ต GRID · บางเฟิร์มแวร์ไม่มีฟังก์ชันนี้ · ถ้าอินเวอร์เตอร์ออนกริดมีมิเตอร์ของตัวเอง ตั้ง Advanced Function › Grid Side INV Meter2 (ข้อ 5.11) เพื่อให้จอแสดงกำลังของมันที่ไอคอน PV (คู่มือข้อ 5.10)';
         const info={gen:'Generator Input: ต่อเครื่องปั่นไฟที่พอร์ต GEN (Rated Power = กำลังสูงสุดที่รับจากเครื่องปั่นไฟ)',
           smart:'Smart Load Output: ใช้พอร์ต GEN เป็นเอาต์พุต โหลดที่ต่ออยู่เปิด/ปิดโดยเครื่อง ตัวอย่างในคู่มือ Power = 500 W, ON 100%, OFF 95%: เมื่อ PV เกิน 500 W และ SOC ถึง 100% Smart Load จะเปิด เมื่อ SOC ต่ำกว่า 95% หรือ PV ต่ำกว่า 500 W จะปิด · On Grid always on: เปิดทุกครั้งที่มีกริด · off grid immediately off: ตัดทันทีเมื่อกริดดับ',
           micro:'Micro Inv Input: ใช้พอร์ต GEN เป็นอินพุต AC ของไมโครอินเวอร์เตอร์หรืออินเวอร์เตอร์ออนกริด · OFF: เมื่อ SOC ถึงค่านี้ตอนไฟดับ เครื่องเพิ่มความถี่ที่พอร์ต GEN ถึง AC Couple Fre High เพื่อให้อินเวอร์เตอร์นั้นตัดออก (ใช้ไม่ได้ตอนมีกริด) · ON: เมื่อ SOC ต่ำกว่าค่านี้ รีเลย์พอร์ต GEN ปิดและอินเวอร์เตอร์นั้นจ่ายไฟ · ก่อนถึง OFF กำลังไมโครลดลงเป็นเส้นตรง · หมายเหตุในคู่มือ: ON/OFF ของ Micro Inv Input มีเฉพาะบางเวอร์ชันเฟิร์มแวร์'}[g.use];
-        return bar('Generator Port Use')+`<div class="hmibody">${b}<p class="hmiinfo">${info}</p></div>`+foot}
+        return bar('Generator Port Use')+`<div class="hmibody">${b}<p class="hmiinfo">${info}${acn}</p></div>`+foot}
       case'gridset':return stub('Grid Setting','ปลดล็อกด้วยรหัส 7777 ก่อนแก้ค่ากริด (ไม่ได้ใช้ในใบงานนี้)');
       case'basic':return stub('Basic','Time Syncs, Beep, Auto Dim · Factory Reset รหัส 9999 · Lock out all changes รหัส 7777 (ไม่ได้ใช้ในใบงานนี้)');
       case'adv':return stub('Advanced Function','Export power limiter, Import power limiter, Grid Side INV Meter2, Ex_Meter For CT ฯลฯ (ไม่ได้ใช้ในใบงานนี้ ดูเมนู 18)');

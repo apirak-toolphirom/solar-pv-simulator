@@ -55,6 +55,12 @@ setTimeout(() => {
   ok(w.document.querySelectorAll('[data-cpsc]').length === 5, 'มีให้เลือก 5 ระบบ');
   ev('cpCorrect(CP);cpChanged()'); ok(ev('cpScore().ok') && ev('CP.ports.src') === 'load', 'เฉลยระบบ LOAD: ต่อ LOAD + CT กริด + เปิดกันย้อน ผ่านทุกข้อ');
   ev('CP.ports.src="gen";cpChanged()'); ok(!ev('cpChecks().job[0][0]'), 'ต่อที่ GEN ไม่ผ่านในใบงาน LOAD');
+  /* ค่าตั้ง AC couple on load side ที่หน้า Gen Port Use (คู่มือ Deye ข้อ 5.10) */
+  ev('cpCorrect(CP);cpChanged()'); ok(ev('CP.hs.gen.acLoad')===true && ev('cpChecks().set.some(x=>/AC couple on load side/.test(x[1])&&x[0])'), 'เฉลยระบบ LOAD: ติ๊ก AC couple on load side แล้วผ่านเช็กลิสต์');
+  ev('CP.hs.gen.acLoad=false;cpChanged()'); ok(!ev('cpScore().ok') && ev('cpAlarms().some(a=>a.c==="AC-COUPLE-LOAD"&&a.to==="host")'), 'ไม่ติ๊ก AC couple on load side: ไม่ผ่านและมีคำเตือนพร้อมไกด์ไปจอเครื่อง');
+  ev('CP.page="host";CP.lcd={scr:"gen",stack:[]};cpRender()'); ok(/AC couple on load side/.test(w.document.body.innerHTML) && w.document.getElementById('hl-gen-acLoad'), 'จอ Gen Port Use มีช่องติ๊ก AC couple on load side');
+  ev('CP.sc="hw_deye";cpReset(CP);CP.ports.src="gen";CP.hs.gen.acLoad=true;'); ok(ev('cpAlarms().some(a=>a.c==="AC-COUPLE-SIDE")'), 'ต่อ GEN แต่ติ๊ก AC couple on load side: มีคำเตือน');
+  ev('CP.sc="hw_deye_load";cpReset(CP);cpRender()');
   ev('cpCorrect(CP);CP.set.src.anti=false;cpChanged()');
   ok(ev('cpAlarms().some(a=>a.c==="EXPORT-LIMIT-OFF"&&a.to==="src")'), 'ไม่เปิดกันย้อน: มีข้อความแดง + ไกด์ไปแท็บ 3');
   ev('CP.page="src";CP.sm.scr="home";cpRender()');

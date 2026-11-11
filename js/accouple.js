@@ -29,6 +29,7 @@ const CP_FAULTS={
   ct_rev:{n:'CT ติดกลับทิศ',f:S=>{S.ports.arrow='rev'}},
   gen_use:{n:'ไม่ได้ตั้งพอร์ต GEN เป็น AC couple (Micro Inv Input / AC couple input)',f:S=>{if(CP_SC[S.sc].host==='deye')S.hs.gen.use='gen';else S.hs.sp.use='none'},ok:S=>!CP_SC[S.sc].load},
   hz_low:{n:'AC Couple Fre High ตั้งต่ำกว่าความถี่ที่อินเวอร์เตอร์ AC ตัดออก (51.5 Hz)',f:S=>{S.hs.gen.mi.hz=51},ok:S=>CP_SC[S.sc].host==='deye'&&!CP_SC[S.sc].load},
+  acload_off:{n:'ไม่ได้ติ๊ก AC couple on load side ที่หน้า Gen Port Use ทั้งที่ต่ออินเวอร์เตอร์ AC ฝั่ง LOAD',f:S=>{S.hs.gen.acLoad=false},ok:S=>!!CP_SC[S.sc].load},
   ct_hw_pos:{n:'CT ของ Huawei ถูกคล้องที่สายไฟกริด ทั้งที่ Huawei ต่อฝั่ง LOAD (ต้องคล้องสายโหลด)',f:S=>{S.cu.at='grid'},ok:S=>!!CP_SC[S.sc].load},
   no_ct:{n:'ไม่ได้ติดตั้ง CT แต่เปิดกันย้อนไว้',f:S=>{S.ports.ct='none';S.set.src.anti=true},ok:S=>CP_SC[S.sc].policy==='noexp'},
   pf_off:{n:'ปิด Freq-Watt / P(f) ที่ Huawei (Solis ใช้ Freq-Watt ปรับกำลัง)',f:S=>{S.set.src.pf=false},ok:S=>CP_SC[S.sc].host==='solis'&&CP_SC[S.sc].src==='hw'}
@@ -46,7 +47,7 @@ const cpSc=()=>CP_SC[CP.sc],cpHost=()=>CP_HOST[cpSc().host],cpSrc=()=>CP_SRC[cpS
 const cpLoad=h=>{let w=.35;if(h>=6&&h<8)w+=.8;if(h>=10&&h<16)w+=.5;if(h>=18&&h<22)w+=1.8;return w};
 function cpReset(S){S.sm={scr:'home'};S.cu=CP_CU0();S.ports={src:'none',ct:'none',arrow:'ok'};S.set=CP_DEFSET();S.hs=hlDef(CP_SC[S.sc].host);S.lcd={scr:'home',stack:[]}}
 function cpCorrect(S){const sc=CP_SC[S.sc],d=sc.host==='deye';cpReset(S);S.ports={src:sc.load?'load':'gen',ct:'grid',arrow:'ok'};if(sc.load){S.cu.at='load';S.cu.arrow='ok'}
-  if(d){if(!sc.load)S.hs.gen.use='micro';if(sc.policy==='noexp'){S.hs.work.mode='zeroCT';S.hs.work.solarSell=false}else{S.hs.work.mode='sell';S.hs.work.maxSell=5000}}
+  if(d){if(!sc.load)S.hs.gen.use='micro';else S.hs.gen.acLoad=true;if(sc.policy==='noexp'){S.hs.work.mode='zeroCT';S.hs.work.solarSell=false}else{S.hs.work.mode='sell';S.hs.work.maxSell=5000}}
   else{S.hs.sp.use='ac';S.hs.st.mode='self';if(sc.policy==='noexp')S.hs.st.allowExp=false;else{S.hs.st.allowExp=true;S.hs.st.maxExp=5000}}
   S.set.src.anti=sc.policy==='noexp';return S}
 /* ---- สถานะต่อสาย/ตั้งค่า → ธงที่ใช้คำนวณ ---- */
@@ -62,7 +63,7 @@ function cpFlags(S){
 function cpLoadRisks(S,opt){
   S=S||CP;const F=cpFlags(S),r=[];if(F.p.src!=='load'||F.sc.host!=='deye')return r;
   const N=cpRun({cloud:0,out:'none',soc0:50,load:60},S),B=cpRun({cloud:0,out:'mid',soc0:90,load:60},S),hw=F.sc.src==='hw';
-  r.push({c:'LOAD-DISPLAY',d:'จอ Hybrid แสดงกำลังโหลดไม่ถูกต้อง (คู่มือ Deye ข้อ 5.11 AC couple on load side) เพราะไฟของอินเวอร์เตอร์ออนกริดเข้ามาที่ฝั่งโหลดของเครื่อง',sev:'warn'});
+  r.push({c:'LOAD-DISPLAY',d:'จอ Hybrid แสดงกำลังโหลดไม่ถูกต้อง (คู่มือ Deye ข้อ 5.10 AC couple on load side) เพราะไฟของอินเวอร์เตอร์ออนกริดเข้ามาที่ฝั่งโหลดของเครื่อง',sev:'warn'});
   r.push({c:'SURPLUS',d:'ไฟส่วนที่เกินโหลด Backup และเกินที่แบตรับได้ ไปจ่ายโหลดฝั่งกริดตรง ๆ ไม่ได้ ต้องลดกำลังหรือไหลย้อนผ่าน Hybrid ออกกริด (แบบจำลองวันตัวอย่างโหลด 60%: ตัดทิ้ง '+cpF(N.T.cutA,1)+' kWh, ส่งออกกริดโดยไม่ตั้งใจ '+cpF(N.T.expBad,1)+' kWh)',sev:N.T.expBad>.05?'stop':'warn'});
   r.push({c:'DOUBLE-CONVERSION',d:'ไฟที่ชาร์จแบตต้องผ่านการแปลง AC→DC อีกรอบ สูญเสียมากกว่าแผงของ Hybrid ที่ชาร์จตรง (วันตัวอย่างชาร์จแบต '+cpF(N.T.chg,1)+' kWh)',sev:'warn'});
   if(F.sc.policy==='noexp'&&F.s.anti)r.push({c:'TWO-CONTROLLERS',d:(hw?'Huawei zero export (อ่านมิเตอร์ที่กริด)':'อินเวอร์เตอร์ออนกริดที่เปิดกันย้อน')+' กับ Hybrid Zero Export To CT ควบคุมกำลังพร้อมกัน กำลังอาจแกว่งหรือตอบสนองช้า และถ้ามิเตอร์ไม่เห็นกระแสกริดจะลดกำลังเป็น 0',sev:'warn'});
@@ -75,6 +76,8 @@ function cpAlarms(S){
   S=S||CP;const F=cpFlags(S),a=[],hn=CP_SC[S.sc].host==='deye';
   if(F.p.src==='load'&&hn){if(!F.sc.load)a.push({c:'ใบงานนี้ให้ต่อที่ GEN',d:'ฝึกต่อฝั่ง LOAD ได้ที่ระบบ Huawei → ช่อง Backup (LOAD) หรือหน้า 6 ข้อความข้างล่างคือผลเสียของการต่อฝั่ง LOAD',sev:'warn'});cpLoadRisks(S).forEach(x=>a.push(x))}
   else if(F.p.src==='load')a.push({c:'LOAD-PORT',d:'คู่มือ Solis (ข้อ 5.4.3 Step 7) ระบุให้ต่ออินเวอร์เตอร์ออนกริดที่พอร์ต GEN (Smart Port = AC couple input) ไม่มีข้อความรองรับการต่อที่ฝั่ง Backup แบบจำลองจึงไม่นับว่าต่อ',sev:'stop'});
+  if(hn&&F.p.src==='load'&&!F.H.acLoad)a.push({c:'AC-COUPLE-LOAD',d:'ต่ออินเวอร์เตอร์ AC ที่พอร์ต LOAD แต่ยังไม่ติ๊ก AC couple on load side ที่หน้า Gen Port Use (คู่มือ Deye ข้อ 5.10)',sev:'warn',to:'host',g:'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use › ติ๊ก AC couple on load side'});
+  if(hn&&F.p.src==='gen'&&F.H.acLoad)a.push({c:'AC-COUPLE-SIDE',d:'ติ๊ก AC couple on load side ไว้ แต่อินเวอร์เตอร์ AC ต่อที่พอร์ต GEN ไม่ใช่พอร์ต LOAD',sev:'warn',to:'host',g:'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use แล้วเอาติ๊ก AC couple on load side ออก'});
   if(F.sc.policy==='noexp'&&!F.s.anti)a.push({c:'EXPORT-LIMIT-OFF',d:'ยังไม่เปิดกันย้อนที่อินเวอร์เตอร์ AC ทั้งที่พื้นที่นี้ห้ามขายไฟ',sev:'warn',to:'src',bt:'ไปที่แท็บ 3 จอ on-grid',g:F.sc.src==='hw'?'ไปปรับที่แท็บ 3 จอ Huawei กด Settings › Power adjustment › Active power control › เปิด Export limitation (Zero export)':'ไปปรับที่แท็บ 3 ของไมโคร Deye เปิด Zero export (กันย้อน)'});
   if(F.p.src==='gen'&&!F.gen)a.push({c:hn?'GEN-PORT-USE':'SMART-PORT',d:(hn?'Gen Port Use ต้องเป็น Micro Inv Input':'Smart Port ต้องเป็น AC couple input')+' เครื่องจึงรับไฟจากพอร์ต GEN',sev:'stop',to:'host',g:hn?'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use › เลือก Micro Inv Input':'ไปปรับที่แท็บ 2 จอเครื่อง Solis กด SYSTEM SETTING › SMART PORT › เลือก AC couple input'});
   if(F.ctS==='none')a.push({c:hn?'CT-LOST':'MET-SLT-Fail',d:'ไม่พบ CT/มิเตอร์ที่จุดต่อกริด'+(F.s.anti?' อินเวอร์เตอร์ AC ที่เปิดกันย้อนจะลดกำลังเป็น 0':''),sev:'warn'});
@@ -139,6 +142,7 @@ function cpChecks(){
     [F.p.ct==='grid'&&F.p.arrow==='ok','ทิศลูกศร CT ถูกต้อง',F.p.ct==='grid'&&F.p.arrow!=='ok'?'err':'']];
   if(ld&&A.adj)job.push([CP.cu.at==='load','CT ของ Huawei (ฟ้า) คล้องสายโหลด (สายจากพอร์ต LOAD) เพื่อจำกัดไม่ให้ไฟ Huawei ไหลย้อนเข้าพอร์ต LOAD'+(CP.cu.at==='load'?'':CP.cu.at==='none'?' (ยังไม่ได้ติด)':' (ตอนนี้อยู่ที่'+(CP.cu.at==='grid'?'สายไฟกริด':'สายอินเวอร์เตอร์ AC')+')'),CP.cu.at!=='none'&&CP.cu.at!=='load'?'err':''],[CP.cu.at==='load'&&CP.cu.arrow==='ok','ทิศลูกศร CT ของ Huawei ชี้ไปทางโหลด (จาก Hybrid ไปโหลด)',CP.cu.at==='load'&&CP.cu.arrow!=='ok'?'err':'']);
   const set=ld?[]:[[F.H.genUse==='ac',deye?'Gen Port Use = Micro Inv Input':'Smart Port = AC couple input']];
+  if(ld&&deye)set.push([F.H.acLoad,'Gen Port Use: ติ๊ก AC couple on load side (อินเวอร์เตอร์ออนกริดต่อที่พอร์ต LOAD ของ Hybrid)']);
   if(deye&&!ld)set.push([F.H.mi.off>F.H.mi.on,`Micro Inv Input OFF (${F.H.mi.off}%) สูงกว่า ON (${F.H.mi.on}%)`],[F.H.mi.hz>=CP_FTRIP-1e-9,`AC Couple Fre High ≥ ${CP_FTRIP} Hz เพื่อให้อินเวอร์เตอร์ AC ตัดออกที่ SOC = OFF (ตอนนี้ ${cpF(F.H.mi.hz,1)} Hz)`]);
   else if(A.adj&&!deye)set.push([F.s.pf,'Huawei เปิด Freq-Watt (P(f)) เพราะ Solis ใช้ Freq-Watt ปรับกำลังอินเวอร์เตอร์ AC']);
   if(A.adj&&ld)set.push([F.p.ct==='grid','จอ Huawei ตรวจพบ Power meter / CT ที่จุดต่อกริด (Settings › Communication › Power meter)']);
@@ -287,7 +291,7 @@ function cpCuSim(){
   else if(!F.gen&&!F.viaGrid)note=F.p.src==='load'?'Solis: คู่มือไม่รองรับการต่อฝั่ง Backup แบบจำลองจึงไม่นับว่าอินเวอร์เตอร์ AC ทำงาน':'พอร์ต GEN ยังไม่ได้ตั้งเป็น AC couple (ไปตั้งที่แท็บ 2 จอเครื่อง)';
   else if(F.viaGrid)note='ต่อที่ฝั่งกริด: ไฟกริดดับแล้วอินเวอร์เตอร์ AC ไม่ทำงาน';
   else note=ld?'ต่อที่ช่อง LOAD: ตอนไฟกริดดับ Hybrid สร้างไฟที่ช่อง LOAD อินเวอร์เตอร์ AC ซิงก์กับไฟนั้นและจ่ายให้โหลด Backup ได้ แต่ Hybrid ต้องลดกำลังเมื่อแบตเต็ม (เลื่อนความถี่) · CT ที่สายกริดจะอ่าน 0 A เพราะไม่มีกระแสกริด':'ต่อที่พอร์ต GEN: ตอนไฟกริดดับ Hybrid จ่ายไฟออกพอร์ต GEN ให้อินเวอร์เตอร์ AC ซิงก์ตาม';
-  return `<h3>ผลจำลองไฟกริดดับ 10:00–15:00 (แบต 50%)</h3>${lost?'<p class="hint tight">Huawei เปิดกันย้อนแต่ CT/มิเตอร์ของ Huawei ยังไม่อยู่ที่ตำแหน่งที่ถูก (ฝั่ง LOAD ต้องคล้องสายโหลด, ฝั่งกริดต้องคล้องสายไฟกริด) ผลด้านล่างจึงคิดว่า Huawei ลดกำลังเป็น 0</p>':''}<table class="t wrapt"><tbody>${row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (วันปกติ)',cpF(N.T.pvA,1)+' kWh')+row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (ไฟดับ)',cpF(B.T.pvA,1)+' kWh')+row('โหลดที่ไม่ได้รับไฟ',cpF(B.T.uns,2)+' kWh')+row('Battery OV (ตัดไม่ทัน)',B.T.trips+' ช่วง')+(r?row('ความถี่ที่ช่องต่อตอนไฟดับ',cpF(r.f,2)+' Hz'):'')}</tbody></table><p class="hint tight">${note}</p><p class="hint tight">ค่าจำลองตามหลัก AC coupling ไม่ใช่ค่าจากคู่มือ: คู่มือ Deye ข้อ 5.11 มีแบบ On-Load + AC couple แต่ไม่ได้อธิบายพฤติกรรมตอนไฟดับ · คู่มือ Solis ระบุเฉพาะพอร์ต GEN</p>`;
+  return `<h3>ผลจำลองไฟกริดดับ 10:00–15:00 (แบต 50%)</h3>${lost?'<p class="hint tight">Huawei เปิดกันย้อนแต่ CT/มิเตอร์ของ Huawei ยังไม่อยู่ที่ตำแหน่งที่ถูก (ฝั่ง LOAD ต้องคล้องสายโหลด, ฝั่งกริดต้องคล้องสายไฟกริด) ผลด้านล่างจึงคิดว่า Huawei ลดกำลังเป็น 0</p>':''}<table class="t wrapt"><tbody>${row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (วันปกติ)',cpF(N.T.pvA,1)+' kWh')+row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (ไฟดับ)',cpF(B.T.pvA,1)+' kWh')+row('โหลดที่ไม่ได้รับไฟ',cpF(B.T.uns,2)+' kWh')+row('Battery OV (ตัดไม่ทัน)',B.T.trips+' ช่วง')+(r?row('ความถี่ที่ช่องต่อตอนไฟดับ',cpF(r.f,2)+' Hz'):'')}</tbody></table><p class="hint tight">${note}</p><p class="hint tight">ค่าจำลองตามหลัก AC coupling ไม่ใช่ค่าจากคู่มือ: คู่มือ Deye ข้อ 5.10 มีตัวเลือก AC couple on load side และแผนภาพ On-Load + AC couple แต่ไม่ได้อธิบายพฤติกรรมตอนไฟดับ · คู่มือ Solis ระบุเฉพาะพอร์ต GEN</p>`;
 }
 function cpPgCustom(){
   const L=cpCuChecks(),n=L.filter(x=>x[0]).length,hw=cuHasA();
@@ -316,7 +320,7 @@ function cpHome(){const r=cpDay().rows[CP.dash.t];
   return `<table class="t wrapt"><tbody><tr><th>เวลา</th><td>${cpHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>ความถี่ที่พอร์ต</th><td>${cpF(r.f,2)} Hz</td></tr><tr><th>PV (เครื่อง)</th><td>${cpF(r.pH*1000)} W</td><th>GEN (AC couple)</th><td>${cpF(r.pA*1000)} W</td></tr><tr><th>โหลด</th><td>${cpF(r.L*1000)} W</td><th>กริด</th><td>${cpF(r.grid*1000)} W</td></tr><tr><th>แบต</th><td>${cpF(r.bat*1000)} W</td><th>SOC</th><td>${cpF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
 function cpPgHost(s){
   const deye=cpSc().host==='deye',note=cpSc().host==='solis'?'ค่าในแบบจำลอง: Solis ไม่มีค่าความถี่ให้ตั้ง ใช้ Freq-Watt ของอินเวอร์เตอร์ AC ลดกำลังเมื่อ SOC 95–100% (ค่าสมมติ)':'';
-  return `<div class="cards"><div class="card sldevcard">${hlDevice(cpSc().host,CP,cpHome(),note)}<p class="hint tight">${deye?(cpSc().load?'ใบงานนี้ต่อที่ช่อง LOAD ไม่ต้องตั้ง Gen Port Use · ตั้งโหมดที่ System Work Mode เป็น Zero Export To CT':'ไป System Setup › Gen Port Use เลือก Micro Inv Input · ตั้งโหมดขายไฟที่ System Work Mode'):'ไป SYSTEM SETTING › SMART PORT เลือก AC couple input · ตั้งโหมดขายไฟที่ STORAGE MODE'}</p></div>
+  return `<div class="cards"><div class="card sldevcard">${hlDevice(cpSc().host,CP,cpHome(),note)}<p class="hint tight">${deye?(cpSc().load?'ใบงานนี้ต่อที่ช่อง LOAD: ไป System Setup › Gen Port Use ติ๊ก AC couple on load side (ไม่ต้องเลือก Micro Inv Input) · ตั้งโหมดที่ System Work Mode เป็น Zero Export To CT':'ไป System Setup › Gen Port Use เลือก Micro Inv Input · ตั้งโหมดขายไฟที่ System Work Mode'):'ไป SYSTEM SETTING › SMART PORT เลือก AC couple input · ตั้งโหมดขายไฟที่ STORAGE MODE'}</p></div>
     <div class="card"><h3>ตรวจการตั้งค่า</h3>${cpList(s.c.set)}<p class="hint tight">ชื่อรายการบนจอและคำอธิบายตามคู่มือ ${deye?'Deye SUN-3/3.6/5/6K-SG04LP1-EU-SM2 (2026-01) ข้อ 5.4–5.10':'Solis S6-EH1P(3-8)K-L-PLUS V1.3 ข้อ 5.4'}</p></div></div>`;
 }
 function cpPgSrc(s){
