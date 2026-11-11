@@ -46,7 +46,7 @@ kbAdd({id:'hybrid-offgrid-vs-ongrid',cat:'pv',upd:'2026-11-11',
   title:'Hybrid inverter 6 kW: ต่อแบบ Off-grid (มี MTS) กับ On-grid (ขนานกริด) ต่างกันอย่างไร',
   summary:'เปรียบเทียบการต่อ Hybrid inverter 2 แบบในระบบไฟบ้านไทย TN-C-S: ทางเดินไฟ การต่อ N ลงดิน การใช้ CT การตั้งค่า ข้อจำกัด และตัวอย่างวงจร 4 แบบ',
   tags:['Hybrid','Off-grid','On-grid','MTS','CT','TN-C-S','N bonding','NG bonding','Luxpower','6kW','ขนานกริด','EPS','Take load jointly','Feed in','CT offset','PV','MPPT','วสท.'],
-  related:[['ac','04 ต่อสาย AC ระบบ'],['accouple','19 AC Coupling → หน้า 6 ต่อสายเอง (CT 2 ชุด)'],['systems','11 จำลองระบบ 4 แบบ']],
+  related:[['ac','04 ต่อสาย AC ระบบ'],['accouple','19 AC Coupling → หน้า 6 AC Coupling ฝั่ง on-load'],['systems','11 จำลองระบบ 4 แบบ']],
   body:()=>`<section class="kbsec"><h2>ภาพรวม</h2>
 <p>Hybrid inverter 1 เครื่องต่อได้ 2 แบบ ต่างกันที่<b>ใครจ่ายไฟให้โหลดหลัก</b>และ<b>ต้องขนานกับการไฟฟ้าหรือไม่</b> บทความนี้ใช้ตัวอย่างเครื่อง 6 kW (Luxpower) ซึ่งใช้หลักการเดียวกับ Hybrid switching inverter ยี่ห้ออื่นที่มีพอร์ต AC-in / AC-out / Batt / PV ลักษณะเดียวกัน วงจรในบทความปรับให้ตรงกับระบบไฟบ้านไทยแบบ <b>TN-C-S</b> ที่ต่อสาย N เข้าบาร์กราวด์ก่อนเข้าเบรกเกอร์ (วงจรตามคู่มือผู้ผลิตเขียนไว้สำหรับระบบ TT)</p>
 ${kbHybSvg()}</section>

@@ -12799,7 +12799,7 @@ kbAdd({id:'hybrid-offgrid-vs-ongrid',cat:'pv',upd:'2026-11-11',
   title:'Hybrid inverter 6 kW: ต่อแบบ Off-grid (มี MTS) กับ On-grid (ขนานกริด) ต่างกันอย่างไร',
   summary:'เปรียบเทียบการต่อ Hybrid inverter 2 แบบในระบบไฟบ้านไทย TN-C-S: ทางเดินไฟ การต่อ N ลงดิน การใช้ CT การตั้งค่า ข้อจำกัด และตัวอย่างวงจร 4 แบบ',
   tags:['Hybrid','Off-grid','On-grid','MTS','CT','TN-C-S','N bonding','NG bonding','Luxpower','6kW','ขนานกริด','EPS','Take load jointly','Feed in','CT offset','PV','MPPT','วสท.'],
-  related:[['ac','04 ต่อสาย AC ระบบ'],['accouple','19 AC Coupling → หน้า 6 ต่อสายเอง (CT 2 ชุด)'],['systems','11 จำลองระบบ 4 แบบ']],
+  related:[['ac','04 ต่อสาย AC ระบบ'],['accouple','19 AC Coupling → หน้า 6 AC Coupling ฝั่ง on-load'],['systems','11 จำลองระบบ 4 แบบ']],
   body:()=>`<section class="kbsec"><h2>ภาพรวม</h2>
 <p>Hybrid inverter 1 เครื่องต่อได้ 2 แบบ ต่างกันที่<b>ใครจ่ายไฟให้โหลดหลัก</b>และ<b>ต้องขนานกับการไฟฟ้าหรือไม่</b> บทความนี้ใช้ตัวอย่างเครื่อง 6 kW (Luxpower) ซึ่งใช้หลักการเดียวกับ Hybrid switching inverter ยี่ห้ออื่นที่มีพอร์ต AC-in / AC-out / Batt / PV ลักษณะเดียวกัน วงจรในบทความปรับให้ตรงกับระบบไฟบ้านไทยแบบ <b>TN-C-S</b> ที่ต่อสาย N เข้าบาร์กราวด์ก่อนเข้าเบรกเกอร์ (วงจรตามคู่มือผู้ผลิตเขียนไว้สำหรับระบบ TT)</p>
 ${kbHybSvg()}</section>
@@ -14645,7 +14645,7 @@ const cpSel=(path,opts,v)=>`<select class="hn" data-cps="${path}" id="cps-${path
 const cpNum=(path,v,min,max,step,u)=>`<span class="slnum"><input class="hn" type="number" data-cps="${path}" id="cps-${path.replace(/\./g,'-')}" value="${v}" min="${min}" max="${max}" step="${step||1}"><i>${u||''}</i></span>`;
 const cpChk=(path,v,t)=>`<label class="slck"><input class="hn" type="checkbox" data-cps="${path}" id="cps-${path.replace(/\./g,'-')}" ${v?'checked':''}> ${t||''}</label>`;
 const cpRow=(l,c)=>`<div class="slrow"><span>${l}</span><span>${c}</span></div>`;
-const cpPages=()=>[['job','1 ใบสั่งงานและการต่อสาย'],['host',`2 จอเครื่อง ${CP_SC[CP.sc].host==='deye'?'Deye':'Solis'}`],['src',`3 ตั้งค่า ${CP_SC[CP.sc].src==='hw'?'Huawei':'ไมโคร Deye'}`],['dash','4 แดชบอร์ดและทดสอบ'],['fault','5 โจทย์หาข้อผิดพลาด'],['custom','6 ต่อสายเอง (CT 2 ชุด)']];
+const cpPages=()=>[['job','1 ใบสั่งงานและการต่อสาย'],['host',`2 จอเครื่อง ${CP_SC[CP.sc].host==='deye'?'Deye':'Solis'}`],['src',`3 ตั้งค่า ${CP_SC[CP.sc].src==='hw'?'Huawei':'ไมโคร Deye'}`],['dash','4 แดชบอร์ดและทดสอบ'],['fault','5 โจทย์หาข้อผิดพลาด'],['custom','6 AC Coupling ฝั่ง on-load']];
 function cpRender(){
   const host=document.getElementById('cphost');if(!host)return;
   const s=cpScore(),sc=cpSc();if(!cpPages().some(p=>p[0]===CP.page))CP.page='job';const pg=CP.page;
@@ -14775,7 +14775,7 @@ function cpCuSim(){
 }
 function cpPgCustom(){
   const L=cpCuChecks(),n=L.filter(x=>x[0]).length,hw=cuHasA();
-  return `<div class="cards"><div class="card"><h3>ต่อสายเอง: CT 2 ชุด</h3>
+  return `<div class="cards"><div class="card"><h3>AC Coupling ฝั่ง on-load</h3>
     <p>อินเวอร์เตอร์ออนกริดและเครื่อง Hybrid ต่างมี CT/มิเตอร์ของตัวเอง ${hw?'ลาก CT ทั้งสองไปคล้องสายไฟกริด แล้วลากสายสัญญาณเส้นประจากพอร์ตของแต่ละเครื่องไปต่อกับ CT ของตัวเอง':'ไมโคร Deye ไม่มีพอร์ตมิเตอร์ของตัวเอง ใช้ CT ของ Hybrid ชุดเดียว ลาก CT ไปคล้องสายไฟกริดแล้วลากสายสัญญาณเส้นประไปต่อ'}</p>
     <div class="tblwrap" id="cpsld">${cpSLD(true)}</div>
     <p class="slleg" style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px"><span><b style="color:${CUC.H}">- - -</b> สายสัญญาณ CT ของ <b>Hybrid</b> (สีส้ม)</span>${hw?`<span><b style="color:${CUC.A}">- - -</b> สายสัญญาณ CT/มิเตอร์ของ<b>อินเวอร์เตอร์ออนกริด</b> (สีฟ้า)</span>`:''}</p>

@@ -161,7 +161,7 @@ const cpSel=(path,opts,v)=>`<select class="hn" data-cps="${path}" id="cps-${path
 const cpNum=(path,v,min,max,step,u)=>`<span class="slnum"><input class="hn" type="number" data-cps="${path}" id="cps-${path.replace(/\./g,'-')}" value="${v}" min="${min}" max="${max}" step="${step||1}"><i>${u||''}</i></span>`;
 const cpChk=(path,v,t)=>`<label class="slck"><input class="hn" type="checkbox" data-cps="${path}" id="cps-${path.replace(/\./g,'-')}" ${v?'checked':''}> ${t||''}</label>`;
 const cpRow=(l,c)=>`<div class="slrow"><span>${l}</span><span>${c}</span></div>`;
-const cpPages=()=>[['job','1 ใบสั่งงานและการต่อสาย'],['host',`2 จอเครื่อง ${CP_SC[CP.sc].host==='deye'?'Deye':'Solis'}`],['src',`3 ตั้งค่า ${CP_SC[CP.sc].src==='hw'?'Huawei':'ไมโคร Deye'}`],['dash','4 แดชบอร์ดและทดสอบ'],['fault','5 โจทย์หาข้อผิดพลาด'],['custom','6 ต่อสายเอง (CT 2 ชุด)']];
+const cpPages=()=>[['job','1 ใบสั่งงานและการต่อสาย'],['host',`2 จอเครื่อง ${CP_SC[CP.sc].host==='deye'?'Deye':'Solis'}`],['src',`3 ตั้งค่า ${CP_SC[CP.sc].src==='hw'?'Huawei':'ไมโคร Deye'}`],['dash','4 แดชบอร์ดและทดสอบ'],['fault','5 โจทย์หาข้อผิดพลาด'],['custom','6 AC Coupling ฝั่ง on-load']];
 function cpRender(){
   const host=document.getElementById('cphost');if(!host)return;
   const s=cpScore(),sc=cpSc();if(!cpPages().some(p=>p[0]===CP.page))CP.page='job';const pg=CP.page;
@@ -291,7 +291,7 @@ function cpCuSim(){
 }
 function cpPgCustom(){
   const L=cpCuChecks(),n=L.filter(x=>x[0]).length,hw=cuHasA();
-  return `<div class="cards"><div class="card"><h3>ต่อสายเอง: CT 2 ชุด</h3>
+  return `<div class="cards"><div class="card"><h3>AC Coupling ฝั่ง on-load</h3>
     <p>อินเวอร์เตอร์ออนกริดและเครื่อง Hybrid ต่างมี CT/มิเตอร์ของตัวเอง ${hw?'ลาก CT ทั้งสองไปคล้องสายไฟกริด แล้วลากสายสัญญาณเส้นประจากพอร์ตของแต่ละเครื่องไปต่อกับ CT ของตัวเอง':'ไมโคร Deye ไม่มีพอร์ตมิเตอร์ของตัวเอง ใช้ CT ของ Hybrid ชุดเดียว ลาก CT ไปคล้องสายไฟกริดแล้วลากสายสัญญาณเส้นประไปต่อ'}</p>
     <div class="tblwrap" id="cpsld">${cpSLD(true)}</div>
     <p class="slleg" style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px"><span><b style="color:${CUC.H}">- - -</b> สายสัญญาณ CT ของ <b>Hybrid</b> (สีส้ม)</span>${hw?`<span><b style="color:${CUC.A}">- - -</b> สายสัญญาณ CT/มิเตอร์ของ<b>อินเวอร์เตอร์ออนกริด</b> (สีฟ้า)</span>`:''}</p>
