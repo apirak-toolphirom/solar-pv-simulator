@@ -14687,7 +14687,11 @@ function cpSLD(cu){
   if(cu)o+=cpCuLayer(F,D);else{
   /* CT */
   const pos=dct?[D.x,D.y]:p.ct!=='none'?CP_TC[p.ct]:[505,40],dx=(F.p.arrow==='ok')===(cpSc().host==='deye')?1:-1,[cx,cy]=pos;
-  o+=`<g data-cpdrag="ct" style="cursor:grab;touch-action:none"><circle cx="${cx}" cy="${cy}" r="${p.ct==='none'&&!dct?11:9}" class="cpct"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="10" font-weight="700" fill="#1b2430" style="pointer-events:none">CT</text>`+
+  /* สายสัญญาณ CT → พอร์ต CT ของ Hybrid (สีส้ม) ให้เห็นว่า CT ตัวนี้ส่งค่าไปที่ Hybrid */
+  const hp=CUPORT.H,placed=p.ct!=='none'||dct;
+  if(placed)o+=`<path d="M${hp[0]},${hp[1]} C${hp[0]},${hp[1]+45} ${cx},${cy+55} ${cx},${cy+9}" fill="none" stroke="${CUC.H}" stroke-width="2.6" stroke-dasharray="7 4" stroke-linecap="round"/>`;
+  o+=`<circle cx="${hp[0]}" cy="${hp[1]}" r="6" fill="${CUC.H}" stroke="#fff" stroke-width="1.5"/><text x="326" y="206" text-anchor="end" class="svgt mut" font-size="9">พอร์ต CT (Hybrid)</text>`+(placed?`<text x="${cx}" y="${cy+36}" text-anchor="middle" class="svgt mut" font-size="9">CT ของ Hybrid</text>`:'');
+  o+=`<g data-cpdrag="ct" style="cursor:grab;touch-action:none"><circle cx="${cx}" cy="${cy}" r="${p.ct==='none'&&!dct?11:9}" class="cpct" style="stroke:${CUC.H};stroke-width:3"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="10" font-weight="700" fill="#1b2430" style="pointer-events:none">CT</text>`+
     (p.ct!=='none'||dct?`<path d="M${cx-dx*9},${cy+17} L${cx+dx*9},${cy+17} M${cx+dx*9},${cy+17} l${-dx*5},-3 M${cx+dx*9},${cy+17} l${-dx*5},3" stroke="var(--err)" stroke-width="1.8" fill="none" style="pointer-events:none"/>`:'')+`<title>ลาก CT ไปคล้องสาย · คลิกเพื่อกลับทิศลูกศร</title></g>`;
   if(p.ct==='none'&&!dct)o+=`<text x="505" y="66" text-anchor="middle" class="svgt mut" font-size="10">ลาก CT ไปคล้องสาย</text>`;
   }
