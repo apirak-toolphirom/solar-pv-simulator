@@ -28,13 +28,17 @@ function accBar(){
   const vis=TABS.filter(t=>accPerm(t)!=='closed').map(t=>ACC_NAME[t]);
   if(ACC.role==='visitor'){
     b.className='accbar visitor';
-    b.innerHTML=`<div class="accrow"><b>ผู้เยี่ยมชม</b><span class="hint tight">ดูได้เฉพาะ ${esc(vis.join(', ')||'—')} · ผู้เรียนกรอกข้อมูลเพื่อเริ่มใช้งานทุกเมนูที่เปิด</span></div>
-      <div class="accrow accform"><input id="accname" placeholder="ชื่อ-นามสกุล" autocomplete="off" value=""><input id="accsid" placeholder="รหัสผู้เรียน" autocomplete="off" value=""><input id="acccls" type="password" placeholder="รหัสห้องอบรม" autocomplete="off" value=""><button class="btn pri" id="accgo">เข้าใช้งาน</button>
-      <span class="accsep">ผู้สอน</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>
+    const gm=!!CFG.GOOGLE_CLIENT_ID;
+    b.innerHTML=`<div class="accrow"><b>ผู้เยี่ยมชม</b><span class="hint tight">ดูได้เฉพาะ ${esc(vis.join(', ')||'—')} · ${gm?'ผู้เรียนเข้าสู่ระบบด้วยบัญชี Google ที่ผู้สอนลงทะเบียนไว้ในรายชื่อ':'ผู้เรียนกรอกข้อมูลเพื่อเริ่มใช้งานทุกเมนูที่เปิด'}</span></div>
+      ${gm?`<div class="accrow"><div id="accgbtn" class="accg"></div></div>
+      <div class="accrow accform"><span class="accsep" style="margin-left:0">ผู้สอน</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>`
+      :`<div class="accrow accform"><input id="accname" placeholder="ชื่อ-นามสกุล" autocomplete="off" value=""><input id="accsid" placeholder="รหัสผู้เรียน" autocomplete="off" value=""><input id="acccls" type="password" placeholder="รหัสห้องอบรม" autocomplete="off" value=""><button class="btn pri" id="accgo">เข้าใช้งาน</button>
+      <span class="accsep">ผู้สอน</span><input id="acctc" type="password" placeholder="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="acctgo">เข้าโหมดผู้สอน</button></div>`}
       <p class="simmsg" id="accmsg" role="status" hidden></p>`;
+    if(gm)accRenderG();
   }else if(ACC.role==='student'){
     b.className='accbar student';
-    b.innerHTML=`<div class="accrow"><b>ผู้เรียน: ${esc(MEMBER.name)}${MEMBER.sid?' · '+esc(MEMBER.sid):''}</b><span class="hint tight">ใช้งานได้ถึงสิ้นวันนี้ · เมนูที่ผู้สอนยังไม่เปิดจะซ่อนหรือดูได้อย่างเดียว</span><button class="btn sm" id="accout">ออกจากระบบ</button></div>`;
+    b.innerHTML=`<div class="accrow"><b>ผู้เรียน: ${esc(MEMBER.name)}${MEMBER.sid?' · '+esc(MEMBER.sid):''}${CFG.GOOGLE_CLIENT_ID&&MEMBER.gemail?' · '+esc(MEMBER.gemail):''}</b><span class="hint tight">${CFG.GOOGLE_CLIENT_ID?'เข้าสู่ระบบด้วย Google แล้ว (รีโหลดหน้าแล้วระบบเข้าให้เองถ้าเคยอนุญาต)':'ใช้งานได้ถึงสิ้นวันนี้'} · เมนูที่ผู้สอนยังไม่เปิดจะซ่อนหรือดูได้อย่างเดียว</span><button class="btn sm" id="accout">ออกจากระบบ</button></div>`;
   }else{
     b.className='accbar teacher';
     b.innerHTML=`<div class="accrow"><b>โหมดผู้สอน</b><span class="hint tight">เห็นและใช้ได้ทุกเมนู · ตั้งเปิด/ปิดเมนูและใบงานที่หน้า <a href="dashboard.html" target="_blank" rel="noopener">สรุปงานส่ง</a></span><button class="btn sm" id="accout">ออกจากโหมดผู้สอน</button></div>`;
@@ -72,11 +76,24 @@ async function accStudent(name,sid,cls,quiet){
     if(!j||!j.ok){if(!quiet)accMsg((j&&j.error)||'เข้าใช้งานไม่ได้','err');return false}
     if(!j.role){if(!quiet)accMsg('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า ผู้สอนต้องวาง Code.gs ล่าสุดแล้ว Deploy → New version','err');return null}
     ACC.role=j.role==='teacher'?'teacher':'student';if(Array.isArray(j.menus))ACC.menus=j.menus;
-    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('mname',name);set('msid',sid);set('mcls',cls);
+    const nm=j.name||name,sd=CFG.GOOGLE_CLIENT_ID&&j.sid!=null?j.sid:sid;
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('mname',nm);set('msid',sd);set('mcls',cls);
     if(typeof readMember==='function')readMember();
     accSave();accApply();if(typeof wsMine==='function')wsMine().then(()=>{if(typeof wsRender==='function')wsRender()});
     return true;
   }catch(e){if(!quiet)accMsg('เชื่อมต่อระบบของผู้สอนไม่ได้ ตรวจอินเทอร์เน็ต','err');return null}
+}
+/* Google mode (GOOGLE_CLIENT_ID set): the student signs in with Google; the web app accepts only an e-mail that is in the roster */
+function accRenderG(n){
+  const h=document.getElementById('accgbtn');if(!h||!CFG.GOOGLE_CLIENT_ID)return;
+  if(window.GSI_READY&&window.google&&google.accounts&&google.accounts.id){try{google.accounts.id.renderButton(h,{theme:'outline',size:'large',text:'signin_with',locale:'th'})}catch(e){}return}
+  if((n||0)<25)setTimeout(()=>accRenderG((n||0)+1),400);
+}
+async function accGoogle(){
+  if(!ACC.enabled||ACC.role==='teacher'||!CFG.GOOGLE_CLIENT_ID)return;
+  if(ACC.role==='student'){accApply();return}
+  accMsg('กำลังตรวจรายชื่อ…');
+  await accStudent(MEMBER.gname||MEMBER.gemail,'','',false);/* on failure the reason stays in #accmsg and the visitor bar (with the Google button) stays as is */
 }
 function accTeacher(on){
   if(!ACC.enabled)return;
@@ -92,7 +109,7 @@ async function initAccess(){
   ACC.enabled=true;
   const s=(()=>{try{return JSON.parse(localStorage.getItem(ACC_KEY)||'{}')}catch(e){return{}}})();
   if(typeof TEACH!=='undefined'&&TEACH.on)ACC.role='teacher';
-  else if(s.role==='student'&&s.day===accToday())ACC.role='student';
+  else if(!CFG.GOOGLE_CLIENT_ID&&s.role==='student'&&s.day===accToday())ACC.role='student';
   if(ACC.role==='visitor')accForget(true);
   accApply();
   accRefreshMenus();
@@ -103,6 +120,7 @@ async function initAccess(){
       const ok=typeof teachVerify==='function'?await teachVerify(c,true):false;if(ok){ACC.role='teacher';accApply()}else accMsg('รหัสผู้สอนไม่ถูกต้อง หรือยังไม่ได้ตั้ง TEACHER_CODE','err')}
     else if(e.target.id==='accout'){
       if(ACC.role==='teacher'){if(typeof TEACH!=='undefined'){TEACH.on=false;try{sessionStorage.removeItem('pv.tcode')}catch(_){}if(typeof teachSync==='function')teachSync()}}
+      if(CFG.GOOGLE_CLIENT_ID){gToken='';MEMBER.gemail='';MEMBER.gname='';try{google.accounts.id.disableAutoSelect()}catch(_){}}
       ACC.role='visitor';accForget(true);accSave();accApply();
     }
   });

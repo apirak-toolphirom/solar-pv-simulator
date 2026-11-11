@@ -2,7 +2,7 @@
 const CFG=Object.assign({COURSE:'จำลองระบบโซลาร์',SUBMIT_URL:'',GOOGLE_CLIENT_ID:''},window.APP_CONFIG||{});
 const MEM_KEY='pvsim:member',SUBS_KEY='pvsim:subs';
 const SANS='"Noto Sans Thai","Leelawadee UI","Sarabun",Tahoma,"Segoe UI",sans-serif',MONO='"IBM Plex Mono",Consolas,Menlo,monospace';
-let MEMBER={name:'',sid:'',cls:'',gemail:'',gname:''},gToken='',lastImg=null,sending=false;
+let MEMBER={name:'',sid:'',cls:'',gemail:'',gname:''},gToken='',gExp=0,gWait=null,lastImg=null,sending=false;
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const clip=(s,n)=>String(s==null?'':s).slice(0,n);
@@ -200,6 +200,7 @@ async function doSubmit(){
   if(!wsel){setMsg('เลือกใบงานที่จะส่งก่อน','err');return}
   if((wsel.id==='W0'||wsTabs(wsel).includes('wiring'))&&!lastA){setMsg('ยังไม่มีผลการต่อสาย ไปแท็บ "ต่อสาย DC" ก่อน','err');return}
   sending=true;$('#smsend').disabled=true;setMsg('กำลังสร้างภาพและส่งงาน…');
+  await gEnsure();
   const r=buildReport(),receipt=newReceipt(),pl=payload(r,receipt);
   if(WS_IMG[wsel.img||'none']){try{const cv=await renderReportImage(r,MEMBER,receipt);pl.img=cv.toDataURL('image/jpeg',0.82)}catch(e){}}
   const body=JSON.stringify(pl);
@@ -214,7 +215,7 @@ async function doSubmit(){
   sending=false;
   const when=`${pad2(r.t.getDate())}/${pad2(r.t.getMonth()+1)} ${pad2(r.t.getHours())}:${pad2(r.t.getMinutes())}`;
   if(status==='rejected'||status==='fail'){
-    setMsg(status==='rejected'?`ส่งไม่สำเร็จ: ${errText} (ตรวจรหัสห้องอบรมกับผู้สอน)`:'ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่','err');
+    setMsg(status==='rejected'?`ส่งไม่สำเร็จ: ${errText}${CFG.GOOGLE_CLIENT_ID?'':' (ตรวจรหัสห้องอบรมกับผู้สอน)'}`:'ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่','err');
   }else{
     const subs=lsGet(SUBS_KEY)||[];subs.unshift({receipt,when,text:(r.ws?r.ws.id+' '+r.ws.name+' · ':'')+wLabel(r.wiring),sent:status==='ok',ws:r.ws?r.ws.id:'',pass:r.ws?r.ws.pass:false});lsSet(SUBS_KEY,subs.slice(0,20));
     setMsg(status==='ok'?`ส่งงานแล้ว รหัสใบส่งงาน ${receipt}`:`ส่งแล้วแต่ยังไม่ได้รับการยืนยันจากเซิร์ฟเวอร์ รหัส ${receipt} บันทึกภาพไว้เป็นหลักฐานได้`,status==='ok'?'ok':'');
@@ -223,18 +224,32 @@ async function doSubmit(){
   }
   submitRefresh();
 }
+/* Google ID token: kept in memory only; about 1 hour valid, so it is renewed silently (One Tap auto-select) before a request when it is about to expire */
+function gSetCred(c){
+  gToken=c;gExp=0;
+  try{const p=JSON.parse(decodeURIComponent(escape(atob(c.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));
+    gExp=(p.exp||0)*1000;MEMBER.gemail=p.email||'';MEMBER.gname=p.name||'';if(!$('#mname').value&&p.name)$('#mname').value=p.name}catch(e){}
+}
+async function gEnsure(){
+  if(!CFG.GOOGLE_CLIENT_ID||!MEMBER.gemail||!window.GSI_READY)return;
+  if(gToken&&gExp-Date.now()>120000)return;
+  await new Promise(res=>{gWait=res;try{google.accounts.id.prompt()}catch(e){res()}setTimeout(res,4000)});
+  gWait=null;
+}
 function loadGsi(){
   if(!CFG.GOOGLE_CLIENT_ID)return;
   $('#gsi').hidden=false;
   const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
   s.onload=()=>{try{
-    google.accounts.id.initialize({client_id:CFG.GOOGLE_CLIENT_ID,callback:resp=>{
-      gToken=resp.credential;
-      try{const p=JSON.parse(decodeURIComponent(escape(atob(resp.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));
-        MEMBER.gemail=p.email||'';MEMBER.gname=p.name||'';if(!$('#mname').value&&p.name)$('#mname').value=p.name;}catch(e){}
-      readMember();submitRefresh();
+    google.accounts.id.initialize({client_id:CFG.GOOGLE_CLIENT_ID,auto_select:true,cancel_on_tap_outside:false,callback:resp=>{
+      gSetCred(resp.credential);readMember();submitRefresh();
+      if(gWait){const w=gWait;gWait=null;w()}
+      if(typeof accGoogle==='function')accGoogle();
     }});
+    window.GSI_READY=true;
     google.accounts.id.renderButton($('#gbtn'),{theme:'outline',size:'large',text:'signin_with',locale:'th'});
+    if(typeof accRenderG==='function')accRenderG();
+    if(MEMBER.gemail)google.accounts.id.prompt();
   }catch(e){}};
   document.head.appendChild(s);
 }
@@ -242,6 +257,7 @@ function initSubmit(){
   const m=lsGet(MEM_KEY);
   if(m&&typeof m==='object')MEMBER=Object.assign(MEMBER,{name:clip(m.name,80),sid:clip(m.sid,30),cls:clip(m.cls,30),gemail:clip(m.gemail,120),gname:clip(m.gname,80)});
   $('#mname').value=MEMBER.name;$('#msid').value=MEMBER.sid;$('#mcls').value=MEMBER.cls;
+  if(CFG.GOOGLE_CLIENT_ID){const l=document.querySelector('label[for="mcls"]');if(l)l.hidden=true}/* Google mode: the roster replaces the class code */
   ['mname','msid','mcls'].forEach(id=>$('#'+id).addEventListener('input',readMember));
   $('#smsend').addEventListener('click',doSubmit);
   $('#smshot').addEventListener('click',async()=>{readMember();setMsg('กำลังสร้างภาพ…');try{await makeImage('',null);setMsg('')}catch(e){setMsg('สร้างภาพไม่สำเร็จ','err')}});
@@ -257,6 +273,7 @@ function initSubmit(){
 /* ---- project in the teacher's Google Drive (via the same Apps Script web app) ---- */
 function cloudMsg(t,cls){const m=$('#cloudmsg');if(!m)return;m.textContent=t;m.className='simmsg'+(cls?' '+cls:'');m.hidden=!t;setSt(t)}
 async function cloudCall(action,extra){
+  await gEnsure();
   readMember();
   if(!MEMBER.name||!(MEMBER.sid||(MEMBER.gemail&&gToken))){cloudMsg('กรอกชื่อ รหัสผู้เรียน และรหัสห้องด้านบนก่อน','err');return null}
   try{

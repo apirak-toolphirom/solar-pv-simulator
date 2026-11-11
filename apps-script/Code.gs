@@ -4,7 +4,8 @@
  *
  * Script properties ที่ตั้งได้ (Project Settings > Script properties):
  *   CLASS_CODE        รหัสห้องอบรม ถ้าตั้งไว้ ผู้เรียนต้องกรอกให้ตรงจึงจะบันทึก
- *   GOOGLE_CLIENT_ID  ถ้าใช้ปุ่ม Google Sign-in ให้ใส่ Client ID เดียวกับ js/config.js
+ *   GOOGLE_CLIENT_ID  ใส่ Client ID เดียวกับ js/config.js เพื่อเปิด Google Sign-in · เมื่อตั้งค่านี้ ระบบเข้าโหมดเข้ม:
+ *                     ผู้เรียนต้องเข้าด้วย Google และอีเมลต้องอยู่ในแผ่น "รายชื่อ" (ไม่รับรหัสผู้เรียนอย่างเดียว ไม่ถามรหัสห้อง)
  *   DRIVE_FOLDER_ID   ID ของโฟลเดอร์ Drive ที่เก็บไฟล์โปรเจ็คของผู้เรียน (ใช้กับปุ่ม บันทึก/โหลดจาก Drive)
  *   TEACHER_CODE      รหัสผู้สอน ใช้เปิดหน้า dashboard.html (สรุปงานส่ง) ถ้าไม่ตั้ง หน้า dashboard จะใช้ไม่ได้
  */
@@ -165,7 +166,8 @@ function menuSet_(d, props) {
 // ถ้ารายชื่อว่าง จะไม่ตรวจ (ผู้ที่รู้รหัสห้องใช้งานได้ทุกคน)
 var ROSTER_SHEET = 'รายชื่อ';
 var ROSTER_HEAD = ['รหัสผู้เรียน', 'ชื่อ-นามสกุล', 'อีเมล Google', 'สถานะ'];
-function roster_(props) {
+// อ่านทุกแถวของรายชื่อ (รวมที่ระงับ) จากแผ่น "รายชื่อ" หรือชีตภายนอก · คืน null ถ้าไม่มีข้อมูล
+function rosterRead_(props) {
   var id = props.getProperty('ROSTER_SHEET_ID'), sh;
   if (id) { var ext = SpreadsheetApp.openById(id), nm = props.getProperty('ROSTER_SHEET_NAME'); sh = nm ? ext.getSheetByName(nm) : ext.getSheets()[0]; }
   else {
@@ -175,19 +177,111 @@ function roster_(props) {
   if (!sh || sh.getLastRow() < 2) return null;
   var v = sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues(), h = v[0].map(function (x) { return String(x); });
   var find = function (re) { for (var i = 0; i < h.length; i++) if (re.test(h[i])) return i; return -1; };
-  var iS = find(/รหัส|student|id/i), iE = find(/อีเมล|email/i), iA = find(/สถานะ|status/i);
+  var iS = find(/รหัส|student|id/i), iE = find(/อีเมล|email/i), iA = find(/สถานะ|status/i), iN = find(/ชื่อ|name/i);
   if (iS < 0) iS = 0;
   var list = [];
   for (var r = 1; r < v.length; r++) {
-    var sid = String(v[r][iS] || '').trim(), em = iE >= 0 ? String(v[r][iE] || '').trim().toLowerCase() : '', st = iA >= 0 ? String(v[r][iA] || '').trim() : '';
-    if ((sid || em) && st !== 'ระงับ') list.push({ sid: sid, email: em });
+    var sid = String(v[r][iS] || '').trim(), em = iE >= 0 ? String(v[r][iE] || '').trim().toLowerCase() : '',
+      st = iA >= 0 ? String(v[r][iA] || '').trim() : '', nm2 = iN >= 0 ? String(v[r][iN] || '').trim() : '';
+    if (sid || em) list.push({ sid: sid, email: em, name: nm2, status: st });
   }
+  return list.length ? list : null;
+}
+function roster_(props) {
+  var all = rosterRead_(props); if (!all) return null;
+  var list = all.filter(function (x) { return x.status !== 'ระงับ'; });
   return list.length ? list : null;
 }
 function inRoster_(d, verified, props) {
   var L = roster_(props); if (!L) return true;
   var sid = s_(d.sid, 30).trim(), em = String(verified || '').toLowerCase();
   return L.some(function (x) { return (sid && x.sid === sid) || (em && x.email === em); });
+}
+
+// ---- โหมดเข้มเมื่อตั้ง GOOGLE_CLIENT_ID: ผู้เรียนต้องยืนยันอีเมลด้วย Google และอีเมลต้องอยู่ในรายชื่อ (ไม่รับรหัสผู้เรียนอย่างเดียว ไม่ใช้รหัสห้อง) ----
+function strict_(props) { return !!props.getProperty('GOOGLE_CLIENT_ID'); }
+function teacherOk_(d, props) {
+  var tc = props.getProperty('TEACHER_CODE');
+  if (!tc || s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return false; }
+  return true;
+}
+// แผ่น "รายชื่อ" ในไฟล์นี้ (ใช้ตอนนำเข้า/เพิ่ม) · ถ้าตั้ง ROSTER_SHEET_ID ไว้ รายชื่ออยู่ไฟล์อื่น ไม่นำเข้าให้
+function rosterTab_(props) {
+  if (props.getProperty('ROSTER_SHEET_ID')) return null;
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ROSTER_SHEET) || ss.insertSheet(ROSTER_SHEET);
+  if (sh.getLastRow() === 0) { sh.getRange(1, 1, 1, ROSTER_HEAD.length).setValues([ROSTER_HEAD]).setFontWeight('bold'); sh.setFrozenRows(1); }
+  return sh;
+}
+// หาคอลัมน์ รหัส/ชื่อ/อีเมล/สถานะ ของแผ่นรายชื่อ ถ้าขาดคอลัมน์ไหน เพิ่มหัวต่อท้าย
+function rosterCols_(sh) {
+  var lc = Math.max(sh.getLastColumn(), 1), h = sh.getRange(1, 1, 1, lc).getValues()[0].map(String);
+  var find = function (re) { for (var i = 0; i < h.length; i++) if (re.test(h[i])) return i; return -1; };
+  var c = { e: find(/อีเมล|email/i), a: find(/สถานะ|status/i), n: find(/ชื่อ|name/i), s: find(/รหัส|student|id/i) };
+  var nm = { s: 'รหัสผู้เรียน', n: 'ชื่อ-นามสกุล', e: 'อีเมล Google', a: 'สถานะ' };
+  ['s', 'n', 'e', 'a'].forEach(function (k) { if (c[k] < 0) { lc++; sh.getRange(1, lc).setValue(nm[k]).setFontWeight('bold'); c[k] = lc - 1; } });
+  return c;
+}
+var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// ตารางสองมิติ (แถวแรกเป็นหัวหรือไม่ก็ได้) -> [{sid,name,email,status}] ตรวจหาคอลัมน์จากหัว ถ้าไม่มีหัวอีเมลดูจากค่าที่หน้าตาเป็นอีเมล
+function rosterRows_(t) {
+  t = (t || []).slice(0, 1001); if (!t.length) return [];
+  var first = t[0].map(String), hasHead = !first.some(function (x) { return EMAIL_RE.test(x.trim()); });
+  var find = function (re) { for (var i = 0; i < first.length; i++) if (re.test(first[i])) return i; return -1; };
+  var iE = hasHead ? find(/อีเมล|email|e-mail|mail/i) : -1, iN = hasHead ? find(/ชื่อ|name/i) : -1,
+    iA = hasHead ? find(/สถานะ|status/i) : -1, iS = hasHead ? find(/รหัส|student|เลขที่|ลำดับ|id|no\.?$/i) : -1;
+  var body = hasHead ? t.slice(1) : t;
+  if (iE < 0) { var best = -1, bc = 0; for (var c = 0; c < first.length; c++) { var k = 0; body.forEach(function (r) { if (EMAIL_RE.test(String(r[c] || '').trim())) k++; }); if (k > bc) { bc = k; best = c; } } iE = best; }
+  if (iE < 0) return [];
+  if (iN === iE) iN = -1; if (iS === iE || iS === iN) iS = -1;
+  return body.map(function (r) {
+    return { email: String(r[iE] || '').trim(), name: iN >= 0 ? String(r[iN] || '').trim() : '', sid: iS >= 0 ? String(r[iS] || '').trim() : '', status: iA >= 0 ? String(r[iA] || '').trim() : '' };
+  });
+}
+// เพิ่ม/แก้แถวในแผ่นรายชื่อ ใช้อีเมลเป็นคีย์ (ซ้ำ = แก้ชื่อ/รหัส/สถานะเฉพาะช่องที่ไม่ว่าง)
+function rosterUpsert_(sh, rows) {
+  var c = rosterCols_(sh), lc = sh.getLastColumn(), n = Math.max(sh.getLastRow() - 1, 0);
+  var vals = n ? sh.getRange(2, 1, n, lc).getValues() : [], idx = {};
+  vals.forEach(function (r, i) { var em = String(r[c.e] || '').trim().toLowerCase(); if (em) idx[em] = i; });
+  var added = 0, updated = 0, skipped = 0;
+  rows.slice(0, 1000).forEach(function (x) {
+    var em = String(x.email || '').trim().toLowerCase();
+    if (!EMAIL_RE.test(em)) { skipped++; return; }
+    var nm = safe_(s_(x.name, 100).trim()), sid = safe_(s_(x.sid, 30).trim()), st = s_(x.status, 10).trim(), r;
+    if (em in idx) { r = vals[idx[em]]; updated++; }
+    else { r = []; for (var k = 0; k < lc; k++) r.push(''); r[c.e] = em; vals.push(r); idx[em] = vals.length - 1; added++; }
+    if (nm) r[c.n] = nm; if (sid) r[c.s] = sid; if (st) r[c.a] = st;
+  });
+  if (vals.length) sh.getRange(2, 1, vals.length, lc).setValues(vals);
+  return { added: added, updated: updated, skipped: skipped, total: vals.length };
+}
+function rosterList_(props) {
+  var all = rosterRead_(props) || [];
+  return all.slice(0, 1000).map(function (x) { return { sid: x.sid, name: x.name, email: x.email, status: x.status }; });
+}
+// action ของผู้สอน: rosterlist · rosteradd (rows หรือ table) · rosterimport (sheet = ลิงก์หรือ ID ของ Google Sheets, tab = ชื่อแท็บ ไม่บังคับ)
+function rosterAction_(d, props) {
+  if (!teacherOk_(d, props)) return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' });
+  if (d.action === 'rosterlist') return json_({ ok: true, roster: rosterList_(props), external: !!props.getProperty('ROSTER_SHEET_ID') });
+  var sh = rosterTab_(props);
+  if (!sh) return json_({ ok: false, error: 'รายชื่อใช้ชีตภายนอก (ROSTER_SHEET_ID) แก้ในชีตนั้นโดยตรง' });
+  var rows;
+  if (d.action === 'rosterimport') {
+    var link = s_(d.sheet, 400), m = /\/d\/([a-zA-Z0-9_-]{20,})/.exec(link) || /^([a-zA-Z0-9_-]{25,})$/.exec(link.trim());
+    if (!m) return json_({ ok: false, error: 'ลิงก์ไม่ใช่ Google Sheets (ต้องมี /d/รหัสไฟล์/)' });
+    try {
+      var ext = SpreadsheetApp.openById(m[1]), src = null, g = /[#&?]gid=(\d+)/.exec(link), tab = s_(d.tab, 100);
+      if (tab) src = ext.getSheetByName(tab);
+      if (!src && g) ext.getSheets().forEach(function (x) { if (String(x.getSheetId()) === g[1]) src = x; });
+      if (!src) src = ext.getSheets()[0];
+      var rr = Math.min(src.getLastRow(), 1001);
+      rows = rr ? rosterRows_(src.getRange(1, 1, rr, Math.max(src.getLastColumn(), 1)).getValues()) : [];
+    } catch (err) { return json_({ ok: false, error: 'เปิดไฟล์ไม่ได้ ตรวจว่าลิงก์ถูกต้องและแชร์ให้บัญชีเจ้าของสคริปต์ (Viewer ขึ้นไป) หรือใช้ปุ่มอัปโหลดไฟล์แทน' }); }
+  } else if (Array.isArray(d.table)) rows = rosterRows_(d.table);
+  else if (Array.isArray(d.rows)) rows = d.rows;
+  else return json_({ ok: false, error: 'ไม่มีข้อมูลรายชื่อ' });
+  if (!rows.length) return json_({ ok: false, error: 'ไม่พบคอลัมน์อีเมลในข้อมูลที่ส่งมา (ต้องมีคอลัมน์อีเมล)' });
+  var res = rosterUpsert_(sh, rows);
+  return json_({ ok: true, added: res.added, updated: res.updated, skipped: res.skipped, total: res.total, roster: rosterList_(props) });
 }
 
 // ภาพรายงานของใบงาน เก็บในโฟลเดอร์ "ภาพงานส่ง" ใต้ DRIVE_FOLDER_ID (ถ้าตั้งไว้)
@@ -224,6 +318,7 @@ function doPost(e) {
       Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' });
     }
     if (d.action === 'wsset') return wsSet_(d, props);
+    if (d.action === 'rosterlist' || d.action === 'rosteradd' || d.action === 'rosterimport') return rosterAction_(d, props);
     if (d.action === 'dash') return dash_(d, props);
     if (d.action === 'tcheck') {
       var tc = props.getProperty('TEACHER_CODE');
@@ -232,23 +327,35 @@ function doPost(e) {
       return json_({ ok: true, tcheck: true });
     }
 
-    var code = props.getProperty('CLASS_CODE');
-    if (code && s_(d.cls, 60) !== code) return json_({ ok: false, error: 'รหัสห้องอบรมไม่ถูกต้อง' });
-    if (!s_(d.name, 100)) return json_({ ok: false, error: 'ไม่มีชื่อ' });
+    var strict = strict_(props), code = props.getProperty('CLASS_CODE');
+    if (code && !strict && s_(d.cls, 60) !== code) return json_({ ok: false, error: 'รหัสห้องอบรมไม่ถูกต้อง' });
 
-    var verified = '';
+    var verified = '', gname = '';
     if (d.idToken) {
       var r = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(d.idToken),
         { muteHttpExceptions: true });
       if (r.getResponseCode() === 200) {
         var t = JSON.parse(r.getContentText());
         var cid = props.getProperty('GOOGLE_CLIENT_ID');
-        if ((!cid || t.aud === cid) && t.email_verified !== 'false') verified = t.email;
+        if ((!cid || t.aud === cid) && t.email_verified !== 'false') { verified = t.email; gname = t.name || ''; }
       }
     }
 
-    if (!inRoster_(d, verified, props)) return json_({ ok: false, error: 'ไม่พบรหัสผู้เรียนนี้ในรายชื่อลงทะเบียน ติดต่อผู้สอน' });
-    if (d.action === 'access') return json_({ ok: true, role: 'student', menus: menus_() });
+    if (strict) {
+      // ต้องมีอีเมลที่ Google ยืนยัน และอยู่ในรายชื่อ (สถานะไม่ใช่ "ระงับ")
+      if (!verified) return json_({ ok: false, needGoogle: true, error: 'ต้องเข้าสู่ระบบด้วยบัญชี Google (ถ้าเข้าไว้แล้วอาจหมดเวลา ให้เข้าใหม่)' });
+      var RL = roster_(props);
+      if (!RL) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้เพิ่มรายชื่อผู้เรียน' });
+      var me = null, vem = String(verified).toLowerCase();
+      RL.forEach(function (x) { if (x.email && x.email === vem) me = x; });
+      if (!me) return json_({ ok: false, error: 'อีเมล ' + verified + ' ไม่อยู่ในรายชื่อลงทะเบียน ติดต่อผู้สอน' });
+      d.name = me.name || s_(d.name, 100) || gname || verified;
+      d.sid = me.sid || s_(d.sid, 30);
+    } else {
+      if (!s_(d.name, 100)) return json_({ ok: false, error: 'ไม่มีชื่อ' });
+      if (!inRoster_(d, verified, props)) return json_({ ok: false, error: 'ไม่พบรหัสผู้เรียนนี้ในรายชื่อลงทะเบียน ติดต่อผู้สอน' });
+    }
+    if (d.action === 'access') return json_({ ok: true, role: 'student', menus: menus_(), name: s_(d.name, 100), sid: s_(d.sid, 30), email: verified });
     if (d.action === 'save' || d.action === 'load') return cloud_(d, verified, props);
     if (d.action === 'mine') return mine_(d, verified);
 
