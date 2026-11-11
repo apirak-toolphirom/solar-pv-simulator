@@ -637,7 +637,7 @@ function renderTop(){
   const svg=$('#svgTop'),TH=topSceneH();
   if(!drag||!TOPVB){const b=packBounds();TOPVB=[b.x0,b.y0-50,b.x1-b.x0,b.y1-b.y0+95];}
   fitSvg(svg,TOPVB);svg.style.width=(S.tzoom||100)+'%';$$('.tzVal').forEach(x=>x.textContent=(S.tzoom||100)+'%');
-  let s=boxPanelsSVG();
+  let s=boxPanelsSVG()+guideSVG();
   S.cells.forEach((c,i)=>s+=cellSVG(c,i,{mode:'layout',sel:S.sel,iss}));
   S.links.forEach((l,i)=>s+=`<g opacity=".55" pointer-events="none">${linkSVG(l,i)}</g>`);
   if(S.sel!=null&&S.cells[S.sel]){const c=S.cells[S.sel],f=foot(c),vert=f.h>f.w,cx=vert?c.x+f.w/2:c.x,ty=vert?c.y+panelY(c.tier):c.y+panelY(c.tier)-f.h/2,dx=vert?0:26,dy=vert?26:0;
@@ -648,16 +648,16 @@ function renderTop(){
   renderSelBox();renderLayChecks(iss);
 }
 function renderSelBox(){
-  const b=$('#selBox');
-  if(S.sel==null){b.innerHTML=`<span class="note">คลิกเลือกเซลล์เพื่อหมุนหรือย้ายชั้น</span>`;return;}
+  const b=$('#selBox'),msg=LAYMSG?`<span class="note" style="flex-basis:100%">${esc(LAYMSG)}</span>`:'';
+  if(S.sel==null){b.innerHTML=msg+`<span class="note">คลิกเลือกเซลล์เพื่อหมุนหรือย้ายชั้น</span>`;return;}
   const c=S.cells[S.sel];
-  b.innerHTML=`<span class="lbl">เซลล์ ${S.sel+1}</span><span class="num muted">x ${fmt(c.x,0)} y ${fmt(c.y,0)} · ${c.rot}°</span>
+  b.innerHTML=msg+`<span class="lbl">เซลล์ ${S.sel+1}</span><span class="num muted">x ${fmt(c.x,0)} y ${fmt(c.y,0)} · ${c.rot}°</span>
    <button class="btn sm" data-sa="r90">หมุน 90°</button><button class="btn sm" data-sa="r180">กลับขั้ว 180°</button>
    ${S.tiers>1?`<button class="btn sm" data-sa="tier">ย้ายไปชั้น ${c.tier===0?2:1}</button>`:''}`;
 }
 function renderLayChecks(iss){
   const L=[];
-  if(iss.stage.size)L.push(['warn',`ยังไม่ได้วางลงตู้ ${iss.stage.size} ก้อน (กรอบประสีเหลือง) ลากเข้าไปวางในตู้ เซลล์จะดูดเข้าช่องเอง`]);
+  if(iss.stage.size)L.push(['warn',`ยังไม่ได้วางลงตู้ ${iss.stage.size} ก้อน (กรอบประสีเหลือง) ลากเข้าไปวางในตู้ ระหว่างลากจะมีช่องไกด์ขึ้นให้ ปล่อยเมาส์เมื่อช่องที่ต้องการเปลี่ยนเป็นสีเขียว`]);
   L.push(iss.out.size?['bad',`เซลล์ ${[...iss.out].map(i=>i+1).join(', ')} ล้นขอบตู้`]:iss.stage.size?['ok','เซลล์ที่วางในตู้ไม่ล้นขอบ']:['ok','เซลล์ทุกก้อนอยู่ภายในกล่อง']);
   L.push(iss.hit.size?['bad',`เซลล์ ${[...iss.hit].map(i=>i+1).join(', ')} ทับกัน ต้องเว้นระยะหรือมีแผ่นฉนวนคั่น`]:['ok','ไม่มีเซลล์ทับกัน (เผื่อแผ่นฉนวนคั่นเซลล์ 2 มม.)']);
   if(FRONT()){
@@ -823,7 +823,7 @@ $('#btnCompact').addEventListener('click',()=>setCompact(!S.compact));
 let PAN=null;
 function panStart(sc,e,extra){PAN=Object.assign({sc,x:e.clientX,y:e.clientY,sl:sc.scrollLeft,st:sc.scrollTop,moved:false},extra||{});}
 function panMove(e){if(!PAN)return false;const dx=e.clientX-PAN.x,dy=e.clientY-PAN.y;if(Math.abs(dx)+Math.abs(dy)>5)PAN.moved=true;PAN.sc.scrollLeft=PAN.sl-dx;PAN.sc.scrollTop=PAN.st-dy;return true;}
-/* ---- slots of the chosen arrangement: drop a cell near a slot to snap; drop on an occupied slot to swap ---- */
+/* ---- slots of the chosen arrangement (shown as guides while dragging; see nearSlot / guideSVG) ---- */
 function slotsFor(code){const keep={cells:S.cells,box:S.box,style:S.style,tiers:S.tiers,arr:S.arr,az:S.az,sel:S.sel};
   genLayout(code);const sl=S.cells.map(c=>({x:c.x,y:c.y,tier:c.tier}));Object.assign(S,keep);return sl;}
 /* cells start mixed up (order and polarity) so the learner arranges them; retry until at most a few pairs happen to line up */
@@ -860,21 +860,42 @@ $('#svgTop').addEventListener('pointerdown',e=>{
   const g=e.target.closest('[data-cell]');const svg=$('#svgTop');
   if(!g){panStart($('#tscrollT'),e);svg.setPointerCapture(e.pointerId);if(S.sel!=null){S.sel=null;renderTop();}return;}
   const i=+g.dataset.cell,c=S.cells[i],p=svgPt(svg,e);S.sel=i;
-  drag={i,dx:p.x-c.x,dy:p.y-(c.y+panelY(c.tier)),from:{x:c.x,y:c.y,tier:c.tier}};svg.setPointerCapture(e.pointerId);renderTop();
+  drag={i,dx:p.x-c.x,dy:p.y-(c.y+panelY(c.tier)),from:{x:c.x,y:c.y,tier:c.tier},sl:slotsFor(S.arr),near:null,moved:false};svg.setPointerCapture(e.pointerId);renderTop();
 });
 $('#svgTop').addEventListener('pointermove',e=>{
   if(panMove(e))return;
   if(!drag)return;const svg=$('#svgTop'),p=svgPt(svg,e),c=S.cells[drag.i];
   const gy=p.y-drag.dy;let t=Math.floor((gy+PANEL_GAP/2)/(edH()+PANEL_GAP));t=Math.max(0,Math.min(S.tiers-1,t));
-  c.tier=t;c.x=Math.round(p.x-drag.dx);c.y=Math.round(gy-panelY(t));scheduleLayout();
+  c.tier=t;c.x=Math.round(p.x-drag.dx);c.y=Math.round(gy-panelY(t));drag.near=nearSlot(c,drag.sl);scheduleLayout();
 });
-const endDrag=()=>{if(PAN){PAN=null;return;}if(!drag)return;const c=S.cells[drag.i],from=drag.from;drag=null;TOPVB=null;
+/* ---- guide slots: while dragging, the slots of the chosen arrangement are drawn as dashed outlines; the one under the
+   cell lights up. Dropping puts the cell exactly in it (swap if taken). No grid snapping, and a drop never overlaps ---- */
+function nearSlot(c,sl){const f=foot(c),R=Math.max(35,Math.min(f.w,f.h)*0.7);let best=null,bd=R;
+  sl.forEach(q=>{if(q.tier!==c.tier)return;const d=Math.hypot(q.x-c.x,q.y-c.y);if(d<bd){bd=d;best=q;}});return best;}
+function slotOwner(q,except){let best=-1,bd=1e9;
+  S.cells.forEach((o,j)=>{if(j===except||o.tier!==q.tier)return;const g=foot(o),d=Math.hypot(o.x-q.x,o.y-q.y);if(d<Math.min(g.w,g.h)/2&&d<bd){bd=d;best=j;}});return best;}
+function overlapsAny(i){const c=S.cells[i],f=foot(c);
+  return S.cells.some((o,j)=>{if(j===i||o.tier!==c.tier)return false;const g=foot(o);return Math.abs(c.x-o.x)<(f.w+g.w)/2-0.5&&Math.abs(c.y-o.y)<(f.h+g.h)/2-0.5;});}
+let LAYMSG='',layMsgT=0;
+function layFlash(t){LAYMSG=t;clearTimeout(layMsgT);layMsgT=setTimeout(()=>{LAYMSG='';renderSelBox();},4000);}
+function guideSVG(){
+  if(!drag||!drag.sl)return'';const c=S.cells[drag.i],f=foot(c);let s='';
+  drag.sl.forEach(q=>{if(q.tier!==c.tier)return;
+    const own=slotOwner(q,drag.i),on=drag.near===q,x=q.x-f.w/2,y=q.y+panelY(q.tier)-f.h/2,col=own>=0?'var(--warn)':'var(--ok)';
+    s+=`<g pointer-events="none"><rect x="${x}" y="${y}" width="${f.w}" height="${f.h}" rx="5" fill="${on?col:'none'}" fill-opacity="${on?.22:0}" stroke="${col}" stroke-width="${on?4:2}" stroke-dasharray="${on?'none':'9 6'}" opacity="${on?1:.7}"/>`+
+      (on?`<text x="${q.x}" y="${q.y+panelY(q.tier)+5}" text-anchor="middle" font-size="14" font-weight="700" fill="${col}">${own>=0?'สลับที่กับเซลล์ '+(own+1):'วางที่ช่องนี้'}</text>`:'')+'</g>';});
+  return s;}
+const endDrag=()=>{if(PAN){PAN=null;return;}if(!drag)return;const i=drag.i,c=S.cells[i],from=drag.from,near=drag.near;drag=null;TOPVB=null;
   if(Math.hypot(c.x-from.x,c.y-from.y)>3||c.tier!==from.tier){
-    const sl=slotsFor(S.arr).filter(q=>q.tier===c.tier);let best=null,bd=45;
-    sl.forEach(q=>{const d=Math.hypot(q.x-c.x,q.y-c.y);if(d<bd){bd=d;best=q;}});
-    if(best){const other=S.cells.findIndex((o,j)=>o!==c&&o.tier===best.tier&&Math.hypot(o.x-best.x,o.y-best.y)<6);
-      if(other>=0){const o=S.cells[other];o.x=from.x;o.y=from.y;o.tier=from.tier;}
-      c.x=best.x;c.y=best.y;}
+    let swapped=-1,ok=true;
+    if(near){swapped=slotOwner(near,i);
+      if(swapped>=0){const o=S.cells[swapped];o.x=from.x;o.y=from.y;o.tier=from.tier;}
+      c.x=near.x;c.y=near.y;c.tier=near.tier;}
+    /* never leave two cells on top of each other: undo the move if it would */
+    if(overlapsAny(i)||(swapped>=0&&overlapsAny(swapped)))ok=false;
+    if(!ok){if(swapped>=0){const o=S.cells[swapped];o.x=near.x;o.y=near.y;o.tier=near.tier;}
+      c.x=from.x;c.y=from.y;c.tier=from.tier;layFlash('วางตรงนั้นไม่ได้ เพราะทับเซลล์อื่น เซลล์ถูกคืนที่เดิม · ลากไปวางที่ช่องไกด์สีเขียว');}
+    else if(near)layFlash(swapped>=0?`สลับที่เซลล์ ${i+1} กับเซลล์ ${swapped+1} แล้ว`:`วางเซลล์ ${i+1} ลงช่องแล้ว`);
   }
   save();renderLayoutAll();renderWire();};
 $('#svgTop').addEventListener('pointerup',endDrag);$('#svgTop').addEventListener('pointercancel',endDrag);
