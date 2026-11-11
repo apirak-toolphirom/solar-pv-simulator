@@ -11,7 +11,7 @@
 |---|---|---|
 | เคิร์ฟการทริปของ MCB | `#library/mcb-curves` | curve B C D K Z ตาราง magnetic/thermal (IEC 60898-1 / 60947-2) กราฟเวลา-กระแสแบบ log สลับ AC/DC เครื่องมือเลือก curve จากกระแสกระชากและกระแสลัดวงจรปลายสาย การใช้กับ DC ป้ายเบรกเกอร์ ข้อผิดพลาดที่พบบ่อย คำถาม 4 ข้อ |
 | RCD (RCCB / RCBO) หรือ MCB | `#library/rcd-vs-mcb` | จุดสังเกต 3 อย่าง ตารางเทียบ มาตรฐาน IEC / มอก. วงจรที่ วสท. 2564 กำหนดให้มี RCD 30 mA การใช้ในระบบโซลาร์ แบบฝึกอ่านฉลาก 5 ข้อ |
-| Hybrid inverter 6 kW: Off-grid (มี MTS) กับ On-grid ต่างกันอย่างไร | `#library/hybrid-offgrid-vs-ongrid` | เทียบการต่อ 2 แบบในระบบ TN-C-S ทางเดินไฟ N bonding MTS External/Internal CT CT offset ข้อจำกัดและการขออนุญาตขนานกริด การต่อ PV1/PV2 ตัวอย่างวงจร 4 แบบ แบบทดสอบ 4 ข้อ |
+| Hybrid inverter 6 kW: Off-grid (มี MTS) กับ On-grid ต่างกันอย่างไร | `#library/hybrid-offgrid-vs-ongrid` | แผนภาพวงจรเต็ม 2 ภาพ (แผง ฟิวส์ DC MCB SPD บาร์กราวด์ แบต MCCB เมน Inv breaker RCBO MTS N–N bonding CT สีสายแยก DC+/DC−/L/N/PE) เทียบการต่อ 2 แบบในระบบ TN-C-S ทางเดินไฟ N bonding MTS External/Internal CT CT offset ข้อจำกัดและการขออนุญาตขนานกริด การต่อ PV1/PV2 ตัวอย่างวงจร 4 แบบ แบบทดสอบ 4 ข้อ |
 | Deye hybrid inverter 6 kW: On-grid zero export, Off-grid เมื่อกริดดับ, ช่อง ATS และ NG bonding | `#library/deye-6kw-hybrid` | มีกริดทำงาน On-grid zero export ในตัว กริดดับสร้างไฟเอง (Off-grid) ช่อง ATS และ ATS dip switch ON ขับคอยล์ของ MTS/คอนแทคเตอร์ หรือรีเลย์ NG bonding (ลงดิน N จุดเดียวตอน Off-grid) แผนภาพวงจรเต็ม (แผง ฟิวส์ DC MCB SPD กราวด์ แบต MCCB เมน Inv breaker RCBO MTS ช่อง ATS รีเลย์ NG bonding สีสายแยก DC+/DC−/L/N/PE) ตารางวงจรตัวอย่าง 6 แบบ ข้อควรตรวจก่อนติดตั้ง แบบทดสอบ 4 ข้อ |
 
 ## ใช้งาน
