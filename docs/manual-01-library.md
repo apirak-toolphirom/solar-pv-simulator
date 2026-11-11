@@ -1,6 +1,6 @@
 # เมนู 01 คลังความรู้
 
-**ฉบับ 1.4 · ปรับปรุงล่าสุด 11 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/library.js` `js/kb_rcd.js` `js/kb_luxpower.js` `js/kb_deye6k.js`
+**ฉบับ 1.5 · ปรับปรุงล่าสุด 11 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/library.js` `js/kb_rcd.js` `js/kb_luxpower.js` `js/kb_deye6k.js` `js/kb_pvcircuit.js`
 
 บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน
 
@@ -13,6 +13,7 @@
 | RCD (RCCB / RCBO) หรือ MCB | `#library/rcd-vs-mcb` | จุดสังเกต 3 อย่าง ตารางเทียบ มาตรฐาน IEC / มอก. วงจรที่ วสท. 2564 กำหนดให้มี RCD 30 mA การใช้ในระบบโซลาร์ แบบฝึกอ่านฉลาก 5 ข้อ |
 | Hybrid inverter 6 kW: Off-grid (มี MTS) กับ On-grid ต่างกันอย่างไร | `#library/hybrid-offgrid-vs-ongrid` | แผนภาพวงจรเต็ม 2 ภาพ (แผง ฟิวส์ DC MCB SPD บาร์กราวด์ แบต MCCB เมน Inv breaker RCBO MTS N–N bonding CT สีสายแยก DC+/DC−/L/N/PE) เทียบการต่อ 2 แบบในระบบ TN-C-S ทางเดินไฟ N bonding MTS External/Internal CT CT offset ข้อจำกัดและการขออนุญาตขนานกริด การต่อ PV1/PV2 ตัวอย่างวงจร 4 แบบ แบบทดสอบ 4 ข้อ |
 | Deye hybrid inverter 6 kW: On-grid zero export, Off-grid เมื่อกริดดับ, ช่อง ATS และ NG bonding | `#library/deye-6kw-hybrid` | มีกริดทำงาน On-grid zero export ในตัว กริดดับสร้างไฟเอง (Off-grid) ช่อง ATS และ ATS dip switch ON ขับคอยล์ของ MTS/คอนแทคเตอร์ หรือรีเลย์ NG bonding (ลงดิน N จุดเดียวตอน Off-grid) แผนภาพวงจรเต็ม (แผง ฟิวส์ DC MCB SPD กราวด์ แบต MCCB เมน Inv breaker RCBO MTS ช่อง ATS รีเลย์ NG bonding สีสายแยก DC+/DC−/L/N/PE) ตารางวงจรตัวอย่าง 6 แบบ ข้อควรตรวจก่อนติดตั้ง แบบทดสอบ 4 ข้อ |
+| วงจรแผง PV ควรต่อแบบไหน: string combiner, DC MCB, SPD มีฟิวส์ และการเลือกฟิวส์สตริง | `#library/pv-circuit-combiner` | แผนภาพ 2 วง (ตู้ string combiner ใกล้แผงเมื่อ 3 สตริงขึ้นไป / ตู้ DC ฝั่งอินเวอร์เตอร์: MCB ก่อน แล้ว SPD มีฟิวส์ 4–6 A) ระบบบ้าน 1–2 สตริงไม่ต้องมีฟิวส์สตริง สูตรฟิวส์ ≥ 1.25×Isc และ < max fuse rating ตัวอย่างคำนวณ ข้อผิดพลาดที่พบบ่อย แบบทดสอบ 4 ข้อ |
 
 ## ใช้งาน
 1. ค้นหาด้วยคำ หรือกรองตามหมวด (อุปกรณ์ป้องกัน · สายไฟและการเดินสาย · แผงและอินเวอร์เตอร์ · แบตเตอรี่ · ความปลอดภัย · มาตรฐานและกฎ) หมวดที่ยังไม่มีบทความจะไม่แสดง
@@ -32,3 +33,4 @@
 | 1.2 | 11 พ.ย. 2569 | เพิ่มบทความ Deye hybrid inverter 6 kW (On-grid zero export, Off-grid, ช่อง ATS, NG bonding) |
 | 1.3 | 11 พ.ย. 2569 | บทความ Deye 6 kW: วาดแผนภาพใหม่เป็นวงจรเต็ม มีฟิวส์ เบรกเกอร์ SPD บาร์กราวด์ N-PE bonding และสายแยกสี |
 | 1.4 | 11 พ.ย. 2569 | บทความ Hybrid inverter 6 kW (Off-grid/On-grid): วาดแผนภาพใหม่เป็นวงจรเต็ม 2 ภาพ มีฟิวส์ เบรกเกอร์ SPD กราวด์ N bonding CT และสายแยกสี |
+| 1.5 | 11 พ.ย. 2569 | เพิ่มบทความ วงจรแผง PV ควรต่อแบบไหน (string combiner, DC MCB, SPD มีฟิวส์, เลือกฟิวส์สตริง) |
