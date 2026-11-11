@@ -35,12 +35,13 @@ const CP_CT_OPTS=[['none','ไม่ติด CT'],['grid','สายไฟก�
 const CP_OUT=[['none','ไม่ดับ'],['mid','ไฟดับ 10:00–15:00'],['eve','ไฟดับ 18:00–22:00']];
 const CP_DEFSET=()=>({src:{pf:true,anti:false}});
 const CP_FTRIP=51.5; /* ความถี่ที่อินเวอร์เตอร์ AC ตัดออก (คู่มือ Deye ตารางป้องกัน 81>.S1 = 51.5 Hz) */
-const CP={sc:'hw_deye',page:'job',ports:{src:'none',ct:'none',arrow:'ok'},set:CP_DEFSET(),hs:hlDef('deye'),lcd:{scr:'home',stack:[]},dash:{t:24,out:'none',cloud:0,load:100,soc0:50},done:{},drill:null,diagOk:0,_c:null};
+const CP_CU0=()=>({at:'none',arrow:'ok',lh:'none',la:'none'});
+const CP={sc:'hw_deye',page:'job',ports:{src:'none',ct:'none',arrow:'ok'},cu:CP_CU0(),set:CP_DEFSET(),hs:hlDef('deye'),lcd:{scr:'home',stack:[]},dash:{t:24,out:'none',cloud:0,load:100,soc0:50},done:{},drill:null,diagOk:0,_c:null};
 const cpF=(v,d=0)=>(+v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
 const cpHM=i=>String(Math.floor(i/2)).padStart(2,'0')+':'+(i%2?'30':'00');
 const cpSc=()=>CP_SC[CP.sc],cpHost=()=>CP_HOST[cpSc().host],cpSrc=()=>CP_SRC[cpSc().src];
 const cpLoad=h=>{let w=.35;if(h>=6&&h<8)w+=.8;if(h>=10&&h<16)w+=.5;if(h>=18&&h<22)w+=1.8;return w};
-function cpReset(S){S.ports={src:'none',ct:'none',arrow:'ok'};S.set=CP_DEFSET();S.hs=hlDef(CP_SC[S.sc].host);S.lcd={scr:'home',stack:[]}}
+function cpReset(S){S.cu=CP_CU0();S.ports={src:'none',ct:'none',arrow:'ok'};S.set=CP_DEFSET();S.hs=hlDef(CP_SC[S.sc].host);S.lcd={scr:'home',stack:[]}}
 function cpCorrect(S){const sc=CP_SC[S.sc],d=sc.host==='deye';cpReset(S);S.ports={src:'gen',ct:'grid',arrow:'ok'};
   if(d){S.hs.gen.use='micro';if(sc.policy==='noexp'){S.hs.work.mode='zeroCT';S.hs.work.solarSell=false}else{S.hs.work.mode='sell';S.hs.work.maxSell=5000}}
   else{S.hs.sp.use='ac';S.hs.st.mode='self';if(sc.policy==='noexp')S.hs.st.allowExp=false;else{S.hs.st.allowExp=true;S.hs.st.maxExp=5000}}
@@ -135,14 +136,14 @@ const cpSel=(path,opts,v)=>`<select class="hn" data-cps="${path}" id="cps-${path
 const cpNum=(path,v,min,max,step,u)=>`<span class="slnum"><input class="hn" type="number" data-cps="${path}" id="cps-${path.replace(/\./g,'-')}" value="${v}" min="${min}" max="${max}" step="${step||1}"><i>${u||''}</i></span>`;
 const cpChk=(path,v,t)=>`<label class="slck"><input class="hn" type="checkbox" data-cps="${path}" id="cps-${path.replace(/\./g,'-')}" ${v?'checked':''}> ${t||''}</label>`;
 const cpRow=(l,c)=>`<div class="slrow"><span>${l}</span><span>${c}</span></div>`;
-const cpPages=()=>[['job','1 ใบสั่งงานและการต่อสาย'],['host',`2 จอเครื่อง ${CP_SC[CP.sc].host==='deye'?'Deye':'Solis'}`],['src',`3 ตั้งค่า ${CP_SC[CP.sc].src==='hw'?'Huawei':'ไมโคร Deye'}`],['dash','4 แดชบอร์ดและทดสอบ'],['fault','5 โจทย์หาข้อผิดพลาด']];
+const cpPages=()=>[['job','1 ใบสั่งงานและการต่อสาย'],['host',`2 จอเครื่อง ${CP_SC[CP.sc].host==='deye'?'Deye':'Solis'}`],['src',`3 ตั้งค่า ${CP_SC[CP.sc].src==='hw'?'Huawei':'ไมโคร Deye'}`],['dash','4 แดชบอร์ดและทดสอบ'],['fault','5 โจทย์หาข้อผิดพลาด'],['custom','6 ต่อสายเอง (CT 2 ชุด)']];
 function cpRender(){
   const host=document.getElementById('cphost');if(!host)return;
   const s=cpScore(),sc=cpSc();if(!cpPages().some(p=>p[0]===CP.page))CP.page='job';const pg=CP.page;
   host.innerHTML=`<div class="verdict ${s.ok?'ok':s.n/s.all>.6?'warn':'err'}"><b>${esc(sc.n)}</b><span>${s.ok?'ผ่านครบทุกข้อ':'ผ่าน '+s.n+' / '+s.all+' ข้อ'}</span>${CP.drill?'<span class="pill warn">มีโจทย์หาข้อผิดพลาด</span>':''}<span class="nums">ผ่านแล้ว ${cpDone()}/4 ระบบ</span></div>
   <div class="bar"><div class="grp" role="group" aria-label="ระบบ"><span class="lab">ระบบ</span>${Object.entries(CP_SC).map(([k,v])=>`<button class="chip" data-cpsc="${k}" aria-pressed="${CP.sc===k}">${CP.done[k]?'✓ ':''}${esc(v.n)}</button>`).join('')}</div></div>
   <div class="bar"><div class="grp" role="group" aria-label="ขั้นตอน">${cpPages().map(([k,t])=>`<button class="chip" data-cppg="${k}" aria-pressed="${pg===k}">${t}</button>`).join('')}</div></div>
-  <div id="cppage">${pg==='job'?cpPgJob(s):pg==='host'?cpPgHost(s):pg==='src'?cpPgSrc(s):pg==='dash'?cpPgDash(s):cpPgFault(s)}</div>`;
+  <div id="cppage">${pg==='job'?cpPgJob(s):pg==='host'?cpPgHost(s):pg==='src'?cpPgSrc(s):pg==='dash'?cpPgDash(s):pg==='custom'?cpPgCustom(s):cpPgFault(s)}</div>`;
   cpLive();
 }
 /* ---- ผังการต่อ: ลากปลายสายอินเวอร์เตอร์ AC ไปวางที่จุดต่อ และลาก CT ไปคล้องสาย (ค่าเก็บใน CP.ports เหมือนเดิม) ---- */
@@ -161,37 +162,89 @@ function cpHybridIcon(x,y,w,h,host,hn){
   s+=[0,1,2,3].map(i=>`<circle cx="${x+w-47+i*12}" cy="${y+52}" r="3" fill="#8794a1"/>`).join('');
   s+=`<text x="${x+9}" y="${y+30}" font-size="12" font-weight="700" fill="${tx}">${deye?'Deye':'Solis'} Hybrid</text><text x="${x+9}" y="${y+43}" font-size="9" fill="${tx}">${esc(model)}</text><text x="${x+9}" y="${y+56}" font-size="8" fill="#52606d">GRID · GEN · LOAD</text>`;
   return s;}
-function cpAcIcon(src,sn){
+function cpAcIcon(src,sn,cu){
   const hw=src==='hw',tx=hw?'#1b2430':'#f1f4f7';let s='';
   if(hw){s+=`<rect x="262" y="4" width="146" height="38" rx="6" fill="#eef1f4" stroke="#7d8b99" stroke-width="1.6"/>`+[0,1,2,3,4,5].map(i=>`<line x1="${382+i*5}" y1="9" x2="${382+i*5}" y2="37" stroke="#aab4be" stroke-width="2"/>`).join('')+
     `<rect x="262" y="4" width="6" height="38" rx="3" fill="#c8102e"/>`+[0,1,2].map(i=>`<circle cx="${277+i*9}" cy="35" r="2.6" fill="${i===0?'#27ae60':'#9aa6b2'}"/>`).join('')+
     `<text x="276" y="21" font-size="10" font-weight="700" fill="${tx}">${esc(sn.replace('Huawei ',''))}</text>`;}
   else{s+=`<line x1="270" y1="22" x2="285" y2="22" stroke="#222" stroke-width="3"/><line x1="385" y1="22" x2="400" y2="22" stroke="#222" stroke-width="3"/><rect x="285" y="6" width="100" height="32" rx="7" fill="#323b45" stroke="#7d8b99" stroke-width="1.6"/>`+
     `<text x="335" y="21" text-anchor="middle" font-size="11" font-weight="700" fill="${tx}">SUN-M200G4</text><text x="335" y="32" text-anchor="middle" font-size="8" fill="#b6c0ca">ไมโครอินเวอร์เตอร์ 2 kW</text><line x1="335" y1="38" x2="335" y2="42" stroke="#222" stroke-width="3"/>`;}
-  return s+`<text x="254" y="26" text-anchor="end" class="svgt mut" font-size="10">อินเวอร์เตอร์ AC</text>`;}
-function cpSLD(){
+  return s+(cu?`<text x="420" y="26" class="svgt mut" font-size="10">อินเวอร์เตอร์ AC</text>`:`<text x="254" y="26" text-anchor="end" class="svgt mut" font-size="10">อินเวอร์เตอร์ AC</text>`);}
+function cpSLD(cu){
   const F=cpFlags(),p=F.p,hn=cpHost().n,sn=cpSrc().n.split(' (')[0],D=CPD,dsrc=D&&D.k==='src',dct=D&&D.k==='ct';
   const box=(x,y,w,h,t,t2,cl)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" class="cpb ${cl||''}"/><text x="${x+w/2}" y="${y+h/2-(t2?2:-4)}" text-anchor="middle" class="svgt" font-size="12">${esc(t)}</text>${t2?`<text x="${x+w/2}" y="${y+h/2+13}" text-anchor="middle" class="svgt mut" font-size="10">${esc(t2)}</text>`:''}`;
   const ln=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" class="cpw"/>`;
-  let o=box(10,112,90,48,'กริด','PEA/MEA')+box(130,112,90,48,'ตู้เมน')+cpHybridIcon(260,104,150,64,cpSc().host,hn)+box(450,112,90,48,'โหลดบ้าน','Backup')+cpAcIcon(cpSc().src,sn);
+  let o=box(10,112,90,48,'กริด','PEA/MEA')+box(130,112,90,48,'ตู้เมน')+cpHybridIcon(260,104,150,64,cpSc().host,hn)+box(450,112,90,48,'โหลดบ้าน','Backup')+cpAcIcon(cpSc().src,sn,cu);
   o+=ln(100,136,130,136)+ln(220,136,260,136)+ln(410,136,450,136);
   o+=`<text x="345" y="98" class="svgt mut" font-size="10">GEN</text><text x="240" y="152" text-anchor="middle" class="svgt mut" font-size="9">GRID</text><text x="430" y="152" text-anchor="middle" class="svgt mut" font-size="9">LOAD</text>`;
   /* สายอินเวอร์เตอร์ AC */
   if(dsrc)o+=`<path d="M335,42 L${D.x.toFixed(1)},${D.y.toFixed(1)}" class="cpw" stroke-dasharray="4 3" fill="none"/>`;
   else if(p.src==='none')o+=`<path d="M335,42 L335,56" class="cpw" stroke-dasharray="3 3" fill="none"/><text x="345" y="56" class="svgt mut" font-size="10">ยังไม่ต่อ · ลากปลายสายไปวางที่จุดต่อ</text>`;
-  else o+=`<path d="${cpWire(p.src)}" class="cpw ${p.src==='load'?'bad':''}" fill="none"/>`;
+  else o+=`<path d="${cpWire(p.src)}" class="cpw ${p.src==='load'?'bad':''}" ${cu&&p.src==='load'?'style="stroke-dasharray:none"':''} fill="none"/>`;
   /* จุดต่อที่วางได้ */
   const hotS=dsrc?cpNear(CP_TS,D.x,D.y,28):null,hotC=dct?cpNear(CP_TC,D.x,D.y,30):null;
   if(dsrc)for(const k in CP_TS){const h=hotS===k;o+=`<circle cx="${CP_TS[k][0]}" cy="${CP_TS[k][1]}" r="${h?10:6}" fill="${h?'var(--accent)':'none'}" fill-opacity=".35" stroke="var(--accent)" stroke-width="2" stroke-dasharray="${h?'none':'3 2'}"/>`+(h?`<text x="${CP_TS[k][0]}" y="${CP_TS[k][1]-14}" text-anchor="middle" class="svgt" font-size="11" font-weight="700">${CP_TSN[k]}</text>`:'')}
   if(dct)for(const k in CP_TC){const h=hotC===k;o+=`<circle cx="${CP_TC[k][0]}" cy="${CP_TC[k][1]}" r="${h?12:7}" fill="${h?'var(--accent)':'none'}" fill-opacity=".35" stroke="var(--accent)" stroke-width="2" stroke-dasharray="${h?'none':'3 2'}"/>`}
   /* ปลายสาย (จับลากได้) */
   o+=`<circle cx="335" cy="42" r="5" fill="var(--ink)"/><circle data-cpdrag="src" cx="335" cy="42" r="13" fill="transparent" style="cursor:grab;touch-action:none"><title>ลากปลายสายอินเวอร์เตอร์ AC ไปวางที่จุดต่อ</title></circle>`;
+  if(cu)o+=cpCuLayer(F,D);else{
   /* CT */
   const pos=dct?[D.x,D.y]:p.ct!=='none'?CP_TC[p.ct]:[505,40],dx=(F.p.arrow==='ok')===(cpSc().host==='deye')?1:-1,[cx,cy]=pos;
   o+=`<g data-cpdrag="ct" style="cursor:grab;touch-action:none"><circle cx="${cx}" cy="${cy}" r="${p.ct==='none'&&!dct?11:9}" class="cpct"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="10" font-weight="700" fill="#1b2430" style="pointer-events:none">CT</text>`+
     (p.ct!=='none'||dct?`<path d="M${cx-dx*9},${cy+17} L${cx+dx*9},${cy+17} M${cx+dx*9},${cy+17} l${-dx*5},-3 M${cx+dx*9},${cy+17} l${-dx*5},3" stroke="var(--err)" stroke-width="1.8" fill="none" style="pointer-events:none"/>`:'')+`<title>ลาก CT ไปคล้องสาย · คลิกเพื่อกลับทิศลูกศร</title></g>`;
   if(p.ct==='none'&&!dct)o+=`<text x="505" y="66" text-anchor="middle" class="svgt mut" font-size="10">ลาก CT ไปคล้องสาย</text>`;
-  return `<svg viewBox="0 0 560 190" role="img" aria-label="ผังการต่อ AC coupling ลากปลายสายและ CT เพื่อต่อ">${o}</svg>`;
+  }
+  return `<svg viewBox="0 0 560 ${cu?222:190}" role="img" aria-label="ผังการต่อ AC coupling ลากปลายสายและ CT เพื่อต่อ">${o}</svg>`;
+}
+/* ---- หน้า 6 ต่อสายเอง: CT 2 ชุด (Hybrid = ส้ม, อินเวอร์เตอร์ออนกริด = ฟ้า) และสายสัญญาณเส้นประแยกสี ---- */
+const CUC={H:'#e8590c',A:'#1c9ad6'};
+const CUPOS={H:{grid:[108,136],src:[335,56],load:[423,136],tray:[460,72]},A:{grid:[122,136],src:[335,70],load:[437,136],tray:[530,72]}};
+const CUPORT={H:[335,168],A:[256,23]};
+const cuHasA=()=>cpSc().src==='hw';
+const cuTargets=k=>({grid:CUPOS[k].grid,src:CUPOS[k].src,load:CUPOS[k].load});
+function cuAt(k){return k==='H'?CP.ports.ct:CP.cu.at}
+function cuPos(k,D){if(D&&D.k==='ct'+k)return[D.x,D.y];const at=cuAt(k);return at==='none'?CUPOS[k].tray:CUPOS[k][at]}
+function cpCuLayer(F,D){
+  let o='';const ks=cuHasA()?['H','A']:['H'],dport=D&&D.k.startsWith('port')?D.k.slice(4):null,dct=D&&D.k.startsWith('ct')&&D.k!=='ct'?D.k.slice(2):null;
+  const cable=(k,tgt)=>{const P=CUPORT[k],C=tgt,d=k==='H'?`M${P[0]},${P[1]} C${P[0]},${P[1]+45} ${C[0]},${C[1]+55} ${C[0]},${C[1]+9}`:`M${P[0]},${P[1]} C${P[0]-60},${P[1]} ${C[0]},${C[1]-55} ${C[0]},${C[1]-9}`;
+    return `<path d="${d}" fill="none" stroke="${CUC[k]}" stroke-width="2.6" stroke-dasharray="7 4" stroke-linecap="round"/>`};
+  ks.forEach(k=>{const l=k==='H'?CP.cu.lh:CP.cu.la;
+    if(dport===k)o+=`<path d="M${CUPORT[k][0]},${CUPORT[k][1]} L${D.x.toFixed(1)},${D.y.toFixed(1)}" fill="none" stroke="${CUC[k]}" stroke-width="2.6" stroke-dasharray="7 4" stroke-linecap="round"/>`;
+    else if(l!=='none'&&(l==='H'||cuHasA()))o+=cable(k,cuPos(l,null))});
+  /* จุดคล้อง CT ที่วางได้ / CT ที่รับสายได้ */
+  if(dct){const T=cuTargets(dct),hot=cpNear(T,D.x,D.y,26);for(const t in T)o+=`<circle cx="${T[t][0]}" cy="${T[t][1]}" r="${hot===t?11:7}" fill="${hot===t?CUC[dct]:'none'}" fill-opacity=".3" stroke="${CUC[dct]}" stroke-width="2" stroke-dasharray="${hot===t?'none':'3 2'}"/>`}
+  if(dport){const cand={};ks.forEach(k=>cand[k]=cuPos(k,null));const hot=cpNear(cand,D.x,D.y,24);for(const k in cand)o+=`<circle cx="${cand[k][0]}" cy="${cand[k][1]}" r="${hot===k?13:10}" fill="${hot===k?CUC[dport]:'none'}" fill-opacity=".3" stroke="${CUC[dport]}" stroke-width="2" stroke-dasharray="${hot===k?'none':'3 2'}"/>`}
+  /* ตัว CT */
+  ks.forEach(k=>{const[cx,cy]=cuPos(k,D),at=cuAt(k),placed=at!=='none'||dct===k,
+    dx=k==='H'?((F.p.arrow==='ok')===(cpSc().host==='deye')?1:-1):(CP.cu.arrow==='ok'?1:-1);
+    o+=`<g data-cpdrag="ct${k}" style="cursor:grab;touch-action:none"><circle cx="${cx}" cy="${cy}" r="${placed?8:11}" fill="#fff" stroke="${CUC[k]}" stroke-width="3"/><text x="${cx}" y="${cy+3}" text-anchor="middle" font-size="8" font-weight="700" fill="#1b2430" style="pointer-events:none">CT</text>`+
+      (placed?`<path d="M${cx-dx*7},${cy+15} L${cx+dx*7},${cy+15} M${cx+dx*7},${cy+15} l${-dx*4},-2.5 M${cx+dx*7},${cy+15} l${-dx*4},2.5" stroke="${CUC[k]}" stroke-width="1.8" fill="none" style="pointer-events:none"/>`:'')+`<title>${k==='H'?'CT ของ Hybrid':'CT ของอินเวอร์เตอร์ออนกริด'} · ลากไปคล้องสาย · คลิกเพื่อกลับทิศลูกศร</title></g>`;
+    if(!placed)o+=`<text x="${cx}" y="${cy+25}" text-anchor="middle" class="svgt mut" font-size="9">${k==='H'?'CT Hybrid':'CT ออนกริด'}</text>`});
+  /* พอร์ต (จับลากสายสัญญาณ) */
+  ks.forEach(k=>{const[px,py]=CUPORT[k];o+=`<circle cx="${px}" cy="${py}" r="6" fill="${CUC[k]}" stroke="#fff" stroke-width="1.5"/><circle data-cpdrag="port${k}" cx="${px}" cy="${py}" r="13" fill="transparent" style="cursor:crosshair;touch-action:none"><title>${k==='H'?'พอร์ต CT ของ Hybrid':'พอร์ตมิเตอร์ของอินเวอร์เตอร์ออนกริด'} · ลากสายไปที่ CT ของตัวเอง</title></circle>`});
+  o+=`<text x="346" y="186" class="svgt mut" font-size="9">พอร์ต CT (Hybrid)</text>`;
+  if(cuHasA())o+=`<text x="250" y="40" text-anchor="end" class="svgt mut" font-size="9">พอร์ตมิเตอร์</text>`;
+  return o}
+function cpCuChecks(){
+  const F=cpFlags(),cu=CP.cu,hw=cuHasA(),L=[];
+  L.push([F.p.src==='gen','อินเวอร์เตอร์ AC ต่อที่พอร์ต GEN ของ Hybrid',F.p.src==='load'?'err':'']);
+  L.push([F.p.ct==='grid','CT ของ Hybrid (ส้ม) คล้องสายไฟกริด',F.p.ct==='src'||F.p.ct==='load'?'err':'']);
+  L.push([F.p.ct==='grid'&&F.p.arrow==='ok','ทิศลูกศร CT ของ Hybrid ถูกต้อง',F.p.ct==='grid'&&F.p.arrow!=='ok'?'err':'']);
+  L.push([cu.lh==='H','สายสัญญาณสีส้มจากพอร์ต CT ของ Hybrid ต่อถึง CT ของ Hybrid'+(cu.lh==='A'?' (ตอนนี้ไปต่อกับ CT ออนกริด สลับกัน)':''),cu.lh==='A'?'err':'']);
+  if(hw){
+    L.push([cu.at==='grid','CT ของอินเวอร์เตอร์ออนกริด (ฟ้า) คล้องสายไฟกริด',cu.at==='src'||cu.at==='load'?'err':'']);
+    L.push([cu.at==='grid'&&cu.arrow==='ok','ทิศลูกศร CT ออนกริดชี้เข้าหาบ้าน (ค่าสมมติของแบบจำลอง ตรวจกับคู่มือ Huawei)',cu.at==='grid'&&cu.arrow!=='ok'?'err':'']);
+    L.push([cu.la==='A','สายสัญญาณสีฟ้าจากพอร์ตมิเตอร์ของอินเวอร์เตอร์ออนกริดต่อถึง CT ออนกริด'+(cu.la==='H'?' (ตอนนี้ไปต่อกับ CT Hybrid สลับกัน)':''),cu.la==='H'?'err':'']);
+  }
+  return L}
+function cpPgCustom(){
+  const L=cpCuChecks(),n=L.filter(x=>x[0]).length,hw=cuHasA();
+  return `<div class="cards"><div class="card"><h3>ต่อสายเอง: CT 2 ชุด</h3>
+    <p>อินเวอร์เตอร์ออนกริดและเครื่อง Hybrid ต่างมี CT/มิเตอร์ของตัวเอง ${hw?'ลาก CT ทั้งสองไปคล้องสายไฟกริด แล้วลากสายสัญญาณเส้นประจากพอร์ตของแต่ละเครื่องไปต่อกับ CT ของตัวเอง':'ไมโคร Deye ไม่มีพอร์ตมิเตอร์ของตัวเอง ใช้ CT ของ Hybrid ชุดเดียว ลาก CT ไปคล้องสายไฟกริดแล้วลากสายสัญญาณเส้นประไปต่อ'}</p>
+    <div class="tblwrap" id="cpsld">${cpSLD(true)}</div>
+    <p class="slleg" style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px"><span><b style="color:${CUC.H}">- - -</b> สายสัญญาณ CT ของ <b>Hybrid</b> (สีส้ม)</span>${hw?`<span><b style="color:${CUC.A}">- - -</b> สายสัญญาณ CT/มิเตอร์ของ<b>อินเวอร์เตอร์ออนกริด</b> (สีฟ้า)</span>`:''}</p>
+    <p class="hint tight">ลาก<b>ปลายสายอินเวอร์เตอร์ AC</b>ไปที่พอร์ต GEN · ลาก <b>CT</b> (วงกลมขอบส้ม/ฟ้า) ไปคล้องสายกริด · ลากจุดสี<b>พอร์ต</b>ไปปล่อยบน CT สีเดียวกัน · คลิกที่ CT เพื่อกลับทิศลูกศร · วางนอกจุด = ถอดออก · ผลการวาง CT ของ Hybrid ใช้ร่วมกับหน้า 1 และการจำลอง</p></div>
+   <div class="card"><h3>ตรวจการต่อสาย <span class="pill ${n===L.length?'ok':'warn'}">${n}/${L.length}</span></h3>${cpList(L)}</div></div>`;
 }
 function cpPgJob(s){
   const F=cpFlags(),H=cpHost(),sc=cpSc(),p=CP.ports;
@@ -268,12 +321,16 @@ function cpEvents(){
   const host=document.getElementById('cphost');if(!host||host.dataset.on)return;host.dataset.on='1';
   /* ลากต่อสาย: ปลายสายอินเวอร์เตอร์ AC และ CT */
   const cpPt=e=>{const sv=document.querySelector('#cpsld svg');if(!sv)return null;const q=sv.createSVGPoint();q.x=e.clientX;q.y=e.clientY;const m=sv.getScreenCTM();return m?q.matrixTransform(m.inverse()):null};
-  const cpRedraw=()=>{const el=document.getElementById('cpsld');if(el)el.innerHTML=cpSLD()};
+  const cpRedraw=()=>{const el=document.getElementById('cpsld');if(el)el.innerHTML=cpSLD(CP.page==='custom')};
   host.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-cpdrag]');if(!t)return;const pt=cpPt(e);if(!pt)return;e.preventDefault();
     CPD={k:t.dataset.cpdrag,x:pt.x,y:pt.y,sx:pt.x,sy:pt.y,moved:false};try{host.setPointerCapture(e.pointerId)}catch(_){}cpRedraw()});
   host.addEventListener('pointermove',e=>{if(!CPD)return;const pt=cpPt(e);if(!pt)return;CPD.x=pt.x;CPD.y=pt.y;if(Math.hypot(pt.x-CPD.sx,pt.y-CPD.sy)>5)CPD.moved=true;cpRedraw()});
   const cpEnd=e=>{if(!CPD)return;const d=CPD;CPD=null;if(e.type==='pointercancel'){cpRedraw();return}
-    if(d.k==='src'){if(d.moved)CP.ports.src=cpNear(CP_TS,d.x,d.y,28)||'none'}
+    if(d.k==='ctH'||d.k==='ctA'){const A=d.k==='ctA';
+      if(d.moved){const v=cpNear(cuTargets(d.k.slice(2)),d.x,d.y,26)||'none';if(A)CP.cu.at=v;else CP.ports.ct=v}
+      else if(A?CP.cu.at!=='none':CP.ports.ct!=='none'){if(A)CP.cu.arrow=CP.cu.arrow==='ok'?'rev':'ok';else CP.ports.arrow=CP.ports.arrow==='ok'?'rev':'ok'}}
+    else if(d.k==='portH'||d.k==='portA'){if(d.moved){const cand={};['H','A'].forEach(k=>{if(k==='H'||cuHasA())cand[k]=cuPos(k,null)});const v=cpNear(cand,d.x,d.y,24)||'none';if(d.k==='portH')CP.cu.lh=v;else CP.cu.la=v}}
+    else if(d.k==='src'){if(d.moved)CP.ports.src=cpNear(CP_TS,d.x,d.y,28)||'none'}
     else if(d.moved)CP.ports.ct=cpNear(CP_TC,d.x,d.y,30)||'none';
     else if(CP.ports.ct!=='none')CP.ports.arrow=CP.ports.arrow==='ok'?'rev':'ok';
     cpChanged()};
@@ -302,10 +359,11 @@ function cpRenderTab(){cpEvents();cpRender()}
 function cpSnapshot(){const o=JSON.parse(JSON.stringify(CP));delete o._c;return o}
 function cpRestore(o){
   if(!o||typeof o!=='object')return;
-  if(CP_SC[o.sc])CP.sc=o.sc;if(['job','host','src','dash','fault'].includes(o.page))CP.page=o.page;
+  if(CP_SC[o.sc])CP.sc=o.sc;if(['job','host','src','dash','fault','custom'].includes(o.page))CP.page=o.page;
   cpReset(CP);
   if(o.ports){['src','ct'].forEach(k=>{const l=k==='src'?CP_SRC_OPTS:CP_CT_OPTS;if(l.some(x=>x[0]===o.ports[k]))CP.ports[k]=o.ports[k]});if(o.ports.arrow==='ok'||o.ports.arrow==='rev')CP.ports.arrow=o.ports.arrow}
   if(o.set&&o.set.src&&typeof o.set.src==='object')['pf','anti'].forEach(k=>{if(typeof o.set.src[k]==='boolean')CP.set.src[k]=o.set.src[k]});
+  if(o.cu&&typeof o.cu==='object'){const c=o.cu;if(['none','grid','src','load'].includes(c.at))CP.cu.at=c.at;if(c.arrow==='ok'||c.arrow==='rev')CP.cu.arrow=c.arrow;if(['none','H','A'].includes(c.lh))CP.cu.lh=c.lh;if(['none','H','A'].includes(c.la))CP.cu.la=c.la}
   CP.hs=hlMerge(hlDef(CP_SC[CP.sc].host),o.hs);
   if(o.lcd&&typeof o.lcd.scr==='string'&&/^[a-z]{2,10}$/.test(o.lcd.scr)){CP.lcd.scr=o.lcd.scr}
   if(o.dash&&typeof o.dash==='object')Object.keys(CP.dash).forEach(k=>{if(typeof o.dash[k]===typeof CP.dash[k])CP.dash[k]=o.dash[k]});
