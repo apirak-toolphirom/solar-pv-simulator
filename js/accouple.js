@@ -174,13 +174,20 @@ let CPD=null;
 function cpNear(T,x,y,r){let b=null,bd=r;for(const k in T){const d=Math.hypot(T[k][0]-x,T[k][1]-y);if(d<bd){bd=d;b=k}}return b}
 function cpWire(k){const[x,y]=CP_TS[k];if(k==='bload')return`M335,42 L335,78 L${x},78 L${x},${y}`;return k==='gen'?`M335,42 L335,${y}`:`M335,42 L335,78 L${x},78 L${x},${y}`}
 /* ---- ภาพอุปกรณ์ในผัง: สีตัวเครื่อง/ฟอร์มอย่างง่ายตามประเภท (ไม่ใช่โลโก้หรือแบบจริงของผู้ผลิต) สีในตัวเครื่องคงที่ อ่านได้ทั้งธีมมืดและสว่าง ---- */
-function cpHybridIcon(x,y,w,h,host,hn){
-  const deye=host==='deye',body=deye?'#dfe5ec':'#eef0f2',stripe=deye?'#1f6fb5':'#e8590c',tx='#1b2430',model=(hn.split(' ')[1]||'').replace('-EU-SM2','');
+function cpHybridIcon(x,y,w,h,host,hn,dim){
+  const deye=host==='deye',body=dim?'#9aa8b6':deye?'#dfe5ec':'#eef0f2',stripe=deye?'#1f6fb5':'#e8590c',tx='#1b2430',model=(hn.split(' ')[1]||'').replace('-EU-SM2','');
   let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${body}" stroke="#7d8b99" stroke-width="1.6"/><rect x="${x+1}" y="${y+1}" width="${w-2}" height="9" rx="6" fill="${stripe}"/>`;
   s+=`<rect x="${x+w-54}" y="${y+17}" width="46" height="25" rx="3" fill="#10222e" stroke="#5a6b78"/><path d="M${x+w-48},${y+25} h22 M${x+w-48},${y+31} h30 M${x+w-48},${y+37} h16" stroke="#58d68d" stroke-width="2" fill="none"/>`;
   s+=[0,1,2,3].map(i=>`<circle cx="${x+w-47+i*12}" cy="${y+52}" r="3" fill="#8794a1"/>`).join('');
   s+=`<text x="${x+9}" y="${y+30}" font-size="12" font-weight="700" fill="${tx}">${deye?'Deye':'Solis'} Hybrid</text><text x="${x+9}" y="${y+43}" font-size="9" fill="${tx}">${esc(model)}</text><text x="${x+9}" y="${y+56}" font-size="8" fill="#52606d">GRID · GEN · LOAD</text>`;
   return s;}
+/* สัญลักษณ์แบตเตอรี่ (สีคงที่ ไม่ขาวจ้า): ตัวแบต + ขั้ว + ช่องชาร์จ 4 ช่อง + ป้ายขั้ว +/− */
+function cpBatIcon(x,y,w,h,cap){
+  let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="#33414f" stroke="#7d8b99" stroke-width="1.6"/><rect x="${x+w}" y="${y+h/2-6}" width="5" height="12" rx="1.5" fill="#7d8b99"/>`;
+  for(let i=0;i<4;i++)s+=`<rect x="${x+7+i*((w-14)/4)}" y="${y+7}" width="${(w-14)/4-4}" height="${h-24}" rx="2" fill="#4caf7a"/>`;
+  s+=`<text x="${x+w/2}" y="${y+h-5}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#e8eef3">แบตเตอรี่ LiFePO4</text>`;
+  if(cap)s+=`<text x="${x+w/2}" y="${y+h+12}" text-anchor="middle" class="svgt mut" font-size="9">${esc(cap)}</text>`;
+  return s}
 function cpAcIcon(src,sn,cu){
   const hw=src==='hw',tx=hw?'#1b2430':'#f1f4f7';let s='';
   if(hw){s+=`<rect x="262" y="4" width="146" height="38" rx="6" fill="#eef1f4" stroke="#7d8b99" stroke-width="1.6"/>`+[0,1,2,3,4,5].map(i=>`<line x1="${382+i*5}" y1="9" x2="${382+i*5}" y2="37" stroke="#aab4be" stroke-width="2"/>`).join('')+
@@ -193,7 +200,8 @@ function cpSLD(cu){
   const F=cpFlags(),p=F.p,hn=cpHost().n,sn=cpSrc().n.split(' (')[0],D=CPD,dsrc=D&&D.k==='src',dct=D&&D.k==='ct';
   const box=(x,y,w,h,t,t2,cl)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" class="cpb ${cl||''}"/><text x="${x+w/2}" y="${y+h/2-(t2?2:-4)}" text-anchor="middle" class="svgt" font-size="12">${esc(t)}</text>${t2?`<text x="${x+w/2}" y="${y+h/2+13}" text-anchor="middle" class="svgt mut" font-size="10">${esc(t2)}</text>`:''}`;
   const ln=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" class="cpw"/>`;
-  let o=box(10,112,90,48,'กริด','PEA/MEA')+box(130,112,90,48,'ตู้เมน')+cpHybridIcon(260,104,150,64,cpSc().host,hn)+box(450,112,90,48,'โหลดบ้าน','Backup')+cpAcIcon(cpSc().src,sn,cu);
+  let o=box(10,112,90,48,'กริด','PEA/MEA')+box(130,112,90,48,'ตู้เมน')+cpHybridIcon(260,104,150,64,cpSc().host,hn)+box(450,112,90,48,'โหลดบ้าน','Backup')+cpAcIcon(cpSc().src,sn,cu)+cpBatIcon(448,176,92,36,cpF(cpHost().cap,2)+' kWh');
+  o+=`<path d="M385,168 L385,185 L448,185" class="cpw" style="stroke:#d64545" fill="none"/><path d="M398,168 L398,203 L448,203" class="cpw" fill="none"/><text x="392" y="198" class="svgt mut" font-size="8" text-anchor="end">แบต</text>`;
   o+=ln(100,136,130,136)+ln(220,136,260,136)+ln(410,136,450,136);
   o+=`<text x="345" y="98" class="svgt mut" font-size="10">GEN</text><text x="240" y="152" text-anchor="middle" class="svgt mut" font-size="9">GRID</text><text x="430" y="152" text-anchor="middle" class="svgt mut" font-size="9">LOAD</text>`;
   /* สายอินเวอร์เตอร์ AC */
@@ -213,7 +221,7 @@ function cpSLD(cu){
     (p.ct!=='none'||dct?`<path d="M${cx-dx*9},${cy+17} L${cx+dx*9},${cy+17} M${cx+dx*9},${cy+17} l${-dx*5},-3 M${cx+dx*9},${cy+17} l${-dx*5},3" stroke="var(--err)" stroke-width="1.8" fill="none" style="pointer-events:none"/>`:'')+`<title>ลาก CT ไปคล้องสาย · คลิกเพื่อกลับทิศลูกศร</title></g>`;
   if(p.ct==='none'&&!dct)o+=`<text x="505" y="66" text-anchor="middle" class="svgt mut" font-size="10">ลาก CT ไปคล้องสาย</text>`;
   }
-  return `<svg viewBox="0 0 560 ${cu?222:190}" role="img" aria-label="ผังการต่อ AC coupling ลากปลายสายและ CT เพื่อต่อ">${o}</svg>`;
+  return `<svg viewBox="0 0 560 ${cu?236:236}" role="img" aria-label="ผังการต่อ AC coupling ลากปลายสายและ CT เพื่อต่อ">${o}</svg>`;
 }
 /* ---- หน้า 6 ต่อสายเอง: CT 2 ชุด (Hybrid = ส้ม, อินเวอร์เตอร์ออนกริด = ฟ้า) และสายสัญญาณเส้นประแยกสี ---- */
 const CUC={H:'#e8590c',A:'#1c9ad6'};
@@ -241,7 +249,7 @@ function cpCuLayer(F,D){
     if(!placed)o+=`<text x="${cx}" y="${cy+25}" text-anchor="middle" class="svgt mut" font-size="9">${k==='H'?'CT Hybrid':'CT ออนกริด'}</text>`});
   /* พอร์ต (จับลากสายสัญญาณ) */
   ks.forEach(k=>{const[px,py]=CUPORT[k];o+=`<circle cx="${px}" cy="${py}" r="6" fill="${CUC[k]}" stroke="#fff" stroke-width="1.5"/><circle data-cpdrag="port${k}" cx="${px}" cy="${py}" r="13" fill="transparent" style="cursor:crosshair;touch-action:none"><title>${k==='H'?'พอร์ต CT ของ Hybrid':'พอร์ตมิเตอร์ของอินเวอร์เตอร์ออนกริด'} · ลากสายไปที่ CT ของตัวเอง</title></circle>`});
-  o+=`<text x="346" y="186" class="svgt mut" font-size="9">พอร์ต CT (Hybrid)</text>`;
+  o+=`<text x="326" y="186" text-anchor="end" class="svgt mut" font-size="9">พอร์ต CT (Hybrid)</text>`;
   if(cuHasA())o+=`<text x="250" y="40" text-anchor="end" class="svgt mut" font-size="9">พอร์ตมิเตอร์</text>`;
   return o}
 function cpCuChecks(){

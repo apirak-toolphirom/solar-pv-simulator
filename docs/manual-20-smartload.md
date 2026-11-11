@@ -1,6 +1,6 @@
 # เมนู 20 Smart Load (พอร์ต GEN → wall charger รถ EV)
 
-**ฉบับ 1.1 · ปรับปรุงล่าสุด 10 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/smartload.js`
+**ฉบับ 1.2 · ปรับปรุงล่าสุด 11 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/smartload.js`
 
 ฝึกต่อ wall charger รถไฟฟ้าเข้าพอร์ต GEN ของ **Deye** (Gen Port Use = Smart Load output) หรือ **Solis** (Smart Port = Smart load output) ตั้งเกณฑ์ ON/OFF ของ Smart Load แล้วดูผลในวันที่มีกลางคืน เมฆ ไฟดับ ระบบ On-grid / Off-grid โดยปรับโหลดบ้านและกระแสชาร์จได้
 
@@ -18,6 +18,7 @@ Hybrid ในแบบจำลอง: Deye SUN-6K (แบต 10.24 kWh) แล�
 
 ## ขั้นตอน
 1. **ใบสั่งงานและการต่อ**: เลือก "สิ่งที่ต่อที่พอร์ต GEN" (ถูก = Wall charger รถ EV, ต่อเข้าตู้เมนบ้านผิด) และตั้ง "กระแสชาร์จของ wall charger" (6–32 A, 230 V) กระแสสูงทำให้รวมกับโหลดบ้านเกินพิกัด 6 kW หรือเกินพอร์ต GEN แล้วเครื่องตัด Smart Load
+   - **ผังการต่อ**: ไอคอน Hybrid วาดเป็นอินเวอร์เตอร์ Hybrid (มีจอ ไฟ LED) สีเข้มลงไม่ขาวจ้า · Smart Load เป็นไอคอนสีเข้ม (wall charger / ตู้เมนบ้าน) · มีแบตเตอรี่ LiFePO4 ต่อกับ Hybrid ใต้เครื่อง (สายแดง + / ดำ −) พร้อมความจุตามเครื่อง
 2. **จอเครื่อง Deye / Solis**: จำลองหน้าจอเครื่องตามคู่มือ กด **System Setup** (Deye) หรือ **SYSTEM SETTING** (Solis) แล้วเข้าเมนูย่อยเหมือนบนเครื่อง ปุ่ม **◀ Back** และ **⌂ Home** อยู่ด้านล่างจอ
    - **Deye**: System Setup › **Gen Port Use** เลือก **Smart Load Output** แล้วตั้ง **Power** (กำลัง PV ขั้นต่ำ, W), **Smart Load ON Batt** (%), **Smart Load OFF Batt** (%), **On Grid always on**, **off grid immediately off** และ System Setup › **Battery Setting** (Shutdown, Low Batt, Restart)
    - **Solis**: SYSTEM SETTING › **SMART PORT** เลือก **Smart load output** แล้วตั้ง **Smart load OFF SOC**, **ON SOC**, **On grid always on**, **Off grid always off** และ SYSTEM SETTING › **STORAGE MODE** (Battery reserve ค่าเริ่ม 80%)
@@ -63,3 +64,4 @@ Hybrid ในแบบจำลอง: Deye SUN-6K (แบต 10.24 kWh) แล�
 |---|---|---|
 | 1.0 | 10 พ.ย. 2569 | ฉบับแรก |
 | 1.1 | 10 พ.ย. 2569 | จอเครื่อง Deye/Solis เปลี่ยนเป็นเมนูตามคู่มือจริง (Gen Port Use › Smart Load Output: Power/ON/OFF/On Grid always on/off grid immediately off, SMART PORT › Smart load output: OFF/ON SOC, On grid always on, Off grid always off) |
+| 1.2 | 11 พ.ย. 2569 | ผังการต่อ: ไอคอน Hybrid ชัดและสีเข้มลง ไอคอน Smart Load สีคงที่ เพิ่มแบตเตอรี่ต่อกับ Hybrid |

@@ -97,12 +97,18 @@ function sgRender(){
   sgLive();
 }
 function sgSLD(){
-  const hn=sgHost().n.split(' ')[0],g=SG.gen,ln=(a,b,c,d,cl)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" class="${cl||'cpw'}"/>`;
-  const box=(x,y,w,h,t,t2,cl)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" class="cpb ${cl||''}"/><text x="${x+w/2}" y="${y+h/2-(t2?2:-4)}" text-anchor="middle" class="svgt" font-size="12">${esc(t)}</text>${t2?`<text x="${x+w/2}" y="${y+h/2+13}" text-anchor="middle" class="svgt mut" font-size="10">${esc(t2)}</text>`:''}`;
-  let o=box(10,100,90,44,'กริด','PEA/MEA')+box(130,100,90,44,'ตู้เมน')+box(260,90,150,64,hn+' Hybrid','GRID · GEN · LOAD','hy')+box(450,100,90,44,'โหลดบ้าน','Backup')+box(250,8,170,44,g==='ev'?'Wall charger รถ EV':g==='house'?'ตู้เมนบ้าน':'ว่าง',g==='ev'?'Smart Load':'','sr');
+  const H=sgHost(),hk=H.lab==='DEYE'?'deye':'solis',g=SG.gen,ln=(a,b,c,d,cl)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" class="${cl||'cpw'}"/>`;
+  const box=(x,y,w,h,t,t2)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" class="cpb"/><text x="${x+w/2}" y="${y+h/2-(t2?2:-4)}" text-anchor="middle" class="svgt" font-size="12">${esc(t)}</text>${t2?`<text x="${x+w/2}" y="${y+h/2+13}" text-anchor="middle" class="svgt mut" font-size="10">${esc(t2)}</text>`:''}`;
+  /* Smart Load: ไอคอนสีคงที่ (เข้มลง ไม่ขาวจ้า) */
+  const fill=g==='ev'?'#3f6b52':g==='house'?'#6b5a3a':'#4a5560',t1=g==='ev'?'Wall charger รถ EV':g==='house'?'ตู้เมนบ้าน':'ว่าง';
+  let o=box(10,100,90,44,'กริด','PEA/MEA')+box(130,100,90,44,'ตู้เมน')+cpHybridIcon(260,90,150,64,hk,H.n,true)+box(450,100,90,44,'โหลดบ้าน','Backup')
+   +`<rect x="250" y="8" width="170" height="44" rx="6" fill="${fill}" stroke="#8a97a3" stroke-width="1.6"/>`+(g==='ev'?`<path d="M268,40 l6,-16 h10 l6,16 z M276,24 v-6" fill="none" stroke="#e8eef3" stroke-width="2"/>`:g==='house'?`<path d="M264,38 v-14 l12,-9 l12,9 v14 z" fill="none" stroke="#e8eef3" stroke-width="2"/>`:'')
+   +`<text x="${g==='none'?335:350}" y="${g==='ev'?27:32}" text-anchor="middle" font-size="12" font-weight="700" fill="#e8eef3">${esc(t1)}</text>${g==='ev'?'<text x="350" y="42" text-anchor="middle" font-size="10" fill="#cfd9e2">Smart Load</text>':''}`
+   +cpBatIcon(280,176,110,36,sgF(H.cap,2)+' kWh');
   o+=ln(100,122,130,122)+ln(220,122,260,122)+ln(410,122,450,122)+`<text x="335" y="82" text-anchor="middle" class="svgt mut" font-size="10">GEN</text>`;
+  o+=`<path d="M320,154 L320,176" class="cpw" style="stroke:#d64545" fill="none"/><path d="M340,154 L340,176" class="cpw" fill="none"/><text x="312" y="168" text-anchor="end" class="svgt mut" font-size="8">+</text><text x="348" y="168" class="svgt mut" font-size="8">−</text>`;
   if(g!=='none')o+=ln(335,52,335,90,g==='house'?'cpw bad':'cpw');
-  return `<svg viewBox="0 0 560 170" role="img" aria-label="ผังการต่อ Smart Load">${o}</svg>`;
+  return `<svg viewBox="0 0 560 232" role="img" aria-label="ผังการต่อ Smart Load พร้อมแบตเตอรี่">${o}</svg>`;
 }
 function sgPgJob(s){
   const H=sgHost(),sc=sgSc();
