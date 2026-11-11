@@ -15,6 +15,30 @@ var HEADERS = ['เวลาที่รับ', 'รหัสใบส่งง
   'โหมด Backup', 'ผล Backup', 'สรุป Backup', 'ไฟขาด kWh', 'ข้อที่ต้องตรวจ', 'เวลาที่ส่งจากเครื่อง', 'ผลต่อสาย AC', 'ข้อผิดพลาด AC', 'เหตุการณ์ที่จำลอง', 'ไซต์และเงา',
   'ใบงาน', 'ชื่อใบงาน', 'ผ่านเกณฑ์ใบงาน', 'เกณฑ์ที่ยังไม่ผ่าน', 'คำตอบ', 'ภาพ'];
 
+// ---- ซ่อมหัวคอลัมน์ของแผ่น Submissions ให้ตรงกับโค้ดปัจจุบัน ----
+// ชีตที่ใช้มาหลายเวอร์ชันมีหัวคอลัมน์สั้นกว่า (25, 28, 29 ช่อง) ทุกเวอร์ชันเพิ่มคอลัมน์ต่อท้ายเท่านั้น จึงเขียนทับแถว 1 ตามตำแหน่งได้โดยไม่กระทบข้อมูล
+// ทำงานเองตอนมีการส่งงาน เปิด dashboard และดูประวัติใบงาน · สั่งเองได้จากเมนู "ระบบโซลาร์" ในชีต หรือรัน fixHeaders ใน Apps Script
+// ไม่แตะแผ่นที่ช่อง A1 ไม่ใช่ "เวลาที่รับ" (กันเขียนทับแถวข้อมูลถ้าหัวตารางถูกลบ)
+function fixHeaders_(sh) {
+  if (!sh || sh.getLastRow() < 1) return false;
+  var cur = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), HEADERS.length)).getValues()[0], same = true;
+  if (String(cur[0]).trim() !== HEADERS[0]) return false;
+  for (var i = 0; i < HEADERS.length; i++) if (String(cur[i]).trim() !== HEADERS[i]) { same = false; break; }
+  if (same) return false;
+  sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
+  sh.setFrozenRows(1);
+  return true;
+}
+function fixHeaders() {
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME), ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!sh) { ss.toast('ไม่พบแผ่น ' + SHEET_NAME, 'ระบบโซลาร์', 8); return; }
+  var ch = fixHeaders_(sh);
+  ss.toast(ch ? 'แก้หัวคอลัมน์ให้ตรงกับเวอร์ชันล่าสุดแล้ว (' + HEADERS.length + ' คอลัมน์)' : 'หัวคอลัมน์ตรงกับเวอร์ชันล่าสุดอยู่แล้ว (หรือ A1 ไม่ใช่ "เวลาที่รับ" จึงไม่แตะ)', 'ระบบโซลาร์', 8);
+}
+function onOpen() {
+  try { SpreadsheetApp.getUi().createMenu('ระบบโซลาร์').addItem('ซ่อมหัวคอลัมน์ Submissions', 'fixHeaders').addToUi(); } catch (e) {}
+}
+
 // ---- ใบงาน: แผ่น "ใบงาน" ผู้สอนแก้ได้ในชีตหรือในหน้า dashboard.html ----
 // สถานะ: auto = เปิดตามวันที่ (ว่าง = ไม่จำกัด) · เปิด · ปิด
 // เกณฑ์คั่นด้วย ; เช่น dc_pass;panels>=8;dcac=0.9-1.5 · คำถามคั่นด้วย | · ภาพ: dc / ac / site / bench / none
@@ -238,7 +262,7 @@ function doPost(e) {
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
-    if (sh.getLastRow() > 0 && sh.getLastColumn() < HEADERS.length) sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
+    fixHeaders_(sh);
     if (sh.getLastRow() === 0) {
       sh.appendRow(HEADERS);
       sh.setFrozenRows(1);
@@ -306,6 +330,7 @@ function dash_(d, props) {
   if (s_(d.tcode, 80) !== tcode) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, headers: HEADERS, rows: [], ws: wsList_(), menus: menus_(), roster: (roster_(props) || []).length });
+  fixHeaders_(sh);
   var n = sh.getLastRow() - 1, start = Math.max(2, sh.getLastRow() - 4999);
   var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   var vals = sh.getRange(start, 1, sh.getLastRow() - start + 1, sh.getLastColumn()).getValues();
@@ -317,6 +342,7 @@ function dash_(d, props) {
 function mine_(d, verified) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   if (!sh || sh.getLastRow() < 2) return json_({ ok: true, mine: [] });
+  fixHeaders_(sh);
   var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0], ix = function (n) { return head.indexOf(n); };
   var iT = ix('เวลาที่รับ'), iS = ix('รหัสผู้เรียน'), iG = ix('Google (ยืนยันแล้ว)'), iW = ix('ใบงาน'), iP = ix('ผ่านเกณฑ์ใบงาน');
   if (iW < 0) return json_({ ok: true, mine: [] });
