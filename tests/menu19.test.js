@@ -65,6 +65,13 @@ setTimeout(() => {
   w.document.querySelector('[data-cpsm="home"]').click(); w.document.querySelector('[data-cpsm="meter"]').click();
   ok(ev('CP.sm.scr') === 'meter', 'เมนู Communication › Power meter เปิดได้');
   const sv5 = JSON.stringify(ev('cpSnapshot()')); ev('cpReset(CP)'); ev('cpRestore(' + sv5 + ')'); ok(ev('CP.sc') === 'hw_deye_load' && ev('CP.sm.scr') === 'meter', 'บันทึก/กู้คืนระบบ LOAD และหน้าจอเมนู');
+  /* ---- หน้า 6: ต่อเข้า LOAD ได้กับ Deye, Solis ไม่รับ + ผลจำลองไฟดับ ---- */
+  ev('CP.sc="hw_deye";cpReset(CP);CP.ports.src="load";CP.ports.ct="grid";CP.page="custom";cpRender()');
+  ok(ev('cpCuChecks()[0][0]'), 'Deye: หน้า 6 ยอมรับต่อที่ช่อง LOAD');
+  ok(/ผลจำลองไฟกริดดับ/.test(ev('cpCuSim()')) && ev('cpRun({out:"mid",soc0:50}).T.pvA')>1, 'มีผลจำลองไฟดับ และอินเวอร์เตอร์ AC ที่ LOAD ผลิตตอนไฟดับ');
+  ev('CP.sc="hw_solis";cpReset(CP);CP.ports.src="load";CP.page="custom";cpRender()');
+  ok(!ev('cpCuChecks()[0][0]') && ev('cpRun({out:"mid",soc0:50}).T.pvA')===0, 'Solis: ต่อ LOAD ไม่ผ่านและอินเวอร์เตอร์ AC ไม่ผลิต');
+  ok(!/GEN/.test(ev('ACC_NAME.accouple')), 'ชื่อเมนูไม่มีคำว่า GEN');
   ok(!errs.filter(e => !/canvas|getContext|not implemented|scrollTo/i.test(e)).length, 'ไม่มี error: ' + errs.join('; '));
   console.log(fail ? 'menu19 FAILED' : 'menu19 OK'); process.exit(fail ? 1 : 0);
 }, 800);

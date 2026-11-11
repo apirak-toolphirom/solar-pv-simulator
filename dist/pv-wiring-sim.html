@@ -1217,7 +1217,7 @@ body.fsmode .navtoggle{display:none}
       <button class="navb" data-tab="lfp"><span class="ic">16</span>แบต LiFePO4 + JK-BMS</button>
       <button class="navb" data-tab="fusion"><span class="ic">17</span>Huawei FusionSolar</button>
       <button class="navb" data-tab="deye"><span class="ic">18</span>Deye Commissioning</button>
-      <button class="navb" data-tab="accouple"><span class="ic">19</span>AC Coupling (GEN port)</button>
+      <button class="navb" data-tab="accouple"><span class="ic">19</span>AC Coupling</button>
       <button class="navb" data-tab="smartload"><span class="ic">20</span>Smart Load (GEN → EV)</button>
     </details>
       <button class="navb navsubmit" data-tab="submit"><span class="ic">21</span>ส่งงาน</button>
@@ -1775,7 +1775,7 @@ body.fsmode .navtoggle{display:none}
   </section>
 
   <section class="tab" id="tab-accouple" hidden>
-    <header><h1>AC Coupling: Huawei / ไมโคร Deye ต่อพอร์ต GEN หรือช่อง Backup (LOAD)</h1><p class="sub">ฝึกต่ออินเวอร์เตอร์ออนกริด Huawei SUN2000 หรือไมโครอินเวอร์เตอร์ Deye เข้าพอร์ต GEN ของ Deye หรือ Solis Hybrid ติด CT เปิด/ปิดกันย้อน ตั้งค่าหน้าจอ Hybrid และอินเวอร์เตอร์ AC แล้วทดสอบวันปกติและไฟดับกลางวัน</p></header>
+    <header><h1>AC Coupling: ต่ออินเวอร์เตอร์ออนกริดเข้า Hybrid</h1><p class="sub">ฝึกต่ออินเวอร์เตอร์ออนกริด Huawei SUN2000 หรือไมโครอินเวอร์เตอร์ Deye เข้า Deye หรือ Solis Hybrid (พอร์ต GEN หรือ Deye ช่อง LOAD) ติด CT เปิด/ปิดกันย้อน ตั้งค่าหน้าจอ Hybrid และอินเวอร์เตอร์ AC แล้วทดสอบวันปกติและไฟดับกลางวัน</p></header>
     <div id="cphost"></div>
     <p class="hint">ชื่อรายการตั้งค่า (Gen Port Use, Smart Port, AC couple, กันย้อน) อ้างอิงคู่มือผู้ผลิตเท่าที่ทราบ ส่วนค่ากำลัง โหลด ช่วงความถี่ และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง และให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งจริง</p>
   </section>
@@ -9991,7 +9991,7 @@ const WS_DEFAULT=[
   {id:'W13',name:'อ่าน log Huawei FusionSolar',tabs:'fusion',crit:'hw_file>=1',q:'จาก log วันที่เลือก ระบบผลิตไฟได้กี่ kWh และมีแจ้งเตือนอะไรบ้าง|ถ้าเจอแจ้งเตือน Low insulation resistance ควรตรวจอะไรก่อน',img:'none',open:false,status:'ปิด'},
   {id:'W14',name:'Commissioning Huawei SUN2000',tabs:'fusion',crit:'fc_pre;fc_con;fc_qs;fc_on;fc_ver',q:'ผลวัดก่อนเปิดเครื่องของคุณเจอความผิดปกติอะไร ดูจากค่าไหน และแก้อย่างไร (ถ้ารอบของคุณปกติ ให้อธิบายว่าค่าไหนบอกว่าปกติ)|ทำไมต้องเปิดเบรกเกอร์ AC ก่อนสวิตช์ DC และทำไมต้องเลือก Grid code ให้ตรงเขตการไฟฟ้า|ถ้า LED ของ Smart Dongle เป็นสีแดงกะพริบเร็ว หมายถึงอะไร และต้องกลับไปแก้ค่าไหน',img:'none',open:false,status:'ปิด'},
   {id:'W15',name:'Commissioning Deye (Hybrid และ Microinverter)',tabs:'deye',crit:'deye_done>=1;deye_diag>=1',q:'ทำไมต้องวัดแรงดันและขั้ว PV ก่อนเปิด DC switch|ถ้า CT ติดกลับทิศ ค่าบนจอและการชาร์จแบตของ Deye จะผิดอย่างไร|ทำไมต้องเปิดเบรกเกอร์สายย่อยก่อนเบรกเกอร์เมนของไมโครอินเวอร์เตอร์ และทำไมห้ามเสียบ DC ขณะถอดขั้ว AC',img:'none',open:false,status:'ปิด'},
-  {id:'W16',name:'AC Coupling: ต่ออินเวอร์เตอร์ AC เข้าพอร์ต GEN',tabs:'accouple',crit:'acc_done>=1;acc_diag>=1',q:'ทำไมอินเวอร์เตอร์ AC ที่ต่อพอร์ต GEN ต้องถูกลดกำลังด้วยความถี่เมื่อไฟดับและแบตเต็ม|ถ้าเปิดกันย้อนแต่ไม่ติด CT หรือ CT อยู่ผิดตำแหน่ง จะเกิดอะไรขึ้นกับอินเวอร์เตอร์ AC|พื้นที่ห้ามขายไฟกับพื้นที่ขายไฟได้ ต้องตั้งค่า Hybrid และอินเวอร์เตอร์ AC ต่างกันอย่างไร',img:'none',open:false,status:'ปิด'},
+  {id:'W16',name:'AC Coupling: ต่ออินเวอร์เตอร์ออนกริดเข้า Hybrid',tabs:'accouple',crit:'acc_done>=1;acc_diag>=1',q:'ทำไมอินเวอร์เตอร์ AC ที่ต่อพอร์ต GEN ต้องถูกลดกำลังด้วยความถี่เมื่อไฟดับและแบตเต็ม|ถ้าเปิดกันย้อนแต่ไม่ติด CT หรือ CT อยู่ผิดตำแหน่ง จะเกิดอะไรขึ้นกับอินเวอร์เตอร์ AC|พื้นที่ห้ามขายไฟกับพื้นที่ขายไฟได้ ต้องตั้งค่า Hybrid และอินเวอร์เตอร์ AC ต่างกันอย่างไร',img:'none',open:false,status:'ปิด'},
   {id:'W17',name:'Smart Load: ชาร์จรถ EV ที่พอร์ต GEN',tabs:'smartload',crit:'sg_done>=2',q:'ทำไมต้องตั้ง SOC ON สูงกว่า SOC OFF และถ้าตั้งเท่ากันจะเกิดอะไรขึ้น|ถ้าชาร์จรถด้วยกระแสสูงเกินไป เครื่อง Hybrid จะตัด Smart Load เพราะอะไร|ตอนไฟดับ ควรตั้งเกณฑ์ SOC OFF ของ Smart Load อย่างไร เพื่อไม่ให้โหลดบ้านดับ',img:'none',open:false,status:'ปิด'},
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
@@ -12779,7 +12779,7 @@ kbAdd({id:'hybrid-offgrid-vs-ongrid',cat:'pv',upd:'2026-11-11',
   title:'Hybrid inverter 6 kW: ต่อแบบ Off-grid (มี MTS) กับ On-grid (ขนานกริด) ต่างกันอย่างไร',
   summary:'เปรียบเทียบการต่อ Hybrid inverter 2 แบบในระบบไฟบ้านไทย TN-C-S: ทางเดินไฟ การต่อ N ลงดิน การใช้ CT การตั้งค่า ข้อจำกัด และตัวอย่างวงจร 4 แบบ',
   tags:['Hybrid','Off-grid','On-grid','MTS','CT','TN-C-S','N bonding','NG bonding','Luxpower','6kW','ขนานกริด','EPS','Take load jointly','Feed in','CT offset','PV','MPPT','วสท.'],
-  related:[['ac','04 ต่อสาย AC ระบบ'],['accouple','19 AC Coupling (GEN port) → หน้า 6 ต่อสายเอง (CT 2 ชุด)'],['systems','11 จำลองระบบ 4 แบบ']],
+  related:[['ac','04 ต่อสาย AC ระบบ'],['accouple','19 AC Coupling → หน้า 6 ต่อสายเอง (CT 2 ชุด)'],['systems','11 จำลองระบบ 4 แบบ']],
   body:()=>`<section class="kbsec"><h2>ภาพรวม</h2>
 <p>Hybrid inverter 1 เครื่องต่อได้ 2 แบบ ต่างกันที่<b>ใครจ่ายไฟให้โหลดหลัก</b>และ<b>ต้องขนานกับการไฟฟ้าหรือไม่</b> บทความนี้ใช้ตัวอย่างเครื่อง 6 kW (Luxpower) ซึ่งใช้หลักการเดียวกับ Hybrid switching inverter ยี่ห้ออื่นที่มีพอร์ต AC-in / AC-out / Batt / PV ลักษณะเดียวกัน วงจรในบทความปรับให้ตรงกับระบบไฟบ้านไทยแบบ <b>TN-C-S</b> ที่ต่อสาย N เข้าบาร์กราวด์ก่อนเข้าเบรกเกอร์ (วงจรตามคู่มือผู้ผลิตเขียนไว้สำหรับระบบ TT)</p>
 ${kbHybSvg()}</section>
@@ -12877,7 +12877,7 @@ kbAdd({id:'deye-6kw-hybrid',cat:'pv',upd:'2026-11-11',
   title:'Deye hybrid inverter 6 kW: On-grid zero export, Off-grid เมื่อกริดดับ, ช่อง ATS และ NG bonding',
   summary:'หลักการทำงานของ Deye hybrid 6 kW มีกริดจะ zero export ในตัว กริดดับจึงสร้างไฟเอง การเปิด ATS dip switch เพื่อขับ ATS หรือ NG bonding relay และวงจรตัวอย่าง 6 แบบ',
   tags:['Deye','Hybrid','6kW','SUN-6K','On-grid','Off-grid','zero export','ATS','dip switch','NG bonding','N-PE','MTS','contactor','power relay','TN-C-S','NN bonding','PV1','PV2','คอยล์'],
-  related:[['deye','18 Deye Commissioning'],['accouple','19 AC Coupling (GEN port)'],['ac','04 ต่อสาย AC ระบบ']],
+  related:[['deye','18 Deye Commissioning'],['accouple','19 AC Coupling'],['ac','04 ต่อสาย AC ระบบ']],
   body:()=>`<section class="kbsec"><h2>หลักการทำงาน</h2>
 <ul class="kbol">
 <li><b>มีไฟกริดเข้าเครื่อง</b> เครื่องทำงานเป็น <b>On-grid แบบ zero export</b> ในตัว ซึ่งกันไฟย้อนออกกริดโดยไม่ต้องติดอุปกรณ์กันย้อนเพิ่ม โหลดได้ไฟจากแผง แบต และกริดผสมกัน</li>
@@ -14462,7 +14462,7 @@ function hlChange(e,S){const t=e.target;if(!t.dataset||t.dataset.hl==null)return
 /* กู้ค่าจากที่บันทึก: คงโครงเดิม รับเฉพาะค่าที่ชนิดตรงกัน */
 function hlMerge(def,o){if(!o||typeof o!=='object')return def;Object.keys(def).forEach(k=>{if(def[k]&&typeof def[k]==='object')def[k]=hlMerge(def[k],o[k]);else if(typeof o[k]===typeof def[k])def[k]=o[k]});return def}
 
-/* ---- เมนู 19 AC Coupling: อินเวอร์เตอร์ออนกริด (Huawei SUN2000 หรือไมโคร Deye) ต่อที่พอร์ต GEN ของ Deye / Solis Hybrid ----
+/* ---- เมนู 19 AC Coupling: อินเวอร์เตอร์ออนกริด (Huawei SUN2000 หรือไมโคร Deye) ต่อเข้า Deye / Solis Hybrid (พอร์ต GEN หรือ Deye ช่อง LOAD) ----
    ฝึกต่อสาย (พอร์ต GEN, CT), ตั้งค่าจอเครื่อง Hybrid ตามคู่มือ (Deye: System Setup › Gen Port Use › Micro Inv Input / Solis: SYSTEM SETTING › SMART PORT › AC couple input) และอินเวอร์เตอร์ AC (กันย้อน เปิด/ปิด, Freq-Watt)
    ชื่อรายการและคำอธิบายบนจอเครื่องตามคู่มือ Deye SM2 (2026-01) และ Solis V1.3 ส่วนกำลัง แผง โหลด และพฤติกรรมควบคุมเป็นแบบจำลอง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง */
 const CP_HOST={
@@ -14522,8 +14522,8 @@ function cpFlags(S){
 }
 function cpAlarms(S){
   S=S||CP;const F=cpFlags(S),a=[],hn=CP_SC[S.sc].host==='deye';
-  if(F.p.src==='load'&&F.sc.load)a.push({c:'AC couple on load side',d:'ต่อที่ช่อง LOAD (Backup) ตามใบงานนี้ จอ Hybrid แสดงกำลังโหลดไม่ตรงจริง (คู่มือ Deye ข้อ 5.10) ใช้ค่าจากแดชบอร์ดของโปรแกรมนี้',sev:'warn'});
-  else if(F.p.src==='load')a.push(hn?{c:'AC couple on load side',d:'ต่อที่พอร์ต LOAD ได้ แต่เครื่อง Hybrid แสดงกำลังโหลดไม่ถูกต้อง (คู่มือ Deye ข้อ 5.10) ใบงานนี้ให้ต่อที่ GEN',sev:'warn'}:{c:'LOAD-PORT',d:'คู่มือ Solis ให้ต่ออินเวอร์เตอร์ออนกริดที่พอร์ต GEN ไม่ใช่พอร์ต Backup เครื่องไม่รับไฟจากพอร์ตนี้',sev:'stop'});
+  if(F.p.src==='load'&&F.sc.load)a.push({c:'AC couple on load side',d:'ต่อที่ช่อง LOAD ตามใบงานนี้ คู่มือ Deye ข้อ 5.11 ระบุว่าแบบ AC couple on load side เครื่อง Hybrid จะแสดงกำลังโหลดไม่ถูกต้อง และไม่ได้อธิบายพฤติกรรมตอนไฟกริดดับ ผลตอนไฟดับในโปรแกรมเป็นค่าจำลอง',sev:'warn'});
+  else if(F.p.src==='load')a.push(hn?{c:'AC couple on load side',d:'คู่มือ Deye ข้อ 5.11 มี AC couple on load side แต่เครื่อง Hybrid จะแสดงกำลังโหลดไม่ถูกต้อง ใบงานนี้ให้ต่อที่ GEN (ฝึกต่อ LOAD ได้ที่ระบบ Huawei → ช่อง Backup หรือหน้า 6)',sev:'warn'}:{c:'LOAD-PORT',d:'คู่มือ Solis (ข้อ 5.4.3 Step 7) ระบุให้ต่ออินเวอร์เตอร์ออนกริดที่พอร์ต GEN (Smart Port = AC couple input) ไม่มีข้อความรองรับการต่อที่ฝั่ง Backup แบบจำลองจึงไม่นับว่าต่อ',sev:'stop'});
   if(F.sc.policy==='noexp'&&!F.s.anti)a.push({c:'EXPORT-LIMIT-OFF',d:'ยังไม่เปิดกันย้อนที่อินเวอร์เตอร์ AC ทั้งที่พื้นที่นี้ห้ามขายไฟ',sev:'warn',to:'src',bt:'ไปที่แท็บ 3 จอ on-grid',g:F.sc.src==='hw'?'ไปปรับที่แท็บ 3 จอ Huawei กด Settings › Power adjustment › Active power control › เปิด Export limitation (Zero export)':'ไปปรับที่แท็บ 3 ของไมโคร Deye เปิด Zero export (กันย้อน)'});
   if(F.p.src==='gen'&&!F.gen)a.push({c:hn?'GEN-PORT-USE':'SMART-PORT',d:(hn?'Gen Port Use ต้องเป็น Micro Inv Input':'Smart Port ต้องเป็น AC couple input')+' เครื่องจึงรับไฟจากพอร์ต GEN',sev:'stop',to:'host',g:hn?'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use › เลือก Micro Inv Input':'ไปปรับที่แท็บ 2 จอเครื่อง Solis กด SYSTEM SETTING › SMART PORT › เลือก AC couple input'});
   if(F.ctS==='none')a.push({c:hn?'CT-LOST':'MET-SLT-Fail',d:'ไม่พบ CT/มิเตอร์ที่จุดต่อกริด'+(F.s.anti?' อินเวอร์เตอร์ AC ที่เปิดกันย้อนจะลดกำลังเป็น 0':''),sev:'warn'});
@@ -14650,7 +14650,7 @@ function cpSLD(cu){
   /* สายอินเวอร์เตอร์ AC */
   if(dsrc)o+=`<path d="M335,42 L${D.x.toFixed(1)},${D.y.toFixed(1)}" class="cpw" stroke-dasharray="4 3" fill="none"/>`;
   else if(p.src==='none')o+=`<path d="M335,42 L335,56" class="cpw" stroke-dasharray="3 3" fill="none"/><text x="345" y="56" class="svgt mut" font-size="10">ยังไม่ต่อ · ลากปลายสายไปวางที่จุดต่อ</text>`;
-  else o+=`<path d="${cpWire(p.src)}" class="cpw ${p.src==='load'?'bad':''}" ${cu&&p.src==='load'?'style="stroke-dasharray:none"':''} fill="none"/>`;
+  else o+=`<path d="${cpWire(p.src)}" class="cpw ${p.src==='load'&&!(cpSc().load||(cu&&cpSc().host==='deye'))?'bad':''}" ${cu&&p.src==='load'?'style="stroke-dasharray:none"':''} fill="none"/>`;
   /* จุดต่อที่วางได้ */
   const hotS=dsrc?cpNear(CP_TS,D.x,D.y,28):null,hotC=dct?cpNear(CP_TC,D.x,D.y,30):null;
   if(dsrc)for(const k in CP_TS){const h=hotS===k;o+=`<circle cx="${CP_TS[k][0]}" cy="${CP_TS[k][1]}" r="${h?10:6}" fill="${h?'var(--accent)':'none'}" fill-opacity=".35" stroke="var(--accent)" stroke-width="2" stroke-dasharray="${h?'none':'3 2'}"/>`+(h?`<text x="${CP_TS[k][0]}" y="${CP_TS[k][1]-14}" text-anchor="middle" class="svgt" font-size="11" font-weight="700">${CP_TSN[k]}</text>`:'')}
@@ -14697,7 +14697,8 @@ function cpCuLayer(F,D){
   return o}
 function cpCuChecks(){
   const F=cpFlags(),cu=CP.cu,hw=cuHasA(),L=[];
-  L.push([F.p.src==='gen','อินเวอร์เตอร์ AC ต่อที่พอร์ต GEN ของ Hybrid',F.p.src==='load'?'err':'']);
+  const dy=cpSc().host==='deye',okP=cpSc().load?F.p.src==='load':dy?(F.p.src==='gen'||F.p.src==='load'):F.p.src==='gen';
+  L.push([okP,'อินเวอร์เตอร์ AC ต่อที่'+(cpSc().load?'ช่อง LOAD (Backup)':dy?'พอร์ต GEN หรือช่อง LOAD (Backup)':'พอร์ต GEN')+' ของ Hybrid',F.p.src==='main'||F.p.src==='grid'||(F.p.src==='load'&&!okP)?'err':'']);
   L.push([F.p.ct==='grid','CT ของ Hybrid (ส้ม) คล้องสายไฟกริด',F.p.ct==='src'||F.p.ct==='load'?'err':'']);
   L.push([F.p.ct==='grid'&&F.p.arrow==='ok','ทิศลูกศร CT ของ Hybrid ถูกต้อง',F.p.ct==='grid'&&F.p.arrow!=='ok'?'err':'']);
   L.push([cu.lh==='H','สายสัญญาณสีส้มจากพอร์ต CT ของ Hybrid ต่อถึง CT ของ Hybrid'+(cu.lh==='A'?' (ตอนนี้ไปต่อกับ CT ออนกริด สลับกัน)':''),cu.lh==='A'?'err':'']);
@@ -14707,14 +14708,25 @@ function cpCuChecks(){
     L.push([cu.la==='A','สายสัญญาณสีฟ้าจากพอร์ตมิเตอร์ของอินเวอร์เตอร์ออนกริดต่อถึง CT ออนกริด'+(cu.la==='H'?' (ตอนนี้ไปต่อกับ CT Hybrid สลับกัน)':''),cu.la==='H'?'err':'']);
   }
   return L}
+/* ผลจำลองจากสายที่ต่อจริงในผัง: ไฟกริดดับ 10:00–15:00 (แบต 50%) เทียบกับวันปกติ — ค่าจำลอง ไม่ใช่ค่าจากคู่มือ */
+function cpCuSim(){
+  const F=cpFlags(),on=F.gen||F.viaGrid,N=cpRun({cloud:0,out:'none',soc0:50,load:100}),B=cpRun({cloud:0,out:'mid',soc0:50,load:100}),r=B.rows.find(x=>!x.up&&x.pA>0.01),ld=F.p.src==='load';
+  const row=(l,v)=>`<tr><th>${l}</th><td>${v}</td></tr>`;
+  let note='';
+  if(F.p.src==='none')note='ยังไม่ได้ต่อสายอินเวอร์เตอร์ AC';
+  else if(!F.gen&&!F.viaGrid)note=F.p.src==='load'?'Solis: คู่มือไม่รองรับการต่อฝั่ง Backup แบบจำลองจึงไม่นับว่าอินเวอร์เตอร์ AC ทำงาน':'พอร์ต GEN ยังไม่ได้ตั้งเป็น AC couple (ไปตั้งที่แท็บ 2 จอเครื่อง)';
+  else if(F.viaGrid)note='ต่อที่ฝั่งกริด: ไฟกริดดับแล้วอินเวอร์เตอร์ AC ไม่ทำงาน';
+  else note=ld?'ต่อที่ช่อง LOAD: ตอนไฟกริดดับ Hybrid สร้างไฟที่ช่อง LOAD อินเวอร์เตอร์ AC ซิงก์กับไฟนั้นและจ่ายให้โหลด Backup ได้ แต่ Hybrid ต้องลดกำลังเมื่อแบตเต็ม (เลื่อนความถี่) · CT ที่สายกริดจะอ่าน 0 A เพราะไม่มีกระแสกริด':'ต่อที่พอร์ต GEN: ตอนไฟกริดดับ Hybrid จ่ายไฟออกพอร์ต GEN ให้อินเวอร์เตอร์ AC ซิงก์ตาม';
+  return `<h3>ผลจำลองไฟกริดดับ 10:00–15:00 (แบต 50%)</h3><table class="t"><tbody>${row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (วันปกติ)',cpF(N.T.pvA,1)+' kWh')+row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (ไฟดับ)',cpF(B.T.pvA,1)+' kWh')+row('โหลดที่ไม่ได้รับไฟ',cpF(B.T.uns,2)+' kWh')+row('Battery OV (ตัดไม่ทัน)',B.T.trips+' ช่วง')+(r?row('ความถี่ที่ช่องต่อตอนไฟดับ',cpF(r.f,2)+' Hz'):'')}</tbody></table><p class="hint tight">${note}</p><p class="hint tight">ค่าจำลองตามหลัก AC coupling ไม่ใช่ค่าจากคู่มือ: คู่มือ Deye ข้อ 5.11 มีแบบ On-Load + AC couple แต่ไม่ได้อธิบายพฤติกรรมตอนไฟดับ · คู่มือ Solis ระบุเฉพาะพอร์ต GEN</p>`;
+}
 function cpPgCustom(){
   const L=cpCuChecks(),n=L.filter(x=>x[0]).length,hw=cuHasA();
   return `<div class="cards"><div class="card"><h3>ต่อสายเอง: CT 2 ชุด</h3>
     <p>อินเวอร์เตอร์ออนกริดและเครื่อง Hybrid ต่างมี CT/มิเตอร์ของตัวเอง ${hw?'ลาก CT ทั้งสองไปคล้องสายไฟกริด แล้วลากสายสัญญาณเส้นประจากพอร์ตของแต่ละเครื่องไปต่อกับ CT ของตัวเอง':'ไมโคร Deye ไม่มีพอร์ตมิเตอร์ของตัวเอง ใช้ CT ของ Hybrid ชุดเดียว ลาก CT ไปคล้องสายไฟกริดแล้วลากสายสัญญาณเส้นประไปต่อ'}</p>
     <div class="tblwrap" id="cpsld">${cpSLD(true)}</div>
     <p class="slleg" style="display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px"><span><b style="color:${CUC.H}">- - -</b> สายสัญญาณ CT ของ <b>Hybrid</b> (สีส้ม)</span>${hw?`<span><b style="color:${CUC.A}">- - -</b> สายสัญญาณ CT/มิเตอร์ของ<b>อินเวอร์เตอร์ออนกริด</b> (สีฟ้า)</span>`:''}</p>
-    <p class="hint tight">ลาก<b>ปลายสายอินเวอร์เตอร์ AC</b>ไปที่พอร์ต GEN · ลาก <b>CT</b> (วงกลมขอบส้ม/ฟ้า) ไปคล้องสายกริด · ลากจุดสี<b>พอร์ต</b>ไปปล่อยบน CT สีเดียวกัน · คลิกที่ CT เพื่อกลับทิศลูกศร · วางนอกจุด = ถอดออก · ผลการวาง CT ของ Hybrid ใช้ร่วมกับหน้า 1 และการจำลอง</p></div>
-   <div class="card"><h3>ตรวจการต่อสาย <span class="pill ${n===L.length?'ok':'warn'}">${n}/${L.length}</span></h3>${cpList(L)}</div></div>`;
+    <p class="hint tight">ลาก<b>ปลายสายอินเวอร์เตอร์ AC</b>ไปที่พอร์ต GEN${cpSc().host==='deye'?' หรือช่อง LOAD (Backup)':''} · ลาก <b>CT</b> (วงกลมขอบส้ม/ฟ้า) ไปคล้องสายกริด · ลากจุดสี<b>พอร์ต</b>ไปปล่อยบน CT สีเดียวกัน · คลิกที่ CT เพื่อกลับทิศลูกศร · วางนอกจุด = ถอดออก · ผลการวาง CT ของ Hybrid ใช้ร่วมกับหน้า 1 และการจำลอง</p></div>
+   <div class="card"><h3>ตรวจการต่อสาย <span class="pill ${n===L.length?'ok':'warn'}">${n}/${L.length}</span></h3>${cpList(L)}${cpCuSim()}</div></div>`;
 }
 function cpPgJob(s){
   const F=cpFlags(),H=cpHost(),sc=cpSc(),p=CP.ports;
@@ -15089,7 +15101,7 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC แผง',ac:'04 ต่อสาย AC ระบบ',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 จำลองการไหลของไฟ',systems:'11 จำลองระบบ 4 แบบ',events:'12 จำลองเหตุการณ์',bench:'05 ชุดทดลองวงจร DC',submit:'21 ส่งงาน',fusion:'17 Huawei FusionSolar',deye:'18 Deye Commissioning',accouple:'19 AC Coupling (GEN)',smartload:'20 Smart Load (GEN)',cable:'06 สายไฟและเบรกเกอร์',library:'01 คลังความรู้',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.'};
+const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC แผง',ac:'04 ต่อสาย AC ระบบ',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 จำลองการไหลของไฟ',systems:'11 จำลองระบบ 4 แบบ',events:'12 จำลองเหตุการณ์',bench:'05 ชุดทดลองวงจร DC',submit:'21 ส่งงาน',fusion:'17 Huawei FusionSolar',deye:'18 Deye Commissioning',accouple:'19 AC Coupling',smartload:'20 Smart Load (GEN)',cable:'06 สายไฟและเบรกเกอร์',library:'01 คลังความรู้',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.'};
 /* menus the teacher opens on purpose: hidden from students until the "เมนู" sheet has a row that opens them (also before an older Code.gs adds the row) */
 const ACC_HIDDEN=['solis','lfp','calc','eit','deye','accouple','smartload'];
 /* menus that need a signed-in student or the teacher, whatever the sheet says (never open to visitors, nor offline) */

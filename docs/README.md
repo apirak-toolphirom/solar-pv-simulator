@@ -32,7 +32,7 @@
 | | [16 แบต LiFePO4 + JK-BMS](manual-16-lfp.md) | ปิด |
 | | [17 Huawei FusionSolar](manual-17-fusion.md) | auto · log เฉพาะผู้ลงชื่อ |
 | | [18 Deye Commissioning](manual-18-deye.md) | ปิด |
-| | [19 AC Coupling (GEN)](manual-19-accouple.md) | ปิด |
+| | [19 AC Coupling](manual-19-accouple.md) | ปิด |
 | | [20 Smart Load (GEN → EV)](manual-20-smartload.md) | ปิด |
 | ส่งงาน | [21 ส่งงาน](manual-21-submit.md) | auto (เปิดเมื่อมีใบงานเปิดรับ) |
 

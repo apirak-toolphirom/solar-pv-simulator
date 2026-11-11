@@ -36,7 +36,7 @@ kbAdd({id:'deye-6kw-hybrid',cat:'pv',upd:'2026-11-11',
   title:'Deye hybrid inverter 6 kW: On-grid zero export, Off-grid เมื่อกริดดับ, ช่อง ATS และ NG bonding',
   summary:'หลักการทำงานของ Deye hybrid 6 kW มีกริดจะ zero export ในตัว กริดดับจึงสร้างไฟเอง การเปิด ATS dip switch เพื่อขับ ATS หรือ NG bonding relay และวงจรตัวอย่าง 6 แบบ',
   tags:['Deye','Hybrid','6kW','SUN-6K','On-grid','Off-grid','zero export','ATS','dip switch','NG bonding','N-PE','MTS','contactor','power relay','TN-C-S','NN bonding','PV1','PV2','คอยล์'],
-  related:[['deye','18 Deye Commissioning'],['accouple','19 AC Coupling (GEN port)'],['ac','04 ต่อสาย AC ระบบ']],
+  related:[['deye','18 Deye Commissioning'],['accouple','19 AC Coupling'],['ac','04 ต่อสาย AC ระบบ']],
   body:()=>`<section class="kbsec"><h2>หลักการทำงาน</h2>
 <ul class="kbol">
 <li><b>มีไฟกริดเข้าเครื่อง</b> เครื่องทำงานเป็น <b>On-grid แบบ zero export</b> ในตัว ซึ่งกันไฟย้อนออกกริดโดยไม่ต้องติดอุปกรณ์กันย้อนเพิ่ม โหลดได้ไฟจากแผง แบต และกริดผสมกัน</li>
