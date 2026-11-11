@@ -1,6 +1,6 @@
 # เมนู 01 คลังความรู้
 
-**ฉบับ 1.3 · ปรับปรุงล่าสุด 11 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/library.js` `js/kb_rcd.js` `js/kb_luxpower.js` `js/kb_deye6k.js`
+**ฉบับ 1.4 · ปรับปรุงล่าสุด 11 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/library.js` `js/kb_rcd.js` `js/kb_luxpower.js` `js/kb_deye6k.js`
 
 บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน
 
@@ -31,3 +31,4 @@
 | 1.1 | 11 พ.ย. 2569 | เพิ่มบทความ Hybrid inverter 6 kW: Off-grid (มี MTS) กับ On-grid (ขนานกริด) |
 | 1.2 | 11 พ.ย. 2569 | เพิ่มบทความ Deye hybrid inverter 6 kW (On-grid zero export, Off-grid, ช่อง ATS, NG bonding) |
 | 1.3 | 11 พ.ย. 2569 | บทความ Deye 6 kW: วาดแผนภาพใหม่เป็นวงจรเต็ม มีฟิวส์ เบรกเกอร์ SPD บาร์กราวด์ N-PE bonding และสายแยกสี |
+| 1.4 | 11 พ.ย. 2569 | บทความ Hybrid inverter 6 kW (Off-grid/On-grid): วาดแผนภาพใหม่เป็นวงจรเต็ม 2 ภาพ มีฟิวส์ เบรกเกอร์ SPD กราวด์ N bonding CT และสายแยกสี |
