@@ -1166,3 +1166,5 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 
 .cpb{fill:var(--accentbg);stroke:var(--accent);stroke-width:1.4}.cpb.hy{fill:#fff4e0;stroke:#e58a12}.cpb.sr{fill:#e6f4ea;stroke:#22a35a}.cpw{stroke:var(--ink);stroke-width:2}.cpw.bad{stroke:var(--err);stroke-dasharray:5 3}.cpct{fill:#fff;stroke:var(--err);stroke-width:1.6}
 .slleg .ot2{color:var(--s3)}.slc.ot2{stroke:var(--s3);stroke-dasharray:2 3}
+.cpguide{margin:.2rem 0 .6rem;font-weight:600;line-height:1.5;color:#9a6b00}.cpguide .btn{margin-left:.4rem;vertical-align:middle}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cpguide{color:#ffd54a}}:root[data-theme="dark"] .cpguide{color:#ffd54a}

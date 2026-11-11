@@ -55,7 +55,7 @@ function cpFlags(S){
 function cpAlarms(S){
   S=S||CP;const F=cpFlags(S),a=[],hn=CP_SC[S.sc].host==='deye';
   if(F.p.src==='load')a.push(hn?{c:'AC couple on load side',d:'ต่อที่พอร์ต LOAD ได้ แต่เครื่อง Hybrid แสดงกำลังโหลดไม่ถูกต้อง (คู่มือ Deye ข้อ 5.10) ใบงานนี้ให้ต่อที่ GEN',sev:'warn'}:{c:'LOAD-PORT',d:'คู่มือ Solis ให้ต่ออินเวอร์เตอร์ออนกริดที่พอร์ต GEN ไม่ใช่พอร์ต Backup เครื่องไม่รับไฟจากพอร์ตนี้',sev:'stop'});
-  if(F.p.src==='gen'&&!F.gen)a.push({c:hn?'GEN-PORT-USE':'SMART-PORT',d:(hn?'Gen Port Use ต้องเป็น Micro Inv Input':'Smart Port ต้องเป็น AC couple input')+' เครื่องจึงรับไฟจากพอร์ต GEN',sev:'stop'});
+  if(F.p.src==='gen'&&!F.gen)a.push({c:hn?'GEN-PORT-USE':'SMART-PORT',d:(hn?'Gen Port Use ต้องเป็น Micro Inv Input':'Smart Port ต้องเป็น AC couple input')+' เครื่องจึงรับไฟจากพอร์ต GEN',sev:'stop',to:'host',g:hn?'ไปปรับที่แท็บ 2 จอเครื่อง Deye กด System Setup › Gen Port Use › เลือก Micro Inv Input':'ไปปรับที่แท็บ 2 จอเครื่อง Solis กด SYSTEM SETTING › SMART PORT › เลือก AC couple input'});
   if(F.ctS==='none')a.push({c:hn?'CT-LOST':'MET-SLT-Fail',d:'ไม่พบ CT/มิเตอร์ที่จุดต่อกริด'+(F.s.anti?' อินเวอร์เตอร์ AC ที่เปิดกันย้อนจะลดกำลังเป็น 0':''),sev:'warn'});
   if(F.ctS==='wrong')a.push({c:'CT-WRONG-POS',d:'CT อยู่ผิดตำแหน่ง ค่าที่อ่านไม่ใช่ไฟกริด',sev:'warn'});
   if(F.ctS==='rev')a.push({c:'CT-REVERSE',d:'ทิศ CT กลับ ค่ากริดกลับเครื่องหมาย',sev:'warn'});
@@ -111,7 +111,7 @@ function cpDay(){if(!CP._c){const d=CP.dash;CP._c=cpRun({cloud:d.cloud,out:d.out
 function cpChecks(){
   const F=cpFlags(),sc=F.sc,H=CP_HOST[sc.host],A=F.src,deye=sc.host==='deye';
   const job=[[F.p.src==='gen',`อินเวอร์เตอร์ AC ต่อที่พอร์ต GEN ของ ${H.n}`,F.p.src==='load'?'err':''],
-    [F.p.ct==='grid',`CT คล้องสายไฟกริดที่จุดต่อกริด (${F.p.ct==='src'?'ตอนนี้อยู่ที่สายอินเวอร์เตอร์ AC':F.p.ct==='load'?'ตอนนี้อยู่ที่สายโหลด':'ยังไม่ได้ติด'})`,F.p.ct==='src'||F.p.ct==='load'?'err':''],
+    [F.p.ct==='grid',`CT คล้องสายไฟกริดที่จุดต่อกริด (${F.p.ct==='grid'?'ติดแล้ว':F.p.ct==='src'?'ตอนนี้อยู่ที่สายอินเวอร์เตอร์ AC':F.p.ct==='load'?'ตอนนี้อยู่ที่สายโหลด':'ยังไม่ได้ติด'})`,F.p.ct==='src'||F.p.ct==='load'?'err':''],
     [F.p.ct==='grid'&&F.p.arrow==='ok','ทิศลูกศร CT ถูกต้อง',F.p.ct==='grid'&&F.p.arrow!=='ok'?'err':'']];
   const set=[[F.H.genUse==='ac',deye?'Gen Port Use = Micro Inv Input':'Smart Port = AC couple input']];
   if(deye)set.push([F.H.mi.off>F.H.mi.on,`Micro Inv Input OFF (${F.H.mi.off}%) สูงกว่า ON (${F.H.mi.on}%)`],[F.H.mi.hz>=CP_FTRIP-1e-9,`AC Couple Fre High ≥ ${CP_FTRIP} Hz เพื่อให้อินเวอร์เตอร์ AC ตัดออกที่ SOC = OFF (ตอนนี้ ${cpF(F.H.mi.hz,1)} Hz)`]);
@@ -204,7 +204,7 @@ function cpPgJob(s){
     ${cpRow('ทิศลูกศร CT',`<select class="hn" data-cpp="arrow" id="cpp-arrow"><option value="ok" ${p.arrow==='ok'?'selected':''}>${esc(H.ctOk)}</option><option value="rev" ${p.arrow==='rev'?'selected':''}>${esc(H.ctBad)}</option></select>`)}
     <p class="hint tight">${esc(H.ctNote)} · มิเตอร์/CT กันย้อน: ${esc(cpSrc().meter)}</p>
     <h3>ตรวจการต่อสาย</h3>${cpList(s.c.job)}
-    ${cpAlarms().map(a=>`<p class="${a.sev==='stop'?'hmierr':'hint tight'}"><b>${esc(a.c)}</b> ${esc(a.d)}</p>`).join('')}</div></div>`;
+    ${cpAlarms().map(a=>`<p class="${a.sev==='stop'?'hmierr':'hint tight'}"><b>${esc(a.c)}</b> ${esc(a.d)}</p>`+(a.g?`<p class="cpguide">▶ ${esc(a.g)} <button class="btn sm" data-cppg="${a.to}">ไปที่แท็บ 2 จอเครื่อง</button></p>`:'')).join('')}</div></div>`;
 }
 function cpHome(){const r=cpDay().rows[CP.dash.t];
   return `<table class="t"><tbody><tr><th>เวลา</th><td>${cpHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>ความถี่ที่พอร์ต</th><td>${cpF(r.f,2)} Hz</td></tr><tr><th>PV (เครื่อง)</th><td>${cpF(r.pH*1000)} W</td><th>GEN (AC couple)</th><td>${cpF(r.pA*1000)} W</td></tr><tr><th>โหลด</th><td>${cpF(r.L*1000)} W</td><th>กริด</th><td>${cpF(r.grid*1000)} W</td></tr><tr><th>แบต</th><td>${cpF(r.bat*1000)} W</td><th>SOC</th><td>${cpF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
