@@ -109,12 +109,13 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
 
     <div class="card" style="margin-bottom:12px"><h2>รายชื่อผู้เรียน (อีเมลที่เข้าระบบได้)</h2>
       <p class="foot" id="rstinfo" style="margin:0 0 8px"></p>
-      <div class="bar" style="margin-bottom:8px"><input id="rlink" type="text" placeholder="วางลิงก์ Google Sheets ที่มีคอลัมน์อีเมล" aria-label="ลิงก์ Google Sheets" style="flex:1;min-width:220px"><button class="btn pri" id="rimp">นำเข้าจากลิงก์</button></div>
-      <div class="bar" style="margin-bottom:8px"><input id="rfile" type="file" accept=".csv,.tsv,.xlsx,.xls" aria-label="ไฟล์รายชื่อ"><button class="btn" id="rup">นำเข้าจากไฟล์</button></div>
-      <div class="bar" style="margin-bottom:8px"><input id="rname" type="text" placeholder="ชื่อ-นามสกุล" aria-label="ชื่อ-นามสกุล" style="flex:1;min-width:150px"><input id="rsid" type="text" placeholder="รหัส / เลขที่" aria-label="รหัส" style="width:110px"><input id="rmail" type="text" placeholder="อีเมล Google" aria-label="อีเมล Google" style="flex:1;min-width:180px"><button class="btn" id="radd">เพิ่มทีละคน</button></div>
+      <p class="msg info" id="rteachnote" hidden>บัญชีครู: ดูรายชื่อ เปิด/ปิดใบงานและเมนูได้ แก้หรือนำเข้ารายชื่อไม่ได้</p>
+      <div class="bar radmin" style="margin-bottom:8px"><input id="rlink" type="text" placeholder="วางลิงก์ Google Sheets ที่มีคอลัมน์อีเมล" aria-label="ลิงก์ Google Sheets" style="flex:1;min-width:220px"><button class="btn pri" id="rimp">นำเข้าจากลิงก์</button></div>
+      <div class="bar radmin" style="margin-bottom:8px"><input id="rfile" type="file" accept=".csv,.tsv,.xlsx,.xls" aria-label="ไฟล์รายชื่อ"><button class="btn" id="rup">นำเข้าจากไฟล์</button></div>
+      <div class="bar radmin" style="margin-bottom:8px"><input id="rname" type="text" placeholder="ชื่อ-นามสกุล" aria-label="ชื่อ-นามสกุล" style="flex:1;min-width:150px"><input id="rsid" type="text" placeholder="รหัส / เลขที่" aria-label="รหัส" style="width:110px"><input id="rmail" type="text" placeholder="อีเมล Google" aria-label="อีเมล Google" style="flex:1;min-width:180px"><button class="btn" id="radd">เพิ่มทีละคน</button></div>
       <p class="msg" id="rmsg" hidden></p>
       <div class="tblwrap" style="max-height:320px;margin-top:8px"><table class="wst" id="rtbl"></table></div>
-      <p class="foot">ไฟล์หรือชีตต้องมีคอลัมน์อีเมล (หัวคอลัมน์ชื่อ อีเมล/Email/ชื่อ/รหัส/ลำดับ/สถานะ จะถูกจับให้เอง) · อีเมลที่มีอยู่แล้วจะถูกแก้ชื่อ/รหัสตามไฟล์ที่นำเข้า ไม่เพิ่มซ้ำ · ลิงก์ Sheets ต้องแชร์ให้บัญชีเจ้าของสคริปต์เปิดได้ ถ้าไม่ได้ให้ใช้ปุ่มไฟล์ · ระงับรายคนโดยพิมพ์ "ระงับ" ในคอลัมน์สถานะของแผ่น "รายชื่อ" · ผู้เรียนเข้าระบบด้วย Google ได้เมื่อตั้ง GOOGLE_CLIENT_ID แล้วเท่านั้น</p></div>
+      <p class="foot radmin">ไฟล์หรือชีตต้องมีคอลัมน์อีเมล (หัวคอลัมน์ชื่อ อีเมล/Email/ชื่อ/รหัส/ลำดับ/สถานะ จะถูกจับให้เอง) · อีเมลที่มีอยู่แล้วจะถูกแก้ชื่อ/รหัสตามไฟล์ที่นำเข้า ไม่เพิ่มซ้ำ · ลิงก์ Sheets ต้องแชร์ให้บัญชีเจ้าของสคริปต์เปิดได้ ถ้าไม่ได้ให้ใช้ปุ่มไฟล์ · ระงับรายคนโดยพิมพ์ "ระงับ" ในคอลัมน์สถานะของแผ่น "รายชื่อ" · ผู้เรียนเข้าระบบด้วย Google ได้เมื่อตั้ง GOOGLE_CLIENT_ID แล้วเท่านั้น</p></div>
 
     <div class="grid2">
       <div class="card"><h2>จำนวนงานส่งรายวัน</h2><div id="chDay"></div></div>
@@ -166,6 +167,7 @@ function parse(headers,rows){
 }
 const who=r=>(r.sid||r.gmail||r.name).toLowerCase();
 
+let LVL='admin';/* admin = TEACHER_CODE · teacher = code in the sheet "ครู": views, opens/closes worksheets and menus, cannot import or edit the roster */
 async function load(){
   const code=$('#tcode').value.trim();
   if(!CFG.SUBMIT_URL){msg('ยังไม่ได้ตั้ง SUBMIT_URL ใน js/config.js','err');return}
@@ -177,7 +179,8 @@ async function load(){
     if(!j||!j.ok){msg((j&&j.error)||'โหลดไม่สำเร็จ','err');return}
     if(!j.dash){msg('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → Manage deployments → Edit → New version','err');return}
     ss.set('pvdash.tcode',code);
-    ROWS=parse(j.headers,j.rows);WSL=Array.isArray(j.ws)?j.ws:[];MNL=Array.isArray(j.menus)?j.menus:[];ROST=j.roster;
+    LVL=j.level||'admin';document.querySelectorAll('.radmin').forEach(e=>{e.hidden=LVL!=='admin'});ROWS=parse(j.headers,j.rows);WSL=Array.isArray(j.ws)?j.ws:[];MNL=Array.isArray(j.menus)?j.menus:[];ROST=j.roster;
+    {const tn=$('#rteachnote');if(tn)tn.hidden=LVL==='admin'}
     msg(`โหลดแล้ว ${ROWS.length} รายการ · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`+(j.total>j.rows.length?` (แสดง ${j.rows.length} รายการล่าสุดจาก ${j.total})`:''),'ok');
     show();loadRoster();
   }catch(e){msg('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ตและ SUBMIT_URL','err')}

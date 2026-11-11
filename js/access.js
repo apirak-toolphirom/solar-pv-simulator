@@ -108,7 +108,7 @@ async function initAccess(){
   /* locked from the first paint: a visitor sees only the default menu (07) even while the web app is slow or unreachable */
   ACC.enabled=true;
   const s=(()=>{try{return JSON.parse(localStorage.getItem(ACC_KEY)||'{}')}catch(e){return{}}})();
-  if(typeof TEACH!=='undefined'&&TEACH.on)ACC.role='teacher';
+  if(typeof TEACH!=='undefined'&&(TEACH.on||TEACH.lvl))ACC.role='teacher';
   else if(!CFG.GOOGLE_CLIENT_ID&&s.role==='student'&&s.day===accToday())ACC.role='student';
   if(ACC.role==='visitor')accForget(true);
   accApply();
@@ -119,7 +119,7 @@ async function initAccess(){
     else if(e.target.id==='acctgo'){const c=document.getElementById('acctc').value.trim();if(!c){accMsg('กรอกรหัสผู้สอน','err');return}accMsg('กำลังตรวจรหัส…');
       const ok=typeof teachVerify==='function'?await teachVerify(c,true):false;if(ok){ACC.role='teacher';accApply()}else accMsg('รหัสผู้สอนไม่ถูกต้อง หรือยังไม่ได้ตั้ง TEACHER_CODE','err')}
     else if(e.target.id==='accout'){
-      if(ACC.role==='teacher'){if(typeof TEACH!=='undefined'){TEACH.on=false;try{sessionStorage.removeItem('pv.tcode')}catch(_){}if(typeof teachSync==='function')teachSync()}}
+      if(ACC.role==='teacher'){if(typeof TEACH!=='undefined'){TEACH.on=false;TEACH.lvl='';try{sessionStorage.removeItem('pv.tcode')}catch(_){}if(typeof teachSync==='function')teachSync()}}
       if(CFG.GOOGLE_CLIENT_ID){gToken='';MEMBER.gemail='';MEMBER.gname='';try{google.accounts.id.disableAutoSelect()}catch(_){}}
       ACC.role='visitor';accForget(true);accSave();accApply();
     }

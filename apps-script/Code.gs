@@ -37,7 +37,7 @@ function fixHeaders() {
   ss.toast(ch ? 'แก้หัวคอลัมน์ให้ตรงกับเวอร์ชันล่าสุดแล้ว (' + HEADERS.length + ' คอลัมน์)' : 'หัวคอลัมน์ตรงกับเวอร์ชันล่าสุดอยู่แล้ว (หรือ A1 ไม่ใช่ "เวลาที่รับ" จึงไม่แตะ)', 'ระบบโซลาร์', 8);
 }
 function onOpen() {
-  try { SpreadsheetApp.getUi().createMenu('ระบบโซลาร์').addItem('ซ่อมหัวคอลัมน์ Submissions', 'fixHeaders').addToUi(); } catch (e) {}
+  try { SpreadsheetApp.getUi().createMenu('ระบบโซลาร์').addItem('ซ่อมหัวคอลัมน์ Submissions', 'fixHeaders').addItem('สร้างแผ่นครู (รหัสครู)', 'makeTeacherSheet').addToUi(); } catch (e) {}
 }
 
 // ---- ใบงาน: แผ่น "ใบงาน" ผู้สอนแก้ได้ในชีตหรือในหน้า dashboard.html ----
@@ -100,8 +100,7 @@ function wsList_() {
   });
 }
 function wsSet_(d, props) {
-  var tc = props.getProperty('TEACHER_CODE');
-  if (!tc || s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+  if (!teacherLevel_(d, props)) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
   var st = s_(d.status, 10); if (['auto', 'เปิด', 'ปิด'].indexOf(st) < 0) return json_({ ok: false, error: 'สถานะไม่ถูกต้อง' });
   var sh = wsSheet_(), n = sh.getLastRow() - 1, ids = n > 0 ? sh.getRange(2, 1, n, 1).getValues() : [];
   for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === s_(d.id, 20)) { sh.getRange(i + 2, 6).setValue(st); return json_({ ok: true, ws: wsList_() }); }
@@ -151,8 +150,7 @@ function menus_() {
   });
 }
 function menuSet_(d, props) {
-  var tc = props.getProperty('TEACHER_CODE');
-  if (!tc || s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+  if (!teacherLevel_(d, props)) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
   var sh = menuSheet_(), n = sh.getLastRow() - 1, ids = n > 0 ? sh.getRange(2, 1, n, 1).getValues() : [];
   for (var i = 0; i < ids.length; i++) if (String(ids[i][0]).trim() === s_(d.tab, 20)) {
     if (d.status != null) { var st = s_(d.status, 20); if (['auto', 'เปิด', 'ดูอย่างเดียว', 'ปิด'].indexOf(st) < 0) return json_({ ok: false, error: 'สถานะไม่ถูกต้อง' }); sh.getRange(i + 2, 3).setValue(st); }
@@ -201,9 +199,40 @@ function inRoster_(d, verified, props) {
 // ---- โหมดเข้มเมื่อตั้ง GOOGLE_CLIENT_ID: ผู้เรียนต้องยืนยันอีเมลด้วย Google และอีเมลต้องอยู่ในรายชื่อ (ไม่รับรหัสผู้เรียนอย่างเดียว ไม่ใช้รหัสห้อง) ----
 function strict_(props) { return !!props.getProperty('GOOGLE_CLIENT_ID'); }
 function teacherOk_(d, props) {
-  var tc = props.getProperty('TEACHER_CODE');
-  if (!tc || s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return false; }
+  if (!teacherLevel_(d, props)) { Utilities.sleep(1500); return false; }
   return true;
+}
+// ---- ระดับสิทธิ์ของรหัสผู้สอน ----
+// admin   = TEACHER_CODE ใน Script properties: ทำได้ทุกอย่าง (รวมนำเข้า/เพิ่มรายชื่อ และแก้ไขรุ่นอุปกรณ์ในโปรแกรม)
+// teacher = รหัสในแผ่น "ครู" (คอลัมน์ ชื่อครู · รหัสครู · สถานะ): เปิดเมนูและเนื้อหา เปิด/ปิดใบงานและแบบทดสอบ ดู dashboard และรายชื่อได้
+//           แต่ไม่มีสิทธิ์แก้หรือลบข้อมูล (นำเข้า/เพิ่มรายชื่อ แก้ไขรุ่นอุปกรณ์ ฯลฯ)
+var TEACHER_SHEET = 'ครู';
+function teacherLevel_(d, props) {
+  var c = s_(d.tcode, 80).trim();
+  if (!c) return '';
+  var tc = props.getProperty('TEACHER_CODE');
+  if (tc && c === tc) return 'admin';
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(TEACHER_SHEET);
+  if (!sh || sh.getLastRow() < 2) return '';
+  var rows = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
+  for (var i = 0; i < rows.length; i++) {
+    var code = String(rows[i][1]).trim(), st = String(rows[i][2] || 'ใช้งาน').trim();
+    if (code.length >= 6 && code === c && st !== 'ปิด') return 'teacher';
+  }
+  return '';
+}
+// เมนู "ระบบโซลาร์ > สร้างแผ่นครู": สร้างแผ่น "ครู" ให้ admin กรอกรหัสครู (รหัสต้องยาวอย่างน้อย 6 ตัว)
+function makeTeacherSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(TEACHER_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(TEACHER_SHEET);
+    sh.getRange(1, 1, 1, 4).setValues([['ชื่อครู', 'รหัสครู (อย่างน้อย 6 ตัว)', 'สถานะ', 'หมายเหตุ']]).setFontWeight('bold');
+    sh.getRange(2, 3, 200, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['ใช้งาน', 'ปิด'], true).build());
+    sh.setFrozenRows(1);
+    sh.getRange(2, 4).setValue('ครูเปิดเมนู ใบงาน แบบทดสอบ และดู dashboard ได้ แก้หรือลบข้อมูลไม่ได้ ตั้งสถานะ ปิด เพื่อเลิกใช้รหัส');
+  }
+  ss.setActiveSheet(sh);
+  ss.toast('กรอกชื่อครูและรหัสครู (คอลัมน์ A–B) แล้วใช้ได้ทันที ไม่ต้อง Deploy ใหม่', 'ระบบโซลาร์', 10);
 }
 // แผ่น "รายชื่อ" ในไฟล์นี้ (ใช้ตอนนำเข้า/เพิ่ม) · ถ้าตั้ง ROSTER_SHEET_ID ไว้ รายชื่ออยู่ไฟล์อื่น ไม่นำเข้าให้
 function rosterTab_(props) {
@@ -261,6 +290,7 @@ function rosterList_(props) {
 // action ของผู้สอน: rosterlist · rosteradd (rows หรือ table) · rosterimport (sheet = ลิงก์หรือ ID ของ Google Sheets, tab = ชื่อแท็บ ไม่บังคับ)
 function rosterAction_(d, props) {
   if (!teacherOk_(d, props)) return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' });
+  if (d.action !== 'rosterlist' && teacherLevel_(d, props) !== 'admin') return json_({ ok: false, error: 'บัญชีครูไม่มีสิทธิ์นำเข้าหรือแก้รายชื่อ (เฉพาะ admin)' });
   if (d.action === 'rosterlist') return json_({ ok: true, roster: rosterList_(props), external: !!props.getProperty('ROSTER_SHEET_ID') });
   var sh = rosterTab_(props);
   if (!sh) return json_({ ok: false, error: 'รายชื่อใช้ชีตภายนอก (ROSTER_SHEET_ID) แก้ในชีตนั้นโดยตรง' });
@@ -313,18 +343,18 @@ function doPost(e) {
     if (d.action === 'menus') return json_({ ok: true, menus: menus_() });
     if (d.action === 'menuset') return menuSet_(d, props);
     if (d.action === 'access' && d.tcode) {
-      var tc0 = props.getProperty('TEACHER_CODE');
-      if (tc0 && s_(d.tcode, 80) === tc0) return json_({ ok: true, role: 'teacher', menus: menus_() });
+      var lv0 = teacherLevel_(d, props);
+      if (lv0) return json_({ ok: true, role: 'teacher', level: lv0, menus: menus_() });
       Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' });
     }
     if (d.action === 'wsset') return wsSet_(d, props);
     if (d.action === 'rosterlist' || d.action === 'rosteradd' || d.action === 'rosterimport') return rosterAction_(d, props);
     if (d.action === 'dash') return dash_(d, props);
     if (d.action === 'tcheck') {
-      var tc = props.getProperty('TEACHER_CODE');
-      if (!tc) return json_({ ok: false, tcheck: true, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
-      if (s_(d.tcode, 80) !== tc) { Utilities.sleep(1500); return json_({ ok: false, tcheck: true, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
-      return json_({ ok: true, tcheck: true });
+      var tc = props.getProperty('TEACHER_CODE'), lv = teacherLevel_(d, props);
+      if (!tc && !lv) return json_({ ok: false, tcheck: true, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
+      if (!lv) { Utilities.sleep(1500); return json_({ ok: false, tcheck: true, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+      return json_({ ok: true, tcheck: true, level: lv });
     }
 
     var strict = strict_(props), code = props.getProperty('CLASS_CODE');
@@ -432,17 +462,17 @@ function cloud_(d, verified, props) {
 
 // ---- หน้า dashboard ของผู้สอน: ส่งข้อมูลในชีตกลับไป เมื่อรหัสผู้สอน (TEACHER_CODE) ถูกต้อง ----
 function dash_(d, props) {
-  var tcode = props.getProperty('TEACHER_CODE');
-  if (!tcode) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
-  if (s_(d.tcode, 80) !== tcode) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
+  var tcode = props.getProperty('TEACHER_CODE'), lvl = teacherLevel_(d, props);
+  if (!tcode && !lvl) return json_({ ok: false, error: 'ผู้สอนยังไม่ได้ตั้ง TEACHER_CODE ใน Script properties' });
+  if (!lvl) { Utilities.sleep(1500); return json_({ ok: false, error: 'รหัสผู้สอนไม่ถูกต้อง' }); }
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, headers: HEADERS, rows: [], ws: wsList_(), menus: menus_(), roster: (roster_(props) || []).length });
+  if (!sh || sh.getLastRow() < 2) return json_({ ok: true, dash: true, level: lvl, headers: HEADERS, rows: [], ws: wsList_(), menus: menus_(), roster: (roster_(props) || []).length });
   fixHeaders_(sh);
   var n = sh.getLastRow() - 1, start = Math.max(2, sh.getLastRow() - 4999);
   var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   var vals = sh.getRange(start, 1, sh.getLastRow() - start + 1, sh.getLastColumn()).getValues();
   var rows = vals.map(function (r) { return r.map(function (v) { return v instanceof Date ? v.toISOString() : v; }); });
-  return json_({ ok: true, dash: true, headers: head, rows: rows, total: n, at: new Date().toISOString(), ws: wsList_(), menus: menus_(), roster: (roster_(props) || []).length });
+  return json_({ ok: true, dash: true, level: lvl, headers: head, rows: rows, total: n, at: new Date().toISOString(), ws: wsList_(), menus: menus_(), roster: (roster_(props) || []).length });
 }
 
 // ---- ประวัติใบงานของผู้เรียนเอง (ตามอีเมล Google ที่ยืนยันแล้ว หรือรหัสผู้เรียน) ----

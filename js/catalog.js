@@ -326,7 +326,7 @@ const EQ={edit:{panels:null,inverters:null,batteries:null}};
 /* teacher mode: adding, editing, deleting and importing equipment models is for the teacher only.
    The code is checked by the Apps Script web app (TEACHER_CODE); nothing secret is in this page.
    Catalog changes only ever affect the browser they are made in. */
-const TEACH={on:false};
+const TEACH={on:false,lvl:''};/* on = admin (edit equipment models) · lvl 'teacher' = non-admin teacher: opens menus and tests, cannot edit or delete data */
 const tss={get:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v)}catch(e){}}};
 async function teachVerify(code,quiet){
   const CFG=window.APP_CONFIG||{},m=t=>{const e=document.getElementById('teachmsg');if(e&&!quiet){e.textContent=t;e.hidden=!t}};
@@ -337,12 +337,14 @@ async function teachVerify(code,quiet){
     const r=await fetch(CFG.SUBMIT_URL,{method:'POST',body:JSON.stringify({action:'tcheck',tcode:code}),redirect:'follow'}),j=await r.json();
     if(!j||!j.tcheck){m('Apps Script ยังเป็นโค้ดเวอร์ชันเก่า: วาง Code.gs ล่าสุด ตั้ง TEACHER_CODE แล้ว Deploy → New version');return false}
     if(!j.ok){m(j.error||'รหัสผู้สอนไม่ถูกต้อง');tss.set('pv.tcode',null);return false}
-    TEACH.on=true;tss.set('pv.tcode',code);m('');teachSync();if(typeof accTeacher==='function')accTeacher(true);return true;
+    TEACH.lvl=j.level||'admin';TEACH.on=TEACH.lvl==='admin';tss.set('pv.tcode',code);m('');teachSync();if(typeof accTeacher==='function')accTeacher(true);return true;
   }catch(e){m('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ต');return false}
 }
 function teachSync(){
   const b=document.getElementById('teachbar');
-  if(b)b.innerHTML=TEACH.on
+  if(b)b.innerHTML=TEACH.lvl==='teacher'
+    ?`<span class="tlab on">บัญชีครู · เปิดทุกเมนูและทำแบบทดสอบได้ · แก้ ลบ หรือนำเข้ารุ่นอุปกรณ์ไม่ได้</span><button class="btn" id="teachoff">ล็อก</button>`
+    :TEACH.on
     ?`<span class="tlab on">โหมดผู้สอน · เพิ่ม แก้ไข ลบ และนำเข้ารุ่นอุปกรณ์ได้</span><button class="btn" id="teachoff">ล็อก</button><span class="hint tight">การแก้ไขมีผลเฉพาะเบราว์เซอร์นี้ รุ่นที่ต้องการให้ทุกเครื่องเห็นต้องใส่ในโค้ดบน GitHub</span>`
     :`<span class="tlab">🔒 เพิ่ม แก้ไข ลบ และนำเข้ารุ่นอุปกรณ์ เฉพาะผู้สอน</span><input type="password" id="teachcode" placeholder="รหัสผู้สอน" aria-label="รหัสผู้สอน" autocomplete="current-password"><button class="btn" id="teachon">ปลดล็อกผู้สอน</button><span class="eqmsg" id="teachmsg" role="status" hidden></span>`;
   const p=document.querySelector('#tab-equip .pdfimp');if(p)p.hidden=!TEACH.on;
@@ -353,7 +355,7 @@ function initTeach(){
   if(!document.getElementById('teachbar')){const d=document.createElement('div');d.id='teachbar';d.className='panelbox teachbar';const c=document.getElementById('cur-equip');(c||sec.querySelector('header')).after(d)}
   sec.addEventListener('click',e=>{
     if(e.target.id==='teachon')teachVerify(document.getElementById('teachcode').value.trim());
-    else if(e.target.id==='teachoff'){TEACH.on=false;tss.set('pv.tcode',null);EQ.edit={panels:null,inverters:null,batteries:null};teachSync();if(typeof accTeacher==='function')accTeacher(false)}
+    else if(e.target.id==='teachoff'){TEACH.on=false;TEACH.lvl='';tss.set('pv.tcode',null);EQ.edit={panels:null,inverters:null,batteries:null};teachSync();if(typeof accTeacher==='function')accTeacher(false)}
   });
   sec.addEventListener('keydown',e=>{if(e.target.id==='teachcode'&&e.key==='Enter')teachVerify(e.target.value.trim())});
   teachSync();
