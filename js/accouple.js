@@ -29,6 +29,7 @@ const CP_FAULTS={
   ct_rev:{n:'CT ติดกลับทิศ',f:S=>{S.ports.arrow='rev'}},
   gen_use:{n:'ไม่ได้ตั้งพอร์ต GEN เป็น AC couple (Micro Inv Input / AC couple input)',f:S=>{if(CP_SC[S.sc].host==='deye')S.hs.gen.use='gen';else S.hs.sp.use='none'},ok:S=>!CP_SC[S.sc].load},
   hz_low:{n:'AC Couple Fre High ตั้งต่ำกว่าความถี่ที่อินเวอร์เตอร์ AC ตัดออก (51.5 Hz)',f:S=>{S.hs.gen.mi.hz=51},ok:S=>CP_SC[S.sc].host==='deye'&&!CP_SC[S.sc].load},
+  ct_hw_pos:{n:'CT ของ Huawei ถูกคล้องที่สายไฟกริด ทั้งที่ Huawei ต่อฝั่ง LOAD (ต้องคล้องสายโหลด)',f:S=>{S.cu.at='grid'},ok:S=>!!CP_SC[S.sc].load},
   no_ct:{n:'ไม่ได้ติดตั้ง CT แต่เปิดกันย้อนไว้',f:S=>{S.ports.ct='none';S.set.src.anti=true},ok:S=>CP_SC[S.sc].policy==='noexp'},
   pf_off:{n:'ปิด Freq-Watt / P(f) ที่ Huawei (Solis ใช้ Freq-Watt ปรับกำลัง)',f:S=>{S.set.src.pf=false},ok:S=>CP_SC[S.sc].host==='solis'&&CP_SC[S.sc].src==='hw'}
 };
@@ -44,7 +45,7 @@ const cpHM=i=>String(Math.floor(i/2)).padStart(2,'0')+':'+(i%2?'30':'00');
 const cpSc=()=>CP_SC[CP.sc],cpHost=()=>CP_HOST[cpSc().host],cpSrc=()=>CP_SRC[cpSc().src];
 const cpLoad=h=>{let w=.35;if(h>=6&&h<8)w+=.8;if(h>=10&&h<16)w+=.5;if(h>=18&&h<22)w+=1.8;return w};
 function cpReset(S){S.sm={scr:'home'};S.cu=CP_CU0();S.ports={src:'none',ct:'none',arrow:'ok'};S.set=CP_DEFSET();S.hs=hlDef(CP_SC[S.sc].host);S.lcd={scr:'home',stack:[]}}
-function cpCorrect(S){const sc=CP_SC[S.sc],d=sc.host==='deye';cpReset(S);S.ports={src:sc.load?'load':'gen',ct:'grid',arrow:'ok'};
+function cpCorrect(S){const sc=CP_SC[S.sc],d=sc.host==='deye';cpReset(S);S.ports={src:sc.load?'load':'gen',ct:'grid',arrow:'ok'};if(sc.load){S.cu.at='load';S.cu.arrow='ok'}
   if(d){if(!sc.load)S.hs.gen.use='micro';if(sc.policy==='noexp'){S.hs.work.mode='zeroCT';S.hs.work.solarSell=false}else{S.hs.work.mode='sell';S.hs.work.maxSell=5000}}
   else{S.hs.sp.use='ac';S.hs.st.mode='self';if(sc.policy==='noexp')S.hs.st.allowExp=false;else{S.hs.st.allowExp=true;S.hs.st.maxExp=5000}}
   S.set.src.anti=sc.policy==='noexp';return S}
@@ -54,8 +55,8 @@ function cpFlags(S){
   const ctS=p.ct==='grid'?(p.arrow==='ok'?'ok':'rev'):p.ct==='none'?'none':'wrong';
   const eff=p.src==='bload'?'load':p.src,gen=(eff==='gen'&&H.genUse==='ac')||(sc.host==='deye'&&eff==='load');
   if(sc.load)H.mi={on:95,off:100,hz:52,fixed:true};
-  const pe=Object.assign({},p,{src:eff});
-  return{sc,src,H,s,p:pe,ctS,gen,viaGrid:p.src==='main'||p.src==='grid',pf:src.adj?s.pf:true};
+  const pe=Object.assign({},p,{src:eff}),cu=S.cu||CP_CU0(),ls=eff==='load'&&sc.host==='deye'&&sc.src==='hw',am=ls?(cu.at==='load'?(cu.arrow==='ok'?'ok':'rev'):cu.at==='none'?'none':'wrong'):null;
+  return{sc,src,H,s,p:pe,ctS,am,ls,gen,viaGrid:p.src==='main'||p.src==='grid',pf:src.adj?s.pf:true};
 }
 /* ผลเสีย/ข้อควรระวังของการต่ออินเวอร์เตอร์ออนกริดที่ฝั่ง LOAD (Backup) ของ Deye — ตัวเลขมาจากแบบจำลอง (โหลด 60%) ไม่ใช่ค่าจากคู่มือ */
 function cpLoadRisks(S,opt){
@@ -66,7 +67,8 @@ function cpLoadRisks(S,opt){
   r.push({c:'DOUBLE-CONVERSION',d:'ไฟที่ชาร์จแบตต้องผ่านการแปลง AC→DC อีกรอบ สูญเสียมากกว่าแผงของ Hybrid ที่ชาร์จตรง (วันตัวอย่างชาร์จแบต '+cpF(N.T.chg,1)+' kWh)',sev:'warn'});
   if(F.sc.policy==='noexp'&&F.s.anti)r.push({c:'TWO-CONTROLLERS',d:(hw?'Huawei zero export (อ่านมิเตอร์ที่กริด)':'อินเวอร์เตอร์ออนกริดที่เปิดกันย้อน')+' กับ Hybrid Zero Export To CT ควบคุมกำลังพร้อมกัน กำลังอาจแกว่งหรือตอบสนองช้า และถ้ามิเตอร์ไม่เห็นกระแสกริดจะลดกำลังเป็น 0',sev:'warn'});
   r.push({c:'OUTAGE-CURTAIL',d:'ไฟกริดดับแล้วแบตเต็ม คู่มือ Deye ไม่ได้บอกวิธีให้ Hybrid ลดกำลังอินเวอร์เตอร์ที่ฝั่ง LOAD (ค่า AC Couple Fre High อยู่ในเมนู Gen Port Use ของพอร์ต GEN) แบบจำลองสมมติว่าเลื่อนความถี่ได้เหมือน GEN (ไฟดับกลางวัน แบต 90% ตัดไม่ทัน '+B.T.trips+' ช่วง) ต้องทดสอบกับเครื่องจริง ถ้าลดกำลังไม่ได้เสี่ยง Battery OV และโหลด Backup ดับ',sev:B.T.trips>0?'stop':'warn'});
-  if(opt&&opt.custom&&hw&&F.s.anti&&S.cu.at!=='grid')r.push({c:'HW-METER',d:'Huawei เปิด zero export แต่ CT/มิเตอร์ของ Huawei (ฟ้า) ยังไม่ได้คล้องสายไฟกริด ต้องคล้องที่สายไฟกริดฝั่งเมน (ก่อนเข้า Hybrid) เพื่อวัดการนำเข้า/ส่งออกของบ้านทั้งหมด ไม่ใช่สายที่ไปโหลด ตอนนี้ Huawei ไม่เห็นกระแสกริดจึงลดกำลังเป็น 0',sev:'stop'});
+  if(hw&&F.s.anti&&F.am==='ok')r.push({c:'HW-LIMIT',d:'Huawei zero export โดย CT อยู่ที่สายโหลด: กำลังออนกริดถูกจำกัดไม่เกินโหลด Backup จึงไม่ไหลย้อนเข้าพอร์ต LOAD ของ Hybrid (แบบจำลองวันตัวอย่าง ตัดทิ้ง '+cpF(N.T.cutA,1)+' kWh) แลกกับใช้พลังงานแผงฝั่ง Huawei ได้น้อยลง และ Huawei ไม่ช่วยจ่ายโหลดฝั่งกริด (ค่าสมมติของแบบจำลอง ไม่ใช่ค่าจากคู่มือ)',sev:'warn'});
+  if(hw&&F.s.anti&&F.am&&F.am!=='ok'&&(opt&&opt.custom||F.sc.load))r.push({c:'HW-METER',d:F.am==='rev'?'CT ของ Huawei อยู่ที่สายโหลดแต่ลูกศรกลับทิศ Huawei จึงอ่านค่าผิดและลดกำลังเป็น 0':'Huawei เปิด zero export แต่ CT/มิเตอร์ของ Huawei (ฟ้า) '+(F.am==='none'?'ยังไม่ได้ติด':'คล้องผิดสาย')+' เมื่อต่อฝั่ง LOAD ต้องคล้องที่สายโหลด (สายจากพอร์ต LOAD) เพราะ CT ที่สายไฟกริดมองไม่เห็นไฟที่ไหลย้อนเข้าพอร์ต LOAD ตอนนี้ Huawei จึงลดกำลังเป็น 0',sev:'stop'});
   return r;
 }
 function cpAlarms(S){
@@ -90,12 +92,15 @@ function cpRun(o,S){
     const L=cpLoad(h)*o.load/100;let pH=H.kwp*.85*s,pA=Math.min(A.w,A.kwp*.85*s);
     const on=F.gen||(F.viaGrid&&up);if(!on)pA=0;
     const dmax=Math.min(H.cmax,Math.max(0,(soc-(up?reserve:floor))*H.cap/dt)),cmaxNow=Math.min(H.cmax,Math.max(0,(1-soc)*H.cap/dt));
-    if(up&&F.s.anti&&pA>0){
+    let capCut=0;
+    if(F.am&&F.s.anti&&pA>0){ /* Huawei ต่อฝั่ง LOAD: CT/มิเตอร์ของ Huawei อยู่ที่สายโหลด → ผลิตได้ไม่เกินโหลด Backup ไม่ไหลย้อนเข้าพอร์ต LOAD (ทั้งตอนมีและไม่มีไฟกริด) */
+      if(F.am!=='ok')pA=0;else{capCut=Math.max(0,pA-L);pA=Math.min(pA,L)}
+    }else if(up&&F.s.anti&&pA>0){
       if(F.ctS==='none'||F.ctS==='wrong')pA=0;
       else if(F.ctS==='rev'&&L>pH+pA+dmax)pA=0;
     }
     let cutH=0,cutA=0,ch=0,exp=0,expBad=0,dis=0,imp=0,uns=0,trip=false,fq=50;
-    if(!up&&pA>0){ /* ไฟดับ: Hybrid เพิ่มความถี่ตาม SOC (Deye: Micro Inv Input ON/OFF + AC Couple Fre High, Solis: Freq-Watt) */
+    if(!up&&pA>0&&!(F.am==='ok'&&F.s.anti)){ /* ไฟดับ: Hybrid เพิ่มความถี่ตาม SOC (Deye: Micro Inv Input ON/OFF + AC Couple Fre High, Solis: Freq-Watt) */
       const sp=soc*100;if(sp>=mi.off)mOpen=true;else if(sp<mi.on)mOpen=false;
       const ramp=mi.off>mi.on?Math.max(0,Math.min(1,(sp-mi.on)/(mi.off-mi.on))):(sp>=mi.off?1:0);
       fq=50+(mi.hz-50)*(mOpen?1:ramp);
@@ -106,7 +111,7 @@ function cpRun(o,S){
     ch=Math.min(sur,cmaxNow);sur-=ch;
     if(sur>1e-9){
       if(up){
-        if(F.s.anti&&F.ctS==='ok'){cutA=Math.min(pA,sur);sur-=cutA}
+        if(!F.am&&F.s.anti&&F.ctS==='ok'){cutA=Math.min(pA,sur);sur-=cutA}
         if(F.H.exp){exp=Math.min(sur,F.H.maxSell);sur-=exp}
         const c=Math.min(pH,sur);cutH=c;sur-=c;
         if(sur>1e-9){expBad=sur;exp+=sur;sur=0}
@@ -120,8 +125,8 @@ function cpRun(o,S){
     else{const def=L-direct;if(def>1e-9){dis=Math.min(def,dmax);const r=def-dis;if(up)imp=r;else uns=r}}
     soc+=(ch-dis)*dt/H.cap;soc=Math.max(0,Math.min(1,soc));
     const vH=pH-cutH,vA=pA-(up?cutA:0),f=up?50:fq;
-    rows.push({i,h,up,pH:vH,pA:vA,L:L-uns,grid:imp-exp,bat:ch-dis,soc:soc*100,f,trip,cutA:cutA});
-    T.pvH+=vH*dt;T.pvA+=vA*dt;T.load+=(L-uns)*dt;T.imp+=imp*dt;T.exp+=exp*dt;T.expBad+=expBad*dt;T.chg+=ch*dt;T.dis+=dis*dt;T.cutA+=cutA*dt;T.cutH+=cutH*dt;T.uns+=uns*dt;
+    rows.push({i,h,up,pH:vH,pA:vA,L:L-uns,grid:imp-exp,bat:ch-dis,soc:soc*100,f,trip,cutA:cutA+capCut});
+    T.pvH+=vH*dt;T.pvA+=vA*dt;T.load+=(L-uns)*dt;T.imp+=imp*dt;T.exp+=exp*dt;T.expBad+=expBad*dt;T.chg+=ch*dt;T.dis+=dis*dt;T.cutA+=(cutA+capCut)*dt;T.cutH+=cutH*dt;T.uns+=uns*dt;
   }
   return{rows,T};
 }
@@ -132,6 +137,7 @@ function cpChecks(){
   const ld=!!sc.load,job=[[F.p.src===(ld?'load':'gen'),`อินเวอร์เตอร์ AC ต่อที่${ld?'ช่อง Backup (LOAD)':'พอร์ต GEN'} ของ ${H.n}`,F.p.src!==(ld?'load':'gen')&&F.p.src!=='none'?'err':''],
     [F.p.ct==='grid',`CT คล้องสายไฟกริดที่จุดต่อกริด (${F.p.ct==='grid'?'ติดแล้ว':F.p.ct==='src'?'ตอนนี้อยู่ที่สายอินเวอร์เตอร์ AC':F.p.ct==='load'?'ตอนนี้อยู่ที่สายโหลด':'ยังไม่ได้ติด'})`,F.p.ct==='src'||F.p.ct==='load'?'err':''],
     [F.p.ct==='grid'&&F.p.arrow==='ok','ทิศลูกศร CT ถูกต้อง',F.p.ct==='grid'&&F.p.arrow!=='ok'?'err':'']];
+  if(ld&&A.adj)job.push([CP.cu.at==='load','CT ของ Huawei (ฟ้า) คล้องสายโหลด (สายจากพอร์ต LOAD) เพื่อจำกัดไม่ให้ไฟ Huawei ไหลย้อนเข้าพอร์ต LOAD'+(CP.cu.at==='load'?'':CP.cu.at==='none'?' (ยังไม่ได้ติด)':' (ตอนนี้อยู่ที่'+(CP.cu.at==='grid'?'สายไฟกริด':'สายอินเวอร์เตอร์ AC')+')'),CP.cu.at!=='none'&&CP.cu.at!=='load'?'err':''],[CP.cu.at==='load'&&CP.cu.arrow==='ok','ทิศลูกศร CT ของ Huawei ชี้ไปทางโหลด (จาก Hybrid ไปโหลด)',CP.cu.at==='load'&&CP.cu.arrow!=='ok'?'err':'']);
   const set=ld?[]:[[F.H.genUse==='ac',deye?'Gen Port Use = Micro Inv Input':'Smart Port = AC couple input']];
   if(deye&&!ld)set.push([F.H.mi.off>F.H.mi.on,`Micro Inv Input OFF (${F.H.mi.off}%) สูงกว่า ON (${F.H.mi.on}%)`],[F.H.mi.hz>=CP_FTRIP-1e-9,`AC Couple Fre High ≥ ${CP_FTRIP} Hz เพื่อให้อินเวอร์เตอร์ AC ตัดออกที่ SOC = OFF (ตอนนี้ ${cpF(F.H.mi.hz,1)} Hz)`]);
   else if(A.adj&&!deye)set.push([F.s.pf,'Huawei เปิด Freq-Watt (P(f)) เพราะ Solis ใช้ Freq-Watt ปรับกำลังอินเวอร์เตอร์ AC']);
@@ -260,14 +266,15 @@ function cpCuChecks(){
   L.push([F.p.ct==='grid'&&F.p.arrow==='ok','ทิศลูกศร CT ของ Hybrid ถูกต้อง',F.p.ct==='grid'&&F.p.arrow!=='ok'?'err':'']);
   L.push([cu.lh==='H','สายสัญญาณสีส้มจากพอร์ต CT ของ Hybrid ต่อถึง CT ของ Hybrid'+(cu.lh==='A'?' (ตอนนี้ไปต่อกับ CT ออนกริด สลับกัน)':''),cu.lh==='A'?'err':'']);
   if(hw){
-    L.push([cu.at==='grid','CT ของอินเวอร์เตอร์ออนกริด (ฟ้า) คล้องสายไฟกริด',cu.at==='src'||cu.at==='load'?'err':'']);
-    L.push([cu.at==='grid'&&cu.arrow==='ok','ทิศลูกศร CT ออนกริดชี้เข้าหาบ้าน (ค่าสมมติของแบบจำลอง ตรวจกับคู่มือ Huawei)',cu.at==='grid'&&cu.arrow!=='ok'?'err':'']);
+    const w=F.ls?'load':'grid';
+    L.push([cu.at===w,F.ls?'CT ของ Huawei (ฟ้า) คล้องสายโหลด (สายจากพอร์ต LOAD) เพื่อจำกัดไม่ให้ไฟออนกริดไหลย้อนเข้าพอร์ต LOAD ของ Hybrid':'CT ของอินเวอร์เตอร์ออนกริด (ฟ้า) คล้องสายไฟกริด',cu.at!=='none'&&cu.at!==w?'err':'']);
+    L.push([cu.at===w&&cu.arrow==='ok',F.ls?'ทิศลูกศร CT ของ Huawei ชี้ไปทางโหลด (ค่าสมมติของแบบจำลอง ตรวจกับคู่มือ Huawei)':'ทิศลูกศร CT ออนกริดชี้เข้าหาบ้าน (ค่าสมมติของแบบจำลอง ตรวจกับคู่มือ Huawei)',cu.at===w&&cu.arrow!=='ok'?'err':'']);
     L.push([cu.la==='A','สายสัญญาณสีฟ้าจากพอร์ตมิเตอร์ของอินเวอร์เตอร์ออนกริดต่อถึง CT ออนกริด'+(cu.la==='H'?' (ตอนนี้ไปต่อกับ CT Hybrid สลับกัน)':''),cu.la==='H'?'err':'']);
   }
   return L}
 /* ผลจำลองจากสายที่ต่อจริงในผัง: ไฟกริดดับ 10:00–15:00 (แบต 50%) เทียบกับวันปกติ — ค่าจำลอง ไม่ใช่ค่าจากคู่มือ */
 function cpCuSim(){
-  const F=cpFlags(),ld=F.p.src==='load',lost=F.sc.src==='hw'&&F.s.anti&&CP.cu.at!=='grid',S2=lost?Object.assign(JSON.parse(JSON.stringify(CP)),{_c:null}):CP;
+  const F=cpFlags(),ld=F.p.src==='load',lost=F.sc.src==='hw'&&F.s.anti&&(F.ls?F.am!=='ok':CP.cu.at!=='grid'),S2=lost?Object.assign(JSON.parse(JSON.stringify(CP)),{_c:null}):CP;
   if(lost)S2.ports.ct='none'; /* Huawei เปิดกันย้อนแต่ไม่เห็นมิเตอร์ของตัวเอง → ลดกำลังเป็น 0 */
   const N=cpRun({cloud:0,out:'none',soc0:50,load:100},S2),B=cpRun({cloud:0,out:'mid',soc0:50,load:100},S2),r=B.rows.find(x=>!x.up&&x.pA>0.01);
   const row=(l,v)=>`<tr><th>${l}</th><td>${v}</td></tr>`;
@@ -276,7 +283,7 @@ function cpCuSim(){
   else if(!F.gen&&!F.viaGrid)note=F.p.src==='load'?'Solis: คู่มือไม่รองรับการต่อฝั่ง Backup แบบจำลองจึงไม่นับว่าอินเวอร์เตอร์ AC ทำงาน':'พอร์ต GEN ยังไม่ได้ตั้งเป็น AC couple (ไปตั้งที่แท็บ 2 จอเครื่อง)';
   else if(F.viaGrid)note='ต่อที่ฝั่งกริด: ไฟกริดดับแล้วอินเวอร์เตอร์ AC ไม่ทำงาน';
   else note=ld?'ต่อที่ช่อง LOAD: ตอนไฟกริดดับ Hybrid สร้างไฟที่ช่อง LOAD อินเวอร์เตอร์ AC ซิงก์กับไฟนั้นและจ่ายให้โหลด Backup ได้ แต่ Hybrid ต้องลดกำลังเมื่อแบตเต็ม (เลื่อนความถี่) · CT ที่สายกริดจะอ่าน 0 A เพราะไม่มีกระแสกริด':'ต่อที่พอร์ต GEN: ตอนไฟกริดดับ Hybrid จ่ายไฟออกพอร์ต GEN ให้อินเวอร์เตอร์ AC ซิงก์ตาม';
-  return `<h3>ผลจำลองไฟกริดดับ 10:00–15:00 (แบต 50%)</h3>${lost?'<p class="hint tight">Huawei เปิดกันย้อนแต่ CT/มิเตอร์ของ Huawei ยังไม่อยู่ที่สายไฟกริด ผลด้านล่างจึงคิดว่า Huawei ลดกำลังเป็น 0</p>':''}<table class="t"><tbody>${row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (วันปกติ)',cpF(N.T.pvA,1)+' kWh')+row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (ไฟดับ)',cpF(B.T.pvA,1)+' kWh')+row('โหลดที่ไม่ได้รับไฟ',cpF(B.T.uns,2)+' kWh')+row('Battery OV (ตัดไม่ทัน)',B.T.trips+' ช่วง')+(r?row('ความถี่ที่ช่องต่อตอนไฟดับ',cpF(r.f,2)+' Hz'):'')}</tbody></table><p class="hint tight">${note}</p><p class="hint tight">ค่าจำลองตามหลัก AC coupling ไม่ใช่ค่าจากคู่มือ: คู่มือ Deye ข้อ 5.11 มีแบบ On-Load + AC couple แต่ไม่ได้อธิบายพฤติกรรมตอนไฟดับ · คู่มือ Solis ระบุเฉพาะพอร์ต GEN</p>`;
+  return `<h3>ผลจำลองไฟกริดดับ 10:00–15:00 (แบต 50%)</h3>${lost?'<p class="hint tight">Huawei เปิดกันย้อนแต่ CT/มิเตอร์ของ Huawei ยังไม่อยู่ที่ตำแหน่งที่ถูก (ฝั่ง LOAD ต้องคล้องสายโหลด, ฝั่งกริดต้องคล้องสายไฟกริด) ผลด้านล่างจึงคิดว่า Huawei ลดกำลังเป็น 0</p>':''}<table class="t"><tbody>${row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (วันปกติ)',cpF(N.T.pvA,1)+' kWh')+row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (ไฟดับ)',cpF(B.T.pvA,1)+' kWh')+row('โหลดที่ไม่ได้รับไฟ',cpF(B.T.uns,2)+' kWh')+row('Battery OV (ตัดไม่ทัน)',B.T.trips+' ช่วง')+(r?row('ความถี่ที่ช่องต่อตอนไฟดับ',cpF(r.f,2)+' Hz'):'')}</tbody></table><p class="hint tight">${note}</p><p class="hint tight">ค่าจำลองตามหลัก AC coupling ไม่ใช่ค่าจากคู่มือ: คู่มือ Deye ข้อ 5.11 มีแบบ On-Load + AC couple แต่ไม่ได้อธิบายพฤติกรรมตอนไฟดับ · คู่มือ Solis ระบุเฉพาะพอร์ต GEN</p>`;
 }
 function cpPgCustom(){
   const L=cpCuChecks(),n=L.filter(x=>x[0]).length,hw=cuHasA();
@@ -296,6 +303,7 @@ function cpPgJob(s){
     ${cpRow('อินเวอร์เตอร์ AC ต่อเข้าที่',`<select class="hn" data-cpp="src" id="cpp-src">${CP_SRC_OPTS.map(([k,t])=>`<option value="${k}" ${p.src===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)}
     ${cpRow('ตำแหน่ง CT',`<select class="hn" data-cpp="ct" id="cpp-ct">${CP_CT_OPTS.map(([k,t])=>`<option value="${k}" ${p.ct===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)}
     ${cpRow('ทิศลูกศร CT',`<select class="hn" data-cpp="arrow" id="cpp-arrow"><option value="ok" ${p.arrow==='ok'?'selected':''}>${esc(H.ctOk)}</option><option value="rev" ${p.arrow==='rev'?'selected':''}>${esc(H.ctBad)}</option></select>`)}
+    ${F.am!==null?cpRow('ตำแหน่ง CT ของ Huawei',`<select class="hn" data-cpu="at" id="cpu-at">${CP_CT_OPTS.map(([k,t])=>`<option value="${k}" ${CP.cu.at===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)+cpRow('ทิศลูกศร CT ของ Huawei',`<select class="hn" data-cpu="arrow" id="cpu-arrow"><option value="ok" ${CP.cu.arrow==='ok'?'selected':''}>ชี้ไปทางโหลด</option><option value="rev" ${CP.cu.arrow==='rev'?'selected':''}>ชี้ย้อนกลับ</option></select>`)+'<p class="hint tight">Huawei ต่อฝั่ง LOAD: CT/มิเตอร์ของ Huawei ต้องคล้องที่สายโหลดเพื่อไม่ให้ไฟ Huawei ไหลย้อนเข้าพอร์ต LOAD (วางด้วยการลากได้ที่หน้า 6)</p>':''}
     <p class="hint tight">${esc(H.ctNote)} · มิเตอร์/CT กันย้อน: ${esc(cpSrc().meter)}</p>
     <h3>ตรวจการต่อสาย</h3>${cpList(s.c.job)}
     ${cpAlarms().map(a=>`<p class="${a.sev==='stop'?'hmierr':'hint tight'}"><b>${esc(a.c)}</b> ${esc(a.d)}</p>`+(a.g?`<p class="cpguide">▶ ${esc(a.g)} <button class="btn sm" data-cppg="${a.to}">${esc(a.bt||'ไปที่แท็บ 2 จอเครื่อง')}</button></p>`:'')).join('')}</div></div>`;
@@ -396,6 +404,7 @@ function cpEvents(){
     if(hlChange(e,CP)){const keep=document.activeElement&&document.activeElement.id;cpChanged();if(keep){const el=document.getElementById(keep);if(el&&el!==document.activeElement)try{el.focus()}catch(_){}}return}
     const t=e.target,d=t.dataset;
     if(d.cpp){CP.ports[d.cpp]=t.value;cpChanged();return}
+    if(d.cpu){if(d.cpu==='at'&&CP_CT_OPTS.some(x=>x[0]===t.value))CP.cu.at=t.value;else if(d.cpu==='arrow'&&(t.value==='ok'||t.value==='rev'))CP.cu.arrow=t.value;cpChanged();return}
     if(d.cps){let v;if(t.type==='checkbox')v=t.checked;else if(t.type==='number'){v=+t.value;if(!isFinite(v))v=0;if(t.min!=='')v=Math.max(+t.min,v);if(t.max!=='')v=Math.min(+t.max,v)}else v=t.value;
       if(d.cps==='ctquick'){CP.ports.ct=v?'grid':'none';cpChanged();return}
       cpSetPath(d.cps,v);const keep=document.activeElement&&document.activeElement.id;cpChanged();

@@ -80,7 +80,11 @@ setTimeout(() => {
   ev('CP.sc="hw_deye";cpReset(CP);CP.ports.src="gen";'); ok(ev('cpLoadRisks(CP).length')===0, 'ต่อที่ GEN ไม่มีข้อความผลเสียฝั่ง LOAD');
   ev('CP.sc="hw_deye_load";cpReset(CP);CP.ports.src="load";CP.set.src.anti=true;CP.cu.at="none"');
   ok(ev('cpLoadRisks(CP,{custom:true}).some(a=>a.c==="HW-METER"&&a.sev==="stop")'), 'เปิด zero export แต่ CT Huawei ไม่อยู่ที่สายกริด: ข้อความแดง HW-METER');
-  ev('CP.cu.at="grid"'); ok(!ev('cpLoadRisks(CP,{custom:true}).some(a=>a.c==="HW-METER")'), 'คล้อง CT Huawei ที่สายกริดแล้วข้อความหาย');
+  ev('CP.cu.at="grid"'); ok(ev('cpLoadRisks(CP,{custom:true}).some(a=>a.c==="HW-METER"&&a.sev==="stop")'), 'Huawei ต่อฝั่ง LOAD แต่ CT อยู่สายกริด ยังเตือนแดง');
+  ok(ev('cpCuChecks().some(x=>!x[0]&&x[1].includes("คล้องสายโหลด")&&x[2]==="err")'), 'ตรวจสาย: CT Huawei ที่สายกริดผิด ต้องอยู่สายโหลด');
+  ev('CP.cu.at="load";CP.cu.arrow="ok"'); ok(!ev('cpLoadRisks(CP,{custom:true}).some(a=>a.c==="HW-METER")'), 'คล้อง CT Huawei ที่สายโหลดแล้วข้อความแดงหาย');
+  ok(ev('cpLoadRisks(CP,{custom:true}).some(a=>a.c==="HW-LIMIT")'), 'มีข้อความ trade-off จำกัดกำลังตามโหลด');
+  ok(ev('cpCuChecks().every(x=>x[2]!=="err")'), 'CT Huawei ที่สายโหลด ไม่มีรายการ ✗ แดงเรื่อง CT ออนกริด');
   ev('CP.sc="hw_deye_load";cpReset(CP);CP.ports.src="bload";CP.ports.ct="grid";CP.set.src.anti=true;CP.cu.at="none"');
   ok(/ลดกำลังเป็น 0/.test(ev('cpCuSim()')) && !ev('CP.ports.ct==="none"'), 'ผลจำลองหน้า 6 คิด Huawei = 0 เมื่อมิเตอร์ของ Huawei ไม่อยู่ที่สายกริด โดยไม่แก้ค่าหลัก');
   ok(!errs.filter(e => !/canvas|getContext|not implemented|scrollTo/i.test(e)).length, 'ไม่มี error: ' + errs.join('; '));
