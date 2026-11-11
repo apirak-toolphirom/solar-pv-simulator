@@ -1218,7 +1218,7 @@ body.fsmode .navtoggle{display:none}
       <button class="navb" data-tab="fusion"><span class="ic">17</span>Huawei FusionSolar</button>
       <button class="navb" data-tab="deye"><span class="ic">18</span>Deye Commissioning</button>
       <button class="navb" data-tab="accouple"><span class="ic">19</span>AC Coupling</button>
-      <button class="navb" data-tab="smartload"><span class="ic">20</span>Smart Load (GEN → EV)</button>
+      <button class="navb" data-tab="smartload"><span class="ic">20</span>Smart Load</button>
     </details>
       <button class="navb navsubmit" data-tab="submit"><span class="ic">21</span>ส่งงาน</button>
       <a class="manlink" id="manlink" href="https://github.com/apirak-toolphirom/solar-pv-simulator/blob/main/docs/README.md" target="_blank" rel="noopener">📘 คู่มือเมนูนี้</a>
@@ -15143,7 +15143,7 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
 const ACC_KEY='pvsim:acc';
 const ACC={enabled:false,role:'visitor',menus:null,checking:false};
 const accToday=()=>{try{return new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Bangkok'})}catch(e){return new Date().toISOString().slice(0,10)}};
-const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC แผง',ac:'04 ต่อสาย AC ระบบ',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 จำลองการไหลของไฟ',systems:'11 จำลองระบบ 4 แบบ',events:'12 จำลองเหตุการณ์',bench:'05 ชุดทดลองวงจร DC',submit:'21 ส่งงาน',fusion:'17 Huawei FusionSolar',deye:'18 Deye Commissioning',accouple:'19 AC Coupling',smartload:'20 Smart Load (GEN)',cable:'06 สายไฟและเบรกเกอร์',library:'01 คลังความรู้',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.'};
+const ACC_NAME={basics:'00 แบบฝึกพื้นฐาน',equip:'02 อุปกรณ์',wiring:'03 ต่อสาย DC แผง',ac:'04 ต่อสาย AC ระบบ',pv:'07 จำลองแผง',site:'08 ไซต์และเงา',load:'09 จำลองโหลด',backup:'10 จำลองการไหลของไฟ',systems:'11 จำลองระบบ 4 แบบ',events:'12 จำลองเหตุการณ์',bench:'05 ชุดทดลองวงจร DC',submit:'21 ส่งงาน',fusion:'17 Huawei FusionSolar',deye:'18 Deye Commissioning',accouple:'19 AC Coupling',smartload:'20 Smart Load',cable:'06 สายไฟและเบรกเกอร์',library:'01 คลังความรู้',solis:'15 Solis Commissioning',lfp:'16 แบต LiFePO4 + JK-BMS',calc:'13 คำนวณความคุ้มค่า',eit:'14 ออกแบบระบบไฟฟ้า วสท.'};
 /* menus the teacher opens on purpose: hidden from students until the "เมนู" sheet has a row that opens them (also before an older Code.gs adds the row) */
 const ACC_HIDDEN=['solis','lfp','calc','eit','deye','accouple','smartload'];
 /* menus that need a signed-in student or the teacher, whatever the sheet says (never open to visitors, nor offline) */
