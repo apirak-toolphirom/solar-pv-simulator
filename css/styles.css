@@ -164,6 +164,7 @@ table.t{border-collapse:collapse;width:100%;font:12.5px var(--mono)}
 table.t th,table.t td{padding:5px 10px;text-align:right;border-top:1px solid var(--line);white-space:nowrap}
 table.t th{color:var(--muted);font-weight:500}
 table.t th:first-child,table.t td:first-child{text-align:left}
+table.t.wrapt td,table.t.wrapt th{white-space:normal;overflow-wrap:anywhere;text-align:left;font-family:var(--body)}table.t.wrapt th{width:38%}
 .simmsg{margin:0;font-size:14px;color:var(--muted)}
 .panel.shorted .pbody{stroke:var(--err);stroke-width:3.5}
 .wshort{fill:none;stroke:var(--err);stroke-width:11;stroke-linecap:round;opacity:.45;pointer-events:none}

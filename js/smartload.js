@@ -113,7 +113,7 @@ function sgSLD(){
 function sgPgJob(s){
   const H=sgHost(),sc=sgSc();
   return `<div class="cards"><div class="card"><h3>ใบสั่งงาน</h3><p>${esc(sc.brief)}</p>
-    <table class="t"><tbody><tr><th>Hybrid</th><td>${esc(H.n)} · แบต ${sgF(H.cap,2)} kWh · พิกัด ${H.pac} kW</td></tr><tr><th>พอร์ต GEN (Smart Load)</th><td>สูงสุด ${H.port} kW (ค่าในแบบจำลอง)</td></tr><tr><th>รถ EV</th><td>แบต ${SG_CAR.cap} kWh</td></tr></tbody></table>
+    <table class="t wrapt"><tbody><tr><th>Hybrid</th><td>${esc(H.n)} · แบต ${sgF(H.cap,2)} kWh · พิกัด ${H.pac} kW</td></tr><tr><th>พอร์ต GEN (Smart Load)</th><td>สูงสุด ${H.port} kW (ค่าในแบบจำลอง)</td></tr><tr><th>รถ EV</th><td>แบต ${SG_CAR.cap} kWh</td></tr></tbody></table>
     <div class="tblwrap">${sgSLD()}</div></div>
     <div class="card"><h3>การต่อและ wall charger</h3>
     ${sgRow('สิ่งที่ต่อที่พอร์ต GEN',sgSel('gen',SG_GEN_OPTS,SG.gen))}
@@ -122,7 +122,7 @@ function sgPgJob(s){
     <h3>ตรวจการต่อ</h3>${sgList(s.c.job)}</div></div>`;
 }
 function sgHome(){const r=sgDay().rows[SG.dash.t];
-  return `<table class="t"><tbody><tr><th>เวลา</th><td>${sgHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>Smart Load (GEN)</th><td>${r.slOn?'ON':'OFF'} ${sgF(r.sl*1000)} W</td></tr><tr><th>PV</th><td>${sgF(r.pH*1000)} W</td><th>โหลด Backup</th><td>${sgF(r.L*1000)} W</td></tr><tr><th>กริด</th><td>${sgF(r.grid*1000)} W</td><th>แบต / SOC</th><td>${sgF(r.bat*1000)} W / ${sgF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
+  return `<table class="t wrapt"><tbody><tr><th>เวลา</th><td>${sgHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>Smart Load (GEN)</th><td>${r.slOn?'ON':'OFF'} ${sgF(r.sl*1000)} W</td></tr><tr><th>PV</th><td>${sgF(r.pH*1000)} W</td><th>โหลด Backup</th><td>${sgF(r.L*1000)} W</td></tr><tr><th>กริด</th><td>${sgF(r.grid*1000)} W</td><th>แบต / SOC</th><td>${sgF(r.bat*1000)} W / ${sgF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
 function sgPgHost(s){
   const deye=sgSc().host==='deye';
   return `<div class="cards"><div class="card sldevcard">${hlDevice(sgSc().host,SG,sgHome(),'')}<p class="hint tight">${deye?'ไป System Setup › Gen Port Use เลือก Smart Load Output':'ไป SYSTEM SETTING › SMART PORT เลือก Smart load output'}</p></div>
@@ -130,7 +130,7 @@ function sgPgHost(s){
 }
 function sgLive(){
   const el=document.getElementById('sglive');if(!el)return;const r=sgDay().rows[SG.dash.t];
-  el.innerHTML=`<table class="t"><tbody><tr><th>เวลา</th><td><b>${sgHM(r.i)}</b> ${r.up?'':'<span class="pill warn">ไฟกริดดับ</span>'}${r.plug?'':' <span class="pill">รถไม่ได้เสียบ</span>'}${r.over?' <span class="pill err">Overload ตัด Smart Load</span>':''}</td><th>Smart Load (GEN)</th><td><b>${r.slOn?'ON':'OFF'}</b> ${sgF(r.sl,2)} kW</td></tr>
+  el.innerHTML=`<table class="t wrapt"><tbody><tr><th>เวลา</th><td><b>${sgHM(r.i)}</b> ${r.up?'':'<span class="pill warn">ไฟกริดดับ</span>'}${r.plug?'':' <span class="pill">รถไม่ได้เสียบ</span>'}${r.over?' <span class="pill err">Overload ตัด Smart Load</span>':''}</td><th>Smart Load (GEN)</th><td><b>${r.slOn?'ON':'OFF'}</b> ${sgF(r.sl,2)} kW</td></tr>
   <tr><th>แผง</th><td>${sgF(r.pH,2)} kW</td><th>โหลดบ้าน</th><td>${sgF(r.L,2)} kW</td></tr>
   <tr><th>กริด</th><td>${r.up?(r.grid>.005?'ซื้อ '+sgF(r.grid,2)+' kW':'ไม่ซื้อ'):'ไม่มีไฟกริด'}</td><th>แบต</th><td>${r.bat>=0?'ชาร์จ ':'จ่าย '}${sgF(Math.abs(r.bat),2)} kW · SOC ${sgF(r.soc)}%</td></tr>
   <tr><th>แบตรถ</th><td>${sgF(r.car)}%</td><th>โหลดบ้านขาดไฟ</th><td>${sgF(r.uns,2)} kW</td></tr></tbody></table>`;
@@ -154,7 +154,7 @@ function sgPgDash(s){
     <div class="grp"><span class="lab">SOC แบตบ้านเริ่มวัน</span>${sgNum('dash.soc0',D.soc0,10,100,5,'%')}<span class="lab">แบตรถเริ่ม</span>${sgNum('dash.car0',D.car0,0,95,5,'%')}<span class="lab">รถเสียบ</span>${sgNum('dash.arr',D.arr,0,23,1,'น.')}<span class="lab">ถึง</span>${sgNum('dash.dep',D.dep,0,23,1,'น.')}<span class="lab">กระแสชาร์จ</span>${sgNum('chA',SG.chA,6,32,1,'A')}</div></div>
     <div id="sglive"></div></div>
   <div class="cards"><div class="card"><h3>ทั้งวัน</h3><div class="tblwrap">${sgChart()}</div>
-    <table class="t"><tbody><tr><th>แผงผลิต</th><td>${sgF(T.pv,1)} kWh</td><th>โหลดบ้าน</th><td>${sgF(T.load,1)} kWh</td></tr><tr><th>ชาร์จรถรวม</th><td>${sgF(T.sl,1)} kWh</td><th>แบตรถ</th><td>${sgF(T.car0)}% → ${sgF(T.car1)}%</td></tr><tr><th>ชาร์จรถจากแผง / แบต / กริด</th><td>${sgF(T.slPv,1)} / ${sgF(T.slBat,1)} / ${sgF(T.slGrid,1)} kWh</td><th>ซื้อไฟรวม</th><td>${sgF(T.imp,1)} kWh</td></tr><tr><th>SOC แบตบ้านต่ำสุด</th><td>${sgF(T.minSoc)}%</td><th>โหลดบ้านขาดไฟ</th><td>${sgF(T.uns,2)} kWh</td></tr></tbody></table></div>
+    <table class="t wrapt"><tbody><tr><th>แผงผลิต</th><td>${sgF(T.pv,1)} kWh</td><th>โหลดบ้าน</th><td>${sgF(T.load,1)} kWh</td></tr><tr><th>ชาร์จรถรวม</th><td>${sgF(T.sl,1)} kWh</td><th>แบตรถ</th><td>${sgF(T.car0)}% → ${sgF(T.car1)}%</td></tr><tr><th>ชาร์จรถจากแผง / แบต / กริด</th><td>${sgF(T.slPv,1)} / ${sgF(T.slBat,1)} / ${sgF(T.slGrid,1)} kWh</td><th>ซื้อไฟรวม</th><td>${sgF(T.imp,1)} kWh</td></tr><tr><th>SOC แบตบ้านต่ำสุด</th><td>${sgF(T.minSoc)}%</td><th>โหลดบ้านขาดไฟ</th><td>${sgF(T.uns,2)} kWh</td></tr></tbody></table></div>
    <div class="card"><h3>ผลทดสอบการทำงาน</h3>${sgList([...s.c.job.slice(1),...s.c.dash])}<p class="hint tight">ทดสอบอัตโนมัติ 2 วัน: วันมีแดด (เมฆ 20%, รถเสียบ 9–17 น.) และไฟดับ 18:00–22:00 (แบต 100%, โหลดบ้าน 50%, ${sgSc().host==='deye'?'เมฆ 30%, รถเสียบ 14–07 น.':'รถเสียบ 17–07 น.'}) ไม่ขึ้นกับตัวเลือกที่ปรับบนหน้านี้</p></div></div>`;
 }
 function sgSetPath(path,v){if(path==='chA'){SG.chA=v;return}const[g,k]=path.split('.');if(g==='dash')SG.dash[k]=v}

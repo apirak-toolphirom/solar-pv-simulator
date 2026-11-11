@@ -1,6 +1,6 @@
 # เมนู 20 Smart Load
 
-**ฉบับ 1.3 · ปรับปรุงล่าสุด 11 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/smartload.js`
+**ฉบับ 1.4 · ปรับปรุงล่าสุด 11 พ.ย. 2569** · [กลับสารบัญ](README.md) · ไฟล์ `js/smartload.js`
 
 ฝึกต่อ wall charger รถไฟฟ้าเข้าพอร์ต GEN ของ **Deye** (Gen Port Use = Smart Load output) หรือ **Solis** (Smart Port = Smart load output) ตั้งเกณฑ์ ON/OFF ของ Smart Load แล้วดูผลในวันที่มีกลางคืน เมฆ ไฟดับ ระบบ On-grid / Off-grid โดยปรับโหลดบ้านและกระแสชาร์จได้
 
@@ -66,3 +66,4 @@ Hybrid ในแบบจำลอง: Deye SUN-6K (แบต 10.24 kWh) แล�
 | 1.1 | 10 พ.ย. 2569 | จอเครื่อง Deye/Solis เปลี่ยนเป็นเมนูตามคู่มือจริง (Gen Port Use › Smart Load Output: Power/ON/OFF/On Grid always on/off grid immediately off, SMART PORT › Smart load output: OFF/ON SOC, On grid always on, Off grid always off) |
 | 1.2 | 11 พ.ย. 2569 | ผังการต่อ: ไอคอน Hybrid ชัดและสีเข้มลง ไอคอน Smart Load สีคงที่ เพิ่มแบตเตอรี่ต่อกับ Hybrid |
 | 1.3 | 11 พ.ย. 2569 | ชื่อเมนูในแถบเมนูเหลือแค่ "Smart Load" (ตัด GEN → EV ออก) |
+| 1.4 | 11 พ.ย. 2569 | แก้ตารางข้อมูลที่ล้นการ์ดบนจอกว้างไม่มาก ข้อความตัดบรรทัดได้ ไม่ซ้อน/ถูกตัด |

@@ -287,7 +287,7 @@ function cpCuSim(){
   else if(!F.gen&&!F.viaGrid)note=F.p.src==='load'?'Solis: คู่มือไม่รองรับการต่อฝั่ง Backup แบบจำลองจึงไม่นับว่าอินเวอร์เตอร์ AC ทำงาน':'พอร์ต GEN ยังไม่ได้ตั้งเป็น AC couple (ไปตั้งที่แท็บ 2 จอเครื่อง)';
   else if(F.viaGrid)note='ต่อที่ฝั่งกริด: ไฟกริดดับแล้วอินเวอร์เตอร์ AC ไม่ทำงาน';
   else note=ld?'ต่อที่ช่อง LOAD: ตอนไฟกริดดับ Hybrid สร้างไฟที่ช่อง LOAD อินเวอร์เตอร์ AC ซิงก์กับไฟนั้นและจ่ายให้โหลด Backup ได้ แต่ Hybrid ต้องลดกำลังเมื่อแบตเต็ม (เลื่อนความถี่) · CT ที่สายกริดจะอ่าน 0 A เพราะไม่มีกระแสกริด':'ต่อที่พอร์ต GEN: ตอนไฟกริดดับ Hybrid จ่ายไฟออกพอร์ต GEN ให้อินเวอร์เตอร์ AC ซิงก์ตาม';
-  return `<h3>ผลจำลองไฟกริดดับ 10:00–15:00 (แบต 50%)</h3>${lost?'<p class="hint tight">Huawei เปิดกันย้อนแต่ CT/มิเตอร์ของ Huawei ยังไม่อยู่ที่ตำแหน่งที่ถูก (ฝั่ง LOAD ต้องคล้องสายโหลด, ฝั่งกริดต้องคล้องสายไฟกริด) ผลด้านล่างจึงคิดว่า Huawei ลดกำลังเป็น 0</p>':''}<table class="t"><tbody>${row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (วันปกติ)',cpF(N.T.pvA,1)+' kWh')+row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (ไฟดับ)',cpF(B.T.pvA,1)+' kWh')+row('โหลดที่ไม่ได้รับไฟ',cpF(B.T.uns,2)+' kWh')+row('Battery OV (ตัดไม่ทัน)',B.T.trips+' ช่วง')+(r?row('ความถี่ที่ช่องต่อตอนไฟดับ',cpF(r.f,2)+' Hz'):'')}</tbody></table><p class="hint tight">${note}</p><p class="hint tight">ค่าจำลองตามหลัก AC coupling ไม่ใช่ค่าจากคู่มือ: คู่มือ Deye ข้อ 5.11 มีแบบ On-Load + AC couple แต่ไม่ได้อธิบายพฤติกรรมตอนไฟดับ · คู่มือ Solis ระบุเฉพาะพอร์ต GEN</p>`;
+  return `<h3>ผลจำลองไฟกริดดับ 10:00–15:00 (แบต 50%)</h3>${lost?'<p class="hint tight">Huawei เปิดกันย้อนแต่ CT/มิเตอร์ของ Huawei ยังไม่อยู่ที่ตำแหน่งที่ถูก (ฝั่ง LOAD ต้องคล้องสายโหลด, ฝั่งกริดต้องคล้องสายไฟกริด) ผลด้านล่างจึงคิดว่า Huawei ลดกำลังเป็น 0</p>':''}<table class="t wrapt"><tbody>${row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (วันปกติ)',cpF(N.T.pvA,1)+' kWh')+row('อินเวอร์เตอร์ AC ผลิตทั้งวัน (ไฟดับ)',cpF(B.T.pvA,1)+' kWh')+row('โหลดที่ไม่ได้รับไฟ',cpF(B.T.uns,2)+' kWh')+row('Battery OV (ตัดไม่ทัน)',B.T.trips+' ช่วง')+(r?row('ความถี่ที่ช่องต่อตอนไฟดับ',cpF(r.f,2)+' Hz'):'')}</tbody></table><p class="hint tight">${note}</p><p class="hint tight">ค่าจำลองตามหลัก AC coupling ไม่ใช่ค่าจากคู่มือ: คู่มือ Deye ข้อ 5.11 มีแบบ On-Load + AC couple แต่ไม่ได้อธิบายพฤติกรรมตอนไฟดับ · คู่มือ Solis ระบุเฉพาะพอร์ต GEN</p>`;
 }
 function cpPgCustom(){
   const L=cpCuChecks(),n=L.filter(x=>x[0]).length,hw=cuHasA();
@@ -301,7 +301,7 @@ function cpPgCustom(){
 function cpPgJob(s){
   const F=cpFlags(),H=cpHost(),sc=cpSc(),p=CP.ports;
   return `<div class="cards"><div class="card"><h3>ใบสั่งงาน</h3><p>${esc(sc.brief).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</p>
-    <table class="t"><tbody><tr><th>Hybrid</th><td>${esc(H.n)} · แบต ${cpF(H.cap,2)} kWh</td></tr><tr><th>อินเวอร์เตอร์ AC</th><td>${esc(cpSrc().n)}</td></tr><tr><th>นโยบายขายไฟ</th><td>${sc.policy==='noexp'?'ห้ามขาย (ต้องกันย้อน)':'ขายได้ ไม่เกิน 5 kW'}</td></tr></tbody></table>
+    <table class="t wrapt"><tbody><tr><th>Hybrid</th><td>${esc(H.n)} · แบต ${cpF(H.cap,2)} kWh</td></tr><tr><th>อินเวอร์เตอร์ AC</th><td>${esc(cpSrc().n)}</td></tr><tr><th>นโยบายขายไฟ</th><td>${sc.policy==='noexp'?'ห้ามขาย (ต้องกันย้อน)':'ขายได้ ไม่เกิน 5 kW'}</td></tr></tbody></table>
     <div class="tblwrap" id="cpsld">${cpSLD()}</div><p class="hint tight">ลาก<b>ปลายสายอินเวอร์เตอร์ AC</b>ไปวางที่ตู้เมน / พอร์ต GRID / พอร์ต GEN / พอร์ต LOAD · ลาก<b>CT</b>ไปคล้องสายกริด สายอินเวอร์เตอร์ AC หรือสายโหลด · คลิกที่ CT เพื่อกลับทิศลูกศร · วางนอกจุดต่อ = ถอดออก (ตั้งผ่านรายการเลือกด้านขวาก็ได้)</p></div>
     <div class="card"><h3>การต่อสาย</h3>
     ${cpRow('อินเวอร์เตอร์ AC ต่อเข้าที่',`<select class="hn" data-cpp="src" id="cpp-src">${CP_SRC_OPTS.map(([k,t])=>`<option value="${k}" ${p.src===k?'selected':''}>${esc(t)}</option>`).join('')}</select>`)}
@@ -313,7 +313,7 @@ function cpPgJob(s){
     ${cpAlarms().map(a=>`<p class="${a.sev==='stop'?'hmierr':'hint tight'}"><b>${esc(a.c)}</b> ${esc(a.d)}</p>`+(a.g?`<p class="cpguide">▶ ${esc(a.g)} <button class="btn sm" data-cppg="${a.to}">${esc(a.bt||'ไปที่แท็บ 2 จอเครื่อง')}</button></p>`:'')).join('')}</div></div>`;
 }
 function cpHome(){const r=cpDay().rows[CP.dash.t];
-  return `<table class="t"><tbody><tr><th>เวลา</th><td>${cpHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>ความถี่ที่พอร์ต</th><td>${cpF(r.f,2)} Hz</td></tr><tr><th>PV (เครื่อง)</th><td>${cpF(r.pH*1000)} W</td><th>GEN (AC couple)</th><td>${cpF(r.pA*1000)} W</td></tr><tr><th>โหลด</th><td>${cpF(r.L*1000)} W</td><th>กริด</th><td>${cpF(r.grid*1000)} W</td></tr><tr><th>แบต</th><td>${cpF(r.bat*1000)} W</td><th>SOC</th><td>${cpF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
+  return `<table class="t wrapt"><tbody><tr><th>เวลา</th><td>${cpHM(r.i)} ${r.up?'':'(ไฟกริดดับ)'}</td><th>ความถี่ที่พอร์ต</th><td>${cpF(r.f,2)} Hz</td></tr><tr><th>PV (เครื่อง)</th><td>${cpF(r.pH*1000)} W</td><th>GEN (AC couple)</th><td>${cpF(r.pA*1000)} W</td></tr><tr><th>โหลด</th><td>${cpF(r.L*1000)} W</td><th>กริด</th><td>${cpF(r.grid*1000)} W</td></tr><tr><th>แบต</th><td>${cpF(r.bat*1000)} W</td><th>SOC</th><td>${cpF(r.soc)} %</td></tr></tbody></table><p class="hmiinfo">แตะ System Setup เพื่อเข้าตั้งค่า</p>`}
 function cpPgHost(s){
   const deye=cpSc().host==='deye',note=cpSc().host==='solis'?'ค่าในแบบจำลอง: Solis ไม่มีค่าความถี่ให้ตั้ง ใช้ Freq-Watt ของอินเวอร์เตอร์ AC ลดกำลังเมื่อ SOC 95–100% (ค่าสมมติ)':'';
   return `<div class="cards"><div class="card sldevcard">${hlDevice(cpSc().host,CP,cpHome(),note)}<p class="hint tight">${deye?(cpSc().load?'ใบงานนี้ต่อที่ช่อง LOAD ไม่ต้องตั้ง Gen Port Use · ตั้งโหมดที่ System Work Mode เป็น Zero Export To CT':'ไป System Setup › Gen Port Use เลือก Micro Inv Input · ตั้งโหมดขายไฟที่ System Work Mode'):'ไป SYSTEM SETTING › SMART PORT เลือก AC couple input · ตั้งโหมดขายไฟที่ STORAGE MODE'}</p></div>
@@ -334,7 +334,7 @@ function cpPgSrc(s){
 }
 function cpLive(){
   const el=document.getElementById('cplive');if(!el)return;const r=cpDay().rows[CP.dash.t];
-  el.innerHTML=`<table class="t"><tbody><tr><th>เวลา</th><td><b>${cpHM(r.i)}</b> ${r.up?'':'<span class="pill warn">ไฟดับ</span>'}${r.trip?'<span class="pill err">Battery OV · โหลดดับ</span>':''}</td><th>ความถี่ที่ Hybrid จ่าย</th><td>${cpF(r.f,1)} Hz</td></tr>
+  el.innerHTML=`<table class="t wrapt"><tbody><tr><th>เวลา</th><td><b>${cpHM(r.i)}</b> ${r.up?'':'<span class="pill warn">ไฟดับ</span>'}${r.trip?'<span class="pill err">Battery OV · โหลดดับ</span>':''}</td><th>ความถี่ที่ Hybrid จ่าย</th><td>${cpF(r.f,1)} Hz</td></tr>
   <tr><th>แผงของ Hybrid</th><td>${cpF(r.pH,2)} kW</td><th>อินเวอร์เตอร์ AC (${cpSc().load?'LOAD':'GEN'})</th><td>${cpF(r.pA,2)} kW${r.cutA>0?` (ถูกตัด ${cpF(r.cutA,2)})`:''}</td></tr>
   <tr><th>โหลด</th><td>${cpF(r.L,2)} kW</td><th>กริด</th><td>${r.grid>0.005?'ซื้อ ':r.grid<-0.005?'ขาย ':''}${cpF(Math.abs(r.grid),2)} kW</td></tr>
   <tr><th>แบต</th><td>${r.bat>=0?'ชาร์จ ':'จ่าย '}${cpF(Math.abs(r.bat),2)} kW</td><th>SOC</th><td>${cpF(r.soc)} %</td></tr></tbody></table>`;
@@ -357,7 +357,7 @@ function cpPgDash(s){
     <div class="grp">${cpChk('src.anti',CP.set.src.anti,'กันย้อน (ตั้งที่อินเวอร์เตอร์ AC)')}${cpChk('ctquick',CP.ports.ct==='grid','มี CT ที่กริด')}</div></div>
     <div id="cplive"></div></div>
   <div class="cards"><div class="card"><h3>ทั้งวัน</h3><div class="tblwrap">${cpChart()}</div>
-    <table class="t"><tbody><tr><th>ผลิตแผง Hybrid</th><td>${cpF(T.pvH,1)} kWh</td><th>ผลิตอินเวอร์เตอร์ AC</th><td>${cpF(T.pvA,1)} kWh</td></tr><tr><th>โหลดที่จ่ายได้</th><td>${cpF(T.load,1)} kWh</td><th>โหลดดับ</th><td>${cpF(T.uns,1)} kWh</td></tr><tr><th>ซื้อไฟ</th><td>${cpF(T.imp,1)} kWh</td><th>ขายไฟ</th><td>${cpF(T.exp,1)} kWh</td></tr><tr><th>ชาร์จ / จ่ายแบต</th><td>${cpF(T.chg,1)} / ${cpF(T.dis,1)} kWh</td><th>ตัดกำลัง AC / Hybrid</th><td>${cpF(T.cutA,1)} / ${cpF(T.cutH,1)} kWh</td></tr></tbody></table></div>
+    <table class="t wrapt"><tbody><tr><th>ผลิตแผง Hybrid</th><td>${cpF(T.pvH,1)} kWh</td><th>ผลิตอินเวอร์เตอร์ AC</th><td>${cpF(T.pvA,1)} kWh</td></tr><tr><th>โหลดที่จ่ายได้</th><td>${cpF(T.load,1)} kWh</td><th>โหลดดับ</th><td>${cpF(T.uns,1)} kWh</td></tr><tr><th>ซื้อไฟ</th><td>${cpF(T.imp,1)} kWh</td><th>ขายไฟ</th><td>${cpF(T.exp,1)} kWh</td></tr><tr><th>ชาร์จ / จ่ายแบต</th><td>${cpF(T.chg,1)} / ${cpF(T.dis,1)} kWh</td><th>ตัดกำลัง AC / Hybrid</th><td>${cpF(T.cutA,1)} / ${cpF(T.cutH,1)} kWh</td></tr></tbody></table></div>
    <div class="card"><h3>ผลทดสอบการทำงาน</h3>${cpList(s.c.dash)}<p class="hint tight">ทดสอบอัตโนมัติ 2 วัน: วันปกติ (แบต 50%) และไฟดับ 10:00–15:00 ตอนแบต 95% โหลด 60% ดูว่าตัดกำลังอินเวอร์เตอร์ AC ทัน ไม่เกิน Battery OV</p></div></div>`;
 }
 function cpPgFault(s){
