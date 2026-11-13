@@ -1,6 +1,6 @@
 # คู่มือการใช้งาน โปรแกรมจำลองระบบโซลาร์
 
-**ฉบับ 2.0 · ปรับปรุงล่าสุด 13 พ.ย. 2569**
+**ฉบับ 2.1 · ปรับปรุงล่าสุด 13 พ.ย. 2569**
 
 เปิดโปรแกรม: https://apirak-toolphirom.github.io/solar-pv-simulator/ · หน้าสรุปงานส่งผู้สอน: `dashboard.html`
 
@@ -9,6 +9,8 @@
 |---|---|
 | [เริ่มต้นใช้งาน](manual-start.md) | ทุกคน: เข้าใช้งาน บทบาท เมนู การบันทึกและย้ายงาน |
 | [กำหนดการฝึกอบรม 28 พ.ย. 69 – 28 ก.พ. 70](training-schedule-nondegree.md) ([PNG](training-schedule-nondegree.png) · [PDF](training-schedule-nondegree.pdf)) | ผู้สอนและผู้เข้าอบรม: หัวข้อรายวัน On-grid / Off-grid / Hybrid / On-Off Grid ตามมาตรฐาน วสท. |
+| [แผนการสอนรายวัน 20 วัน](training-lesson-plans.md) | ผู้สอน: เนื้อหา workshop 10 กลุ่ม เกณฑ์ประเมิน |
+| [ระบบสอบ Pre/Post Test](manual-training-quiz.md) | ผู้สอน: ติดตั้งและใช้ระบบสอบ Apps Script |
 | [ผู้สอน](manual-teacher.md) | ตั้งค่า Google Sheets / Apps Script, dashboard, ใบงาน, สิทธิ์เมนู, รายชื่อ, แก้อุปกรณ์ |
 
 ## คู่มือแต่ละเมนู
@@ -56,3 +58,4 @@
 | 1.8 | 11 พ.ย. 2569 | เพิ่มบัญชีครู (ไม่ใช่ admin) ดู [คู่มือผู้สอน](manual-teacher.md) ข้อ 1.1 |
 | 1.9 | 11 พ.ย. 2569 | ครูเข้าด้วยอีเมล Google (เฉพาะ admin กรอกรหัส) ดู [คู่มือผู้สอน](manual-teacher.md) ข้อ 1.1 |
 | 2.0 | 13 พ.ย. 2569 | เพิ่ม [กำหนดการฝึกอบรม](training-schedule-nondegree.md) ฉบับปรับหัวข้อตั้งแต่ 28 พ.ย. 69 พร้อมโปสเตอร์ PNG/PDF |
+| 2.1 | 13 พ.ย. 2569 | เพิ่ม [แผนการสอนรายวัน](training-lesson-plans.md) และ [ระบบสอบ Pre/Post Test](manual-training-quiz.md) (Apps Script) |
