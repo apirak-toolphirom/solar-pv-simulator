@@ -35,6 +35,18 @@ load().then(({ ev, errs }) => {
     eq('cumulative Total Yield uses last-first (9×40=360)', ev(`HWP.on=new Set(HWP.S.filter(s=>s.rep&&/Total Yield/.test(s.name)).map(s=>s.key));hwpDraw();hwpStats(HWP.g.vis,HWP.g.x0,HWP.g.x1)[0].E.toFixed(0)`), '360');
     eq('daily Peak Power gets no integrated energy', ev(`HWP.on=new Set(HWP.S.filter(s=>s.rep&&/Peak Power/.test(s.name)).map(s=>s.key));hwpDraw();hwpStats(HWP.g.vis,HWP.g.x0,HWP.g.x1)[0].E`), 'null');
     eq('daily-only view draws', ev(`document.querySelectorAll('#hwpchart path[stroke]').length`), '1');
+    /* จำลองไม่เปิด Zero Export: ชั่วโมงเที่ยงถูกจำกัดตามโหลด (ซื้อไฟ ≈ 0) */
+    const hr2 = [['Statistical Period','PV Yield (kWh)','Export (kWh)','Import (kWh)']];
+    const pv2 = [0,0,0,0,0,0,1,2,3,4,5,6,6,6,5,4,3,2,1,0,0,0,0,0], im2 = [2,2,2,2,2,2,1.5,1,.5,.5,.1,.05,.05,.05,.3,1,1.5,2,2,2,2,2,2,2];
+    pv2.forEach((v, h) => hr2.push([`2026-11-18 ${String(h).padStart(2,'0')}:00:00`, v, 0, im2[h]]));
+    ev(`HW.files=[];hwAdd(${JSON.stringify([{ name: 'z.xlsx', rows: hr2 }])},false);HWP.sim.kwp=10;HWP.sim.method='kwp';HWP.sim.pr=.8;document.getElementById('hwpsimon').click()`);
+    eq('simulation adds 3 dashed lines', ev(`HWP.S.filter(s=>s.sim).length`), '3');
+    eq('potential is never below the real PV', ev(`const pv=HWP.S.find(s=>/PV Yield/.test(s.name)&&!s.sim),p=HWP.S.find(s=>s.key==='sim|pot');p.pts.every((q,i)=>q.y>=pv.pts[i].y-1e-9)`), 'true');
+    eq('midday hours are lifted, morning hours are not', ev(`const pv=HWP.S.find(s=>/PV Yield/.test(s.name)&&!s.sim),p=HWP.S.find(s=>s.key==='sim|pot');(p.pts[12].y>pv.pts[12].y+.5)+' '+(p.pts[6].y===pv.pts[6].y)`), 'true true');
+    eq('result panel shows limited energy and the other bound', ev(`/ถูกจำกัดโดยประมาณ/.test(document.getElementById('hwpsimres').textContent)&&/เทียบอีกวิธี/.test(document.getElementById('hwpsimres').textContent)`), 'true');
+    eq('dashed paths are drawn', ev(`document.querySelectorAll('#hwpchart path[stroke-dasharray]').length>=1`), 'true');
+    eq('daily-only data: clear message, no crash', ev(`HW.files=[];hwAdd(${JSON.stringify([{ name: 'd.xlsx', rows: dy }])},false);HWP.sim.on=true;hwPlotRender();document.getElementById('hwpsimres').textContent.length>0`), 'true');
+    ev(`document.getElementById('hwpsimon').click()`);
     eq('no script errors during use', errs.join(' | '), '');
     done();
   }, 300);

@@ -1196,6 +1196,8 @@ body.fsmode .navtoggle{display:none}
 .hwpc:hover{border-color:var(--muted)}.hwpc[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
 #hwpchart{cursor:crosshair;user-select:none}
 .tablewrap{overflow-x:auto}table.hwstat th,table.hwstat td{text-align:left;font-size:12.5px}
+.hwpsim{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:8px 12px}.hwpsim summary{cursor:pointer;font-weight:600}
+.hwpsim input,.hwpsim select{max-width:150px}.hwpsim .metrics{margin:8px 0}
 </style>
 <div class="app">
   <button class="navtoggle" id="navtoggle" type="button" aria-controls="nav" aria-expanded="true" title="ซ่อนเมนูด้านซ้าย เพื่อเพิ่มพื้นที่ทำงาน">◀</button>
@@ -1886,6 +1888,15 @@ body.fsmode .navtoggle{display:none}
             <label>แกน<select id="hwpmode"><option value="unit">ตามหน่วย (ซ้าย/ขวา)</option><option value="norm">ปรับสเกลเทียบกัน (%)</option></select></label>
             <span class="hwpset"><button class="chip" type="button" data-hwpre="pow">กำลัง</button><button class="chip" type="button" data-hwpre="vol">แรงดัน</button><button class="chip" type="button" data-hwpre="cur">กระแส</button><button class="chip" type="button" data-hwpre="tmp">อุณหภูมิ/SOC</button><button class="chip" type="button" data-hwpre="none">ปิดทั้งหมด</button></span>
           </div>
+          <details class="hwpsim"><summary>จำลองกรณีไม่เปิด Zero Export (ไม่จำกัดการส่งออก)</summary>
+            <div class="hwpbar"><button class="btn" id="hwpsimon" type="button" aria-pressed="false">เปิดโหมดจำลอง</button>
+              <label>ขนาดติดตั้ง (kWp)<input type="number" min="0" step="0.1" data-hwps="kwp" inputmode="decimal" placeholder="อ่านจากไฟล์/ช่องด้านบน"></label>
+              <label>PR ของระบบ<input type="number" min="0.3" max="1" step="0.01" data-hwps="pr" inputmode="decimal"></label>
+              <label>ซื้อไฟน้อยกว่า (kW) = ถูกจำกัด<input type="number" min="0" step="0.05" data-hwps="thr" inputmode="decimal"></label>
+              <label>ราคารับซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="tariff" inputmode="decimal"></label>
+              <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option></select></label></div>
+            <div id="hwpsimres"></div>
+          </details>
           <div id="hwpchips" class="hwpchips"></div>
           <p class="hint tight" id="hwpnote"></p>
           <div id="hwpchart" class="chart"></div>
@@ -10596,7 +10607,7 @@ function hwExportDay(){
    ใช้ทุกคอลัมน์ตัวเลขของไฟล์รายช่วงเวลาที่นำเข้า (ไม่จำกัดเฉพาะคอลัมน์ที่ระบบจับคู่ไว้) แสดงหลายเส้นในกราฟเดียว
    เปิด/ปิดเส้นได้ · แกนตามหน่วย (ซ้าย/ขวา) หรือปรับสเกลเทียบกัน · ลากเลือกช่วงเวลา → ตารางสถิติ + ข้อสังเกตของช่วงนั้น
    ข้อมูลอยู่ในหน่วยความจำของหน้าเท่านั้น (เหมือน hwlog.js) */
-const HWP={on:new Set(),sig:'',mode:'unit',scope:'day',sel:null,view:null,S:[],day:null,g:null,drag:null,bound:false};
+const HWP={sim:{on:false,pr:.8,tariff:2.2,method:'auto',thr:.35,kwp:0},on:new Set(),sig:'',mode:'unit',scope:'day',sel:null,view:null,S:[],day:null,g:null,drag:null,bound:false};
 const HWP_COL=['#2a6fc4','#d9622f','#1a9c6e','#8e44ad','#c0392b','#b8860b','#16a0b5','#e056a0','#5d6d7e','#6aa84f','#a0522d','#2e4053'];
 const hwpUnit=h=>{const m=/[\(\[（]\s*([^)\]）]{1,10}?)\s*[\)\]）]\s*$/.exec(String(h||'').trim());let u=m?m[1].trim():hwUnitOf(h);if(/^(℃|°c|c)$/i.test(u))u='°C';return u};
 const hwpIsPow=u=>/^(kw|w|mw)$/i.test(u);
@@ -10643,7 +10654,8 @@ function hwPlotRender(){
   const sig=HWP.S.map(s=>s.key).join(',');
   if(sig!==HWP.sig){HWP.sig=sig;HWP.scope=HWP.S.some(s=>!s.rep)?'day':'all';HWP.on=hwpDefault();HWP.view=null;HWP.sel=null}
   if(HWP.day!==HW.day){HWP.day=HW.day;HWP.view=null;HWP.sel=null}
-  hwpApplyScope();hwpBind();hwpChips();hwpDraw();
+  const sr=hwpSimAdd();
+  hwpApplyScope();hwpBind();hwpChips();hwpDraw();hwpSimRender(sr);
 }
 function hwpChips(){
   const host=$('#hwpchips');if(!host)return;
@@ -10699,7 +10711,7 @@ function hwpDraw(){
   if(HWP.sel){const a=clamp(sx(HWP.sel[0]),ml,ml+iw),b=clamp(sx(HWP.sel[1]),ml,ml+iw);s+=`<rect x="${a}" y="${mt}" width="${Math.max(1,b-a)}" height="${ih}" style="fill:var(--accent);opacity:.14"/>`}
   /* lines */
   s+='<g clip-path="url(#hwpclip)">';
-  vis.forEach(se=>{s+=`<path d="${hwpPath(se,x0,x1,sx,sy,iw)}" fill="none" stroke="${se.color}" stroke-width="1.8" stroke-linejoin="round"/>`});
+  vis.forEach(se=>{s+=`<path d="${hwpPath(se,x0,x1,sx,sy,iw)}" fill="none" stroke="${se.color}" stroke-width="1.8" stroke-linejoin="round"${se.sim?' stroke-dasharray="6 4"':''}/>`});
   s+='</g>';
   s+=`<g style="pointer-events:none"><line id="hwpCur" x1="0" x2="0" y1="${mt}" y2="${mt+ih}" stroke="var(--muted)" stroke-dasharray="3 3" hidden/><rect id="hwpBr" x="0" y="${mt}" width="0" height="${ih}" style="fill:var(--accent);opacity:.22" hidden/></g></svg><div class="tip" id="hwpTip" hidden></div>`;
   host.innerHTML=s;
@@ -10763,6 +10775,71 @@ function hwpCsv(){
   const L=[['เส้น','หน่วย','จุด','ต่ำสุด','สูงสุด','เวลาที่สูงสุด','เฉลี่ย','ค่าเริ่มต้น','ค่าท้าย','พลังงานรวม kWh']].concat(st.map(r=>[r.s.name,r.s.unit,r.n,r.mn.y,r.mx.y,hwpLbl(r.mx.x,true),+r.avg.toFixed(4),r.first.y,r.last.y,r.E!=null?+r.E.toFixed(4):'']));
   hwDownload('huawei-log-stats.csv','﻿'+L.map(r=>r.map(v=>/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:v).join(',')).join('\r\n'));
 }
+
+/* ---- จำลองกรณีไม่เปิด Zero Export (ไม่จำกัดการส่งออก) ----
+   ใช้ข้อมูลรายช่วงเวลาที่มี PV + ซื้อไฟ (Import): ชั่วโมงที่ซื้อไฟน้อยกว่าเกณฑ์ ถือว่าอินเวอร์เตอร์ถูกจำกัดกำลังให้ตามโหลด
+   กำลังที่ผลิตได้จริงถ้าไม่จำกัด ≈ max(ค่าจริง, k × รูประฆังคว่ำตามดวงอาทิตย์) โดย k ปรับจากชั่วโมงที่ไม่ถูกจำกัด หรือ kWp × PR */
+function hwpSimAdd(){
+  const sm=HWP.sim;if(!sm.on)return null;
+  const S=HWP.S.filter(x=>!x.rep&&!x.sim);
+  const pick=(res,ex)=>{for(const re of res){const f=S.find(x=>re.test(x.name)&&!(ex&&ex.test(x.name)));if(f)return f}return null};
+  const pv=pick([/pv\s*yield/i,/inverter\s*yield/i,/(input|output|active)\s*power/i,/yield/i],/total|loss|theoretical|specific/i);
+  if(!pv||!(/^(kwh|kw)$/i.test(pv.unit)))return{err:'ไม่พบเส้นผลิตไฟ (PV Yield / Active power) ในไฟล์รายช่วงเวลา การจำลองต้องใช้ไฟล์ Historical data รายชั่วโมงหรือ 5 นาที ไม่ใช่รายงานรายวัน'};
+  const imp=pick([/import/i,/purchas/i]),exp=pick([/export/i,/feed/i],/loss|limit/i),cons=pick([/^consumption/i,/load\s*power/i]);
+  const cap=HWP.S.find(x=>/string\s*capacity|kwp/i.test(x.name)&&x.pts.length);
+  const kwp=sm.kwp||HW.kwp||(cap?cap.pts[0].y:0);
+  const stepH=pv.med/60,eU=/^kwh$/i.test(pv.unit),fac=eU?stepH:1;
+  const toKW=(sr,y)=>/^kwh$/i.test(sr.unit)?y/stepH:/^w$/i.test(sr.unit)?y/1000:y;
+  const mp=sr=>{if(!sr)return null;const m=new Map();sr.pts.forEach(p=>m.set(p.x,toKW(sr,p.y)));return m};
+  const mI=mp(imp),mE=mp(exp),mC=mp(cons),days=[...new Set(pv.pts.map(p=>p.d))];
+  const calc=method=>{
+  const pot=[],lost=[];let pvE=0,lostE=0,expE=0,nLim=0,pk=0,kUsed=[],nFit=0,skipped=0;
+  days.forEach(d=>{
+    const P=pv.pts.filter(p=>p.d===d),pos=P.filter(p=>p.y>0);if(pos.length<3){skipped++;return}
+    const hod=x=>(x%1440)/60,sr=hod(pos[0].x),ss=hod(pos[pos.length-1].x)+(eU?stepH:0);if(!(ss>sr)){skipped++;return}
+    const shape=p=>Math.max(0,Math.sin(Math.PI*(hod(p.x)+(eU?stepH/2:0)-sr)/(ss-sr)))**1.25;
+    const rows=P.map(p=>{const kw=toKW(pv,p.y),ik=mI?mI.get(p.x):null;return{p,kw,sh:shape(p),lim:ik==null?true:ik<sm.thr,ik,ek:mE?mE.get(p.x):null,ck:mC?mC.get(p.x):null}});
+    const ratios=rows.filter(r=>!r.lim&&r.kw>0&&r.sh>.1).map(r=>r.kw/r.sh).sort((a,b)=>a-b);
+    let k=null;
+    if(method==='auto'&&ratios.length>=2)k=ratios[ratios.length>>1];
+    else if(kwp>0)k=kwp*sm.pr;
+    if(k==null){skipped++;return}
+    if(kwp>0)k=Math.min(k,kwp);
+    if(method==='auto'&&ratios.length>=2)nFit+=ratios.length;kUsed.push(k);
+    rows.forEach(r=>{
+      const pk_=r.lim?Math.max(r.kw,k*r.sh):r.kw,ld=r.ck!=null?r.ck:(r.ik!=null?r.kw+r.ik-(r.ek||0):null);
+      const es=ld!=null?Math.max(0,pk_-ld):null;
+      pot.push({x:r.p.x,d,y:pk_*fac,e:es==null?null:es*fac});lost.push({x:r.p.x,d,y:(pk_-r.kw)*fac});
+      pvE+=r.kw*stepH;lostE+=(pk_-r.kw)*stepH;if(pk_>r.kw+.05)nLim++;if(es!=null)expE+=es*stepH;if(pk_>pk)pk=pk_;
+    });
+  });
+  return{pot,lost,pvE,lostE,expE,nLim,pk,kUsed,nFit,skipped};
+  };
+  const C=calc(sm.method),alt=calc(sm.method==='auto'?'kwp':'auto'),{pot,lost,pvE,lostE,expE,nLim,pk,kUsed,nFit,skipped}=C;
+  if(!pot.length)return{err:'ประเมินไม่ได้: ข้อมูลที่ไม่ถูกจำกัดน้อยเกินไป ลองกรอก ขนาดติดตั้ง (kWp) แล้วเลือกวิธี "จากขนาดติดตั้ง × PR"'};
+  const mk=(key,name,pts,color)=>({key,name,unit:pv.unit,pts,rep:false,sim:true,color,med:pv.med});
+  const sx=pot.filter(q=>q.e!=null).map(q=>({x:q.x,d:q.d,y:q.e}));
+  HWP.S.push(mk('sim|pot','PV ถ้าไม่จำกัดส่งออก (จำลอง)',pot,'#e11d48'),mk('sim|lost','ส่วนที่ถูกจำกัด (จำลอง)',lost,'#f59e0b'));
+  if(sx.length)HWP.S.push(mk('sim|exp','ขายเข้ากริดถ้าไม่เปิด Zero Export (จำลอง)',sx,'#7c3aed'));
+  return{pv,imp,exp,cons,kwp,pvE,lostE,expE,nLim,pk,alt:alt.pot.length&&(kwp>0||sm.method==='kwp')?{m:sm.method==='auto'?'kwp':'auto',lostE:alt.lostE,expE:alt.expE}:null,k:kUsed.length?kUsed.reduce((a,b)=>a+b,0)/kUsed.length:0,nFit,skipped,days:days.length,hasLoad:sx.length>0};
+}
+function hwpSimRender(r){
+  const el=$('#hwpsimres'),b=$('#hwpsimon');if(b)b.setAttribute('aria-pressed',String(HWP.sim.on));
+  document.querySelectorAll('#hwplot [data-hwps]').forEach(i=>{const v=HWP.sim[i.dataset.hwps];if(document.activeElement!==i)i.value=i.dataset.hwps==='kwp'&&!v?'':v});
+  if(!el)return;
+  if(!HWP.sim.on||!r){el.innerHTML=HWP.sim.on?'':'<p class="hint tight">กด "เปิดโหมดจำลอง" เพื่อเพิ่มเส้นประเมินว่าถ้าไม่เปิด Zero Export (ไม่จำกัดการส่งออก) ระบบจะผลิตและขายเข้ากริดได้เท่าไร ใช้ประกอบการตัดสินใจปรับปรุงระบบ เช่น ขออนุญาตขายไฟ เพิ่มแบตเตอรี่ หรือเพิ่มโหลดช่วงกลางวัน</p>';return}
+  if(r.err){el.innerHTML=`<p class="simmsg err">${esc(r.err)}</p>`;return}
+  const t=HWP.sim.tariff,pct=r.pvE>0?r.lostE/r.pvE*100:0,u='kWh',pd=r.days>1?` (รวม ${r.days} วัน)`:'';
+  const o=[];
+  o.push(['ok',`วิธี: ${r.nFit?`ปรับจาก ${r.nFit} ช่วงที่ไม่ถูกจำกัด`:`ขนาดติดตั้ง ${f(r.kwp,1)} kWp × PR ${HWP.sim.pr}`} → กำลังผลิตสูงสุดโดยประมาณ k ≈ ${f(r.k,1)} kW`]);
+  o.push(pct<3?['ok',`ส่วนที่ถูกจำกัดน้อย (${f(pct,1)}% ของที่ผลิตจริง): การเปิด Zero Export แทบไม่ทำให้เสียพลังงาน โหลดช่วงกลางวันใช้ไฟจากแผงเกือบหมด`]:['warn',`ส่วนที่ถูกจำกัดมี ${f(pct,1)}% ของที่ผลิตจริง: ถ้าขายไฟได้ตามเงื่อนไข หรือเพิ่มแบตเตอรี่/ย้ายโหลดมาใช้ช่วงกลางวัน จะใช้ประโยชน์ส่วนนี้ได้`]);
+  if(r.alt)o.push(['ok',`เทียบอีกวิธี (${r.alt.m==='kwp'?'ขนาดติดตั้ง × PR ซึ่งเป็นค่าสูงสุดที่เป็นไปได้':'ปรับจากชั่วโมงที่ไม่ถูกจำกัด ซึ่งเป็นค่าต่ำสุด'}): ถูกจำกัด ≈ ${f(r.alt.lostE,1)} kWh ขายเข้ากริด ≈ ${f(r.alt.expE,1)} kWh ช่วงจริงน่าจะอยู่ระหว่างสองค่า (ขึ้นกับเมฆ ขนาดอินเวอร์เตอร์ และ PR จริง)`]);
+  if(r.nFit&&r.nFit<8)o.push(['warn',`ใช้ชั่วโมงที่ไม่ถูกจำกัดเพียง ${r.nFit} ช่วง ค่า k อาจต่ำเกินไปถ้าวันนั้นมีเมฆ ควรเทียบกับวิธี kWp × PR หรือนำเข้าข้อมูลหลายวัน`]);
+  o.push(['warn','การปิด Zero Export / ขายไฟเข้ากริดต้องได้รับอนุญาตและเป็นไปตามข้อกำหนดของการไฟฟ้า (หรือสัญญา/โครงการที่เข้าร่วม) ตรวจสอบก่อนปรับตั้งค่าจริง ตัวเลขนี้เป็นค่าประมาณจากข้อมูลที่นำเข้าเท่านั้น']);
+  el.innerHTML=`<div class="metrics"><div class="metric"><div class="k">ผลิตจริง${pd}</div><div class="v">${f(r.pvE,2)} ${u}</div></div><div class="metric"><div class="k">ถูกจำกัดโดยประมาณ</div><div class="v">${f(r.lostE,2)} ${u}</div><div class="s">${f(pct,1)}% · ${r.nLim} ช่วง</div></div>`+
+  (r.hasLoad?`<div class="metric"><div class="k">ขายเข้ากริดจำลอง</div><div class="v">${f(r.expE,2)} ${u}</div><div class="s">≈ ${f(r.expE*t,2)} ฿ ที่ ${t} ฿/${u}</div></div>`:'<div class="metric"><div class="k">ขายเข้ากริดจำลอง</div><div class="v">—</div><div class="s">ไม่มีข้อมูลโหลด/ซื้อไฟ</div></div>')+'</div>'+
+  `<ul class="checks">${o.map(([l,x])=>`<li><span class="b ${l}">${l==='ok'?'✓':'?'}</span><span>${esc(x)}</span></li>`).join('')}</ul>`;
+}
 /* ---- interaction ---- */
 function hwpBind(){
   if(HWP.bound)return;const host=$('#hwpchart');if(!host)return;HWP.bound=true;
@@ -10798,10 +10875,12 @@ document.addEventListener('click',e=>{
   if(id==='hwpzoom'&&HWP.sel){HWP.view=HWP.sel;HWP.sel=null;hwpDraw()}
   else if(id==='hwpclear'){HWP.sel=null;HWP.view=null;hwpDraw()}
   else if(id==='hwpcsv')hwpCsv();
+  else if(id==='hwpsimon'){HWP.sim.on=!HWP.sim.on;if(HWP.sim.on){const sr=HWP.S;HWP.sim._want=true}hwPlotRender();if(HWP.sim.on){['sim|pot','sim|exp'].forEach(k=>{if(HWP.S.some(x=>x.key===k))HWP.on.add(k)});const pv=HWP.S.find(x=>!x.rep&&!x.sim&&/yield|power/i.test(x.name)&&!/total|loss|theoretical|specific/i.test(x.name));if(pv)HWP.on.add(pv.key);hwpChips();hwpDraw()}else{[...HWP.on].forEach(k=>{if(/^sim\|/.test(k))HWP.on.delete(k)});hwpChips();hwpDraw()}}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='hwpscope'){HWP.scope=e.target.value;HWP.view=null;HWP.sel=null;hwpApplyScope();hwpDraw()}
   else if(e.target.id==='hwpmode'){HWP.mode=e.target.value;hwpDraw()}
+  else if(e.target.dataset&&e.target.dataset.hwps){const k=e.target.dataset.hwps,v=e.target.value;HWP.sim[k]=k==='method'?v:Math.max(0,+v||0);if(k==='pr'&&!HWP.sim.pr)HWP.sim.pr=.8;hwPlotRender()}
 });
 window.addEventListener('resize',()=>{if(HWP.g&&typeof curTab!=='undefined'&&curTab==='fusion')hwpDraw()});
 

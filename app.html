@@ -687,6 +687,15 @@
             <label>แกน<select id="hwpmode"><option value="unit">ตามหน่วย (ซ้าย/ขวา)</option><option value="norm">ปรับสเกลเทียบกัน (%)</option></select></label>
             <span class="hwpset"><button class="chip" type="button" data-hwpre="pow">กำลัง</button><button class="chip" type="button" data-hwpre="vol">แรงดัน</button><button class="chip" type="button" data-hwpre="cur">กระแส</button><button class="chip" type="button" data-hwpre="tmp">อุณหภูมิ/SOC</button><button class="chip" type="button" data-hwpre="none">ปิดทั้งหมด</button></span>
           </div>
+          <details class="hwpsim"><summary>จำลองกรณีไม่เปิด Zero Export (ไม่จำกัดการส่งออก)</summary>
+            <div class="hwpbar"><button class="btn" id="hwpsimon" type="button" aria-pressed="false">เปิดโหมดจำลอง</button>
+              <label>ขนาดติดตั้ง (kWp)<input type="number" min="0" step="0.1" data-hwps="kwp" inputmode="decimal" placeholder="อ่านจากไฟล์/ช่องด้านบน"></label>
+              <label>PR ของระบบ<input type="number" min="0.3" max="1" step="0.01" data-hwps="pr" inputmode="decimal"></label>
+              <label>ซื้อไฟน้อยกว่า (kW) = ถูกจำกัด<input type="number" min="0" step="0.05" data-hwps="thr" inputmode="decimal"></label>
+              <label>ราคารับซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="tariff" inputmode="decimal"></label>
+              <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option></select></label></div>
+            <div id="hwpsimres"></div>
+          </details>
           <div id="hwpchips" class="hwpchips"></div>
           <p class="hint tight" id="hwpnote"></p>
           <div id="hwpchart" class="chart"></div>

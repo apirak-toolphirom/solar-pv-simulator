@@ -1190,3 +1190,5 @@ body.fsmode .navtoggle{display:none}
 .hwpc:hover{border-color:var(--muted)}.hwpc[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
 #hwpchart{cursor:crosshair;user-select:none}
 .tablewrap{overflow-x:auto}table.hwstat th,table.hwstat td{text-align:left;font-size:12.5px}
+.hwpsim{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:8px 12px}.hwpsim summary{cursor:pointer;font-weight:600}
+.hwpsim input,.hwpsim select{max-width:150px}.hwpsim .metrics{margin:8px 0}
