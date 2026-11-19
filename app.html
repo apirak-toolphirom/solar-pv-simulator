@@ -680,6 +680,19 @@
         <div class="panelbox hwdaybar" id="hwdaybox"><label>วันที่<select id="hwday"></select></label><button class="chip" id="hwcsv" type="button">ส่งออก CSV ของวันนี้ (จัดเรียงแล้ว)</button></div>
         <div id="hwmx" class="metrics"></div>
         <section class="card"><h3>ข้อสังเกตอัตโนมัติ</h3><ul id="hwchk" class="checks"></ul><p class="hint tight">เกณฑ์เป็นค่าประมาณเพื่อการเรียนรู้ ใช้ชี้จุดที่ควรตรวจ ไม่ใช่ผลวินิจฉัย</p></section>
+        <section class="card" id="hwplot"><h3>กราฟวิเคราะห์ (เลือกเส้นเอง เปิด/ปิดได้)</h3>
+          <p class="hint tight">ใช้ได้กับทุกคอลัมน์ตัวเลขในไฟล์ที่นำเข้า (ไม่จำกัดเฉพาะที่ระบบจับคู่ไว้) กดชื่อเส้นเพื่อเปิด/ปิด · ลากบนกราฟเพื่อเลือกช่วงเวลาแล้วดูสถิติและข้อสังเกตของช่วงนั้น · คลิก/แตะที่กราฟเพื่อล้างช่วงที่เลือก</p>
+          <div class="hwpbar">
+            <label>ช่วงข้อมูล<select id="hwpscope"><option value="day">เฉพาะวันที่เลือก</option><option value="all">ทุกวันที่นำเข้า</option></select></label>
+            <label>แกน<select id="hwpmode"><option value="unit">ตามหน่วย (ซ้าย/ขวา)</option><option value="norm">ปรับสเกลเทียบกัน (%)</option></select></label>
+            <span class="hwpset"><button class="chip" type="button" data-hwpre="pow">กำลัง</button><button class="chip" type="button" data-hwpre="vol">แรงดัน</button><button class="chip" type="button" data-hwpre="cur">กระแส</button><button class="chip" type="button" data-hwpre="tmp">อุณหภูมิ/SOC</button><button class="chip" type="button" data-hwpre="none">ปิดทั้งหมด</button></span>
+          </div>
+          <div id="hwpchips" class="hwpchips"></div>
+          <p class="hint tight" id="hwpnote"></p>
+          <div id="hwpchart" class="chart"></div>
+          <div class="hwpbar"><button class="btn" id="hwpzoom" type="button" disabled>ขยายช่วงที่เลือก</button><button class="chip" id="hwpclear" type="button" disabled>ล้างช่วง / กลับมุมมองทั้งหมด</button><button class="chip" id="hwpcsv" type="button">ส่งออกสถิติ CSV</button></div>
+          <div id="hwpstat"></div>
+        </section>
         <div class="hwgrid">
           <section class="card"><h3>กำลังไฟฟ้าตลอดวัน</h3><div id="hwcPL" class="legend"></div><div id="hwcP" class="chart"></div></section>
           <section class="card"><h3>แรงดันสตริง (PV)</h3><div id="hwcVL" class="legend"></div><div id="hwcV" class="chart"></div></section>

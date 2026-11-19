@@ -13,6 +13,7 @@ node tests/structure.test.js || fail=1
 node tests/menu03.test.js || fail=1
 node tests/menu04.test.js || fail=1
 node tests/menu17.test.js || fail=1
+node tests/hwplot.test.js || fail=1
 node tests/menu19.test.js || fail=1
 node tests/teacher.test.js || fail=1
 if python3 -c "import playwright" 2>/dev/null && [ -x "${CHROME:-/usr/bin/google-chrome}" ]; then

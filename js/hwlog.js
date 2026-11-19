@@ -421,6 +421,7 @@ function hwRender(){
     const pv=F.rows.slice(0,6);
     $('#hwraw').innerHTML=`<thead><tr>${F.head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${pv.map(r=>`<tr>${F.head.map((_,i)=>`<td class="mono">${esc(r[i]??'')}</td>`).join('')}</tr>`).join('')}</tbody>`;
   }
+  if(typeof hwPlotRender==='function')hwPlotRender();
   requestAnimationFrame(hwCharts);
 }
 function hwExportDay(){

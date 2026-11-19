@@ -1180,3 +1180,13 @@ body.navhide .navtoggle{left:8px}
 body.navhide .main{padding-left:48px}
 body.fsmode .navtoggle{display:none}
 @media (max-width:760px){.navtoggle{display:none}body.navhide .app{grid-template-columns:1fr}body.navhide .side{visibility:visible}body.navhide .main{padding-left:16px}}
+
+/* เมนู 17 หน้าอ่าน log: กราฟวิเคราะห์เลือกเส้นเอง */
+.hwpbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end;margin:8px 0}.hwpbar label{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.hwpset{display:flex;flex-wrap:wrap;gap:6px}
+.hwpchips{display:flex;flex-direction:column;gap:6px;max-height:170px;overflow:auto;padding:6px 2px;border-block:1px solid var(--line);margin-bottom:8px}
+.hwpg{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:12.5px}.hwpg>b{min-width:56px;color:var(--muted)}
+.hwpc{font:inherit;color:inherit;background:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:32px}
+.hwpc:hover{border-color:var(--muted)}.hwpc[aria-pressed="false"]{opacity:.45;text-decoration:line-through}
+#hwpchart{cursor:crosshair;user-select:none}
+.tablewrap{overflow-x:auto}table.hwstat th,table.hwstat td{text-align:left;font-size:12.5px}
