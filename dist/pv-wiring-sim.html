@@ -10601,15 +10601,16 @@ const HWP_COL=['#2a6fc4','#d9622f','#1a9c6e','#8e44ad','#c0392b','#b8860b','#16a
 const hwpUnit=h=>{const m=/[\(\[（]\s*([^)\]）]{1,10}?)\s*[\)\]）]\s*$/.exec(String(h||'').trim());let u=m?m[1].trim():hwUnitOf(h);if(/^(℃|°c|c)$/i.test(u))u='°C';return u};
 const hwpIsPow=u=>/^(kw|w|mw)$/i.test(u);
 const hwpNum=(v,d)=>{if(v==null||!isFinite(v))return'—';const a=Math.abs(v);return a>=1000?v.toFixed(0):a>=100?v.toFixed(1):a>=1?v.toFixed(2):v.toFixed(3)};
-function hwpLbl(o,full){const d=new Date(o*6e4),hh=pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes());
-  if(o<527040||(HWP.scope==='day'&&!full))return hh;return`${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()+543} ${hh}`}
+function hwpLbl(o,full,dateOnly){const d=new Date(o*6e4),hh=pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes()),dd=`${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()+543}`;
+  if(dateOnly&&o>=527040)return dd;if(o<527040||(HWP.scope==='day'&&!full))return hh;return`${dd} ${hh}`}
 function hwpNice(lo,hi){if(!(hi>lo))hi=lo+1;const raw=(hi-lo)/4,p=Math.pow(10,Math.floor(Math.log10(raw))),m=raw/p,st=(m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p;
   const l=Math.floor(lo/st+1e-9)*st,h=Math.ceil(hi/st-1e-9)*st;return{lo:l,st,n:Math.max(1,Math.round((h-l)/st))}}
 /* collect every numeric column of every interval file */
 function hwpCollect(){
-  const out=[],ivf=HW.files.filter(F=>F.kind!=='alarm'&&(F.kind==='interval'||(F.kind==='auto'&&F.auto==='interval'))&&F.map.t!=null);
+  const out=[],isRep=F=>F.kind==='report'||(F.kind==='auto'&&F.auto==='report'),ivf=HW.files.filter(F=>F.kind!=='alarm'&&F.map.t!=null&&(F.kind==='interval'||F.kind==='report'||F.kind==='auto'));
   ivf.forEach((F,fi)=>{
     const ti=F.map.t,rows=[];
+    const rp=isRep(F);
     F.rows.forEach(r=>{const t=hwTime(r[ti]);if(t)rows.push({t,r})});
     if(!rows.length)return;rows.sort((a,b)=>a.t.o-b.t.o);
     F.head.forEach((h,i)=>{
@@ -10621,16 +10622,16 @@ function hwpCollect(){
       if(pts.length<3||pts.length<ne*.5)return;
       const df=[];for(let k=1;k<pts.length;k++){const d=pts[k].x-pts[k-1].x;if(d>0)df.push(d)}df.sort((a,b)=>a-b);
       const nm=String(h||'').trim()||`คอลัมน์ ${i+1}`;
-      out.push({key:F.id+'|'+i,name:nm+(ivf.length>1?` [ไฟล์ ${fi+1}]`:''),unit:hwpUnit(h),pts,med:df.length?df[df.length>>1]:5});
+      out.push({key:F.id+'|'+i,name:nm+(ivf.length>1?` [${rp?'รายวัน':'รายช่วง'} ${fi+1}]`:''),unit:hwpUnit(h),pts,rep:rp,med:df.length?df[df.length>>1]:5});
     });
   });
   out.forEach((s,i)=>s.color=HWP_COL[i%HWP_COL.length]);
   return out;
 }
-function hwpApplyScope(){HWP.S.forEach(s=>{s.sp=HWP.scope==='all'?s.pts:s.pts.filter(p=>p.d===HW.day)})}
+function hwpApplyScope(){HWP.S.forEach(s=>{s.sp=HWP.scope==='all'?s.pts:(s.rep?[]:s.pts.filter(p=>p.d===HW.day))})}
 function hwpDefault(){
-  const pw=HWP.S.filter(s=>hwpIsPow(s.unit)||/power|กำลัง/i.test(s.name)).slice(0,3);
-  return new Set((pw.length?pw:HWP.S.slice(0,3)).map(s=>s.key));
+  const pool=HWP.S.some(s=>!s.rep)?HWP.S.filter(s=>!s.rep):HWP.S,pw=pool.filter(s=>hwpIsPow(s.unit)||/power|yield|กำลัง|ผลิต/i.test(s.name)).slice(0,3);
+  return new Set((pw.length?pw:pool.slice(0,3)).map(s=>s.key));
 }
 function hwpPreset(id){
   const T={pow:s=>hwpIsPow(s.unit)||/power|กำลัง/i.test(s.name),vol:s=>/^v$/i.test(s.unit)||/voltage|แรงดัน/i.test(s.name),cur:s=>/^a$/i.test(s.unit)||/current|กระแส/i.test(s.name),tmp:s=>/^(°C|%)$/.test(s.unit)||/temp|soc|อุณหภูมิ/i.test(s.name)}[id];
@@ -10640,7 +10641,7 @@ function hwPlotRender(){
   const card=$('#hwplot'),box=$('#hwiv');if(!card||!box||box.hidden)return;
   HWP.S=hwpCollect();
   const sig=HWP.S.map(s=>s.key).join(',');
-  if(sig!==HWP.sig){HWP.sig=sig;HWP.on=hwpDefault();HWP.view=null;HWP.sel=null}
+  if(sig!==HWP.sig){HWP.sig=sig;HWP.scope=HWP.S.some(s=>!s.rep)?'day':'all';HWP.on=hwpDefault();HWP.view=null;HWP.sel=null}
   if(HWP.day!==HW.day){HWP.day=HW.day;HWP.view=null;HWP.sel=null}
   hwpApplyScope();hwpBind();hwpChips();hwpDraw();
 }
@@ -10667,10 +10668,11 @@ function hwpDraw(){
   if(note)note.textContent='';
   if(!HWP.S.length){host.innerHTML='';stEl.innerHTML='';HWP.g=null;return}
   const ext=hwpExtent(vis);
-  if(!vis.length||!ext){host.innerHTML=`<p class="hint">${vis.length?'วันที่เลือกไม่มีข้อมูลของเส้นที่เลือก':'เลือกเส้นที่ต้องการดูจากรายการด้านบน (หรือกดปุ่มชุดสำเร็จรูป)'}</p>`;stEl.innerHTML='';HWP.g=null;return}
+  if(!vis.length||!ext){host.innerHTML=`<p class="hint">${vis.length?'ไม่มีข้อมูลของเส้นที่เลือกในช่วงนี้ (ข้อมูลรายวัน/รายเดือนจะแสดงเมื่อเลือก "ทุกวันที่นำเข้า")':'เลือกเส้นที่ต้องการดูจากรายการด้านบน (หรือกดปุ่มชุดสำเร็จรูป)'}</p>`;stEl.innerHTML='';HWP.g=null;return}
   let x0,x1;
-  if(HWP.view){[x0,x1]=HWP.view}else if(HWP.scope==='day'){x0=Math.floor(ext[0]/1440)*1440;x1=x0+1440}else{[x0,x1]=ext}
-  if(!(x1>x0))x1=x0+1;
+  if(HWP.view){[x0,x1]=HWP.view}else if(HWP.scope==='day'&&!vis.every(v=>v.rep)){x0=Math.floor(ext[0]/1440)*1440;x1=x0+1440}else{[x0,x1]=ext}
+  if(!(x1>x0)){x0-=720;x1+=720}
+  if(vis.every(v=>v.rep)&&!HWP.view){x0-=720;x1+=720}
   const units=[...new Set(vis.map(s=>s.unit))],mode=HWP.mode==='unit'&&units.length<=2?'unit':'norm';
   if(note&&HWP.mode==='unit'&&mode==='norm')note.textContent='เลือกเส้นที่มีหน่วยต่างกันเกิน 2 ชนิด จึงปรับสเกลเทียบกันอัตโนมัติ (แกนเป็น % ของช่วงค่าแต่ละเส้น)';
   const G={},R={};
@@ -10709,7 +10711,9 @@ function hwpStats(vis,a,b){
     const P=s.sp.filter(p=>p.x>=a&&p.x<=b);if(!P.length)return{s,n:0};
     let mn=P[0],mx=P[0],sum=0;P.forEach(p=>{if(p.y<mn.y)mn=p;if(p.y>mx.y)mx=p;sum+=p.y});
     const k=/^kw$/i.test(s.unit)?1:/^w$/i.test(s.unit)?.001:/^mw$/i.test(s.unit)?1000:null;
-    let E=null;if(k!=null&&P.length>1){E=0;for(let i=1;i<P.length;i++){const dt=P[i].x-P[i-1].x;if(dt<=s.med*3)E+=(P[i].y+P[i-1].y)/2*k*dt/60}}
+    let E=null;if(k!=null&&!s.rep&&P.length>1){E=0;for(let i=1;i<P.length;i++){const dt=P[i].x-P[i-1].x;if(dt<=s.med*3)E+=(P[i].y+P[i-1].y)/2*k*dt/60}}
+    const ke=/^kwh$/i.test(s.unit)?1:/^wh$/i.test(s.unit)?.001:/^mwh$/i.test(s.unit)?1000:null;
+    if(ke!=null){let dn=0;for(let i=1;i<P.length;i++)if(P[i].y<P[i-1].y-1e-9)dn++;/* สะสมเพิ่มขึ้นเรื่อย ๆ → ผลต่าง ไม่งั้นรวมค่ารายช่วง */E=(dn===0&&P.length>2&&P[P.length-1].y>P[0].y?P[P.length-1].y-P[0].y:P.reduce((a,p)=>a+p.y,0))*ke}
     return{s,n:P.length,mn,mx,avg:sum/P.length,first:P[0],last:P[P.length-1],E,P};
   });
 }
@@ -10724,7 +10728,7 @@ function hwpObs(st,a,b){
     let gaps=0,gm=0;for(let i=1;i<P.length;i++){const d=P[i].x-P[i-1].x;if(d>s.med*3){gaps++;gm+=d}}
     if(gaps)o.push(['warn',`${s.name}: ข้อมูลขาด ${gaps} ช่วง รวม ≈ ${Math.round(gm)} นาที (สัญญาณ WiFi/Dongle หลุด หรืออุปกรณ์หยุด)`]);
     /* sudden drops */
-    const dr=[];for(let i=1;i<P.length;i++)if(P[i-1].y>r.mx.y*.3&&P[i-1].y>0&&P[i].y<P[i-1].y*.4&&P[i].x-P[i-1].x<=s.med*3)dr.push(P[i]);
+    const dr=[];if(!s.rep&&!/^(kwh|wh|mwh|฿)$/i.test(s.unit))for(let i=1;i<P.length;i++)if(P[i-1].y>r.mx.y*.3&&P[i-1].y>0&&P[i].y<P[i-1].y*.4&&P[i].x-P[i-1].x<=s.med*3)dr.push(P[i]);
     if(dr.length)o.push(['warn',`${s.name}: ค่าตกฉับพลัน ${dr.length} ครั้ง (เช่น เวลา ${dr.slice(0,3).map(p=>hwpLbl(p.x)).join(', ')}) ตรวจเมฆ/เงา กริดหลุด หรือแจ้งเตือนช่วงนั้น`]);
   });
   /* compare same-unit series (e.g. PV string currents) */
@@ -10749,9 +10753,9 @@ function hwpStatRender(vis,mode){
   const hasE=st.some(r=>r.E!=null);
   el.innerHTML=`<p class="hint tight"><b>ช่วงที่วิเคราะห์:</b> ${HWP.sel?`${hwpLbl(a,true)} – ${hwpLbl(b,true)} (${Math.round(b-a)} นาที) · ที่ลากเลือก`:'ทั้งหน้าจอที่แสดง (ลากบนกราฟเพื่อเลือกช่วง)'}</p>
   <div class="tablewrap"><table class="hwstat"><thead><tr><th>เส้น</th><th>จุด</th><th>ต่ำสุด</th><th>สูงสุด (เวลา)</th><th>เฉลี่ย</th><th>ต้น → ท้าย</th>${hasE?'<th>พลังงานรวม (kWh)</th>':''}</tr></thead><tbody>`+
-  st.map(r=>r.n?`<tr><td><i class="lk" style="background:${r.s.color}"></i> ${esc(r.s.name)}</td><td class="mono">${r.n}</td><td class="mono">${hwpNum(r.mn.y)}</td><td class="mono">${hwpNum(r.mx.y)} <span class="hint tight">${hwpLbl(r.mx.x)}</span></td><td class="mono">${hwpNum(r.avg)}</td><td class="mono">${hwpNum(r.first.y)} → ${hwpNum(r.last.y)}</td>${hasE?`<td class="mono">${r.E!=null?hwpNum(r.E):'—'}</td>`:''}</tr>`:`<tr><td><i class="lk" style="background:${r.s.color}"></i> ${esc(r.s.name)}</td><td colspan="${hasE?6:5}" class="hint">ไม่มีข้อมูลในช่วงนี้</td></tr>`).join('')+'</tbody></table></div>'+
+  st.map(r=>r.n?`<tr><td><i class="lk" style="background:${r.s.color}"></i> ${esc(r.s.name)}</td><td class="mono">${r.n}</td><td class="mono">${hwpNum(r.mn.y)}</td><td class="mono">${hwpNum(r.mx.y)} <span class="hint tight">${hwpLbl(r.mx.x,false,r.s.rep)}</span></td><td class="mono">${hwpNum(r.avg)}</td><td class="mono">${hwpNum(r.first.y)} → ${hwpNum(r.last.y)}</td>${hasE?`<td class="mono">${r.E!=null?hwpNum(r.E):'—'}</td>`:''}</tr>`:`<tr><td><i class="lk" style="background:${r.s.color}"></i> ${esc(r.s.name)}</td><td colspan="${hasE?6:5}" class="hint">ไม่มีข้อมูลในช่วงนี้</td></tr>`).join('')+'</tbody></table></div>'+
   (()=>{const o=hwpObs(st,a,b);return o.length?`<ul class="checks">${o.map(([l,t])=>`<li><span class="b ${l}">${l==='ok'?'✓':'?'}</span><span>${esc(t)}</span></li>`).join('')}</ul>`:''})()+
-  '<p class="hint tight">ค่าสถิติและข้อสังเกตเป็นเกณฑ์ประมาณเพื่อการเรียนรู้ ใช้ชี้จุดที่ควรตรวจ ไม่ใช่ผลวินิจฉัย พลังงานรวมคำนวณเฉพาะเส้นหน่วย W/kW ด้วยการอินทิเกรตตามเวลา</p>';
+  '<p class="hint tight">ค่าสถิติและข้อสังเกตเป็นเกณฑ์ประมาณเพื่อการเรียนรู้ ใช้ชี้จุดที่ควรตรวจ ไม่ใช่ผลวินิจฉัย พลังงานรวม: เส้นหน่วย W/kW คำนวณด้วยการอินทิเกรตตามเวลา ส่วนเส้นหน่วย kWh/Wh ใช้ผลรวมของค่ารายช่วง (หรือผลต่างต้น→ท้ายถ้าเป็นค่าสะสม)</p>';
   const z=$('#hwpzoom'),cl=$('#hwpclear');if(z)z.disabled=!HWP.sel;if(cl)cl.disabled=!HWP.sel&&!HWP.view;
 }
 function hwpCsv(){
@@ -10771,7 +10775,7 @@ function hwpBind(){
       if(HWP.drag.moved){const a=clamp(Math.min(HWP.drag.p0,p),g.ml,g.ml+g.iw),b=clamp(Math.max(HWP.drag.p0,p),g.ml,g.ml+g.iw);br.setAttribute('x',a);br.setAttribute('width',b-a);br.hidden=false;tip.hidden=true;cur.hidden=true;return}}
     if(p<g.ml||p>g.ml+g.iw){cur.hidden=true;tip.hidden=true;return}
     const x=xAt(p);cur.setAttribute('x1',p);cur.setAttribute('x2',p);cur.hidden=false;
-    let h=`<div class="th">${hwpLbl(x,true)}</div>`;
+    let h=`<div class="th">${hwpLbl(x,true,g.vis.every(s=>s.rep))}</div>`;
     g.vis.forEach(s=>{const P=s.sp;if(!P.length)return;let lo=0,hi=P.length-1;while(lo<hi){const m=(lo+hi)>>1;if(P[m].x<x)lo=m+1;else hi=m}let i=lo;if(i>0&&Math.abs(P[i-1].x-x)<=Math.abs(P[i].x-x))i--;
       const q=P[i],ok=Math.abs(q.x-x)<=s.med*1.5;h+=`<div class="tr"><i class="tk" style="background:${s.color}"></i><span class="tn">${esc(s.name)}</span><span class="tv">${ok?hwpNum(q.y)+' '+esc(s.unit):'—'}</span></div>`});
     tip.innerHTML=h;tip.hidden=false;const tw=tip.offsetWidth||200;tip.style.left=(p+14+tw>g.W?Math.max(0,p-14-tw):p+14)+'px';
