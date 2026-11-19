@@ -156,6 +156,8 @@ function hwTime(v){
   m=/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/.exec(s);
   if(m){let a=+m[1],b=+m[2];const d=b>12?b:a,mo=b>12?a:b;/* วัน/เดือน/ปี ตามแบบไทย ยกเว้นเลขกลางเกิน 12 */return mk(+m[3],mo,d,+m[4]||0,+m[5]||0,+m[6]||0,m[4]!=null?'min':'day')}
   m=/^(\d{1,2})[-/.](\d{4})$/.exec(s);if(m)return mk(+m[2],+m[1],1,0,0,0,'month');
+  m=/^(\d{4})[-\s]*(?:w|wk|week)\s*(\d{1,2})$/i.exec(s);if(m){/* สัปดาห์ ISO: 2026-W46 → วันจันทร์ของสัปดาห์นั้น */
+    const y=+m[1],j4=Date.UTC(y,0,4),mon=new Date(j4-((new Date(j4).getUTCDay()+6)%7)*864e5+(+m[2]-1)*6048e5);return mk(mon.getUTCFullYear(),mon.getUTCMonth()+1,mon.getUTCDate(),0,0,0,'day')}
   m=/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(s);if(m){const H=+m[1]+(+m[2])/60+(+m[3]||0)/3600;return{d:'',h:H,p:'min',o:H*60}}
   return null;
 }
@@ -309,6 +311,14 @@ function hwBars(host,labels,series,unit){
 }
 const hwDayLbl=d=>{if(!d)return'(ไม่มีวันที่)';const[y,m,dd]=d.split('-');return`${+dd}/${+m}/${+y+543}`};
 const hwT=t=>t?(t.d?hwDayLbl(t.d)+' ':'')+fmtT(t.h):'—';
+/* ชื่อชนิดไฟล์ที่แสดงบนชิป: รายชั่วโมง/5 นาที · รายวัน(สัปดาห์/เดือน) · รายเดือน(ปี) · แจ้งเตือน */
+function hwKindLbl(f){
+  if(f.kind==='alarm')return'แจ้งเตือน';
+  const k=f.kind==='auto'?f.auto:f.kind;if(k!=='report')return'รายช่วงเวลา (ชั่วโมง/5 นาที)';
+  const ts=f.rows.slice(0,8).map(r=>hwTime(r[f.map.t])).filter(Boolean);
+  if(ts.length&&ts.every(t=>t.p==='month'))return'รายเดือน (ดูทั้งปี)';
+  const n=f.rows.length;return n<=8?'รายวัน (ดูรายสัปดาห์)':'รายวัน (ดูรายเดือน)';
+}
 function hwSevCls(s){s=String(s).toLowerCase();return/critical|major|วิกฤต|สำคัญ|ร้ายแรง|หลัก/.test(s)?'err':/minor|warning|เตือน|รอง/.test(s)?'warn':'idle'}
 
 function hwRender(){
@@ -318,7 +328,7 @@ function hwRender(){
   if(!ok){HW.files=[];return}
   const D=hwBuild(),out=[];hwCfg=[];
   /* loaded files */
-  $('#hwfiles').innerHTML=HW.files.length?HW.files.map((f,i)=>`<span class="chip hwf">${esc(f.name)} · ${f.kind==='alarm'?'แจ้งเตือน':(f.kind==='auto'?f.auto:f.kind)==='report'?'รายงานรายช่วง':'รายช่วงเวลา'} · ${f.rows.length} แถว<button type="button" class="hwx" data-hwdel="${i}" aria-label="เอาออก ${esc(f.name)}">×</button></span>`).join(''):'<span class="hint tight">ยังไม่มีไฟล์ เลือกไฟล์ log หรือกด "ใช้ข้อมูลตัวอย่าง"</span>';
+  $('#hwfiles').innerHTML=HW.files.length?HW.files.map((f,i)=>`<span class="chip hwf">${esc(f.name)} · ${hwKindLbl(f)} · ${f.rows.length} แถว<button type="button" class="hwx" data-hwdel="${i}" aria-label="เอาออก ${esc(f.name)}">×</button></span>`).join(''):'<span class="hint tight">ยังไม่มีไฟล์ เลือกไฟล์ log หรือกด "ใช้ข้อมูลตัวอย่าง"</span>';
   $('#hwclear').hidden=!HW.files.length;
   $('#hwempty').hidden=!!HW.files.length;
   /* ---- interval: one day ---- */

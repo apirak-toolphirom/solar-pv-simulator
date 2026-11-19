@@ -812,7 +812,7 @@ body.b0zlock{overflow:hidden}
 .hwx{border:0;background:none;font-size:16px;line-height:1;padding:0 2px;color:var(--muted);cursor:pointer}.hwx:hover{color:var(--err)}
 .hwhow summary{cursor:pointer;font-size:13.5px;font-weight:500}.hwhow ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 .hwdaybar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px}.hwdaybar label{display:flex;flex-direction:column;gap:4px;font-size:13px}
-#hwiv>.card,#hwrp,#hwal,#hwmap{margin-bottom:12px}
+#hwiv>.card,#hwplot,#hwrp,#hwal,#hwmap{margin-bottom:12px}
 .hwgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,640px),1fr));gap:12px;margin-bottom:12px}
 table.hwalt th,table.hwalt td,#hwmapt th,#hwmapt td,table.hwraw th{text-align:left}.hwalt td,.hwraw td{font-size:12.5px;vertical-align:top}.hwalt td:last-child,.hwalt td:nth-child(5){white-space:normal;min-width:200px}
 .hwraw th,.hwraw td{white-space:nowrap}
@@ -1881,28 +1881,6 @@ body.fsmode .navtoggle{display:none}
         <div class="panelbox hwdaybar" id="hwdaybox"><label>วันที่<select id="hwday"></select></label><button class="chip" id="hwcsv" type="button">ส่งออก CSV ของวันนี้ (จัดเรียงแล้ว)</button></div>
         <div id="hwmx" class="metrics"></div>
         <section class="card"><h3>ข้อสังเกตอัตโนมัติ</h3><ul id="hwchk" class="checks"></ul><p class="hint tight">เกณฑ์เป็นค่าประมาณเพื่อการเรียนรู้ ใช้ชี้จุดที่ควรตรวจ ไม่ใช่ผลวินิจฉัย</p></section>
-        <section class="card" id="hwplot"><h3>กราฟวิเคราะห์ (เลือกเส้นเอง เปิด/ปิดได้)</h3>
-          <p class="hint tight">ใช้ได้กับทุกคอลัมน์ตัวเลขในไฟล์ที่นำเข้า (ไม่จำกัดเฉพาะที่ระบบจับคู่ไว้) กดชื่อเส้นเพื่อเปิด/ปิด · ลากบนกราฟเพื่อเลือกช่วงเวลาแล้วดูสถิติและข้อสังเกตของช่วงนั้น · คลิก/แตะที่กราฟเพื่อล้างช่วงที่เลือก</p>
-          <div class="hwpbar">
-            <label>ช่วงข้อมูล<select id="hwpscope"><option value="day">เฉพาะวันที่เลือก</option><option value="all">ทุกวันที่นำเข้า</option></select></label>
-            <label>แกน<select id="hwpmode"><option value="unit">ตามหน่วย (ซ้าย/ขวา)</option><option value="norm">ปรับสเกลเทียบกัน (%)</option></select></label>
-            <span class="hwpset"><button class="chip" type="button" data-hwpre="pow">กำลัง</button><button class="chip" type="button" data-hwpre="vol">แรงดัน</button><button class="chip" type="button" data-hwpre="cur">กระแส</button><button class="chip" type="button" data-hwpre="tmp">อุณหภูมิ/SOC</button><button class="chip" type="button" data-hwpre="none">ปิดทั้งหมด</button></span>
-          </div>
-          <details class="hwpsim"><summary>จำลองกรณีไม่เปิด Zero Export (ไม่จำกัดการส่งออก)</summary>
-            <div class="hwpbar"><button class="btn" id="hwpsimon" type="button" aria-pressed="false">เปิดโหมดจำลอง</button>
-              <label>ขนาดติดตั้ง (kWp)<input type="number" min="0" step="0.1" data-hwps="kwp" inputmode="decimal" placeholder="อ่านจากไฟล์/ช่องด้านบน"></label>
-              <label>PR ของระบบ<input type="number" min="0.3" max="1" step="0.01" data-hwps="pr" inputmode="decimal"></label>
-              <label>ซื้อไฟน้อยกว่า (kW) = ถูกจำกัด<input type="number" min="0" step="0.05" data-hwps="thr" inputmode="decimal"></label>
-              <label>ราคารับซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="tariff" inputmode="decimal"></label>
-              <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option></select></label></div>
-            <div id="hwpsimres"></div>
-          </details>
-          <div id="hwpchips" class="hwpchips"></div>
-          <p class="hint tight" id="hwpnote"></p>
-          <div id="hwpchart" class="chart"></div>
-          <div class="hwpbar"><button class="btn" id="hwpzoom" type="button" disabled>ขยายช่วงที่เลือก</button><button class="chip" id="hwpclear" type="button" disabled>ล้างช่วง / กลับมุมมองทั้งหมด</button><button class="chip" id="hwpcsv" type="button">ส่งออกสถิติ CSV</button></div>
-          <div id="hwpstat"></div>
-        </section>
         <div class="hwgrid">
           <section class="card"><h3>กำลังไฟฟ้าตลอดวัน</h3><div id="hwcPL" class="legend"></div><div id="hwcP" class="chart"></div></section>
           <section class="card"><h3>แรงดันสตริง (PV)</h3><div id="hwcVL" class="legend"></div><div id="hwcV" class="chart"></div></section>
@@ -1911,6 +1889,29 @@ body.fsmode .navtoggle{display:none}
           <section class="card"><h3>SOC แบตและอุณหภูมิ</h3><div id="hwcTL" class="legend"></div><div id="hwcT" class="chart"></div></section>
         </div>
       </div>
+      <section class="card" id="hwplot" hidden><h3>กราฟวิเคราะห์ (เลือกเส้นเอง เปิด/ปิดได้)</h3>
+        <p class="hint tight">ใช้ได้กับทุกคอลัมน์ตัวเลขในไฟล์ที่นำเข้า (ไม่จำกัดเฉพาะที่ระบบจับคู่ไว้) กดชื่อเส้นเพื่อเปิด/ปิด · ลากบนกราฟเพื่อเลือกช่วงเวลาแล้วดูสถิติและข้อสังเกตของช่วงนั้น · คลิก/แตะที่กราฟเพื่อล้างช่วงที่เลือก</p>
+        <div class="hwpbar">
+          <label>ช่วงข้อมูล<select id="hwpscope"><option value="day">เฉพาะวันที่เลือก</option><option value="all">ทุกวันที่นำเข้า</option></select></label>
+          <label>สรุปข้อมูลรายวันเป็น<select id="hwpgran"><option value="day">รายวัน</option><option value="week">รายสัปดาห์ (จ.–อา.)</option><option value="month">รายเดือน</option></select></label>
+          <label>แกน<select id="hwpmode"><option value="unit">ตามหน่วย (ซ้าย/ขวา)</option><option value="norm">ปรับสเกลเทียบกัน (%)</option></select></label>
+          <span class="hwpset"><button class="chip" type="button" data-hwpre="pow">กำลัง</button><button class="chip" type="button" data-hwpre="vol">แรงดัน</button><button class="chip" type="button" data-hwpre="cur">กระแส</button><button class="chip" type="button" data-hwpre="tmp">อุณหภูมิ/SOC</button><button class="chip" type="button" data-hwpre="none">ปิดทั้งหมด</button></span>
+        </div>
+        <details class="hwpsim"><summary>จำลองกรณีไม่เปิด Zero Export (ไม่จำกัดการส่งออก)</summary>
+          <div class="hwpbar"><button class="btn" id="hwpsimon" type="button" aria-pressed="false">เปิดโหมดจำลอง</button>
+            <label>ขนาดติดตั้ง (kWp)<input type="number" min="0" step="0.1" data-hwps="kwp" inputmode="decimal" placeholder="อ่านจากไฟล์/ช่องด้านบน"></label>
+            <label>PR ของระบบ<input type="number" min="0.3" max="1" step="0.01" data-hwps="pr" inputmode="decimal"></label>
+            <label>ซื้อไฟน้อยกว่า (kW) = ถูกจำกัด<input type="number" min="0" step="0.05" data-hwps="thr" inputmode="decimal"></label>
+            <label>ราคารับซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="tariff" inputmode="decimal"></label>
+            <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option></select></label></div>
+          <div id="hwpsimres"></div>
+        </details>
+        <div id="hwpchips" class="hwpchips"></div>
+        <p class="hint tight" id="hwpnote"></p>
+        <div id="hwpchart" class="chart"></div>
+        <div class="hwpbar"><button class="btn" id="hwpzoom" type="button" disabled>ขยายช่วงที่เลือก</button><button class="chip" id="hwpclear" type="button" disabled>ล้างช่วง / กลับมุมมองทั้งหมด</button><button class="chip" id="hwpcsv" type="button">ส่งออกสถิติ CSV</button></div>
+        <div id="hwpstat"></div>
+      </section>
       <section class="card" id="hwrp" hidden><h3>พลังงานรายวัน / รายเดือน</h3><div id="hwrpmx" class="metrics"></div><div id="hwrpL" class="legend"></div><div id="hwcR" class="chart"></div></section>
       <section class="card tbl" id="hwal" hidden><h3>รายการแจ้งเตือน (Alarm)</h3>
         <div class="eqact"><label>ระดับ<select id="hwsev"><option value="all">ทั้งหมด</option><option value="err">ร้ายแรง (Critical/Major)</option><option value="warn">เตือน (Minor/Warning)</option><option value="idle">อื่น ๆ</option></select></label></div>
@@ -10328,6 +10329,8 @@ function hwTime(v){
   m=/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/.exec(s);
   if(m){let a=+m[1],b=+m[2];const d=b>12?b:a,mo=b>12?a:b;/* วัน/เดือน/ปี ตามแบบไทย ยกเว้นเลขกลางเกิน 12 */return mk(+m[3],mo,d,+m[4]||0,+m[5]||0,+m[6]||0,m[4]!=null?'min':'day')}
   m=/^(\d{1,2})[-/.](\d{4})$/.exec(s);if(m)return mk(+m[2],+m[1],1,0,0,0,'month');
+  m=/^(\d{4})[-\s]*(?:w|wk|week)\s*(\d{1,2})$/i.exec(s);if(m){/* สัปดาห์ ISO: 2026-W46 → วันจันทร์ของสัปดาห์นั้น */
+    const y=+m[1],j4=Date.UTC(y,0,4),mon=new Date(j4-((new Date(j4).getUTCDay()+6)%7)*864e5+(+m[2]-1)*6048e5);return mk(mon.getUTCFullYear(),mon.getUTCMonth()+1,mon.getUTCDate(),0,0,0,'day')}
   m=/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(s);if(m){const H=+m[1]+(+m[2])/60+(+m[3]||0)/3600;return{d:'',h:H,p:'min',o:H*60}}
   return null;
 }
@@ -10481,6 +10484,14 @@ function hwBars(host,labels,series,unit){
 }
 const hwDayLbl=d=>{if(!d)return'(ไม่มีวันที่)';const[y,m,dd]=d.split('-');return`${+dd}/${+m}/${+y+543}`};
 const hwT=t=>t?(t.d?hwDayLbl(t.d)+' ':'')+fmtT(t.h):'—';
+/* ชื่อชนิดไฟล์ที่แสดงบนชิป: รายชั่วโมง/5 นาที · รายวัน(สัปดาห์/เดือน) · รายเดือน(ปี) · แจ้งเตือน */
+function hwKindLbl(f){
+  if(f.kind==='alarm')return'แจ้งเตือน';
+  const k=f.kind==='auto'?f.auto:f.kind;if(k!=='report')return'รายช่วงเวลา (ชั่วโมง/5 นาที)';
+  const ts=f.rows.slice(0,8).map(r=>hwTime(r[f.map.t])).filter(Boolean);
+  if(ts.length&&ts.every(t=>t.p==='month'))return'รายเดือน (ดูทั้งปี)';
+  const n=f.rows.length;return n<=8?'รายวัน (ดูรายสัปดาห์)':'รายวัน (ดูรายเดือน)';
+}
 function hwSevCls(s){s=String(s).toLowerCase();return/critical|major|วิกฤต|สำคัญ|ร้ายแรง|หลัก/.test(s)?'err':/minor|warning|เตือน|รอง/.test(s)?'warn':'idle'}
 
 function hwRender(){
@@ -10490,7 +10501,7 @@ function hwRender(){
   if(!ok){HW.files=[];return}
   const D=hwBuild(),out=[];hwCfg=[];
   /* loaded files */
-  $('#hwfiles').innerHTML=HW.files.length?HW.files.map((f,i)=>`<span class="chip hwf">${esc(f.name)} · ${f.kind==='alarm'?'แจ้งเตือน':(f.kind==='auto'?f.auto:f.kind)==='report'?'รายงานรายช่วง':'รายช่วงเวลา'} · ${f.rows.length} แถว<button type="button" class="hwx" data-hwdel="${i}" aria-label="เอาออก ${esc(f.name)}">×</button></span>`).join(''):'<span class="hint tight">ยังไม่มีไฟล์ เลือกไฟล์ log หรือกด "ใช้ข้อมูลตัวอย่าง"</span>';
+  $('#hwfiles').innerHTML=HW.files.length?HW.files.map((f,i)=>`<span class="chip hwf">${esc(f.name)} · ${hwKindLbl(f)} · ${f.rows.length} แถว<button type="button" class="hwx" data-hwdel="${i}" aria-label="เอาออก ${esc(f.name)}">×</button></span>`).join(''):'<span class="hint tight">ยังไม่มีไฟล์ เลือกไฟล์ log หรือกด "ใช้ข้อมูลตัวอย่าง"</span>';
   $('#hwclear').hidden=!HW.files.length;
   $('#hwempty').hidden=!!HW.files.length;
   /* ---- interval: one day ---- */
@@ -10617,7 +10628,7 @@ function hwExportDay(){
    ใช้ทุกคอลัมน์ตัวเลขของไฟล์รายช่วงเวลาที่นำเข้า (ไม่จำกัดเฉพาะคอลัมน์ที่ระบบจับคู่ไว้) แสดงหลายเส้นในกราฟเดียว
    เปิด/ปิดเส้นได้ · แกนตามหน่วย (ซ้าย/ขวา) หรือปรับสเกลเทียบกัน · ลากเลือกช่วงเวลา → ตารางสถิติ + ข้อสังเกตของช่วงนั้น
    ข้อมูลอยู่ในหน่วยความจำของหน้าเท่านั้น (เหมือน hwlog.js) */
-const HWP={sim:{on:false,pr:.8,tariff:2.2,method:'auto',thr:.35,kwp:0},on:new Set(),sig:'',mode:'unit',scope:'day',sel:null,view:null,S:[],day:null,g:null,drag:null,bound:false};
+const HWP={gran:'day',sim:{on:false,pr:.8,tariff:2.2,method:'auto',thr:.35,kwp:0},on:new Set(),sig:'',mode:'unit',scope:'day',sel:null,view:null,S:[],day:null,g:null,drag:null,bound:false};
 const HWP_COL=['#2a6fc4','#d9622f','#1a9c6e','#8e44ad','#c0392b','#b8860b','#16a0b5','#e056a0','#5d6d7e','#6aa84f','#a0522d','#2e4053'];
 const hwpUnit=h=>{const m=/[\(\[（]\s*([^)\]）]{1,10}?)\s*[\)\]）]\s*$/.exec(String(h||'').trim());let u=m?m[1].trim():hwUnitOf(h);if(/^(℃|°c|c)$/i.test(u))u='°C';return u};
 const hwpIsPow=u=>/^(kw|w|mw)$/i.test(u);
@@ -10643,13 +10654,26 @@ function hwpCollect(){
       if(pts.length<3||pts.length<ne*.5)return;
       const df=[];for(let k=1;k<pts.length;k++){const d=pts[k].x-pts[k-1].x;if(d>0)df.push(d)}df.sort((a,b)=>a-b);
       const nm=String(h||'').trim()||`คอลัมน์ ${i+1}`;
-      out.push({key:F.id+'|'+i,name:nm+(ivf.length>1?` [${rp?'รายวัน':'รายช่วง'} ${fi+1}]`:''),unit:hwpUnit(h),pts,rep:rp,med:df.length?df[df.length>>1]:5});
+      out.push({med0:df.length?df[df.length>>1]:5,key:F.id+'|'+i,name:nm+(ivf.length>1?` [${rp?'รายวัน':'รายช่วง'} ${fi+1}]`:''),unit:hwpUnit(h),pts,rep:rp,med:df.length?df[df.length>>1]:5});
     });
   });
   out.forEach((s,i)=>s.color=HWP_COL[i%HWP_COL.length]);
   return out;
 }
-function hwpApplyScope(){HWP.S.forEach(s=>{s.sp=HWP.scope==='all'?s.pts:(s.rep?[]:s.pts.filter(p=>p.d===HW.day))})}
+/* สรุปข้อมูลรายวัน → รายสัปดาห์ (จันทร์–อาทิตย์) / รายเดือน: kWh,฿,t รวม · kW (Peak) สูงสุด · ค่าสะสม (Total) ค่าท้าย · อื่น ๆ เฉลี่ย */
+function hwpAgg(s,g){
+  if(g==='day'||s.med0>2000||!s.pts.length)return s.pts;
+  const m=new Map();
+  s.pts.forEach(p=>{const[y,mo,d]=p.d.split('-').map(Number);if(!y)return;let st;
+    if(g==='month')st=Date.UTC(y,mo-1,1);else{const t=Date.UTC(y,mo-1,d);st=t-((new Date(t).getUTCDay()+6)%7)*864e5}
+    const e=m.get(st);if(e)e.v.push(p.y);else m.set(st,{v:[p.y],d:new Date(st).toISOString().slice(0,10)})});
+  const mode=/^(kwh|wh|mwh|฿|t)$/i.test(s.unit)?(/total|lifetime|สะสม/i.test(s.name)?'last':'sum'):/^kw$/i.test(s.unit)?'max':'avg';
+  return[...m.entries()].sort((a,b)=>a[0]-b[0]).map(([st,e])=>({x:st/6e4,d:e.d,y:mode==='sum'?e.v.reduce((a,b)=>a+b,0):mode==='max'?Math.max(...e.v):mode==='last'?e.v[e.v.length-1]:e.v.reduce((a,b)=>a+b,0)/e.v.length}));
+}
+function hwpApplyScope(){HWP.S.forEach(s=>{
+  if(s.rep){s.sp=HWP.scope==='all'?hwpAgg(s,HWP.gran):[];
+    const df=[];for(let k=1;k<s.sp.length;k++)df.push(s.sp[k].x-s.sp[k-1].x);df.sort((a,b)=>a-b);s.med=df.length?df[df.length>>1]:s.med0;return}
+  s.sp=HWP.scope==='all'?s.pts:s.pts.filter(p=>p.d===HW.day)})}
 function hwpDefault(){
   const pool=HWP.S.some(s=>!s.rep)?HWP.S.filter(s=>!s.rep):HWP.S,pw=pool.filter(s=>hwpIsPow(s.unit)||/power|yield|กำลัง|ผลิต/i.test(s.name)).slice(0,3);
   return new Set((pw.length?pw:pool.slice(0,3)).map(s=>s.key));
@@ -10659,8 +10683,9 @@ function hwpPreset(id){
   HWP.on=new Set(T?HWP.S.filter(T).slice(0,10).map(s=>s.key):[]);
 }
 function hwPlotRender(){
-  const card=$('#hwplot'),box=$('#hwiv');if(!card||!box||box.hidden)return;
-  HWP.S=hwpCollect();
+  const card=$('#hwplot');if(!card)return;
+  if(!hwRole()||!HW.files.length){HWP.S=[];card.hidden=true;return}
+  HWP.S=hwpCollect();card.hidden=!HWP.S.length;if(!HWP.S.length)return;
   const sig=HWP.S.map(s=>s.key).join(',');
   if(sig!==HWP.sig){HWP.sig=sig;HWP.scope=HWP.S.some(s=>!s.rep)?'day':'all';HWP.on=hwpDefault();HWP.view=null;HWP.sel=null}
   if(HWP.day!==HW.day){HWP.day=HW.day;HWP.view=null;HWP.sel=null}
@@ -10671,7 +10696,7 @@ function hwpChips(){
   const host=$('#hwpchips');if(!host)return;
   const units=[...new Set(HWP.S.map(s=>s.unit))];
   host.innerHTML=HWP.S.length?units.map(u=>`<div class="hwpg"><b>${esc(u||'ไม่ระบุหน่วย')}</b>`+HWP.S.filter(s=>s.unit===u).map(s=>`<button type="button" class="hwpc" data-hwpk="${esc(s.key)}" aria-pressed="${HWP.on.has(s.key)}" title="กดเพื่อเปิด/ปิดเส้นนี้"><i class="lk" style="background:${s.color}"></i>${esc(s.name)}</button>`).join('')+'</div>').join(''):'<span class="hint tight">ไม่พบคอลัมน์ตัวเลขในไฟล์รายช่วงเวลา</span>';
-  const sc=$('#hwpscope'),md=$('#hwpmode');if(sc)sc.value=HWP.scope;if(md)md.value=HWP.mode;
+  const sc=$('#hwpscope'),md=$('#hwpmode');if(sc)sc.value=HWP.scope;if(md)md.value=HWP.mode;const gr=$('#hwpgran');if(gr)gr.value=HWP.gran;
 }
 function hwpExtent(vis){let a=Infinity,b=-Infinity;vis.forEach(s=>s.sp.forEach(p=>{if(p.x<a)a=p.x;if(p.x>b)b=p.x}));return isFinite(a)?[a,b]:null}
 function hwpPath(s,x0,x1,sx,sy,iw){
@@ -10889,6 +10914,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='hwpscope'){HWP.scope=e.target.value;HWP.view=null;HWP.sel=null;hwpApplyScope();hwpDraw()}
+  else if(e.target.id==='hwpgran'){HWP.gran=e.target.value;HWP.view=null;HWP.sel=null;hwpApplyScope();hwpDraw()}
   else if(e.target.id==='hwpmode'){HWP.mode=e.target.value;hwpDraw()}
   else if(e.target.dataset&&e.target.dataset.hwps){const k=e.target.dataset.hwps,v=e.target.value;HWP.sim[k]=k==='method'?v:Math.max(0,+v||0);if(k==='pr'&&!HWP.sim.pr)HWP.sim.pr=.8;hwPlotRender()}
 });

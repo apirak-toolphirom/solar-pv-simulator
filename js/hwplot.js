@@ -2,7 +2,7 @@
    ใช้ทุกคอลัมน์ตัวเลขของไฟล์รายช่วงเวลาที่นำเข้า (ไม่จำกัดเฉพาะคอลัมน์ที่ระบบจับคู่ไว้) แสดงหลายเส้นในกราฟเดียว
    เปิด/ปิดเส้นได้ · แกนตามหน่วย (ซ้าย/ขวา) หรือปรับสเกลเทียบกัน · ลากเลือกช่วงเวลา → ตารางสถิติ + ข้อสังเกตของช่วงนั้น
    ข้อมูลอยู่ในหน่วยความจำของหน้าเท่านั้น (เหมือน hwlog.js) */
-const HWP={sim:{on:false,pr:.8,tariff:2.2,method:'auto',thr:.35,kwp:0},on:new Set(),sig:'',mode:'unit',scope:'day',sel:null,view:null,S:[],day:null,g:null,drag:null,bound:false};
+const HWP={gran:'day',sim:{on:false,pr:.8,tariff:2.2,method:'auto',thr:.35,kwp:0},on:new Set(),sig:'',mode:'unit',scope:'day',sel:null,view:null,S:[],day:null,g:null,drag:null,bound:false};
 const HWP_COL=['#2a6fc4','#d9622f','#1a9c6e','#8e44ad','#c0392b','#b8860b','#16a0b5','#e056a0','#5d6d7e','#6aa84f','#a0522d','#2e4053'];
 const hwpUnit=h=>{const m=/[\(\[（]\s*([^)\]）]{1,10}?)\s*[\)\]）]\s*$/.exec(String(h||'').trim());let u=m?m[1].trim():hwUnitOf(h);if(/^(℃|°c|c)$/i.test(u))u='°C';return u};
 const hwpIsPow=u=>/^(kw|w|mw)$/i.test(u);
@@ -28,13 +28,26 @@ function hwpCollect(){
       if(pts.length<3||pts.length<ne*.5)return;
       const df=[];for(let k=1;k<pts.length;k++){const d=pts[k].x-pts[k-1].x;if(d>0)df.push(d)}df.sort((a,b)=>a-b);
       const nm=String(h||'').trim()||`คอลัมน์ ${i+1}`;
-      out.push({key:F.id+'|'+i,name:nm+(ivf.length>1?` [${rp?'รายวัน':'รายช่วง'} ${fi+1}]`:''),unit:hwpUnit(h),pts,rep:rp,med:df.length?df[df.length>>1]:5});
+      out.push({med0:df.length?df[df.length>>1]:5,key:F.id+'|'+i,name:nm+(ivf.length>1?` [${rp?'รายวัน':'รายช่วง'} ${fi+1}]`:''),unit:hwpUnit(h),pts,rep:rp,med:df.length?df[df.length>>1]:5});
     });
   });
   out.forEach((s,i)=>s.color=HWP_COL[i%HWP_COL.length]);
   return out;
 }
-function hwpApplyScope(){HWP.S.forEach(s=>{s.sp=HWP.scope==='all'?s.pts:(s.rep?[]:s.pts.filter(p=>p.d===HW.day))})}
+/* สรุปข้อมูลรายวัน → รายสัปดาห์ (จันทร์–อาทิตย์) / รายเดือน: kWh,฿,t รวม · kW (Peak) สูงสุด · ค่าสะสม (Total) ค่าท้าย · อื่น ๆ เฉลี่ย */
+function hwpAgg(s,g){
+  if(g==='day'||s.med0>2000||!s.pts.length)return s.pts;
+  const m=new Map();
+  s.pts.forEach(p=>{const[y,mo,d]=p.d.split('-').map(Number);if(!y)return;let st;
+    if(g==='month')st=Date.UTC(y,mo-1,1);else{const t=Date.UTC(y,mo-1,d);st=t-((new Date(t).getUTCDay()+6)%7)*864e5}
+    const e=m.get(st);if(e)e.v.push(p.y);else m.set(st,{v:[p.y],d:new Date(st).toISOString().slice(0,10)})});
+  const mode=/^(kwh|wh|mwh|฿|t)$/i.test(s.unit)?(/total|lifetime|สะสม/i.test(s.name)?'last':'sum'):/^kw$/i.test(s.unit)?'max':'avg';
+  return[...m.entries()].sort((a,b)=>a[0]-b[0]).map(([st,e])=>({x:st/6e4,d:e.d,y:mode==='sum'?e.v.reduce((a,b)=>a+b,0):mode==='max'?Math.max(...e.v):mode==='last'?e.v[e.v.length-1]:e.v.reduce((a,b)=>a+b,0)/e.v.length}));
+}
+function hwpApplyScope(){HWP.S.forEach(s=>{
+  if(s.rep){s.sp=HWP.scope==='all'?hwpAgg(s,HWP.gran):[];
+    const df=[];for(let k=1;k<s.sp.length;k++)df.push(s.sp[k].x-s.sp[k-1].x);df.sort((a,b)=>a-b);s.med=df.length?df[df.length>>1]:s.med0;return}
+  s.sp=HWP.scope==='all'?s.pts:s.pts.filter(p=>p.d===HW.day)})}
 function hwpDefault(){
   const pool=HWP.S.some(s=>!s.rep)?HWP.S.filter(s=>!s.rep):HWP.S,pw=pool.filter(s=>hwpIsPow(s.unit)||/power|yield|กำลัง|ผลิต/i.test(s.name)).slice(0,3);
   return new Set((pw.length?pw:pool.slice(0,3)).map(s=>s.key));
@@ -44,8 +57,9 @@ function hwpPreset(id){
   HWP.on=new Set(T?HWP.S.filter(T).slice(0,10).map(s=>s.key):[]);
 }
 function hwPlotRender(){
-  const card=$('#hwplot'),box=$('#hwiv');if(!card||!box||box.hidden)return;
-  HWP.S=hwpCollect();
+  const card=$('#hwplot');if(!card)return;
+  if(!hwRole()||!HW.files.length){HWP.S=[];card.hidden=true;return}
+  HWP.S=hwpCollect();card.hidden=!HWP.S.length;if(!HWP.S.length)return;
   const sig=HWP.S.map(s=>s.key).join(',');
   if(sig!==HWP.sig){HWP.sig=sig;HWP.scope=HWP.S.some(s=>!s.rep)?'day':'all';HWP.on=hwpDefault();HWP.view=null;HWP.sel=null}
   if(HWP.day!==HW.day){HWP.day=HW.day;HWP.view=null;HWP.sel=null}
@@ -56,7 +70,7 @@ function hwpChips(){
   const host=$('#hwpchips');if(!host)return;
   const units=[...new Set(HWP.S.map(s=>s.unit))];
   host.innerHTML=HWP.S.length?units.map(u=>`<div class="hwpg"><b>${esc(u||'ไม่ระบุหน่วย')}</b>`+HWP.S.filter(s=>s.unit===u).map(s=>`<button type="button" class="hwpc" data-hwpk="${esc(s.key)}" aria-pressed="${HWP.on.has(s.key)}" title="กดเพื่อเปิด/ปิดเส้นนี้"><i class="lk" style="background:${s.color}"></i>${esc(s.name)}</button>`).join('')+'</div>').join(''):'<span class="hint tight">ไม่พบคอลัมน์ตัวเลขในไฟล์รายช่วงเวลา</span>';
-  const sc=$('#hwpscope'),md=$('#hwpmode');if(sc)sc.value=HWP.scope;if(md)md.value=HWP.mode;
+  const sc=$('#hwpscope'),md=$('#hwpmode');if(sc)sc.value=HWP.scope;if(md)md.value=HWP.mode;const gr=$('#hwpgran');if(gr)gr.value=HWP.gran;
 }
 function hwpExtent(vis){let a=Infinity,b=-Infinity;vis.forEach(s=>s.sp.forEach(p=>{if(p.x<a)a=p.x;if(p.x>b)b=p.x}));return isFinite(a)?[a,b]:null}
 function hwpPath(s,x0,x1,sx,sy,iw){
@@ -274,6 +288,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='hwpscope'){HWP.scope=e.target.value;HWP.view=null;HWP.sel=null;hwpApplyScope();hwpDraw()}
+  else if(e.target.id==='hwpgran'){HWP.gran=e.target.value;HWP.view=null;HWP.sel=null;hwpApplyScope();hwpDraw()}
   else if(e.target.id==='hwpmode'){HWP.mode=e.target.value;hwpDraw()}
   else if(e.target.dataset&&e.target.dataset.hwps){const k=e.target.dataset.hwps,v=e.target.value;HWP.sim[k]=k==='method'?v:Math.max(0,+v||0);if(k==='pr'&&!HWP.sim.pr)HWP.sim.pr=.8;hwPlotRender()}
 });

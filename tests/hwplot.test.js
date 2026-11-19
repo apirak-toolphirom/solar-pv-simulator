@@ -54,6 +54,23 @@ load().then(({ w, ev, errs }) => {
     const rows = w.eval('hwSheetRows').call(null, X, ws);
     eq('wrong sheet dimension still reads the header rows', rows.length + ' ' + rows[1][0], '5 Statistical Period');
     eq('and the file is then detected as interval', ev(`HW.files=[];hwAdd([{name:'x.xlsx',rows:${JSON.stringify(rows)}}],false);HW.files.length+' '+HW.files[0].auto`), '1 interval');
+    /* รายวัน / รายสัปดาห์ / รายเดือน / รายปี */
+    const mkRep = (labels) => [['Plant Report_TEST'], ['Statistical Period','PV Yield (kWh)','Total Yield (kWh)','Peak Power (kW)']].concat(labels.map((l, i) => [l, 10 + i, 1000 + (i + 1) * 10, 5 + i / 10]));
+    const lbl = (n) => Array.from({ length: n }, (_, i) => `2026-11-${String(2 + i).padStart(2, '0')}`);  /* 2 พ.ย. 2026 เป็นวันจันทร์ */
+    const add1 = (rows) => ev(`HW.files=[];hwAdd(${JSON.stringify([{ name: 'r.xlsx', rows }])},false);HWP.scope='all';hwpApplyScope()`);
+    add1(mkRep(lbl(7)));
+    eq('weekly export (7 daily rows) is a report', ev(`HW.files[0].auto+' '+hwKindLbl(HW.files[0])`), 'report รายวัน (ดูรายสัปดาห์)');
+    add1(mkRep(lbl(28)));
+    eq('monthly export (28 daily rows) label', ev(`hwKindLbl(HW.files[0])`), 'รายวัน (ดูรายเดือน)');
+    eq('weekly grouping sums energy per Mon-Sun week (4 weeks)', ev(`HWP.gran='week';hwpApplyScope();const s=HWP.S.find(x=>/PV Yield/.test(x.name));s.sp.length+' '+s.sp[0].y`), '4 91');
+    eq('monthly grouping sums the whole month', ev(`HWP.gran='month';hwpApplyScope();const s=HWP.S.find(x=>/PV Yield/.test(x.name));s.sp.length+' '+s.sp[0].y`), '1 658');
+    eq('cumulative total keeps the last value and peak keeps the max', ev(`const t=HWP.S.find(x=>/Total Yield/.test(x.name)),p=HWP.S.find(x=>/Peak Power/.test(x.name));t.sp[0].y+' '+p.sp[0].y.toFixed(1)`), '1280 7.7');
+    ev(`HWP.gran='day';hwpApplyScope()`);
+    add1(mkRep(['2026-W45','2026-W46','2026-W47']));
+    eq('ISO week labels (2026-W46) are readable', ev(`HW.files.length+' '+hwBuild().rp.map(r=>r.t.d).join()`), '1 2026-11-02,2026-11-09,2026-11-16');
+    add1(mkRep(Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`)));
+    eq('yearly export (12 month rows) label', ev(`hwKindLbl(HW.files[0])`), 'รายเดือน (ดูทั้งปี)');
+    eq('yearly rows draw on the plot', ev(`HWP.on=new Set(HWP.S.filter(s=>/PV Yield/.test(s.name)).map(s=>s.key));hwpDraw();document.querySelectorAll('#hwpchart path[stroke]').length`), '1');
     eq('no script errors during use', errs.join(' | '), '');
     done();
   }, 300);
