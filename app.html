@@ -677,7 +677,7 @@
       </div>
       <p id="hwempty" class="hint">ลองกด "ใช้ข้อมูลตัวอย่าง" เพื่อดูหน้าตาผลวิเคราะห์ก่อนนำเข้า log จริง (ข้อมูลตัวอย่างสังเคราะห์ขึ้น ไม่ใช่ log จริง)</p>
       <div id="hwiv" hidden>
-        <div class="panelbox hwdaybar" id="hwdaybox"><label>วันที่<select id="hwday"></select></label><button class="chip" id="hwcsv" type="button">ส่งออก CSV ของวันนี้ (จัดเรียงแล้ว)</button></div>
+        <div class="panelbox hwdaybar" id="hwdaybox"><label>วันที่<select id="hwday"></select></label><label class="hwloc">พิกัดโรงไฟฟ้า (Plus Code หรือ lat, lon)<input type="text" data-hwps="loc" placeholder="เช่น 13.7563, 100.5018" autocomplete="off" spellcheck="false"></label><button class="chip" id="hwcsv" type="button">ส่งออก CSV ของวันนี้ (จัดเรียงแล้ว)</button><span class="hint tight" id="hwlocmsg" style="flex-basis:100%"></span></div>
         <div id="hwmx" class="metrics"></div>
         <section class="card"><h3>ข้อสังเกตอัตโนมัติ</h3><ul id="hwchk" class="checks"></ul><p class="hint tight">เกณฑ์เป็นค่าประมาณเพื่อการเรียนรู้ ใช้ชี้จุดที่ควรตรวจ ไม่ใช่ผลวินิจฉัย</p></section>
         <div class="hwgrid">
@@ -702,7 +702,15 @@
             <label>PR ของระบบ<input type="number" min="0.3" max="1" step="0.01" data-hwps="pr" inputmode="decimal"></label>
             <label>ซื้อไฟน้อยกว่า (kW) = ถูกจำกัด<input type="number" min="0" step="0.05" data-hwps="thr" inputmode="decimal"></label>
             <label>ราคารับซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="tariff" inputmode="decimal"></label>
-            <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option></select></label></div>
+            <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option><option value="loc">จากพิกัดและวันที่ (จำลองแสงอาทิตย์)</option></select></label></div>
+            <div class="hwpbar"><span class="hint tight">ใช้กับวิธี "จากพิกัดและวันที่":</span>
+              <label>มุมเอียงแผง (°)<input type="number" min="0" max="90" step="1" data-hwps="tilt" inputmode="decimal"></label>
+              <label>ทิศหันแผง (° 180 = ทิศใต้)<input type="number" min="0" max="360" step="5" data-hwps="az" inputmode="decimal"></label>
+              <label>ท้องฟ้า<select data-hwps="sky"><option value="clear">แจ่มใส</option><option value="partly">มีเมฆบางส่วน</option><option value="overcast">ครึ้ม</option></select></label>
+              <label>ความสูญเสียระบบ (%)<input type="number" min="0" max="40" step="1" data-hwps="loss" inputmode="decimal"></label>
+              <label>พิกัด AC อินเวอร์เตอร์ (kW)<input type="number" min="0" step="0.5" data-hwps="ac" inputmode="decimal" placeholder="ไม่ระบุ"></label>
+              <label>ค่าไฟที่ซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="buy" inputmode="decimal" placeholder="จากไฟล์ถ้ามี"></label>
+              <label class="hwpck"><input type="checkbox" data-hwps="cal"> ปรับสเกลให้ตรงกับช่วงที่ไม่ถูกจำกัด</label></div>
           <div id="hwpsimres"></div>
         </details>
         <div id="hwpchips" class="hwpchips"></div>

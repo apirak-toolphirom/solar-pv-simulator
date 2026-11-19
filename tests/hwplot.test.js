@@ -40,7 +40,7 @@ load().then(({ w, ev, errs }) => {
     const pv2 = [0,0,0,0,0,0,1,2,3,4,5,6,6,6,5,4,3,2,1,0,0,0,0,0], im2 = [2,2,2,2,2,2,1.5,1,.5,.5,.1,.05,.05,.05,.3,1,1.5,2,2,2,2,2,2,2];
     pv2.forEach((v, h) => hr2.push([`2026-11-18 ${String(h).padStart(2,'0')}:00:00`, v, 0, im2[h]]));
     ev(`HW.files=[];hwAdd(${JSON.stringify([{ name: 'z.xlsx', rows: hr2 }])},false);HWP.sim.kwp=10;HWP.sim.method='kwp';HWP.sim.pr=.8;document.getElementById('hwpsimon').click()`);
-    eq('simulation adds 3 dashed lines', ev(`HWP.S.filter(s=>s.sim).length`), '3');
+    eq('simulation adds 4 dashed lines (potential, limited, surplus, load)', ev(`HWP.S.filter(s=>s.sim).length`), '4');
     eq('potential is never below the real PV', ev(`const pv=HWP.S.find(s=>/PV Yield/.test(s.name)&&!s.sim),p=HWP.S.find(s=>s.key==='sim|pot');p.pts.every((q,i)=>q.y>=pv.pts[i].y-1e-9)`), 'true');
     eq('midday hours are lifted, morning hours are not', ev(`const pv=HWP.S.find(s=>/PV Yield/.test(s.name)&&!s.sim),p=HWP.S.find(s=>s.key==='sim|pot');(p.pts[12].y>pv.pts[12].y+.5)+' '+(p.pts[6].y===pv.pts[6].y)`), 'true true');
     eq('result panel shows limited energy and the other bound', ev(`/ถูกจำกัดโดยประมาณ/.test(document.getElementById('hwpsimres').textContent)&&/เทียบอีกวิธี/.test(document.getElementById('hwpsimres').textContent)`), 'true');
@@ -71,6 +71,18 @@ load().then(({ w, ev, errs }) => {
     add1(mkRep(Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`)));
     eq('yearly export (12 month rows) label', ev(`hwKindLbl(HW.files[0])`), 'รายเดือน (ดูทั้งปี)');
     eq('yearly rows draw on the plot', ev(`HWP.on=new Set(HWP.S.filter(s=>/PV Yield/.test(s.name)).map(s=>s.key));hwpDraw();document.querySelectorAll('#hwpchart path[stroke]').length`), '1');
+    /* จำลองจากพิกัด + วันที่ และแนวทางจัดการส่วนเหลือ */
+    ev(`HW.files=[];hwAdd(${JSON.stringify([{ name: 'z.xlsx', rows: hr2 }])},false);HWP.sim.on=false;HWP.sim.kwp=10;`);
+    const L = (v) => ev(`const i=document.querySelector('#hwdaybox [data-hwps=loc]');i.value=${JSON.stringify(v)};i.dispatchEvent(new window.Event('change',{bubbles:true}));document.getElementById('hwlocmsg').textContent`);
+    eq('bad coordinates give a clear message', /อ่านไม่ออก/.test(L('abc')), true);
+    eq('good coordinates are echoed with Plus Code and sunrise-sunset', /Plus Code/.test(L('13.7563, 100.5018')) && /ขึ้น–ตก ตามพิกัด 06:/.test(ev(`document.getElementById('hwlocmsg').textContent`)), true);
+    eq('entering coordinates turns the simulation on with the location method', ev(`HWP.sim.on+' '+HWP.sim.method`), 'true loc');
+    eq('location model gives a bell-shaped potential above actual at midday', ev(`const pot=HWP.S.find(s=>s.key==='sim|pot'),pv=HWP.S.find(s=>/PV Yield/.test(s.name)&&!s.sim);(pot.pts[12].y>pv.pts[12].y)+' '+(pot.pts[2].y===0)`), 'true true');
+    eq('management table lists export limits 0..10 kW plus unlimited', ev(`document.querySelectorAll('#hwpsimres table.hwstat tbody tr').length`), '7');
+    eq('advice covers load shifting, battery and selling', ev(`const t=document.getElementById('hwpsimres').textContent;/ย้ายโหลด/.test(t)&&/แบตเตอรี่/.test(t)&&/ขายเข้ากริด/.test(t)`), 'true');
+    eq('zero export row sells 0 kWh', ev(`document.querySelector('#hwpsimres table.hwstat tbody tr td:nth-child(2)').textContent`), '0.00');
+    eq('location method without kWp asks for it', ev(`HWP.sim.kwp=0;HW.kwp=0;hwPlotRender();/ขนาดติดตั้ง/.test(document.getElementById('hwpsimres').textContent)`), 'true');
+    ev(`HWP.sim.on=false;HWP.sim.loc='';HWP.sim.method='auto';hwPlotRender()`);
     eq('no script errors during use', errs.join(' | '), '');
     done();
   }, 300);

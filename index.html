@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="6a6891eaf1">
+<meta name="build" content="65a47a2d00">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='6a6891eaf1'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='65a47a2d00'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=9690ddfe">
+<link rel="stylesheet" href="css/styles.css?v=951c7530">
 </head>
 <body>
 <div class="app">
@@ -693,7 +693,7 @@ if(m&&m[1]!=='6a6891eaf1'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
       </div>
       <p id="hwempty" class="hint">ลองกด "ใช้ข้อมูลตัวอย่าง" เพื่อดูหน้าตาผลวิเคราะห์ก่อนนำเข้า log จริง (ข้อมูลตัวอย่างสังเคราะห์ขึ้น ไม่ใช่ log จริง)</p>
       <div id="hwiv" hidden>
-        <div class="panelbox hwdaybar" id="hwdaybox"><label>วันที่<select id="hwday"></select></label><button class="chip" id="hwcsv" type="button">ส่งออก CSV ของวันนี้ (จัดเรียงแล้ว)</button></div>
+        <div class="panelbox hwdaybar" id="hwdaybox"><label>วันที่<select id="hwday"></select></label><label class="hwloc">พิกัดโรงไฟฟ้า (Plus Code หรือ lat, lon)<input type="text" data-hwps="loc" placeholder="เช่น 13.7563, 100.5018" autocomplete="off" spellcheck="false"></label><button class="chip" id="hwcsv" type="button">ส่งออก CSV ของวันนี้ (จัดเรียงแล้ว)</button><span class="hint tight" id="hwlocmsg" style="flex-basis:100%"></span></div>
         <div id="hwmx" class="metrics"></div>
         <section class="card"><h3>ข้อสังเกตอัตโนมัติ</h3><ul id="hwchk" class="checks"></ul><p class="hint tight">เกณฑ์เป็นค่าประมาณเพื่อการเรียนรู้ ใช้ชี้จุดที่ควรตรวจ ไม่ใช่ผลวินิจฉัย</p></section>
         <div class="hwgrid">
@@ -718,7 +718,15 @@ if(m&&m[1]!=='6a6891eaf1'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
             <label>PR ของระบบ<input type="number" min="0.3" max="1" step="0.01" data-hwps="pr" inputmode="decimal"></label>
             <label>ซื้อไฟน้อยกว่า (kW) = ถูกจำกัด<input type="number" min="0" step="0.05" data-hwps="thr" inputmode="decimal"></label>
             <label>ราคารับซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="tariff" inputmode="decimal"></label>
-            <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option></select></label></div>
+            <label>วิธีประเมิน<select data-hwps="method"><option value="auto">ปรับจากชั่วโมงที่ไม่ถูกจำกัด</option><option value="kwp">จากขนาดติดตั้ง × PR</option><option value="loc">จากพิกัดและวันที่ (จำลองแสงอาทิตย์)</option></select></label></div>
+            <div class="hwpbar"><span class="hint tight">ใช้กับวิธี "จากพิกัดและวันที่":</span>
+              <label>มุมเอียงแผง (°)<input type="number" min="0" max="90" step="1" data-hwps="tilt" inputmode="decimal"></label>
+              <label>ทิศหันแผง (° 180 = ทิศใต้)<input type="number" min="0" max="360" step="5" data-hwps="az" inputmode="decimal"></label>
+              <label>ท้องฟ้า<select data-hwps="sky"><option value="clear">แจ่มใส</option><option value="partly">มีเมฆบางส่วน</option><option value="overcast">ครึ้ม</option></select></label>
+              <label>ความสูญเสียระบบ (%)<input type="number" min="0" max="40" step="1" data-hwps="loss" inputmode="decimal"></label>
+              <label>พิกัด AC อินเวอร์เตอร์ (kW)<input type="number" min="0" step="0.5" data-hwps="ac" inputmode="decimal" placeholder="ไม่ระบุ"></label>
+              <label>ค่าไฟที่ซื้อ (฿/kWh)<input type="number" min="0" step="0.1" data-hwps="buy" inputmode="decimal" placeholder="จากไฟล์ถ้ามี"></label>
+              <label class="hwpck"><input type="checkbox" data-hwps="cal"> ปรับสเกลให้ตรงกับช่วงที่ไม่ถูกจำกัด</label></div>
           <div id="hwpsimres"></div>
         </details>
         <div id="hwpchips" class="hwpchips"></div>
@@ -809,7 +817,7 @@ if(m&&m[1]!=='6a6891eaf1'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/submit.js?v=86b607e8"></script>
 <script src="js/worksheets.js?v=cae141f5"></script>
 <script src="js/hwlog.js?v=3f551fe8"></script>
-<script src="js/hwplot.js?v=046a7622"></script>
+<script src="js/hwplot.js?v=31708a63"></script>
 <script src="js/fusion.js?v=04e4187c"></script>
 <script src="js/fusionpar.js?v=911eca14"></script>
 <script src="js/fusiondet.js?v=9b4bc098"></script>

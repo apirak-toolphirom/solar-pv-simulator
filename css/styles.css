@@ -1192,3 +1192,5 @@ body.fsmode .navtoggle{display:none}
 .tablewrap{overflow-x:auto}table.hwstat th,table.hwstat td{text-align:left;font-size:12.5px}
 .hwpsim{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:8px 12px}.hwpsim summary{cursor:pointer;font-weight:600}
 .hwpsim input,.hwpsim select{max-width:150px}.hwpsim .metrics{margin:8px 0}
+.hwloc{min-width:240px;flex:1}.hwloc input{width:100%}.hwpck{flex-direction:row!important;align-items:center;gap:6px!important}.hwpsim h4{margin:12px 0 4px}
+#hwlocmsg.err{color:var(--err)}
