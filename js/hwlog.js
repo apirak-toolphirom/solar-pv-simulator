@@ -97,11 +97,21 @@ function hwCsv(text){
   if(cell!==''||row.length){row.push(cell);rows.push(row)}
   return rows;
 }
+/* ไฟล์ export ของ FusionSolar บางไฟล์ระบุช่วงข้อมูล (dimension) ผิด เช่น A4:M26 ทั้งที่หัวตารางอยู่แถว 2 ทำให้ SheetJS ตัดแถวบนทิ้ง
+   จึงคำนวณช่วงจากเซลล์ที่มีอยู่จริงแทน */
+function hwSheetRows(X,ws){
+  if(!ws)return[];
+  const ks=Object.keys(ws).filter(k=>k[0]!=='!');
+  if(ks.length){let r0=1e9,r1=-1,c0=1e9,c1=-1;
+    ks.forEach(k=>{const p=X.utils.decode_cell(k);if(p.r<r0)r0=p.r;if(p.r>r1)r1=p.r;if(p.c<c0)c0=p.c;if(p.c>c1)c1=p.c});
+    ws['!ref']=X.utils.encode_range({s:{r:r0,c:c0},e:{r:r1,c:c1}})}
+  return X.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+}
 async function hwReadFile(file){
   const nm=file.name||'ไฟล์',low=nm.toLowerCase();
   if(/\.(xlsx|xlsm|xls|ods)$/.test(low)){
     const X=await hwXlsx(),buf=await file.arrayBuffer(),wb=X.read(buf,{type:'array',cellDates:false});
-    return wb.SheetNames.map(sn=>({name:wb.SheetNames.length>1?`${nm} · ${sn}`:nm,rows:X.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:true,defval:''})})).filter(s=>s.rows.length>1);
+    return wb.SheetNames.map(sn=>({name:wb.SheetNames.length>1?`${nm} · ${sn}`:nm,rows:hwSheetRows(X,wb.Sheets[sn])})).filter(s=>s.rows.length>1);
   }
   let text=await file.text();
   if(/�/.test(text.slice(0,2000))){try{text=new TextDecoder('windows-874').decode(await file.arrayBuffer())}catch(e){}}

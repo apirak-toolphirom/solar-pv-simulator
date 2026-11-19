@@ -1,6 +1,6 @@
 /* menu 17 หน้า "อ่าน log": กราฟวิเคราะห์เลือกเส้นเอง (js/hwplot.js) ตามที่เขียนใน docs/manual-17-fusion.md */
 const { load, eq, done } = require('./lib');
-load().then(({ ev, errs }) => {
+load().then(({ w, ev, errs }) => {
   eq('no script errors on load', errs.join(' | '), '');
   ev(`ACC.role='teacher';showTab('fusion');FU.page='log';fuRender();hwRender();document.getElementById('hwsample').click()`);
   setTimeout(() => {
@@ -47,6 +47,13 @@ load().then(({ ev, errs }) => {
     eq('dashed paths are drawn', ev(`document.querySelectorAll('#hwpchart path[stroke-dasharray]').length>=1`), 'true');
     eq('daily-only data: clear message, no crash', ev(`HW.files=[];hwAdd(${JSON.stringify([{ name: 'd.xlsx', rows: dy }])},false);HWP.sim.on=true;hwPlotRender();document.getElementById('hwpsimres').textContent.length>0`), 'true');
     ev(`document.getElementById('hwpsimon').click()`);
+    /* ไฟล์ Huawei ที่ dimension ผิด (A4:...) ต้องอ่านครบตั้งแต่หัวตาราง */
+    const X = require('../vendor/xlsx.full.min.js'); ev('0');
+    const ws = X.utils.aoa_to_sheet([['Plant Report_TEST'], ['Statistical Period','PV Yield (kWh)'], ['2026-11-18 00:00:00', 0], ['2026-11-18 01:00:00', 0], ['2026-11-18 02:00:00', 1]]);
+    ws['!ref'] = 'A4:B5';
+    const rows = w.eval('hwSheetRows').call(null, X, ws);
+    eq('wrong sheet dimension still reads the header rows', rows.length + ' ' + rows[1][0], '5 Statistical Period');
+    eq('and the file is then detected as interval', ev(`HW.files=[];hwAdd([{name:'x.xlsx',rows:${JSON.stringify(rows)}}],false);HW.files.length+' '+HW.files[0].auto`), '1 interval');
     eq('no script errors during use', errs.join(' | '), '');
     done();
   }, 300);
