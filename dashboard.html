@@ -74,64 +74,137 @@ tr.det td{background:var(--bg);font-size:12.5px;white-space:pre-line}
 .mtx th:first-child,.mtx td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}.mtx small,.wst small{display:block;color:var(--muted);font-size:11px;font-weight:400}
 .wst{border-collapse:collapse;width:100%;font-size:13px}.wst th,.wst td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left}.wst select{min-height:34px}
 .lg .pill{margin-right:4px}
+
+/* ===== v2: header, tabs, attention list, phone layout ===== */
+.btn.pri{color:#1c1300}
+.btn:focus-visible,select:focus-visible,input:focus-visible,.tabs button:focus-visible,.arow:focus-visible,summary:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+.hdr{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-bottom:12px}
+.ttl{display:flex;align-items:center;gap:12px;min-width:0}.ttl img{width:36px;height:36px;flex:none}
+.hact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.upd{color:var(--muted);font-size:12.5px}
+details.conn{margin:0 0 10px;padding:0}details.conn>summary{cursor:pointer;padding:10px 16px;font-weight:600;min-height:44px;display:flex;align-items:center}
+details.conn[open]>summary{border-bottom:1px solid var(--line)}details.conn .bar{padding:12px 16px}
+.tabs{position:sticky;top:0;z-index:5;display:flex;gap:2px;background:var(--bg);border-bottom:1px solid var(--line);margin:0 0 12px;overflow-x:auto}
+.tabs button{flex:1 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px 8px;min-height:44px;cursor:pointer;color:var(--muted);font-weight:500;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.tabs button:hover{color:var(--ink)}
+.tabs .cnt{font:500 12px var(--mono);margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--warnbg);color:var(--warn)}
+.scope{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--muted)}
+.view[hidden],.scope[hidden]{display:none}
+.card.attn{border-left:4px solid var(--warn);margin-bottom:12px}
+.card.attn h2{display:flex;align-items:center;gap:8px}
+.arow{display:grid;grid-template-columns:minmax(110px,170px) auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:9px 2px;min-height:44px;cursor:pointer;color:var(--ink)}
+.arow:first-of-type{border-top:0}.arow:hover{background:var(--bg)}
+.arow .an{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.arow .aw{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.arow .at{font:12px var(--mono);color:var(--muted)}
+.wsrow{margin-bottom:10px}.wsrow .lab{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:4px}.wsrow .lab span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#fsort{display:none}
+@media (max-width:700px){
+  .wrap{padding:12px 12px 40px}
+  .hdr{margin-bottom:8px}.hact{width:100%}.hact .btn{flex:1}
+  .tabs button{padding:10px 6px 8px;font-size:13px}
+  .btn,select,input[type=text],input[type=search],input[type=password]{min-height:44px}
+  input[type=checkbox]{width:22px;height:22px}
+  .bar>input[type=password]{flex:1 1 100%}
+  #fday,#fws,#fres,#fsort{flex:1 1 46%;min-width:0;max-width:100%}#fsort{display:block}
+  .arow{grid-template-columns:minmax(0,1fr) auto;padding:10px 2px}.arow .aw{grid-column:1/-1;white-space:normal}.arow .at{grid-column:2;grid-row:1}.arow .pill{display:none}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  /* tables become cards: one block per row, label left / value right */
+  table.stk{min-width:0}.stk thead{display:none}
+  .tblwrap.stkw{border:0;border-radius:0;overflow:visible;max-height:none!important}
+  .stk tbody tr{display:block;padding:10px 12px;margin-bottom:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+  .stk td{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;padding:4px 0;text-align:right;min-width:0!important;white-space:normal!important}
+  .stk td::before{content:attr(data-label);flex:none;color:var(--muted);font-size:12.5px;text-align:left}
+  .stk td[data-label=""]::before,.stk td.empty::before{content:none}.stk td:empty{display:none}
+  .stk td.nm{justify-content:flex-start;font-weight:600;font-size:15px;text-align:left}
+  .stk tr.det{padding:0;margin-top:-8px;border-top:0;border-radius:0 0 10px 10px}.stk tr.det td{display:block;text-align:left;padding:10px 12px}
+  .stk td.empty{display:block;text-align:center}
+  .stk select{min-width:130px}
+  .stk .ti{text-align:left}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <div><h1>สรุปงานส่ง</h1><p class="sub" id="course">เว็บจำลองระบบโซลาร์</p></div>
+  <header class="hdr">
+    <div class="ttl"><img src="img/favicon.svg" alt=""><div><h1>สรุปงานส่ง</h1><p class="sub" id="course">เว็บจำลองระบบโซลาร์</p></div></div>
+    <div class="hact">
+      <span class="upd" id="upd"></span>
+      <label class="chk"><input type="checkbox" id="auto"> อัปเดตทุก 1 นาที</label>
+      <button class="btn pri" id="load">โหลดข้อมูล</button>
+    </div>
+  </header>
+  <details class="card conn" id="conn" open>
+    <summary>เข้าสู่ระบบผู้สอน</summary>
     <div class="bar">
       <input id="tcode" type="password" placeholder="รหัส admin (ครูไม่ต้องกรอก)" aria-label="รหัส admin" autocomplete="current-password">
       <span id="gsi" hidden><span id="gbtn"></span></span><span class="foot" id="gwho" style="margin:0"></span>
-      <button class="btn pri" id="load">โหลดข้อมูล</button>
       <button class="btn" id="demo">ดูข้อมูลตัวอย่าง</button>
-      <label class="chk"><input type="checkbox" id="auto"> อัปเดตทุก 1 นาที</label>
     </div>
-  </div>
+  </details>
   <p class="msg info" id="msg">กรอกรหัสผู้สอน (TEACHER_CODE ใน Script properties ของ Apps Script) แล้วกด "โหลดข้อมูล" หรือกด "ดูข้อมูลตัวอย่าง" เพื่อดูหน้าตา</p>
 
   <div id="body" hidden>
-    <div class="card bar" style="margin-top:12px">
-      <select id="fday" aria-label="วันที่"></select>
-      <select id="fws" aria-label="ใบงาน"><option value="">ใบงาน: ทั้งหมด</option></select>
-      <select id="fres" aria-label="ผลการต่อสาย DC"><option value="">ผลต่อสาย DC: ทั้งหมด</option><option value="ok">ผ่าน</option><option value="warn">มีข้อควรระวัง</option><option value="err">ไม่ผ่าน</option></select>
-      <input id="fq" type="search" placeholder="ค้นหาชื่อ / รหัส / รุ่นอุปกรณ์" aria-label="ค้นหา" style="flex:1;min-width:180px">
-      <label class="chk"><input type="checkbox" id="flast" checked> เฉพาะครั้งล่าสุดของแต่ละคน</label>
-      <button class="btn" id="csv">ส่งออก CSV</button>
-    </div>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="หมวดของหน้าสรุป">
+      <button role="tab" data-v="ov" aria-selected="true">ภาพรวม<span class="cnt" id="tabcnt" hidden></span></button>
+      <button role="tab" data-v="prog" aria-selected="false">ความคืบหน้า</button>
+      <button role="tab" data-v="list" aria-selected="false">ผู้ส่งงาน</button>
+      <button role="tab" data-v="set" aria-selected="false">ตั้งค่า</button>
+    </nav>
+    <div class="scope" id="scope"><label for="fday">ดูข้อมูลของ</label><select id="fday" aria-label="วันที่"></select></div>
 
-    <div class="kpis" id="kpis"></div>
-    <div class="card" style="margin-bottom:12px"><h2>ความคืบหน้าใบงาน (ครั้งล่าสุดของแต่ละคนในแต่ละใบงาน)</h2><div class="tblwrap"><table class="mtx" id="mtx"></table></div>
-      <div class="lg"><span><span class="pill ok">✓</span> ผ่านเกณฑ์</span><span><span class="pill warn">!</span> ส่งแล้ว ยังไม่ครบเกณฑ์</span><span><span class="pill idle">–</span> ยังไม่ส่ง</span></div></div>
-    <div class="card" style="margin-bottom:12px"><h2>ตั้งค่าใบงาน (เปิด / ปิดรับ)</h2><div class="tblwrap"><table class="wst" id="wst"></table></div>
-      <p class="foot">auto = เปิดตามวันที่เปิด–ปิดในแผ่น "ใบงาน" ของ Google Sheets (ว่าง = ไม่จำกัด) · แก้ชื่อ วันที่ เกณฑ์ และคำถามได้ในแผ่นนั้น · เปลี่ยนสถานะที่นี่มีผลทันที</p><p class="msg" id="wsmsg" hidden></p></div>
-    <div class="card" style="margin-bottom:12px"><h2>ตั้งค่าเมนู (สิทธิ์ผู้เรียน / ผู้เยี่ยมชม)</h2><div class="tblwrap"><table class="wst" id="mnt"></table></div>
-      <p class="foot">auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ซ่อน ยกเว้นเมนูที่ติ๊กผู้เยี่ยมชม) · ส่งงาน auto = เปิดเมื่อมีใบงานเปิดอยู่ · ผู้เยี่ยมชม = คนที่มีลิงก์แต่ไม่มีรหัส · ผู้สอนเห็นทุกเมนูเสมอ · <span id="rostinfo"></span></p><p class="msg" id="mnmsg" hidden></p></div>
+    <section class="view" data-v="ov">
+      <div class="kpis" id="kpis"></div>
+      <div class="card attn"><h2 id="attnh">ต้องช่วยตอนนี้</h2><div id="attn"></div></div>
+      <div class="grid2">
+        <div class="card"><h2>จำนวนงานส่งรายวัน</h2><div id="chDay"></div></div>
+        <div class="card"><h2>ผลการตรวจ (ครั้งล่าสุดของแต่ละคน)</h2><div class="res" id="chRes"></div>
+          <div class="lg"><span><i style="background:var(--ok)"></i>✓ ผ่าน</span><span><i style="background:var(--warn)"></i>! มีข้อควรระวัง</span><span><i style="background:var(--err)"></i>× ไม่ผ่าน</span><span><i style="background:var(--idle)"></i>ยังไม่ได้ทำ</span></div></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h2 id="wsph">ความคืบหน้าแต่ละใบงาน</h2><div id="chWs"></div>
+          <div class="lg"><span><i style="background:var(--ok)"></i>ผ่านเกณฑ์</span><span><i style="background:var(--warn)"></i>ส่งแล้ว ยังไม่ครบเกณฑ์</span><span><i style="background:var(--grid);border:1px solid var(--line)"></i>ยังไม่ส่ง</span></div></div>
+        <div class="card"><h2>ข้อผิดพลาดที่พบบ่อย</h2><div class="iss" id="chIss"></div></div>
+      </div>
+    </section>
 
-    <div class="card" style="margin-bottom:12px"><h2>รายชื่อผู้เรียน (อีเมลที่เข้าระบบได้)</h2>
-      <p class="foot" id="rstinfo" style="margin:0 0 8px"></p>
-      <p class="msg info" id="rteachnote" hidden>บัญชีครู: ดูรายชื่อ เปิด/ปิดใบงานและเมนูได้ แก้หรือนำเข้ารายชื่อไม่ได้</p>
-      <div class="bar radmin" style="margin-bottom:8px"><input id="rlink" type="text" placeholder="วางลิงก์ Google Sheets ที่มีคอลัมน์อีเมล" aria-label="ลิงก์ Google Sheets" style="flex:1;min-width:220px"><button class="btn pri" id="rimp">นำเข้าจากลิงก์</button></div>
-      <div class="bar radmin" style="margin-bottom:8px"><input id="rfile" type="file" accept=".csv,.tsv,.xlsx,.xls" aria-label="ไฟล์รายชื่อ"><button class="btn" id="rup">นำเข้าจากไฟล์</button></div>
-      <div class="bar radmin" style="margin-bottom:8px"><input id="rname" type="text" placeholder="ชื่อ-นามสกุล" aria-label="ชื่อ-นามสกุล" style="flex:1;min-width:150px"><input id="rsid" type="text" placeholder="รหัส / เลขที่" aria-label="รหัส" style="width:110px"><input id="rmail" type="text" placeholder="อีเมล Google" aria-label="อีเมล Google" style="flex:1;min-width:180px"><button class="btn" id="radd">เพิ่มทีละคน</button></div>
-      <p class="msg" id="rmsg" hidden></p>
-      <div class="tblwrap" style="max-height:320px;margin-top:8px"><table class="wst" id="rtbl"></table></div>
-      <p class="foot radmin">ไฟล์หรือชีตต้องมีคอลัมน์อีเมล (หัวคอลัมน์ชื่อ อีเมล/Email/ชื่อ/รหัส/ลำดับ/สถานะ จะถูกจับให้เอง) · อีเมลที่มีอยู่แล้วจะถูกแก้ชื่อ/รหัสตามไฟล์ที่นำเข้า ไม่เพิ่มซ้ำ · ลิงก์ Sheets ต้องแชร์ให้บัญชีเจ้าของสคริปต์เปิดได้ ถ้าไม่ได้ให้ใช้ปุ่มไฟล์ · ระงับรายคนโดยพิมพ์ "ระงับ" ในคอลัมน์สถานะของแผ่น "รายชื่อ" · ผู้เรียนเข้าระบบด้วย Google ได้เมื่อตั้ง GOOGLE_CLIENT_ID แล้วเท่านั้น</p></div>
+    <section class="view" data-v="prog" hidden>
+      <div class="card" style="margin-bottom:12px"><h2>ความคืบหน้าใบงาน (ครั้งล่าสุดของแต่ละคนในแต่ละใบงาน)</h2><div class="tblwrap"><table class="mtx" id="mtx"></table></div>
+        <div class="lg"><span><span class="pill ok">✓</span> ผ่านเกณฑ์</span><span><span class="pill warn">!</span> ส่งแล้ว ยังไม่ครบเกณฑ์</span><span><span class="pill idle">–</span> ยังไม่ส่ง</span></div></div>
+      <div class="card"><h2>สรุปรายเมนู (ครั้งล่าสุดของแต่ละคนในใบงานของเมนูนั้น)</h2><div class="tblwrap stkw"><table class="msum stk" id="msum"></table></div>
+        <p class="foot">ผ่าน = ใบงานทุกใบของเมนูที่คนนั้นส่งผ่านเกณฑ์ · เกณฑ์ที่ไม่ผ่านบ่อยสุด นับจากเกณฑ์ใบงานที่ยังไม่ผ่านของเมนูนั้น (ตัวเลขต่างกันนับเป็นข้อเดียวกัน) · เมนูที่ยังไม่มีใบงานจะไม่มีตัวเลข</p></div>
+    </section>
 
-    <div class="grid2">
-      <div class="card"><h2>จำนวนงานส่งรายวัน</h2><div id="chDay"></div></div>
-      <div class="card"><h2>ผลการตรวจ (ครั้งล่าสุดของแต่ละคน)</h2><div class="res" id="chRes"></div>
-        <div class="lg"><span><i style="background:var(--ok)"></i>✓ ผ่าน</span><span><i style="background:var(--warn)"></i>! มีข้อควรระวัง</span><span><i style="background:var(--err)"></i>× ไม่ผ่าน</span><span><i style="background:var(--idle)"></i>ยังไม่ได้ทำ</span></div></div>
-    </div>
-    <div class="card" style="margin-bottom:12px"><h2>สรุปรายเมนู (ครั้งล่าสุดของแต่ละคนในใบงานของเมนูนั้น)</h2><div class="tblwrap"><table class="msum" id="msum"></table></div>
-      <p class="foot">ผ่าน = ใบงานทุกใบของเมนูที่คนนั้นส่งผ่านเกณฑ์ · เกณฑ์ที่ไม่ผ่านบ่อยสุด นับจากเกณฑ์ใบงานที่ยังไม่ผ่านของเมนูนั้น (ตัวเลขต่างกันนับเป็นข้อเดียวกัน) · เมนูที่ยังไม่มีใบงานจะไม่มีตัวเลข</p></div>
-    <div class="card" style="margin-bottom:12px"><h2>ข้อผิดพลาดที่พบบ่อย</h2><div class="iss" id="chIss"></div></div>
+    <section class="view" data-v="list" hidden>
+      <div class="card bar" style="margin-bottom:12px">
+        <select id="fws" aria-label="ใบงาน"><option value="">ใบงาน: ทั้งหมด</option></select>
+        <select id="fres" aria-label="ผลการต่อสาย DC"><option value="">ผลต่อสาย DC: ทั้งหมด</option><option value="ok">ผ่าน</option><option value="warn">มีข้อควรระวัง</option><option value="err">ไม่ผ่าน</option></select>
+        <select id="fsort" aria-label="เรียงตาม"><option value="t">เรียง: เวลาที่ส่ง</option><option value="name">เรียง: ชื่อ</option><option value="dc">เรียง: ผลต่อสาย DC</option><option value="ws">เรียง: ใบงาน</option></select>
+        <input id="fq" type="search" placeholder="ค้นหาชื่อ / รหัส / รุ่นอุปกรณ์" aria-label="ค้นหา" style="flex:1;min-width:180px">
+        <label class="chk"><input type="checkbox" id="flast" checked> เฉพาะครั้งล่าสุดของแต่ละคน</label>
+        <button class="btn" id="csv">ส่งออก CSV</button>
+      </div>
+      <div class="card">
+        <h2 id="tblh">รายชื่อผู้ส่งงาน</h2>
+        <div class="tblwrap stkw"><table class="stk" id="subtbl"><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+        <p class="foot" id="foot"></p>
+      </div>
+    </section>
 
-    <div class="card">
-      <h2 id="tblh">รายชื่อผู้ส่งงาน</h2>
-      <div class="tblwrap"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
-      <p class="foot" id="foot"></p>
-    </div>
+    <section class="view" data-v="set" hidden>
+      <div class="card" style="margin-bottom:12px"><h2>ตั้งค่าใบงาน (เปิด / ปิดรับ)</h2><div class="tblwrap stkw"><table class="wst stk" id="wst"></table></div>
+        <p class="foot">auto = เปิดตามวันที่เปิด–ปิดในแผ่น "ใบงาน" ของ Google Sheets (ว่าง = ไม่จำกัด) · แก้ชื่อ วันที่ เกณฑ์ และคำถามได้ในแผ่นนั้น · เปลี่ยนสถานะที่นี่มีผลทันที</p><p class="msg" id="wsmsg" hidden></p></div>
+      <div class="card" style="margin-bottom:12px"><h2>ตั้งค่าเมนู (สิทธิ์ผู้เรียน / ผู้เยี่ยมชม)</h2><div class="tblwrap stkw"><table class="wst stk" id="mnt"></table></div>
+        <p class="foot">auto = เปิดเมื่อมีใบงานที่เปิดรับใช้เมนูนี้ (ไม่มี = ซ่อน ยกเว้นเมนูที่ติ๊กผู้เยี่ยมชม) · ส่งงาน auto = เปิดเมื่อมีใบงานเปิดอยู่ · ผู้เยี่ยมชม = คนที่มีลิงก์แต่ไม่มีรหัส · ผู้สอนเห็นทุกเมนูเสมอ · <span id="rostinfo"></span></p><p class="msg" id="mnmsg" hidden></p></div>
+
+      <div class="card"><h2>รายชื่อผู้เรียน (อีเมลที่เข้าระบบได้)</h2>
+        <p class="foot" id="rstinfo" style="margin:0 0 8px"></p>
+        <p class="msg info" id="rteachnote" hidden>บัญชีครู: ดูรายชื่อ เปิด/ปิดใบงานและเมนูได้ แก้หรือนำเข้ารายชื่อไม่ได้</p>
+        <div class="bar radmin" style="margin-bottom:8px"><input id="rlink" type="text" placeholder="วางลิงก์ Google Sheets ที่มีคอลัมน์อีเมล" aria-label="ลิงก์ Google Sheets" style="flex:1;min-width:220px"><button class="btn pri" id="rimp">นำเข้าจากลิงก์</button></div>
+        <div class="bar radmin" style="margin-bottom:8px"><input id="rfile" type="file" accept=".csv,.tsv,.xlsx,.xls" aria-label="ไฟล์รายชื่อ"><button class="btn" id="rup">นำเข้าจากไฟล์</button></div>
+        <div class="bar radmin" style="margin-bottom:8px"><input id="rname" type="text" placeholder="ชื่อ-นามสกุล" aria-label="ชื่อ-นามสกุล" style="flex:1;min-width:150px"><input id="rsid" type="text" placeholder="รหัส / เลขที่" aria-label="รหัส" style="width:110px"><input id="rmail" type="text" placeholder="อีเมล Google" aria-label="อีเมล Google" style="flex:1;min-width:180px"><button class="btn" id="radd">เพิ่มทีละคน</button></div>
+        <p class="msg" id="rmsg" hidden></p>
+        <div class="tblwrap stkw" style="max-height:320px;margin-top:8px"><table class="wst stk" id="rtbl"></table></div>
+        <p class="foot radmin">ไฟล์หรือชีตต้องมีคอลัมน์อีเมล (หัวคอลัมน์ชื่อ อีเมล/Email/ชื่อ/รหัส/ลำดับ/สถานะ จะถูกจับให้เอง) · อีเมลที่มีอยู่แล้วจะถูกแก้ชื่อ/รหัสตามไฟล์ที่นำเข้า ไม่เพิ่มซ้ำ · ลิงก์ Sheets ต้องแชร์ให้บัญชีเจ้าของสคริปต์เปิดได้ ถ้าไม่ได้ให้ใช้ปุ่มไฟล์ · ระงับรายคนโดยพิมพ์ "ระงับ" ในคอลัมน์สถานะของแผ่น "รายชื่อ" · ผู้เรียนเข้าระบบด้วย Google ได้เมื่อตั้ง GOOGLE_CLIENT_ID แล้วเท่านั้น</p></div>
+    </section>
   </div>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -145,6 +218,7 @@ const f=(x,d=0)=>Number(x||0).toFixed(d);
 const pad=n=>String(n).padStart(2,'0');
 const dayKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const dayTh=k=>{const [y,m,d]=k.split('-').map(Number);return `${d}/${m}/${(y+543)%100}`};
+const tmf=d=>`${dayTh(dayKey(d))} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const LV={ok:'ผ่าน',warn:'ควรระวัง',err:'ไม่ผ่าน',idle:'ยังไม่ได้ทำ'},GL={ok:'✓',warn:'!',err:'×',idle:'–'};
 const lvOf=v=>{v=String(v||'').toLowerCase();return v==='ok'||v==='warn'||v==='err'?v:'idle'};
 if(CFG.COURSE)$('#course').textContent=CFG.COURSE;
@@ -197,6 +271,7 @@ async function load(){
     LVL=j.level||'admin';document.querySelectorAll('.radmin').forEach(e=>{e.hidden=LVL!=='admin'});ROWS=parse(j.headers,j.rows);WSL=Array.isArray(j.ws)?j.ws:[];MNL=Array.isArray(j.menus)?j.menus:[];ROST=j.roster;
     {const tn=$('#rteachnote');if(tn)tn.hidden=LVL==='admin'}
     msg(`โหลดแล้ว ${ROWS.length} รายการ · อัปเดต ${new Date().toLocaleTimeString('th-TH')}`+(j.total>j.rows.length?` (แสดง ${j.rows.length} รายการล่าสุดจาก ${j.total})`:''),'ok');
+    $('#conn').open=false;$('#upd').textContent='อัปเดต '+new Date().toLocaleTimeString('th-TH');
     show();loadRoster();
   }catch(e){msg('เชื่อมต่อ Apps Script ไม่ได้ ตรวจอินเทอร์เน็ตและ SUBMIT_URL','err')}
   finally{$('#load').disabled=false}
@@ -250,7 +325,7 @@ function render(){
     ['ขนาดระบบเฉลี่ย',last.length?f(last.reduce((a,r)=>a+r.kwp,0)/last.length,2)+' kWp':'–',last.length?`${f(last.reduce((a,r)=>a+r.used,0)/last.length,1)} แผงต่อคน`:''],
     ['ส่งวันนี้',ROWS.filter(r=>dayKey(r.t)===today).length+' ครั้ง',dayTh(today)]];
   $('#kpis').innerHTML=kp.map(k=>`<div class="card kpi"><div class="k">${k[0]}</div><div class="v">${k[1]}</div><div class="s">${esc(k[2])}</div></div>`).join('');
-  drawDays();drawRes(last);drawIssues(last);drawMatrix();drawMenuSum(inDay);drawWsTable();drawMenus();drawTable(L);
+  drawDays();drawRes(last);drawIssues(last);drawAttn(last);drawWsProg();drawMatrix();drawMenuSum(inDay);drawWsTable();drawMenus();drawTable(L);
 }
 
 /* submissions per day: one series, bars from a zero baseline, hover tooltip */
@@ -288,6 +363,35 @@ function drawIssues(last){
   $('#chIss').innerHTML=top.length?top.map(([k,v])=>`<div class="row" data-tip="${esc(v.ex)}"><div><div class="t">${esc(v.ex)}</div><div class="b" style="width:${v.n/mx*100}%"></div></div><div class="n">${v.n} คน</div></div>`).join('')
     :'<p class="empty">ไม่มีข้อผิดพลาดในงานส่งล่าสุด</p>';
 }
+/* "needs help": the latest submission of each trainee fails its worksheet (or DC wiring when no worksheet) */
+function drawAttn(last){
+  const need=last.map(r=>{
+    if(r.ws&&!r.wsPass)return{r,why:String(r.wsFail||'').split('\n')[0]||'ใบงานยังไม่ครบเกณฑ์'};
+    if(!r.ws&&r.dc==='err')return{r,why:r.issues[0]||'ต่อสาย DC ไม่ผ่าน'};
+    return null}).filter(Boolean).sort((a,b)=>b.r.t-a.r.t);
+  $('#attnh').textContent=need.length?`ต้องช่วยตอนนี้ ${need.length} คน`:'ต้องช่วยตอนนี้';
+  const c=$('#tabcnt');c.hidden=!need.length;c.textContent=need.length;
+  $('#attn').innerHTML=need.length?need.slice(0,8).map(({r,why})=>`<button class="arow" data-q="${esc(r.name)}"><span class="an">${esc(r.name)}</span><span class="pill ${r.ws?'warn':'err'}">${esc(r.ws||'DC')}</span><span class="aw">${esc(why)}</span><span class="at">${tmf(r.t)}</span></button>`).join('')
+      +(need.length>8?`<p class="foot">แสดง 8 จาก ${need.length} คน · ดูทั้งหมดที่แท็บ "ผู้ส่งงาน" · นับจากงานที่ส่งล่าสุดของแต่ละคน</p>`:'<p class="foot">แตะชื่อเพื่อดูงานของคนนั้น · นับจากงานที่ส่งล่าสุดของแต่ละคน</p>')
+    :'<p class="empty">ทุกคนที่ส่งล่าสุดผ่านเกณฑ์แล้ว</p>';
+}
+/* per worksheet: passed / sent but not passed / not sent, out of everyone who has ever submitted */
+function drawWsProg(){
+  const host=$('#chWs'),people=[...new Set(ROWS.map(who))],N=people.length;
+  $('#wsph').textContent=`ความคืบหน้าแต่ละใบงาน${N?` (ผู้เรียน ${N} คน)`:''}`;
+  if(!N){host.innerHTML='<p class="empty">ยังไม่มีงานส่ง</p>';return}
+  const st={};ROWS.forEach(r=>{if(!r.ws)return;const c=who(r)+'|'+r.ws;if(!st[c]||r.t>st[c].t)st[c]=r});
+  const ids=(WSL.length?WSL.map(w=>w.id):[...new Set(ROWS.map(r=>r.ws).filter(Boolean))].sort()).filter(id=>id!=='W0');
+  const rows=ids.map(id=>{const w=WSL.find(x=>x.id===id);let p=0,t=0;people.forEach(k=>{const r=st[k+'|'+id];if(r){t++;if(r.wsPass)p++}});return{id,name:w?w.name:'',open:w?w.open:true,p,t}}).filter(x=>x.t||x.open);
+  host.innerHTML=rows.length?rows.map(x=>`<div class="wsrow"><div class="lab"><span><b>${esc(x.id)}</b> ${esc(x.name)}</span><span style="font-family:var(--mono)">ผ่าน ${x.p}/${N}${x.t>x.p?` · ค้าง ${x.t-x.p}`:''}</span></div>
+    <div class="stack"><span style="width:${x.p/N*100}%;background:var(--ok)" data-tip="${esc(x.id)} · ผ่านเกณฑ์: ${x.p} คน"></span><span style="width:${(x.t-x.p)/N*100}%;background:var(--warn)" data-tip="${esc(x.id)} · ส่งแล้วยังไม่ครบเกณฑ์: ${x.t-x.p} คน"></span></div></div>`).join(''):'<p class="empty">ยังไม่มีใบงานที่เปิดรับหรือมีงานส่ง</p>';
+}
+/* four views; the chosen one is remembered for this tab */
+function setView(v){
+  document.querySelectorAll('.view').forEach(e=>{e.hidden=e.dataset.v!==v});
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.v===v)));
+  $('#scope').hidden=v==='set';ss.set('pvdash.view',v);
+}
 const COLS=[['name','ชื่อ'],['sid','รหัส'],['ws','ใบงาน'],['t','เวลาที่ส่ง'],['dc','ต่อสาย DC'],['used','แผง'],['kwp','kWp'],['inv','อินเวอร์เตอร์'],['ac','ต่อสาย AC'],['bk','Backup'],['n','ส่ง (ครั้ง)']];
 const ORD={ok:0,warn:1,err:2,idle:3};
 function drawTable(L){
@@ -298,8 +402,8 @@ function drawTable(L){
   const tm=d=>`${dayTh(dayKey(d))} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   $('#tbody').innerHTML=L.length?L.map(r=>{
     const id=r.receipt||(who(r)+(+r.t)),open=OPEN.has(id);
-    return`<tr class="main" data-id="${esc(id)}" aria-expanded="${open}"><td>${esc(r.name)}</td><td>${esc(r.sid||r.gmail)}</td><td>${r.ws?`<span class="pill ${r.wsPass?'ok':'warn'}">${esc(r.ws)}</span>`:'<span class="pill idle">–</span>'}</td><td>${tm(r.t)}</td><td>${pill(r.dc)}${r.err?` <small>${r.err} ผิด</small>`:''}${r.warn?` <small>${r.warn} ระวัง</small>`:''}</td>
-      <td class="num">${r.used}/${r.panels}</td><td class="num">${f(r.kwp,2)}</td><td>${esc(r.inv)}</td><td>${pill(r.ac)}</td><td>${pill(r.bk)}</td><td class="num">${r.n||1}</td></tr>`
+    return`<tr class="main" data-id="${esc(id)}" aria-expanded="${open}"><td class="nm" data-label="">${esc(r.name)}</td><td data-label="รหัส">${esc(r.sid||r.gmail)}</td><td data-label="ใบงาน">${r.ws?`<span class="pill ${r.wsPass?'ok':'warn'}">${esc(r.ws)}</span>`:'<span class="pill idle">–</span>'}</td><td data-label="เวลาที่ส่ง">${tm(r.t)}</td><td data-label="ต่อสาย DC">${pill(r.dc)}${r.err?` <small>${r.err} ผิด</small>`:''}${r.warn?` <small>${r.warn} ระวัง</small>`:''}</td>
+      <td class="num" data-label="แผง">${r.used}/${r.panels}</td><td class="num" data-label="kWp">${f(r.kwp,2)}</td><td data-label="อินเวอร์เตอร์">${esc(r.inv)}</td><td data-label="ต่อสาย AC">${pill(r.ac)}</td><td data-label="Backup">${pill(r.bk)}</td><td class="num" data-label="ส่ง (ครั้ง)">${r.n||1}</td></tr>`
       +(open?`<tr class="det"><td colspan="${COLS.length}"><b>การต่อ</b> ${esc(r.topo||'-')} · DC/AC ${f(r.ratio,2)} · แผง ${esc(r.panel)} · แบต ${esc(r.bat||'-')}
 <b>พลังงาน</b> ผลิต ${esc(r.pv===''?'-':r.pv)} kWh/วัน · โหลด ${esc(r.load)} kWh/วัน${r.bkText?' · '+esc(r.bkText):''}${r.ev?'\n<b>เหตุการณ์</b> '+esc(r.ev):''}${r.site?'\n<b>ไซต์และเงา</b> '+esc(r.site).split(' | ').join('\n  · '):''}
 ${r.ws?`<b>ใบงาน</b> ${esc(r.ws)} ${esc(r.wsName)} · ${r.wsPass?'ผ่านเกณฑ์':'ยังไม่ครบ'}${r.wsFail?'\n  · '+esc(r.wsFail).split('\n').join('\n  · '):''}\n`:''}${r.ans?`<b>คำตอบ</b>\n${esc(r.ans)}\n`:''}${r.img?`<a href="${esc(r.img)}" target="_blank" rel="noopener">เปิดภาพรายงาน</a>\n`:''}<b>ข้อที่ต้องตรวจ</b>${r.issues.length?'\n• '+r.issues.map(esc).join('\n• '):' ไม่มี'}</td></tr>`:'');
@@ -319,13 +423,13 @@ function drawMenuSum(L){
   const mask=t=>t.replace(/[\d.,]+/g,'#');
   const rows=menus.map(([tab,name])=>{
     const wsIds=[...new Set(Object.values(lastWs).map(r=>r.ws).concat(WSL.map(w=>w.id),Object.keys(WS_TABS0)))].filter(id=>tabsOf(id).includes(tab));
-    if(!wsIds.length)return`<tr class="none"><td>${esc(name)}</td><td>–</td><td class="n" colspan="3">ยังไม่มีใบงาน</td><td></td></tr>`;
+    if(!wsIds.length)return`<tr class="none"><td class="nm" data-label="">${esc(name)}</td><td data-label="ใบงาน">–</td><td class="n" colspan="3" data-label="">ยังไม่มีใบงาน</td><td></td></tr>`;
     const per={},iss={};
     Object.values(lastWs).forEach(r=>{if(!wsIds.includes(r.ws))return;const k=who(r);per[k]=per[k]===undefined?r.wsPass:per[k]&&r.wsPass;
       [...new Set(String(r.wsFail||'').split('\n').map(s=>s.trim()).filter(Boolean))].forEach(t=>{const m=mask(t);if(!iss[m])iss[m]={n:0,ex:t};iss[m].n++})});
     const n=Object.keys(per).length,p=Object.values(per).filter(Boolean).length,top=Object.values(iss).sort((a,b)=>b.n-a.n)[0];
     const pc=n?p/n*100:0;
-    return`<tr><td>${esc(name)}</td><td>${esc(wsIds.join(', '))}</td><td class="n">${n}</td><td class="n">${p}</td><td><div class="pbar" data-tip="${n?`ผ่าน ${p} จาก ${n} คน`:'ยังไม่มีคนส่ง'}"><i style="width:${pc}%"></i></div><span class="n">${n?f(pc,0)+' %':'–'}</span></td><td class="ti">${top?`${esc(top.ex)} <b>(${top.n} คน)</b>`:n?'ไม่มี':''}</td></tr>`;
+    return`<tr><td class="nm" data-label="">${esc(name)}</td><td data-label="ใบงาน">${esc(wsIds.join(', '))}</td><td class="n" data-label="ส่ง (คน)">${n}</td><td class="n" data-label="ผ่าน">${p}</td><td data-label="อัตราผ่าน"><div class="pbar" data-tip="${n?`ผ่าน ${p} จาก ${n} คน`:'ยังไม่มีคนส่ง'}"><i style="width:${pc}%"></i></div><span class="n">${n?f(pc,0)+' %':'–'}</span></td><td class="ti" data-label="ไม่ผ่านบ่อยสุด">${top?`${esc(top.ex)} <b>(${top.n} คน)</b>`:n?'ไม่มี':''}</td></tr>`;
   });
   host.innerHTML=`<thead><tr><th>เมนู</th><th>ใบงาน</th><th>ส่ง (คน)</th><th>ผ่าน</th><th>อัตราผ่าน</th><th>เกณฑ์ที่ไม่ผ่านบ่อยสุด</th></tr></thead><tbody>${rows.join('')}</tbody>`;
 }
@@ -345,8 +449,8 @@ function drawMatrix(){
 function drawWsTable(){
   const host=$('#wst');
   if(!WSL.length){host.innerHTML='<tbody><tr><td class="empty">ยังไม่มีรายการใบงาน (วาง Code.gs ล่าสุดแล้ว Deploy → New version ระบบจะสร้างแผ่น "ใบงาน" ให้)</td></tr></tbody>';return}
-  host.innerHTML=`<thead><tr><th>ใบงาน</th><th>เมนู</th><th>เปิด – ปิด</th><th>สถานะ</th><th>ตอนนี้</th></tr></thead><tbody>`+WSL.map(w=>`<tr><td><b>${esc(w.id)}</b> ${esc(w.name)}</td><td>${esc(w.tabs||'')}</td><td>${esc(w.start||'—')} – ${esc(w.end||'—')}</td>
-    <td><select data-ws="${esc(w.id)}" aria-label="สถานะ ${esc(w.id)}">${['auto','เปิด','ปิด'].map(s=>`<option ${w.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td>${w.open?'<span class="pill ok">เปิดรับ</span>':'<span class="pill idle">ปิดรับ</span>'}</td></tr>`).join('')+'</tbody>';
+  host.innerHTML=`<thead><tr><th>ใบงาน</th><th>เมนู</th><th>เปิด – ปิด</th><th>สถานะ</th><th>ตอนนี้</th></tr></thead><tbody>`+WSL.map(w=>`<tr><td class="nm" data-label=""><b>${esc(w.id)}</b>&nbsp;${esc(w.name)}</td><td data-label="เมนู">${esc(w.tabs||'')}</td><td data-label="เปิด – ปิด">${esc(w.start||'—')} – ${esc(w.end||'—')}</td>
+    <td data-label="สถานะ"><select data-ws="${esc(w.id)}" aria-label="สถานะ ${esc(w.id)}">${['auto','เปิด','ปิด'].map(s=>`<option ${w.status===s?'selected':''}>${s}</option>`).join('')}</select></td><td data-label="ตอนนี้">${w.open?'<span class="pill ok">เปิดรับ</span>':'<span class="pill idle">ปิดรับ</span>'}</td></tr>`).join('')+'</tbody>';
 }
 async function wsSet(id,status){
   const m=$('#wsmsg'),au=await AUTH();
@@ -362,9 +466,9 @@ function drawMenus(){
   $('#rostinfo').textContent=ROST==null?'':ROST?`รายชื่อลงทะเบียน ${ROST} คน (ตรวจรหัสผู้เรียนก่อนเข้าใช้และส่งงาน)`:'แผ่น "รายชื่อ" ยังว่าง: ทุกคนที่รู้รหัสห้องเข้าใช้ได้';
   if(!MNL.length){host.innerHTML='<tbody><tr><td class="empty">ยังไม่มีรายการเมนู (วาง Code.gs ล่าสุดแล้ว Deploy → New version ระบบจะสร้างแผ่น "เมนู" ให้)</td></tr></tbody>';return}
   const pill=v=>`<span class="pill ${MPERM[v][0]}">${MPERM[v][1]}</span>`;
-  host.innerHTML=`<thead><tr><th>เมนู</th><th>สถานะ</th><th>ผู้เรียนตอนนี้</th><th>ผู้เยี่ยมชมเห็น</th><th>ผู้เยี่ยมชมตอนนี้</th></tr></thead><tbody>`+MNL.map(m=>`<tr><td>${esc(m.name)}</td>
-    <td><select data-mn="${esc(m.tab)}" aria-label="สถานะ ${esc(m.name)}">${['auto','เปิด','ดูอย่างเดียว','ปิด'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
-    <td>${pill(m.student)}</td><td>${m.tab==='hwlog'?'<span style="opacity:.7;font-size:12px" title="เมนูนี้ต้องลงชื่อเป็นผู้เรียนหรือผู้สอนเสมอ">ไม่ได้ (ต้องลงชื่อ)</span>':`<input type="checkbox" data-mv="${esc(m.tab)}" ${m.visitorOn?'checked':''} aria-label="ผู้เยี่ยมชมเห็น ${esc(m.name)}">`}</td><td>${pill(m.visitor)}</td></tr>`).join('')+'</tbody>';
+  host.innerHTML=`<thead><tr><th>เมนู</th><th>สถานะ</th><th>ผู้เรียนตอนนี้</th><th>ผู้เยี่ยมชมเห็น</th><th>ผู้เยี่ยมชมตอนนี้</th></tr></thead><tbody>`+MNL.map(m=>`<tr><td class="nm" data-label="">${esc(m.name)}</td>
+    <td data-label="สถานะ"><select data-mn="${esc(m.tab)}" aria-label="สถานะ ${esc(m.name)}">${['auto','เปิด','ดูอย่างเดียว','ปิด'].map(s=>`<option ${m.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+    <td data-label="ผู้เรียนตอนนี้">${pill(m.student)}</td><td data-label="ผู้เยี่ยมชมเห็น">${m.tab==='hwlog'?'<span style="opacity:.7;font-size:12px" title="เมนูนี้ต้องลงชื่อเป็นผู้เรียนหรือผู้สอนเสมอ">ไม่ได้ (ต้องลงชื่อ)</span>':`<input type="checkbox" data-mv="${esc(m.tab)}" ${m.visitorOn?'checked':''} aria-label="ผู้เยี่ยมชมเห็น ${esc(m.name)}">`}</td><td data-label="ผู้เยี่ยมชมตอนนี้">${pill(m.visitor)}</td></tr>`).join('')+'</tbody>';
 }
 async function menuSet(tab,o){
   const m=$('#mnmsg'),au=await AUTH();
@@ -382,7 +486,7 @@ function drawRoster(){
   if(RST==null){h.innerHTML='';$('#rstinfo').textContent='กดโหลดข้อมูลก่อน จึงจะเห็นรายชื่อ';return}
   const act=RST.filter(x=>x.status!=='ระงับ').length;
   $('#rstinfo').textContent=RST.length?`ในรายชื่อ ${RST.length} คน · ใช้งานได้ ${act} · ระงับ ${RST.length-act}`:'ยังไม่มีรายชื่อ';
-  h.innerHTML=RST.length?'<thead><tr><th>#</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>อีเมล</th><th>สถานะ</th></tr></thead><tbody>'+RST.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.sid)}</td><td>${esc(x.name)}</td><td>${esc(x.email)}</td><td>${x.status==='ระงับ'?'<span class="pill err">ระงับ</span>':'<span class="pill ok">ใช้ได้</span>'}</td></tr>`).join('')+'</tbody>':'<tbody><tr><td class="empty">ยังไม่มีรายชื่อ ใช้ปุ่มด้านบนเพิ่ม</td></tr></tbody>';
+  h.innerHTML=RST.length?'<thead><tr><th>#</th><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>อีเมล</th><th>สถานะ</th></tr></thead><tbody>'+RST.map((x,i)=>`<tr><td data-label="#">${i+1}</td><td data-label="รหัส">${esc(x.sid)}</td><td class="nm" data-label="">${esc(x.name)}</td><td data-label="อีเมล">${esc(x.email)}</td><td data-label="สถานะ">${x.status==='ระงับ'?'<span class="pill err">ระงับ</span>':'<span class="pill ok">ใช้ได้</span>'}</td></tr>`).join('')+'</tbody>':'<tbody><tr><td class="empty">ยังไม่มีรายชื่อ ใช้ปุ่มด้านบนเพิ่ม</td></tr></tbody>';
 }
 async function rcall(o,quiet){
   const au=await AUTH();
@@ -452,15 +556,19 @@ $('#demo').addEventListener('click',demo);
 ['#fday','#fws','#fres','#flast'].forEach(s=>$(s).addEventListener('change',render));
 $('#fq').addEventListener('input',render);
 $('#csv').addEventListener('click',csv);
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)setView(b.dataset.v)});
+$('#attn').addEventListener('click',e=>{const b=e.target.closest('[data-q]');if(!b)return;$('#fq').value=b.dataset.q;$('#fws').value='';$('#fres').value='';setView('list');render();$('#fq').scrollIntoView({block:'center'})});
+$('#fsort').addEventListener('change',e=>{const k=e.target.value;SORT={k,dir:k==='t'?-1:1};render()});
 $('#mnt').addEventListener('change',e=>{const s=e.target.closest('[data-mn]');if(s){menuSet(s.dataset.mn,{status:s.value});return}const v=e.target.closest('[data-mv]');if(v)menuSet(v.dataset.mv,{visitor:v.checked})});
 $('#wst').addEventListener('change',e=>{const t=e.target.closest('[data-ws]');if(t)wsSet(t.dataset.ws,t.value)});
 $('#auto').addEventListener('change',e=>{clearInterval(timer);if(e.target.checked)timer=setInterval(()=>{if($('#tcode').value.trim()||gTok)load()},60000)});
-$('#thead').addEventListener('click',e=>{const th=e.target.closest('[data-sort]');if(!th)return;const k=th.dataset.sort;SORT=SORT.k===k?{k,dir:-SORT.dir}:{k,dir:k==='t'||k==='n'||k==='kwp'||k==='used'?-1:1};render()});
+$('#thead').addEventListener('click',e=>{const th=e.target.closest('[data-sort]');if(!th)return;const k=th.dataset.sort;SORT=SORT.k===k?{k,dir:-SORT.dir}:{k,dir:k==='t'||k==='n'||k==='kwp'||k==='used'?-1:1};if([...$('#fsort').options].some(o=>o.value===SORT.k))$('#fsort').value=SORT.k;render()});
 $('#tbody').addEventListener('click',e=>{const tr=e.target.closest('tr.main');if(!tr)return;const id=tr.dataset.id;OPEN.has(id)?OPEN.delete(id):OPEN.add(id);render()});
 /* shared tooltip for bars, stacked segments and issue rows */
 const tip=$('#tip');
 document.addEventListener('pointermove',e=>{const t=e.target.closest('[data-tip]');if(!t){tip.hidden=true;return}tip.textContent=t.dataset.tip;tip.hidden=false;const x=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px'});
 document.addEventListener('pointerleave',()=>tip.hidden=true);
+setView(ss.get('pvdash.view')||'ov');
 loadGsi();
 if(ss.get('pvdash.tcode')&&CFG.SUBMIT_URL)load();
 </script>
