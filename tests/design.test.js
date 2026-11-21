@@ -65,6 +65,20 @@ setTimeout(() => {
   eq('มีผลคืนทุน', E.pay != null && E.pay > 0 && E.pay < 25, true);
   console.log('   capex =', Math.round(E.cap), 'payback =', E.pay && E.pay.toFixed(1), 'NPV =', Math.round(E.npv), 'IRR =', E.irr && (E.irr * 100).toFixed(1) + '%', 'LCOE =', E.lcoe && E.lcoe.toFixed(2));
   S.cons.buy = 0; S.cons.fit = 0; DS.set(S); eq('ไม่มีรายได้ → ไม่คืนทุน', DS.economics().pay, null);
+  // วางแผงเอง
+  S.lay.off = {}; S.lay.manual = null; DS.set(S); const max = DS.autoGrid().n;
+  DS.manualEnter(); eq('เข้าโหมดวางเอง แผงเท่าเดิม', DS.activeMods().length, max);
+  S.lay.manual = []; DS.set(S); eq('ล้างแผงแล้วเหลือ 0', DS.activeMods().length, 0);
+  eq('เพิ่มแผงกลางหลังคาได้', DS.manualAdd(la0, lo0), true); eq('มี 1 แผง', DS.activeMods().length, 1);
+  eq('วางทับตำแหน่งเดิมไม่ได้', DS.manualAdd(la0, lo0), false); eq('ยังมี 1 แผง', DS.activeMods().length, 1);
+  eq('วางนอกหลังคาไม่ได้', DS.manualAdd(la0 + 0.01, lo0), false);
+  const nf = DS.manualFill(); eq('เติมให้เต็มที่ว่างได้เพิ่ม', nf > 0, true);
+  const am = DS.activeMods(); let ov = 0, wd = am[0].w, pitch = DS.getLayout().rp.pitch;
+  for (let i = 0; i < am.length; i++) for (let j = i + 1; j < am.length; j++) if (Math.abs(am[i].a - am[j].a) < wd - 1e-6 && Math.abs(am[i].b - am[j].b) < pitch - 1e-6) ov++;
+  eq('แผงที่วางไม่ซ้อนกัน', ov, 0); eq('จำนวนแผงไม่เกินที่วางได้โดยประมาณ + 2', am.length <= max + 2, true);
+  const before = DS.activeMods().length; eq('ลบแผงที่เลือก', DS.manualDelSel() && DS.activeMods().length === before - 1, true);
+  S.lay.manual = [[la0 + 1, lo0]]; DS.set(S); eq('แผงนอกหลังคาถูกทำเครื่องหมายและไม่นับ', DS.getLayout().mods[0].bad && DS.activeMods().length === 0, true);
+  DS.manualAuto(); eq('กลับโหมดอัตโนมัติได้แผงสูงสุด', DS.activeMods().length, max);
   // จำกัดกำลังขายคืน: ไฟที่ขายต้องลดลงและไม่เกินเพดานรายชั่วโมง
   S.feedLimit = ''; DS.set(S); const ex0 = DS.simulate().tot.exp; S.feedLimit = 5; DS.set(S); const R5 = DS.simulate();
   eq('จำกัดขายคืน 5 kW ทำให้ไฟขายลดลง', R5.tot.exp < ex0, true);

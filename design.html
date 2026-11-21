@@ -190,9 +190,10 @@ function rowPitch(tilt,az,slopeLen){const b=rad(tilt),d=slopeLen*Math.cos(b);
   if(S.roof.type==='pitched'||tilt<1)return{d,pitch:d+S.lay.gap};
   const h=slopeLen*Math.sin(b),s=sunAt(S.lat,355,9),sh=s.alt>2?h/Math.tan(rad(s.alt))*Math.abs(Math.cos(rad(s.az-az))):0;
   return{d,pitch:d+Math.max(sh,0.1),shadow:sh}}
-function getLayout(){
-  const k=layoutKey();if(LAY&&LAYK===k)return LAY;LAYK=k;const g=geo();
-  if(!g||g.xy.length<3||!S.pv.pmax){LAY={mods:[],g,n:0};return LAY}
+let AUTO=null,AUTOK='';
+function autoGrid(){
+  const k=layoutKey();if(AUTO&&AUTOK===k)return AUTO;AUTOK=k;const g=geo();
+  if(!g||g.xy.length<3||!S.pv.pmax){AUTO={mods:[],g,n:0};return AUTO}
   const{tilt,az}=plane(),land=S.lay.orient==='landscape',sl=land?S.pv.W:S.pv.L,wd=land?S.pv.L:S.pv.W,rp=rowPitch(tilt,az,sl);
   const c=Math.cos(rad(az)),s=Math.sin(rad(az)),A=([x,y])=>[x*c-y*s,x*s+y*c],xyAB=g.xy.map(A);
   const mnA=Math.min(...xyAB.map(q=>q[0])),mxA=Math.max(...xyAB.map(q=>q[0])),mnB=Math.min(...xyAB.map(q=>q[1])),mxB=Math.max(...xyAB.map(q=>q[1]));
@@ -204,8 +205,40 @@ function getLayout(){
       if(ok)list.push({i,j,a,b,w:wd,d:rp.d})}
     if(!best||list.length>best.length)best=list}
   const mods=best.map(m=>Object.assign(m,{key:m.i+','+m.j}));
-  LAY={mods,g,n:mods.length,tilt,az,sl,rp,c,s};return LAY}
-const activeMods=()=>{const L=getLayout();return L.mods.filter(m=>!S.lay.off[m.key])};
+  AUTO={mods,g,n:mods.length,tilt,az,sl,rp,c,s,wd};return AUTO}
+/* วางแผงเอง: เก็บจุดกึ่งกลางแผงเป็น [ละติจูด, ลองจิจูด] จึงไม่หายเมื่อแก้มุมหรือรูปหลังคา แผงที่ล้ำขอบหรือซ้อนกันจะถูกทำเครื่องหมาย bad และไม่นับ */
+const toXY=(g,la,lo)=>[(lo-g.lo0)*g.k,(la-g.la0)*MLAT];
+function getLayout(){
+  const k=layoutKey()+'|'+JSON.stringify(S.lay.manual||0);if(LAY&&LAYK===k)return LAY;LAYK=k;const A=autoGrid();
+  if(!Array.isArray(S.lay.manual)||!A.g||!A.rp){LAY=Object.assign({},A,{max:A.n,manual:false});return LAY}
+  const{g,c,s,rp,wd}=A,mods=[];
+  S.lay.manual.forEach((p,idx)=>{const[x,y]=toXY(g,p[0],p[1]),a=x*c-y*s-wd/2,b=x*s+y*c-rp.d/2;
+    mods.push({i:idx,j:0,a,b,w:wd,d:rp.d,idx,key:'m'+idx,bad:!placeOK(A,a,b,mods)})});
+  LAY=Object.assign({},A,{mods,n:mods.filter(m=>!m.bad).length,max:A.n,manual:true});return LAY}
+// ตรวจว่าวางแผง (มุมซ้าย-ล่าง a,b) ได้: อยู่ในหลังคา ห่างขอบตามที่ตั้ง และไม่ซ้อนแผงอื่น (กันเงาแถวด้วย)
+function placeOK(A,a,b,others){const{g,c,s,rp,wd}=A,sb=S.lay.setback;
+  const pts=[[a,b],[a+wd,b],[a+wd,b+rp.d],[a,b+rp.d],[a+wd/2,b+rp.d/2]];
+  if(!pts.every(([pa,pb])=>{const x=pa*c+pb*s,y=-pa*s+pb*c;return inPoly(g.xy,x,y)&&dEdge(g.xy,x,y)>=sb-1e-6}))return false;
+  return !others.some(m=>!m.bad&&Math.abs(m.a-a)<wd-1e-6&&Math.abs(m.b-b)<rp.pitch-1e-6)}
+const modCenter=(A,m)=>{const a=m.a+m.w/2,b=m.b+m.d/2;return toLL(A.g,a*A.c+b*A.s,-a*A.s+b*A.c)};
+function manualEnter(){const L=getLayout(),A=autoGrid();if(!A.g||!A.rp)return;S.lay.manual=L.mods.filter(m=>!S.lay.off[m.key]&&!m.bad).map(m=>modCenter(A,m));S.lay.off={};selIdx=-1;inval();LAYK=''}
+function manualAuto(){S.lay.manual=null;S.lay.off={};selIdx=-1;inval();LAYK=''}
+// เพิ่มแผงที่ตำแหน่ง la,lo (ดูดเข้าแนวแผงข้างเคียง) คืน true ถ้าวางได้
+function manualAdd(la,lo){const A=autoGrid();if(!A.g||!A.rp||!Array.isArray(S.lay.manual))return false;const L=getLayout(),q=snapCenter(L,A,la,lo,-1),[x,y]=toXY(A.g,q[0],q[1]),a=x*A.c-y*A.s-A.wd/2,b=x*A.s+y*A.c-A.rp.d/2;
+  if(!placeOK(A,a,b,L.mods))return false;S.lay.manual.push(q);selIdx=S.lay.manual.length-1;inval();LAYK='';return true}
+function snapCenter(L,A,la,lo,ign){const[x,y]=toXY(A.g,la,lo),a=x*A.c-y*A.s,b=x*A.s+y*A.c,step=A.wd+S.lay.gap;let na=a,nb=b,ba=0.45,bb=0.45;
+  L.mods.forEach(m=>{if(m.idx===ign||m.bad)return;const ma=m.a+m.w/2,mb=m.b+m.d/2;
+    [ma-step,ma,ma+step].forEach(v=>{const d=Math.abs(v-a);if(d<ba){ba=d;na=v}});
+    [mb-A.rp.pitch,mb,mb+A.rp.pitch].forEach(v=>{const d=Math.abs(v-b);if(d<bb){bb=d;nb=v}})});
+  return toLL(A.g,na*A.c+nb*A.s,-na*A.s+nb*A.c)}
+// เติมแผงให้เต็มที่ว่างตามตารางอัตโนมัติ (ไม่ซ้อนแผงที่วางไว้แล้ว)
+function manualFill(){const A=autoGrid();if(!A.g||!A.rp||!Array.isArray(S.lay.manual))return 0;let n=0,L=getLayout();const cur=L.mods.slice();
+  A.mods.forEach(m=>{if(placeOK(A,m.a,m.b,cur)){const q=modCenter(A,m);S.lay.manual.push(q);cur.push({a:m.a,b:m.b,w:m.w,d:m.d,bad:false});n++}});
+  inval();LAYK='';return n}
+let selIdx=-1,layTool='add';
+function manualDelSel(){if(!Array.isArray(S.lay.manual)||selIdx<0||selIdx>=S.lay.manual.length)return false;S.lay.manual.splice(selIdx,1);selIdx=-1;inval();LAYK='';return true}
+document.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&STEPS[step][0]==='layout'&&!/INPUT|SELECT|TEXTAREA/.test((document.activeElement||{}).tagName||'')){if(manualDelSel()){e.preventDefault();applyAuto();if(MAP)MAP.render();if(V3D)V3D.render();refresh()}}});
+const activeMods=()=>{const L=getLayout();return L.mods.filter(m=>!m.bad&&!S.lay.off[m.key])};
 const kwp=()=>activeMods().length*S.pv.pmax/1000;
 
 /* ---------- อินเวอร์เตอร์และการต่อสตริง ---------- */
@@ -483,6 +516,7 @@ roof(){
 /* ---------- ขั้น 4: วางแผง ---------- */
 layout(){const C=cat(),P=S.pv,flush=S.roof.type==='pitched';
   if(!P.pmax||!C.panels.some(p=>p.id===P.id)){const p=C.panels.find(x=>x.id===P.id)||C.panels[0];if(p)usePanel(p)}
+  const man=Array.isArray(S.lay.manual);selIdx=-1;
   const brands=[...new Set(C.panels.map(p=>p.brand))],cur=C.panels.find(p=>p.id===S.pv.id)||C.panels[0];
   $('#view').innerHTML=`<div class="grid g2"><div class="card"><h2>แผงโซลาร์</h2>
   <label class="f"><span>ยี่ห้อ</span><div class="ib"><select id="pbr">${brands.map(b=>`<option${b===cur.brand?' selected':''}>${esc(b)}</option>`).join('')}</select></div></label>
@@ -493,17 +527,35 @@ layout(){const C=cat(),P=S.pv,flush=S.roof.type==='pitched';
   ${flush?`<div class="small mut" style="margin-bottom:8px">หลังคาเอียง: แผงวางขนานหลังคา เอียง ${S.roof.pitch}° หัน ${S.roof.facing}° (${dirName(S.roof.facing)})</div>`:
   fld('lay.tilt','มุมเอียงแผง',{type:'number',unit:'°',min:0})+fld('lay.az','ทิศที่แผงหัน (0=เหนือ 90=ออก 180=ใต้)',{type:'number',unit:'°',min:0})+`<div class="row" style="margin:-4px 0 10px">${[['ใต้',180],['ตะวันออก',90],['ตะวันตก',270]].map(([n,a])=>`<button class="btn sm" data-az="${a}">${n}</button>`).join('')}<button class="btn sm" id="azedge">ขนานขอบหลังคา</button></div>`}
   ${fld('lay.setback','ระยะเว้นจากขอบหลังคา',{type:'number',step:'0.1',unit:'ม.',min:0})}${fld('lay.gap','ช่องว่างระหว่างแผง',{type:'number',step:'0.01',unit:'ม.',min:0})}
-  <div id="laynote"></div><div class="row"><button class="btn sm" id="lreset">คืนแผงที่ลบทั้งหมด</button></div></div>
+  <div id="laynote"></div>
+  <h3>การวางแผง</h3><div class="row"><button class="btn sm${man?'':' on'}" id="lmax">ใส่แผงสูงสุด (อัตโนมัติ)</button><button class="btn sm${man?' on':''}" id="lman">วางแผงเอง</button></div>
+  ${man?`<div class="row" style="margin-top:6px"><button class="btn sm${layTool==='add'?' on':''}" id="tadd">เพิ่มแผง</button><button class="btn sm${layTool==='sel'?' on':''}" id="tsel">เลือก/ย้าย</button><button class="btn sm" id="tdel">ลบแผงที่เลือก</button><button class="btn sm" id="tfill">เติมให้เต็มที่ว่าง</button><button class="btn sm" id="tclr2">ล้างแผงทั้งหมด</button></div><div class="small mut" id="manmsg" style="margin-top:4px">โหมดวางแผงเอง: คลิกที่ว่างบนหลังคาเพื่อเพิ่ม ลากแผงเพื่อย้าย (ดูดเข้าแนวแผงข้างเคียง) แผงสีแดงวางไม่ได้และไม่นับ</div>`:`<div class="row" style="margin-top:6px"><button class="btn sm" id="lreset">คืนแผงที่ลบทั้งหมด</button></div>`}</div>
   <div><div class="row noprint" style="margin-bottom:6px"><button class="btn sm${view3==='2d'?' on':''}" id="v2">2D แผนที่</button><button class="btn sm${view3==='3d'?' on':''}" id="v3">3D</button></div>
-  <div class="mapwrap" id="m4"></div><div class="small mut" style="margin:4px 2px">${view3==='2d'?'คลิกที่แผงเพื่อลบ/ใส่คืน (แผงสีเทาคือแผงที่ลบแล้ว)':'ลากเพื่อหมุนมุมมอง'}</div></div></div>`;
+  <div class="mapwrap" id="m4"></div><div class="small mut" style="margin:4px 2px">${view3==='2d'?(man?'เพิ่มแผง: คลิกที่ว่างบนหลังคา · ลากแผงเพื่อย้าย · คลิกแผงเพื่อเลือก (กรอบเหลือง) แล้วกด “ลบแผงที่เลือก” หรือปุ่ม Delete':'คลิกที่แผงเพื่อลบ/ใส่คืน (แผงสีเทาคือแผงที่ลบแล้ว)'):'ลากเพื่อหมุนมุมมอง'}</div></div></div>`;
   $('#pbr').onchange=e=>{usePanel(C.panels.find(p=>p.brand===e.target.value));VIEWS.layout();refresh()};
   $('#pmd').onchange=e=>{usePanel(C.panels.find(p=>p.id===e.target.value));VIEWS.layout();refresh()};
   $$('[data-az]').forEach(b=>b.onclick=()=>{S.lay.az=+b.dataset.az;S.lay.off={};inval();applyAuto();VIEWS.layout();refresh()});
   const ae=$('#azedge');if(ae)ae.onclick=()=>{const g=geo();if(!g)return;const ei=edgeInfo(g.xy);let best=180,bd=999;ei.forEach(e=>[0,90,180,270].forEach(o=>{const a=(e.brg+90+o)%360,d=Math.min(Math.abs(a-180),360-Math.abs(a-180));if(d<bd){bd=d;best=a}}));S.lay.az=Math.round(best);S.lay.off={};inval();applyAuto();VIEWS.layout();refresh()};
-  $('#lreset').onclick=()=>{S.lay.off={};inval();if(MAP)MAP.render();refresh()};
+  const lr=$('#lreset');if(lr)lr.onclick=()=>{S.lay.off={};inval();if(MAP)MAP.render();refresh()};
+  const mmsg=t=>{const e=$('#manmsg');if(e)e.textContent=t};
+  $('#lmax').onclick=()=>{manualAuto();applyAuto();VIEWS.layout();refresh()};
+  $('#lman').onclick=()=>{if(!Array.isArray(S.lay.manual))manualEnter();applyAuto();VIEWS.layout();refresh()};
+  if(man){const redraw=()=>{applyAuto();if(MAP)MAP.render();if(V3D)V3D.render();refresh()};
+    $('#tadd').onclick=()=>{layTool='add';VIEWS.layout();refresh()};$('#tsel').onclick=()=>{layTool='sel';VIEWS.layout();refresh()};
+    $('#tdel').onclick=()=>{if(manualDelSel())redraw();else mmsg('ยังไม่ได้เลือกแผง คลิกที่แผงก่อน')};
+    $('#tfill').onclick=()=>{const n=manualFill();redraw();mmsg(n?'เติมแผงเพิ่ม '+n+' แผง':'ไม่มีที่ว่างพอสำหรับแผงเพิ่ม')};
+    $('#tclr2').onclick=()=>{S.lay.manual=[];selIdx=-1;inval();LAYK='';redraw()}}
   $('#v2').onclick=()=>{view3='2d';VIEWS.layout();refresh()};$('#v3').onclick=()=>{view3='3d';VIEWS.layout();refresh()};
-  if(view3==='3d'){MAP=null;V3D=new V3($('#m4'),520)}else{const g=geo();MAP=mkMap('m4',{lat:g?g.la0:S.lat,lon:g?g.lo0:S.lon,z:19,h:520,draw(c,m){drawRoof(c,m,false);drawMods(c,m)},
-    hit(x,y,m){const L=getLayout();if(!L.g)return null;for(const md of L.mods){const q=modPoly(L,md).map(p=>m.toS(p[0],p[1])),xs=q.map(p=>p[0]),ys=q.map(p=>p[1]);if(x>=Math.min(...xs)&&x<=Math.max(...xs)&&y>=Math.min(...ys)&&y<=Math.max(...ys)&&inPoly(q,x,y))return{click:()=>{S.lay.off[md.key]?delete S.lay.off[md.key]:S.lay.off[md.key]=1;inval();LAYK='';m.render();refresh()}}}return null}})}
+  if(view3==='3d'){MAP=null;V3D=new V3($('#m4'),520)}else{const g=geo();let rev=null;MAP=mkMap('m4',{lat:g?g.la0:S.lat,lon:g?g.lo0:S.lon,z:19,h:520,draw(c,m){drawRoof(c,m,false);drawMods(c,m,true)},
+    hit(x,y,m){const L=getLayout();if(!L.g)return null;for(let k=L.mods.length-1;k>=0;k--){const md=L.mods[k],q=modPoly(L,md).map(p=>m.toS(p[0],p[1])),xs=q.map(p=>p[0]),ys=q.map(p=>p[1]);
+      if(x>=Math.min(...xs)&&x<=Math.max(...xs)&&y>=Math.min(...ys)&&y<=Math.max(...ys)&&inPoly(q,x,y)){
+        if(!L.manual)return{click:()=>{S.lay.off[md.key]?delete S.lay.off[md.key]:S.lay.off[md.key]=1;inval();LAYK='';m.render();refresh()}};
+        const idx=md.idx,cen=S.lay.manual[idx],[cx,cy]=m.toS(cen[0],cen[1]),ox=x-cx,oy=y-cy;selIdx=idx;
+        return{click:()=>{selIdx=idx;m.render()},drag:(la,lo)=>{if(!rev)rev={idx,pos:S.lay.manual[idx].slice()};selIdx=idx;const[px,py]=m.toS(la,lo),p=m.fromS(px-ox,py-oy);
+          S.lay.manual[idx]=snapCenter(getLayout(),autoGrid(),p[0],p[1],idx);LAYK='';m.render()}}}}return null},
+    click(la,lo,m){if(!Array.isArray(S.lay.manual)){return}if(layTool==='sel'){selIdx=-1;m.render();return}
+      const ok=manualAdd(la,lo);const e=$('#manmsg');if(e)e.textContent=ok?'เพิ่มแผงแล้ว':'วางตรงนี้ไม่ได้ (ล้ำขอบ/ไม่เว้นตามระยะที่ตั้ง/ซ้อนแผงอื่น)';m.render();applyAuto();refresh()},
+    end(m){if(rev){LAYK='';const md=getLayout().mods[rev.idx];if(md&&md.bad){S.lay.manual[rev.idx]=rev.pos;LAYK='';const e=$('#manmsg');if(e)e.textContent='ย้ายไปตรงนั้นไม่ได้ จึงคืนที่เดิม'}rev=null;applyAuto();m.render();refresh()}}})}
   UPD.layout()},
 };
 function usePanel(p){if(!p)return;const d=panelDims(p);Object.assign(S.pv,{id:p.id,pmax:p.pmax,voc:p.voc,vmp:p.vmp,isc:p.isc,imp:p.imp,kVoc:p.kVoc!=null?p.kVoc:-0.25,kPmax:p.kPmax!=null?p.kPmax:-0.3,noct:p.noct||44,L:d[0],W:d[1]});S.lay.off={};inval();applyAuto()}
@@ -511,7 +563,8 @@ function modPoly(L,m){const c=L.c,s=L.s;return[[m.a,m.b],[m.a+m.w,m.b],[m.a+m.w,
 function drawRoof(c,m,edit){const p=S.roof.pts;if(!p.length)return;const q=p.map(v=>m.toS(v[0],v[1]));c.lineWidth=2;c.strokeStyle='#fff';c.fillStyle='rgba(255,255,255,.28)';c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));if(S.roof.closed||!edit)c.closePath();c.fill();c.stroke();
   if(edit){const g=geo();q.forEach((v,i)=>{c.fillStyle=i===0&&!S.roof.closed?'#ffb300':'#fff';c.strokeStyle='#1668e3';c.beginPath();c.arc(v[0],v[1],6,0,7);c.fill();c.stroke()});
     if(g&&(S.roof.closed||q.length>1)){const ei=edgeInfo(g.xy),cnt=S.roof.closed?q.length:q.length-1;c.font='12px Prompt,sans-serif';for(let i=0;i<cnt;i++){const a=q[i],b=q[(i+1)%q.length],t=fx(ei[i].len,2)+' ม.',w=c.measureText(t).width+8,mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;c.fillStyle='rgba(255,255,255,.92)';c.fillRect(mx-w/2,my-9,w,18);c.fillStyle='#1f2933';c.textAlign='center';c.fillText(t,mx,my+4)}c.textAlign='left'}}}
-function drawMods(c,m){const L=getLayout();if(!L.g)return;L.mods.forEach(md=>{const q=modPoly(L,md).map(p=>m.toS(p[0],p[1])),off=S.lay.off[md.key];c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));c.closePath();c.fillStyle=off?'rgba(150,150,150,.35)':'rgba(15,30,70,.88)';c.fill();c.strokeStyle=off?'rgba(255,255,255,.4)':'#8fb2f0';c.lineWidth=1;c.stroke()})}
+function drawMods(c,m,edit){const L=getLayout();if(!L.g)return;L.mods.forEach(md=>{if(md.bad&&!edit)return;const q=modPoly(L,md).map(p=>m.toS(p[0],p[1])),off=S.lay.off[md.key],sel=edit&&L.manual&&md.idx===selIdx;c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));c.closePath();
+  c.fillStyle=md.bad?'rgba(220,40,40,.6)':off?'rgba(150,150,150,.35)':'rgba(15,30,70,.88)';c.fill();c.strokeStyle=sel?'#ffb300':md.bad?'#fff':off?'rgba(255,255,255,.4)':'#8fb2f0';c.lineWidth=sel?3:1;c.stroke()})}
 
 /* ---------- ขั้น 5: ออกแบบไฟฟ้า ---------- */
 VIEWS.elec=function(){
@@ -537,8 +590,9 @@ VIEWS.elec=function(){
 const UPD={};
 UPD.layout=()=>{const L=getLayout(),E=$('#laynote');if(!E)return;const N=activeMods().length;let h='';
   if(!S.roof.pts.length||S.roof.pts.length<3)h='<div class="errbox">ยังไม่มีรูปหลังคา ไปขั้น “วาดหลังคา” ก่อน</div>';
-  else if(!L.n)h='<div class="errbox">วางแผงไม่ได้ หลังคาเล็กเกินไปหรือระยะเว้นขอบมากเกินไป</div>';
+  else if(!L.n&&!L.manual)h='<div class="errbox">วางแผงไม่ได้ หลังคาเล็กเกินไปหรือระยะเว้นขอบมากเกินไป</div>';
   else{h=`<div class="kpi"><div><small>แผงที่วางได้</small><b>${L.n}</b></div><div><small>ติดตั้งจริง</small><b>${N}</b></div><div><small>กำลังไฟ DC</small><b>${fx(kwp(),2)} kWp</b></div></div>`;
+    if(L.manual){const bad=L.mods.filter(m=>m.bad).length;h+=`<div class="small">วางแล้ว <b>${L.n}</b> / สูงสุดโดยประมาณ <b>${L.max}</b> แผง (วางอัตโนมัติเต็มหลังคา)${bad?` · <span class="sev">แผงที่วางไม่ได้ ${bad} แผง (สีแดง ไม่นับ)</span>`:''}</div>`}
     const pm=S.pv.pmax,rec=Math.max(1,Math.round(S.cons.annual/1450/(pm/1000)));
     h+=`<div class="small mut" style="margin:6px 0">การใช้ไฟ ${fx(S.cons.annual)} kWh/ปี ใช้โซลาร์ราว ${rec} แผง (${fx(rec*pm/1000,2)} kWp) ก็ผลิตเท่ากับที่ใช้ทั้งปี${N>rec*1.3?' · ที่วางไว้มากกว่ามาก ไฟส่วนใหญ่จะขายคืน':''}</div>${N!==rec&&L.n>=rec?`<button class="btn sm" id="lrec">ใช้ ${rec} แผงตามการใช้ไฟ</button>`:''}`;
     if(L.rp&&S.roof.type!=='pitched')h+=`<div class="small mut">ระยะแถวต่อแถว ${fx(L.rp.pitch,2)} ม. (กันเงาแถวหน้าที่ 9:00 น. วันที่ 21 ธ.ค.)</div>`}
@@ -629,7 +683,7 @@ function drawReportCharts(){const c1=$('#rc1'),c2=$('#rc2');if(!c1||!c2)return;c
   line(c2,E.cum.map((_,i)=>i),E.cum,'บาท (สะสม)')}
 
 /* ---------- เริ่มต้น ---------- */
-window.DS={S:()=>S,getLayout,activeMods,kwp,simulate,economics,designCheck,autoDesign,applyAuto,autoStrings,volts,parseLoc,usePanel,setClim:c=>{CLIM=c;CLIMSRC='nasa';inval()},set:o=>{S=Object.assign(DEF(),o);inval()},go,plane,acPart,sunAt};
+window.DS={manualEnter,manualAuto,manualAdd,manualFill,manualDelSel,autoGrid,S:()=>S,getLayout,activeMods,kwp,simulate,economics,designCheck,autoDesign,applyAuto,autoStrings,volts,parseLoc,usePanel,setClim:c=>{CLIM=c;CLIMSRC='nasa';inval()},set:o=>{S=Object.assign(DEF(),o);inval()},go,plane,acPart,sunAt};
 if(!S.pv.id){const p=cat().panels[0];if(p)usePanel(p)}
 go(0);
 </script>
