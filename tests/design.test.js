@@ -84,6 +84,42 @@ setTimeout(() => {
   eq('จำกัดขายคืน 5 kW ทำให้ไฟขายลดลง', R5.tot.exp < ex0, true);
   eq('ไฟขายคืนต่อปี ≤ 5 kW × ชั่วโมงแสงทั้งปี', R5.tot.exp <= 5 * 4400, true);
   S.feedLimit = ''; DS.set(S);
+  // ---- สิ่งกีดขวาง อาคารข้างเคียง ต้นไม้ และเงา ----
+  const P = (x, y) => [la0 + y / h, lo0 + x / k], poly = (x0, y0, x1, y1) => [P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)];
+  S.obj = []; S.lay.manual = null; S.lay.off = {}; S.feedLimit = ''; DS.set(S); DS.applyAuto();
+  const base = DS.simulate(), nBase = DS.activeMods().length, genBase = base.tot.gen;
+  eq('ไม่มีวัตถุ → ไม่มีตารางเงา', DS.shadeTab(), null); eq('ไม่มีวัตถุ → เงา 0%', base.tot.shade, 0);
+  // เรขาคณิตตรงๆ: อาคารสูง 10 ม. อยู่ทางใต้ห่าง 8–12 ม. จุด (0,0,3) แสงจากใต้
+  S.obj = [{ t: 'building', pts: poly(-2, -12, 2, -8), h: 10 }]; DS.set(S); const g0 = DS.getLayout().g, E0 = DS.objXY(g0), vv = a => ({ dx: 0, dy: -Math.cos(a * Math.PI / 180), dz: Math.sin(a * Math.PI / 180) });
+  eq('แสงต่ำ 30° ถูกอาคารบัง', DS.blockedAt(g0, E0, 0, 0, 3, vv(30)), 1); eq('แสงสูง 60° ไม่ถูกบัง', DS.blockedAt(g0, E0, 0, 0, 3, vv(60)), 0);
+  eq('จุดที่อยู่นอกแนวอาคาร (x=6) ไม่ถูกบัง', DS.blockedAt(g0, E0, 6, 0, 3, vv(30)), 0);
+  S.obj = [{ t: 'tree', c: P(0, -5), h: 8, r: 2, th: 2 }]; DS.set(S); const gT = DS.getLayout().g;
+  eq('แสงผ่านพุ่มไม้ถูกบังราว 70%', Math.abs(DS.blockedAt(gT, DS.objXY(gT), 0, 0, 1, vv(30)) - 0.7) < 1e-9, true);
+  eq('แสงลอดใต้พุ่มไม้ (ต่ำกว่าโคนพุ่ม) ไม่ถูกบัง', DS.blockedAt(gT, DS.objXY(gT), 0, 0, 0.2, vv(5)) < 0.01, true);
+  // สิ่งกีดขวางบนหลังคา (ปล่อง 1×1 ม. กลางหลังคา) → แผงไม่ทับ
+  S.obj = [{ t: 'obstacle', pts: poly(-0.5, -0.5, 0.5, 0.5), h: 1.5 }]; DS.set(S); DS.applyAuto();
+  const nObs = DS.activeMods().length, A1 = DS.autoGrid();
+  eq('มีสิ่งกีดขวางกลางหลังคา แผงลดลง', nObs < nBase, true);
+  let hit = 0; DS.activeMods().forEach(m => { if (DS.obsHit(A1.O, A1.c, A1.s, m.a, m.b, m.w, m.d)) hit++; }); eq('ไม่มีแผงทับสิ่งกีดขวาง', hit, 0);
+  S.lay.manual = []; DS.set(S); eq('วางแผงเองทับสิ่งกีดขวางไม่ได้', DS.manualAdd(la0, lo0), false); eq('วางแผงเองข้างสิ่งกีดขวางได้', DS.manualAdd(la0, lo0 + 3 / k), true);
+  S.lay.manual = null; DS.set(S);
+  eq('สิ่งกีดขวางเตี้ยบนหลังคา ไม่ทำให้เกิดเงาข้ามแถว (เงา < 8%)', DS.simulate().tot.shade < 8, true);
+  // อาคารสูงทางใต้ (บังมาก) เทียบกับทางเหนือ (บังน้อย)
+  S.obj = [{ t: 'building', pts: poly(-6, -13, 6, -9), h: 14 }]; S.lay.manual = null; DS.set(S); DS.applyAuto();
+  const Rs = DS.simulate(), tab = DS.shadeTab();
+  eq('ตารางเงา 12 เดือน × 24 ชม.', tab.length === 12 && tab.every(r => r.length === 24), true);
+  eq('อาคารสูงทางใต้ทำให้เสียแสง > 1% ต่อปี', Rs.tot.shade > 1, true);
+  eq('ผลิตไฟลดลงเมื่อมีเงา', Rs.tot.gen < genBase, true);
+  eq('เงาไม่ลดพลังงานเกินพลังงานที่ได้ทั้งหมด (< 60%)', Rs.tot.shade < 60, true);
+  eq('ธ.ค. เสียแสงมากกว่า มิ.ย. (ดวงอาทิตย์ต่ำทางใต้)', Rs.months[11].poaU - Rs.months[11].poa > Rs.months[5].poaU - Rs.months[5].poa, true);
+  console.log('   shade south bldg =', Rs.tot.shade.toFixed(1) + '%', 'gen', Math.round(Rs.tot.gen), 'vs', Math.round(genBase));
+  S.obj = [{ t: 'building', pts: poly(-6, 9, 6, 13), h: 14 }]; DS.set(S); const RnN = DS.simulate();
+  eq('อาคารสูงทางเหนือเสียแสงน้อยกว่าทางใต้', RnN.tot.shade < Rs.tot.shade, true);
+  console.log('   shade north bldg =', RnN.tot.shade.toFixed(2) + '%', ' obstacle 1x1: modules', nBase, '->', nObs);
+  S.obj = [{ t: 'tree', c: P(0, -9), h: 9, r: 3, th: 2 }]; DS.set(S); const Rt = DS.simulate();
+  console.log('   shade tree =', Rt.tot.shade.toFixed(2) + '%', 'gen', Math.round(Rt.tot.gen), 'Dec', (100 * (1 - Rs.months[11].poa / Rs.months[11].poaU)).toFixed(1) + '% (south bldg)');
+  eq('ต้นไม้ทางใต้ทำให้เสียแสง > 0 แต่น้อยกว่าอาคารสูง', Rt.tot.shade > 0 && Rt.tot.shade < Rs.tot.shade, true);
+  S.obj = []; DS.set(S); DS.applyAuto(); eq('ลบวัตถุแล้วกลับเท่าเดิม', Math.round(DS.simulate().tot.gen), Math.round(genBase)); eq('จำนวนแผงกลับเท่าเดิม', DS.activeMods().length, nBase);
   // เปิดทุกขั้นไม่มี error
   S.cons.buy = 4.4; S.cons.fit = 2.2; DS.set(S); DS.applyAuto();
   ['info', 'load', 'roof', 'layout', 'elec', 'cost', 'report'].forEach((id, i) => { try { DS.go(i) } catch (e) { errs.push(id + ': ' + e.message) } });

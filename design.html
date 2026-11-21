@@ -143,7 +143,7 @@ function panelDims(p){const m=/(\d{3,4})\s*[×x]\s*(\d{3,4})/.exec(p.note||'');i
 /* ---------- สถานะโครงการ ---------- */
 const DEF=()=>({v:1,name:'โครงการของฉัน',customer:'',addr:'',lat:15.2447,lon:104.8472,grid:'1',feedLimit:'',desc:'',tmin:12,
   cons:{type:'model',annual:5356,monthly:[400,450,600,705,409,392,400,400,400,400,400,400],profile:'home',buy:4.4,fit:2.2,growth:2,disc:3.7},
-  roof:{pts:[],height:6,type:'flat',pitch:15,facing:180},
+  roof:{pts:[],height:6,type:'flat',pitch:15,facing:180},obj:[],
   pv:{id:'',pmax:0,voc:0,vmp:0,isc:0,imp:0,kVoc:-0.25,kPmax:-0.3,noct:44,L:2.382,W:1.134},
   lay:{orient:'portrait',tilt:10,az:180,setback:0.5,gap:0.02,off:{}},
   inv:{mode:'auto',ratio:120,id:'',n:1,man:[],meter:true,comm:false},
@@ -183,7 +183,7 @@ const dEdge=(xy,x,y)=>Math.min(...xy.map((a,i)=>dSeg(x,y,a,xy[(i+1)%xy.length]))
 function edgeInfo(xy){return xy.map((a,i)=>{const b=xy[(i+1)%xy.length],dx=b[0]-a[0],dy=b[1]-a[1];return{len:Math.hypot(dx,dy),brg:(deg(Math.atan2(dx,dy))+360)%360}})}
 
 /* ---------- วางแผง ---------- */
-function layoutKey(){return JSON.stringify([S.roof.pts,S.roof.type,S.roof.pitch,S.roof.facing,S.pv.L,S.pv.W,S.lay.orient,S.lay.tilt,S.lay.az,S.lay.setback,S.lay.gap,S.lat])}
+function layoutKey(){return JSON.stringify([S.roof.pts,S.roof.type,S.roof.pitch,S.roof.facing,S.pv.L,S.pv.W,S.lay.orient,S.lay.tilt,S.lay.az,S.lay.setback,S.lay.gap,S.lat,S.obj])}
 let LAY=null,LAYK='';
 function plane(){const flush=S.roof.type==='pitched';return{tilt:flush?S.roof.pitch:S.lay.tilt,az:flush?S.roof.facing:S.lay.az}}
 function rowPitch(tilt,az,slopeLen){const b=rad(tilt),d=slopeLen*Math.cos(b);
@@ -197,15 +197,15 @@ function autoGrid(){
   const{tilt,az}=plane(),land=S.lay.orient==='landscape',sl=land?S.pv.W:S.pv.L,wd=land?S.pv.L:S.pv.W,rp=rowPitch(tilt,az,sl);
   const c=Math.cos(rad(az)),s=Math.sin(rad(az)),A=([x,y])=>[x*c-y*s,x*s+y*c],xyAB=g.xy.map(A);
   const mnA=Math.min(...xyAB.map(q=>q[0])),mxA=Math.max(...xyAB.map(q=>q[0])),mnB=Math.min(...xyAB.map(q=>q[1])),mxB=Math.max(...xyAB.map(q=>q[1]));
-  const sb=S.lay.setback,stepA=wd+S.lay.gap;let best=null;
+  const sb=S.lay.setback,stepA=wd+S.lay.gap,O=objXY(g,'obstacle').map(e=>e.xy);let best=null;
   for(let oa=0;oa<4;oa++)for(let ob=0;ob<4;ob++){
     const a0=mnA+sb+oa*stepA/4,b0=mnB+sb+ob*rp.pitch/4,list=[];
     for(let j=0,b=b0;b+rp.d<=mxB-sb+1e-6;j++,b+=rp.pitch)for(let i=0,a=a0;a+wd<=mxA-sb+1e-6;i++,a+=stepA){
       const pts=[[a,b],[a+wd,b],[a+wd,b+rp.d],[a,b+rp.d],[a+wd/2,b+rp.d/2]],ok=pts.every(([pa,pb])=>{const x=pa*c+pb*s,y=-pa*s+pb*c;return inPoly(g.xy,x,y)&&dEdge(g.xy,x,y)>=sb-1e-6});
-      if(ok)list.push({i,j,a,b,w:wd,d:rp.d})}
+      if(ok&&!obsHit(O,c,s,a,b,wd,rp.d))list.push({i,j,a,b,w:wd,d:rp.d})}
     if(!best||list.length>best.length)best=list}
   const mods=best.map(m=>Object.assign(m,{key:m.i+','+m.j}));
-  AUTO={mods,g,n:mods.length,tilt,az,sl,rp,c,s,wd};return AUTO}
+  AUTO={mods,g,n:mods.length,tilt,az,sl,rp,c,s,wd,O};return AUTO}
 /* วางแผงเอง: เก็บจุดกึ่งกลางแผงเป็น [ละติจูด, ลองจิจูด] จึงไม่หายเมื่อแก้มุมหรือรูปหลังคา แผงที่ล้ำขอบหรือซ้อนกันจะถูกทำเครื่องหมาย bad และไม่นับ */
 const toXY=(g,la,lo)=>[(lo-g.lo0)*g.k,(la-g.la0)*MLAT];
 function getLayout(){
@@ -219,6 +219,7 @@ function getLayout(){
 function placeOK(A,a,b,others){const{g,c,s,rp,wd}=A,sb=S.lay.setback;
   const pts=[[a,b],[a+wd,b],[a+wd,b+rp.d],[a,b+rp.d],[a+wd/2,b+rp.d/2]];
   if(!pts.every(([pa,pb])=>{const x=pa*c+pb*s,y=-pa*s+pb*c;return inPoly(g.xy,x,y)&&dEdge(g.xy,x,y)>=sb-1e-6}))return false;
+  if(obsHit(A.O,c,s,a,b,wd,rp.d))return false;
   return !others.some(m=>!m.bad&&Math.abs(m.a-a)<wd-1e-6&&Math.abs(m.b-b)<rp.pitch-1e-6)}
 const modCenter=(A,m)=>{const a=m.a+m.w/2,b=m.b+m.d/2;return toLL(A.g,a*A.c+b*A.s,-a*A.s+b*A.c)};
 function manualEnter(){const L=getLayout(),A=autoGrid();if(!A.g||!A.rp)return;S.lay.manual=L.mods.filter(m=>!S.lay.off[m.key]&&!m.bad).map(m=>modCenter(A,m));S.lay.off={};selIdx=-1;inval();LAYK=''}
@@ -240,6 +241,35 @@ function manualDelSel(){if(!Array.isArray(S.lay.manual)||selIdx<0||selIdx>=S.lay
 document.addEventListener('keydown',e=>{if((e.key==='Delete'||e.key==='Backspace')&&STEPS[step][0]==='layout'&&!/INPUT|SELECT|TEXTAREA/.test((document.activeElement||{}).tagName||'')){if(manualDelSel()){e.preventDefault();applyAuto();if(MAP)MAP.render();if(V3D)V3D.render();refresh()}}});
 const activeMods=()=>{const L=getLayout();return L.mods.filter(m=>!m.bad&&!S.lay.off[m.key])};
 const kwp=()=>activeMods().length*S.pv.pmax/1000;
+
+/* ---------- สิ่งกีดขวาง อาคารข้างเคียง ต้นไม้ และเงา ---------- */
+const OBJ_NAME={building:'อาคารข้างเคียง',obstacle:'สิ่งกีดขวางบนหลังคา',tree:'ต้นไม้'};
+const OBJ_DEF={building:{h:8},obstacle:{h:1.2},tree:{h:7,r:2,th:2}};
+const TREE_OPACITY=0.7; // พุ่มใบบังแสงตรงราว 70%
+function roofZ(g,x,y){const H=+S.roof.height||0;if(S.roof.type!=='pitched'||!(S.roof.pitch>0))return H;const f=rad(S.roof.facing),fx_=Math.sin(f),fy=Math.cos(f),mx=Math.max(...g.xy.map(q=>q[0]*fx_+q[1]*fy));return H+(mx-(x*fx_+y*fy))*Math.tan(rad(S.roof.pitch))}
+function objXY(g,type){return(S.obj||[]).filter(o=>!type||o.t===type).map(o=>o.t==='tree'?{o,xy:[toXY(g,o.c[0],o.c[1])]}:{o,xy:o.pts.map(p=>toXY(g,p[0],p[1]))})}
+function objZ(g,e){const o=e.o;if(o.t==='building')return[0,+o.h||0];if(o.t==='tree')return[Math.min(+o.th||0,(+o.h||0)-0.1),+o.h||0];
+  const cx=e.xy.reduce((a,q)=>a+q[0],0)/e.xy.length,cy=e.xy.reduce((a,q)=>a+q[1],0)/e.xy.length,zr=roofZ(g,cx,cy);return[zr,zr+(+o.h||0)]}
+function segX(a,b,c,d){const o=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]);return o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0}
+function segPoly(xy,p,q){if(inPoly(xy,p[0],p[1])||inPoly(xy,q[0],q[1]))return true;for(let i=0;i<xy.length;i++)if(segX(p,q,xy[i],xy[(i+1)%xy.length]))return true;return false}
+function polysInt(A,B){return A.some(p=>inPoly(B,p[0],p[1]))||B.some(p=>inPoly(A,p[0],p[1]))||A.some((p,i)=>B.some((q,j)=>segX(p,A[(i+1)%A.length],q,B[(j+1)%B.length])))}
+// แผง (มุม a,b กว้าง wd ลึก d ในกรอบแถว) ชนสิ่งกีดขวางบนหลังคาหรือไม่ (เผื่อ 0.15 ม.)
+function obsHit(O,c,s,a,b,wd,d){if(!O||!O.length)return false;const k=0.15,R=[[a-k,b-k],[a+wd+k,b-k],[a+wd+k,b+d+k],[a-k,b+d+k]].map(([pa,pb])=>[pa*c+pb*s,-pa*s+pb*c]);return O.some(xy=>polysInt(R,xy))}
+function sunVec(doy,hs){const s=sunAt(S.lat,doy,hs);if(s.alt<=1)return null;const ca=Math.cos(rad(s.alt));return{dx:Math.sin(rad(s.az))*ca,dy:Math.cos(rad(s.az))*ca,dz:Math.sin(rad(s.alt)),alt:s.alt,az:s.az}}
+// สัดส่วนแสงตรงที่ถูกบังที่จุด (x,y,z) ในทิศดวงอาทิตย์ v: 0 = ไม่บัง 1 = บังหมด
+function blockedAt(g,E,x,y,z,v){let tr=1;for(const e of E){const[zb,zt]=e.z||(e.z=objZ(g,e));if(zt<=z)continue;const t1=Math.max(0,(zb-z)/v.dz),t2=(zt-z)/v.dz;if(t2<=t1)continue;
+    const p=[x+v.dx*t1,y+v.dy*t1],q=[x+v.dx*t2,y+v.dy*t2];
+    if(e.o.t==='tree'){if(dSeg(e.xy[0][0],e.xy[0][1],p,q)<=(+e.o.r||0))tr*=1-TREE_OPACITY}else if(segPoly(e.xy,p,q))return 1}
+  return 1-tr}
+function modPt(g,L,m){const sl=L.sl||S.pv.L,tl=rad(L.tilt||0),flush=S.roof.type==='pitched',a=m.a+m.w/2,b=m.b+m.d/2,x=a*L.c+b*L.s,y=-a*L.s+b*L.c;return[x,y,roofZ(g,x,y)+0.1+(flush?0.05:0.5*sl*Math.sin(tl))]}
+function panelPts(g){const L=getLayout();return activeMods().map(m=>modPt(g,L,m))}
+let SHC=null,SHK='';
+// ตารางสัดส่วนแสงตรงที่ถูกบัง [เดือน][ชั่วโมง] เฉลี่ยทุกแผง (null ถ้าไม่มีวัตถุ)
+function shadeTab(){const g=geo();if(!g||!(S.obj&&S.obj.length)||!S.pv.pmax)return null;
+  const k=layoutKey()+JSON.stringify([S.lay.manual||0,S.lay.off,S.obj,S.roof.height]);if(SHC&&SHK===k)return SHC;SHK=k;
+  const E=objXY(g),P=panelPts(g),f=[];
+  for(let m=0;m<12;m++){const row=[];for(let h=0;h<24;h++){const v=sunVec(MDOY[m],h+0.5);if(!v||!P.length){row.push(0);continue}let t=0;P.forEach(([x,y,z])=>{t+=blockedAt(g,E,x,y,z,v)});row.push(t/P.length)}f.push(row)}
+  SHC=f;return f}
 
 /* ---------- อินเวอร์เตอร์และการต่อสตริง ---------- */
 function volts(){const p=S.pv,tc=S.tmin,hot=(CLIM?Math.max(...CLIM.tmax):36)+(p.noct-20)*1.25;
@@ -282,11 +312,11 @@ function acPart(inv,n){const ph=String(inv.phase||'1')==='3'?3:1,I=inv.pac/(ph==
 /* ---------- จำลองพลังงาน (รายชั่วโมง วันตัวแทนของแต่ละเดือน) ---------- */
 let SIMC=null,SIMK='';
 function inval(){SIMC=null;LAYK=''}
-function simKey(){return JSON.stringify([S.lat,S.lon,CLIMSRC,S.feedLimit,S.cons,S.lay,S.roof,S.pv,S.inv.id,S.inv.n,S.loss,S.tmin,activeMods().length])}
+function simKey(){return JSON.stringify([S.lat,S.lon,CLIMSRC,S.feedLimit,S.cons,S.lay,S.roof,S.obj,S.pv,S.inv.id,S.inv.n,S.loss,S.tmin,activeMods().length])}
 function simulate(){
   const k=simKey();if(SIMC&&SIMK===k)return SIMC;SIMK=k;
   const C=CLIM||FALL,fl=+S.feedLimit||0,pl=plane(),N=activeMods().length,P=N*S.pv.pmax,inv=invById(S.inv.id),eff=(inv&&inv.eff?inv.eff:97)/100,pacMax=inv?inv.pac*S.inv.n:P/1.2,prof=PROFILES[S.cons.profile][1],ps=prof.reduce((a,b)=>a+b,0);
-  const out=[];let tot={ghi:0,poa:0,gen:0,load:0,self:0,exp:0,imp:0,clip:0};
+  const out=[];let tot={ghi:0,poa:0,poaU:0,gen:0,load:0,self:0,exp:0,imp:0,clip:0};const SHT=shadeTab();
   for(let m=0;m<12;m++){
     const doy=MDOY[m],d=decl(doy),la=rad(S.lat),H=C.ghi[m]*1000,days=MDAYS[m];
     const x=-Math.tan(la)*Math.tan(d),ws=Math.acos(clamp(x,-1,1)),H0=24/Math.PI*1367*(1+0.033*Math.cos(2*Math.PI*doy/365))*(Math.cos(la)*Math.cos(d)*Math.sin(ws)+ws*Math.sin(la)*Math.sin(d)),
@@ -296,18 +326,19 @@ function simulate(){
     for(let h=0;h<24;h++){const hs=h+0.5,w=rad((hs-12)*15),cw=Math.cos(w),rd=den>0?Math.PI/24*(cw-Math.cos(ws))/den:0;
       if(rd<=0){hr.push(null);continue}
       const rt=rd*(a+b*cw),Ih=Math.max(0,rt*H),Id=Math.min(Ih,rd*Hd);sumIh+=Ih;hr.push({hs,Ih,Id})}
-    const sc=sumIh>0?H/sumIh:0;let poaD=0,genD=0,loadD=0,selfD=0,expD=0,impD=0,clipD=0;const ld=S.cons.monthly[m]/days;
-    for(let h=0;h<24;h++){const r=hr[h];let pac=0,gt=0;
+    const sc=sumIh>0?H/sumIh:0;let poaD=0,poaUD=0,genD=0,loadD=0,selfD=0,expD=0,impD=0,clipD=0;const ld=S.cons.monthly[m]/days;
+    for(let h=0;h<24;h++){const r=hr[h];let pac=0,gt=0,gtU=0;
       if(r){const Ih=r.Ih*sc,Id=Math.min(r.Id*sc,Ih),Ib=Ih-Id,s=sunAt(S.lat,doy,r.hs),cz=s.cz;
         if(cz>0.01){const ct=Math.max(0,cz*Math.cos(rad(pl.tilt))+Math.sqrt(Math.max(0,1-cz*cz))*Math.sin(rad(pl.tilt))*Math.cos(rad(s.az-pl.az))),Rb=ct/Math.max(cz,0.087),
           I0=1367*(1+0.033*Math.cos(2*Math.PI*doy/365))*cz,Ai=clamp(I0>0?Ib/I0:0,0,1),bt=rad(pl.tilt);
-          gt=Math.max(0,(Ib+Id*Ai)*Rb+Id*(1-Ai)*(1+Math.cos(bt))/2+Ih*0.2*(1-Math.cos(bt))/2)}}
-      poaD+=gt;
+          const dirp=(Ib+Id*Ai)*Rb,dif=Id*(1-Ai)*(1+Math.cos(bt))/2+Ih*0.2*(1-Math.cos(bt))/2,sfr=SHT?SHT[m][h]:0;gtU=Math.max(0,dirp+dif);gt=Math.max(0,dirp*(1-sfr)+dif)}}
+      poaD+=gt;poaUD+=gtU;
       if(N&&gt>0){const tm=C.t[m],amp=(C.tmax[m]-C.tmin[m])/2,ta=tm+amp*Math.cos(rad((h+0.5-14)*15)),tc=ta+(S.pv.noct-20)/800*gt,pf=Math.max(0,1+S.pv.kPmax/100*(tc-25));
         const pdc=P*gt/1000*pf*(1-S.loss/100),p0=pdc*eff;pac=Math.min(p0,pacMax);clipD+=Math.max(0,p0-pacMax)}
       const L=ld*1000*prof[h]/ps,sf=Math.min(pac,L);let ex=pac-sf;if(fl>0&&ex>fl*1000){clipD+=ex-fl*1000;ex=fl*1000}genD+=sf+ex;loadD+=L;selfD+=sf;expD+=ex;impD+=L-sf}
-    const r={ghi:C.ghi[m],poa:poaD/1000,gen:genD*days/1000,load:loadD*days/1000,self:selfD*days/1000,exp:expD*days/1000,imp:impD*days/1000,clip:clipD*days/1000,days,tamb:C.t[m]};
-    out.push(r);for(const k in tot)tot[k]+=k==='ghi'||k==='poa'?r[k]*days:r[k]}
+    const r={ghi:C.ghi[m],poa:poaD/1000,poaU:poaUD/1000,gen:genD*days/1000,load:loadD*days/1000,self:selfD*days/1000,exp:expD*days/1000,imp:impD*days/1000,clip:clipD*days/1000,days,tamb:C.t[m]};
+    out.push(r);for(const k in tot)tot[k]+=k==='ghi'||k==='poa'||k==='poaU'?r[k]*days:r[k]}
+  tot.shade=tot.poaU>0?Math.max(0,(1-tot.poa/tot.poaU)*100):0;
   SIMC={months:out,tot,kwp:P/1000,N};return SIMC}
 
 /* ---------- เศรษฐศาสตร์ ---------- */
@@ -384,6 +415,12 @@ class V3{
     const mods=activeMods(),sl=L.sl||1,tl=rad(L.tilt||0),cA=L.c,sA=L.s;
     mods.forEach(m=>{const A=(a,b)=>[a*cA+b*sA,-a*sA+b*cA],c4=[[m.a,m.b,1],[m.a+m.w,m.b,1],[m.a+m.w,m.b+m.d,0],[m.a,m.b+m.d,0]].map(([a,b,hi])=>{const[x,y]=A(a,b),z=this.zr([x,y])+0.08+(flush?0:hi*sl*Math.sin(tl));return pr(x,y,z)});
       faces.push({p:c4,f:'#1d2f57',s:'#7f9bd6',z:c4.reduce((s,v)=>s+v[2],0)/4+0.5})});
+    const prism=(P,zb,zt,ft,fs,ss)=>{const n=P.length;for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n],q=[pr(a[0],a[1],zb),pr(b[0],b[1],zb),pr(b[0],b[1],zt),pr(a[0],a[1],zt)];faces.push({p:q,f:fs,s:ss,z:q.reduce((s,v)=>s+v[2],0)/4+0.02})}
+      const t=P.map(p=>pr(p[0],p[1],zt));faces.push({p:t,f:ft,s:ss,z:t.reduce((s,v)=>s+v[2],0)/t.length+0.03})};
+    objXY(g).forEach(e=>{const[zb,zt]=objZ(g,e),o=e.o;
+      if(o.t==='tree'){const[cx,cy]=e.xy[0],oct=r=>Array.from({length:10},(_,k)=>[cx+r*Math.cos(k*Math.PI/5),cy+r*Math.sin(k*Math.PI/5)]);prism(oct(0.15),0,zb,'#6d4c41','#5d4037','#3e2723');prism(oct(+o.r||1),zb,zt,'#66bb6a','#388e3c','#1b5e20')}
+      else if(o.t==='building')prism(e.xy,0,zt,'#f0c9a0','#e3a869','#b85c00');
+      else prism(e.xy,zb,zt,'#ef9a9a','#e57373','#8e1b1b')});
     faces.sort((a,b)=>a.z-b.z);faces.forEach(F=>{c.beginPath();F.p.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));c.closePath();c.fillStyle=F.f;c.fill();c.strokeStyle=F.s;c.lineWidth=0.8;c.stroke()});
     // ทิศเหนือ
     const nx=this.W-34,ny=36,nvx=sy,nvy=cy;c.strokeStyle='#c62828';c.fillStyle='#c62828';c.lineWidth=2;c.beginPath();c.moveTo(nx,ny);c.lineTo(nx+nvx*18,ny-nvy*sp*18);c.stroke();c.font='bold 12px sans-serif';c.fillText('N',nx+nvx*22-4,ny-nvy*sp*22+4);
@@ -405,8 +442,8 @@ function line(cv,xs,ys,unit){const{c,W,H}=setupCv(cv),pl=60,pb=24,pt=14,mn=Math.
   c.fillStyle='#6b7785';c.textAlign='center';xs.forEach((x,i)=>{if(i%5===0)c.fillText('ปีที่ '+x,sx(i),H-8)});c.textAlign='right';c.fillText(unit,W-4,pt+8)}
 
 /* ---------- UI: โครง ---------- */
-const STEPS=[['info','ข้อมูลโครงการ'],['load','การใช้ไฟและค่าไฟ'],['roof','วาดหลังคา'],['layout','วางแผง'],['elec','ออกแบบไฟฟ้า'],['cost','ต้นทุน'],['report','รายงาน']];
-let step=0,MAP=null,V3D=null,view3='2d',roofTool='view';
+const STEPS=[['info','ข้อมูลโครงการ'],['load','การใช้ไฟและค่าไฟ'],['roof','หลังคาและสิ่งกีดขวาง'],['layout','วางแผง'],['elec','ออกแบบไฟฟ้า'],['cost','ต้นทุน'],['report','รายงาน']];
+let step=0,MAP=null,V3D=null,view3='2d',roofTool='view',NEWOBJ=null,SHV={m:11,h:10};
 const fld=(p,label,o={})=>`<label class="f"><span>${label}${o.req?'<b>*</b>':''}</span><div class="ib${o.ro?' ro':''}"><input data-b="${p}" type="${o.type||'text'}" ${o.step?`step="${o.step}"`:''} ${o.min!=null?`min="${o.min}"`:''} ${o.ro?'readonly':''} ${o.ph?`placeholder="${o.ph}"`:''} value="${esc(getp(p))}">${o.unit?`<i>${o.unit}</i>`:''}</div></label>`;
 const sel=(p,label,opts)=>`<label class="f"><span>${label}</span><div class="ib"><select data-b="${p}">${opts.map(([v,t])=>`<option value="${esc(v)}"${String(getp(p))===String(v)?' selected':''}>${esc(t)}</option>`).join('')}</select></div></label>`;
 const outS=(id,html)=>{const e=document.getElementById(id);if(e)e.innerHTML=html};
@@ -424,7 +461,7 @@ function refresh(){
   $('#stat').innerHTML=h;UPD[id]&&UPD[id]();save();publish()}
 let pubT=0;
 function publish(now){const f=()=>{try{const N=activeMods().length,o={name:S.name,modules:N,climSrc:CLIMSRC,seen:!!S.inv.seen,stringsOk:false};
-    if(N){const R=simulate(),E=economics(),dc=designCheck(),pl=plane();Object.assign(o,{lat:+S.lat.toFixed(5),lon:+S.lon.toFixed(5),kwp:+kwp().toFixed(2),invKw:dc?+dc.ac.toFixed(1):0,tilt:pl.tilt,az:pl.az,genKwh:Math.round(R.tot.gen),yieldKwp:Math.round(E.yieldKwp),capex:Math.round(E.cap),payback:E.pay!=null?+E.pay.toFixed(1):null,npv:Math.round(E.npv),stringsOk:!!(dc&&dc.ok)})}
+    if(N){const R=simulate(),E=economics(),dc=designCheck(),pl=plane();Object.assign(o,{lat:+S.lat.toFixed(5),lon:+S.lon.toFixed(5),kwp:+kwp().toFixed(2),invKw:dc?+dc.ac.toFixed(1):0,tilt:pl.tilt,az:pl.az,genKwh:Math.round(R.tot.gen),shadePct:+R.tot.shade.toFixed(1),objN:S.obj.length,yieldKwp:Math.round(E.yieldKwp),capex:Math.round(E.cap),payback:E.pay!=null?+E.pay.toFixed(1):null,npv:Math.round(E.npv),stringsOk:!!(dc&&dc.ok)})}
     window.lastDESIGN=o;parent.postMessage({designRes:o},'*')}catch(e){}};
   if(now){clearTimeout(pubT);f()}else{clearTimeout(pubT);pubT=setTimeout(f,700)}}
 function tellH(){try{parent.postMessage({designH:document.documentElement.scrollHeight+10},'*')}catch(e){}}
@@ -488,28 +525,51 @@ load(){const c=S.cons;
   <div class="small mut">ค่าตั้งต้นเป็นค่าสมมติสำหรับฝึก (ค่าไฟเฉลี่ยครัวเรือน ~4.4 บาท/หน่วย) ให้ใช้อัตราตามบิลหรือเงื่อนไขโครงการจริง ใส่ 0 ในช่องรับซื้อถ้าไม่ขายคืน</div></div></div></div>`;
   const dp=$('#dopaste');if(dp)dp.onclick=()=>{const v=$('#paste').value.split(/[\s,;]+/).map(parseFloat).filter(isFinite);if(v.length!==12){$('#pmsg').textContent='ต้องมี 12 ค่า (ได้ '+v.length+')';return}S.cons.monthly=v;S.cons.annual=v.reduce((a,b)=>a+b,0);S.cons.type='model';inval();VIEWS.load();refresh()}},
 
-/* ---------- ขั้น 3: วาดหลังคา ---------- */
+/* ---------- ขั้น 3: หลังคาและสิ่งกีดขวาง ---------- */
 roof(){
   $('#view').innerHTML=`<div class="grid g2"><div class="card"><h2>แบบจำลองอาคาร</h2>
-  <div class="row" style="margin-bottom:8px"><button class="btn sm" id="tdraw">วาดหลังคา</button><button class="btn sm" id="tfin">จบรูป</button><button class="btn sm" id="tundo">ลบจุดล่าสุด</button><button class="btn sm" id="tclr">ล้างทั้งหมด</button></div>
-  <div class="small mut" style="margin-bottom:8px">กด “วาดหลังคา” แล้วคลิกที่มุมหลังคาทีละมุมบนภาพดาวเทียม (ซูมให้เห็นหลังคาชัด) แล้วกด “จบรูป” หรือคลิกจุดแรกอีกครั้ง ลากจุดเพื่อแก้ตำแหน่ง ความยาวขอบแสดงเป็นเมตร</div>
+  <div class="row" style="margin-bottom:6px"><button class="btn sm" id="tdraw">วาดหลังคา</button><button class="btn sm" id="tbld">อาคารข้างเคียง</button><button class="btn sm" id="tobs">สิ่งกีดขวางบนหลังคา</button><button class="btn sm" id="ttree">ต้นไม้</button></div>
+  <div class="row" style="margin-bottom:8px"><button class="btn sm" id="tfin">จบรูป</button><button class="btn sm" id="tundo">ลบจุดล่าสุด</button><button class="btn sm" id="tclr">ล้างหลังคา</button></div>
+  <div class="small mut" id="toolhelp" style="margin-bottom:8px"></div>
   ${fld('roof.height','ความสูงอาคาร (ถึงพื้นหลังคา)',{type:'number',unit:'ม.',step:'0.5',min:0})}
   ${sel('roof.type','ชนิดหลังคา',[['flat','หลังคาดาดฟ้า (วางแผงบนขาตั้งเอียง)'],['pitched','หลังคาเอียง (วางแผงขนานผิวหลังคา)']])}
   ${S.roof.type==='pitched'?fld('roof.pitch','ความลาดเอียงหลังคา',{type:'number',unit:'°',min:0})+fld('roof.facing','หลังคาหันไปทางทิศ (องศาจากทิศเหนือ)',{type:'number',unit:'°',min:0}):''}
-  <div id="roofst"></div></div>
+  <div id="roofst"></div>
+  <h3>สิ่งกีดขวางและต้นไม้ (<span id="objn">0</span> รายการ)</h3><div id="objlist"></div></div>
   <div><div class="mapwrap" id="m3"></div><div class="small mut" style="margin:4px 2px">ภาพดาวเทียมมีความคลาดเคลื่อนได้ ตรวจขนาดจริงด้วยตลับเมตรก่อนสั่งของ</div></div></div>`;
   const rd=()=>{const E=$('#roofst');if(!E)return;const g=geo();if(!g||g.xy.length<3){E.innerHTML='<div class="small mut">ยังไม่มีรูปหลังคา</div>';return}
     const a=Math.abs(polyArea(g.xy)),ei=edgeInfo(g.xy);E.innerHTML=`<div class="kpi"><div><small>พื้นที่หลังคา</small><b>${fx(a,1)} ตร.ม.</b></div><div><small>จำนวนมุม</small><b>${g.xy.length}</b></div></div><div class="small">ขอบ: ${ei.map(e=>fx(e.len,2)+' ม. ('+Math.round(e.brg)+'°)').join(' · ')}</div>`};
-  const setTool=t=>{roofTool=t;$('#tdraw').classList.toggle('on',t==='draw');MAP.cv.style.cursor=t==='draw'?'crosshair':''};
+  const HELP={view:'ลากจุดเพื่อแก้ตำแหน่ง ความยาวขอบแสดงเป็นเมตร เลือกเครื่องมือด้านบนเพื่อวาดเพิ่ม',draw:'คลิกมุมหลังคาทีละมุมบนภาพดาวเทียม (ซูมให้เห็นชัด) แล้วกด “จบรูป” หรือคลิกจุดแรกอีกครั้ง',
+    building:'คลิกมุมของอาคารข้างเคียงทีละมุม แล้วกด “จบรูป” หรือคลิกจุดแรก (ใส่ความสูงในรายการด้านล่าง)',obstacle:'คลิกมุมของสิ่งกีดขวางบนหลังคา เช่น ถังน้ำ ปล่องระบายอากาศ กล่องลิฟต์ แล้วกด “จบรูป” (แผงจะไม่วางทับ)',tree:'คลิกที่ตำแหน่งต้นไม้ (กึ่งกลางทรงพุ่ม) แล้วแก้ความสูงและรัศมีพุ่มในรายการ'};
+  const setTool=t=>{roofTool=t;if(t!=='building'&&t!=='obstacle')NEWOBJ=null;[['tdraw','draw'],['tbld','building'],['tobs','obstacle'],['ttree','tree']].forEach(([id,k])=>$('#'+id).classList.toggle('on',t===k));
+    $('#toolhelp').textContent=HELP[t];if(MAP&&MAP.cv)MAP.cv.style.cursor=t==='view'?'':'crosshair'};
+  const ol=()=>{const E=$('#objlist');$('#objn').textContent=S.obj.length;
+    if(!S.obj.length){E.innerHTML='<div class="small mut">ยังไม่มี กดปุ่มด้านบนแล้ววาดบนแผนที่ ต้นไม้และอาคารข้างเคียงที่อยู่ทางใต้หรือใกล้แผงบังแสงได้มากที่สุด</div>';return}
+    E.innerHTML=S.obj.map((o,i)=>{const t=o.t==='tree',hl=o.t==='obstacle'?'สูงจากพื้นหลังคา':t?'ความสูงต้นไม้':'ความสูงอาคาร (จากพื้นดิน)';
+      return `<div class="orow" data-i="${i}" style="border:1px solid #dde2e8;border-radius:8px;padding:6px 8px;margin-bottom:6px"><div class="row" style="justify-content:space-between"><b>${i+1}. ${OBJ_NAME[o.t]}</b><button class="btn sm" data-del="${i}">ลบ</button></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><label class="small">${hl} <input type="number" data-k="h" step="0.5" min="0.1" value="${o.h}" style="width:70px"> ม.</label>${t?`<label class="small">รัศมีพุ่มใบ <input type="number" data-k="r" step="0.5" min="0.5" value="${o.r}" style="width:60px"> ม.</label><label class="small">สูงโคนพุ่ม <input type="number" data-k="th" step="0.5" min="0" value="${o.th}" style="width:60px"> ม.</label>`:''}</div></div>`}).join('');
+    $$('#objlist [data-k]').forEach(inp=>inp.onchange=()=>{const i=+inp.closest('.orow').dataset.i,k=inp.dataset.k;let v=parseFloat(inp.value);if(!isFinite(v))return;const o=S.obj[i];if(k==='h')v=Math.max(0.1,v);if(k==='r')v=Math.max(0.5,v);if(k==='th')v=clamp(v,0,Math.max(0,o.h-0.5));o[k]=v;inp.value=v;inval();MAP.render();refresh()});
+    $$('#objlist [data-del]').forEach(b=>b.onclick=()=>{S.obj.splice(+b.dataset.del,1);inval();ol();MAP.render();refresh()})};
+  const commit=()=>{if(!NEWOBJ||NEWOBJ.pts.length<3)return false;S.obj.push({t:NEWOBJ.t,pts:NEWOBJ.pts.slice(),h:OBJ_DEF[NEWOBJ.t].h});NEWOBJ=null;inval();ol();MAP.render();refresh();return true};
   MAP=mkMap('m3',{lat:S.roof.pts.length?S.roof.pts[0][0]:S.lat,lon:S.roof.pts.length?S.roof.pts[0][1]:S.lon,z:19,h:520,
-    draw(c,m){drawRoof(c,m,true)},
-    hit(x,y,m){const p=S.roof.pts;for(let i=0;i<p.length;i++){const[px,py]=m.toS(p[i][0],p[i][1]);if(Math.hypot(px-x,py-y)<14){if(roofTool==='draw'&&i===0&&p.length>=3&&!S.roof.closed)return{click:()=>{S.roof.closed=true;setTool('view');inval();m.render();rd();refresh()}};
-        return{drag:(la,lo)=>{p[i]=[la,lo];S.lay.off={};inval();m.render();rd();refresh()}}}}return null},
-    click(la,lo,m){if(roofTool==='draw'){S.roof.pts.push([la,lo]);S.roof.closed=false;inval();m.render();rd();refresh()}}});
-  setTool(S.roof.pts.length?'view':'draw');
+    draw(c,m){drawRoof(c,m,true);drawObjs(c,m,true)},
+    hit(x,y,m){const p=S.roof.pts;
+      for(let i=0;i<p.length;i++){const[px,py]=m.toS(p[i][0],p[i][1]);if(Math.hypot(px-x,py-y)<14){if(roofTool==='draw'&&i===0&&p.length>=3&&!S.roof.closed)return{click:()=>{S.roof.closed=true;setTool('view');inval();m.render();rd();refresh()}};
+        return{drag:(la,lo)=>{p[i]=[la,lo];S.lay.off={};inval();m.render();rd();refresh()}}}}
+      if(NEWOBJ&&NEWOBJ.pts.length>=3){const[px,py]=m.toS(NEWOBJ.pts[0][0],NEWOBJ.pts[0][1]);if(Math.hypot(px-x,py-y)<14)return{click:()=>{commit();setTool('view')}}}
+      for(let k=S.obj.length-1;k>=0;k--){const o=S.obj[k];
+        if(o.t==='tree'){const[px,py]=m.toS(o.c[0],o.c[1]);if(Math.hypot(px-x,py-y)<14)return{drag:(la,lo)=>{o.c=[la,lo];inval();m.render();refresh()}}}
+        else for(let j=0;j<o.pts.length;j++){const[px,py]=m.toS(o.pts[j][0],o.pts[j][1]);if(Math.hypot(px-x,py-y)<14)return{drag:(la,lo)=>{o.pts[j]=[la,lo];inval();m.render();refresh()}}}}
+      return null},
+    click(la,lo,m){if(roofTool==='draw'){S.roof.pts.push([la,lo]);S.roof.closed=false;inval();m.render();rd();refresh()}
+      else if(roofTool==='building'||roofTool==='obstacle'){if(!NEWOBJ)NEWOBJ={t:roofTool,pts:[]};NEWOBJ.pts.push([la,lo]);m.render()}
+      else if(roofTool==='tree'){S.obj.push(Object.assign({t:'tree',c:[la,lo]},OBJ_DEF.tree));inval();ol();m.render();refresh()}}});
+  setTool(S.roof.pts.length?'view':'draw');ol();
   $('#tdraw').onclick=()=>{if(S.roof.closed){S.roof.pts=[];S.roof.closed=false}setTool('draw');MAP.render()};
-  $('#tfin').onclick=()=>{if(S.roof.pts.length>=3){S.roof.closed=true;setTool('view');S.lay.off={};inval();MAP.render();rd();refresh()}};
-  $('#tundo').onclick=()=>{S.roof.pts.pop();S.roof.closed=false;inval();MAP.render();rd();refresh()};
+  $('#tbld').onclick=()=>{setTool('building');MAP.render()};$('#tobs').onclick=()=>{setTool('obstacle');MAP.render()};$('#ttree').onclick=()=>{setTool('tree');MAP.render()};
+  $('#tfin').onclick=()=>{if(roofTool==='building'||roofTool==='obstacle'){if(commit())setTool('view');return}
+    if(S.roof.pts.length>=3){S.roof.closed=true;setTool('view');S.lay.off={};inval();MAP.render();rd();refresh()}};
+  $('#tundo').onclick=()=>{if(NEWOBJ&&NEWOBJ.pts.length){NEWOBJ.pts.pop();MAP.render();return}S.roof.pts.pop();S.roof.closed=false;inval();MAP.render();rd();refresh()};
   $('#tclr').onclick=()=>{S.roof.pts=[];S.roof.closed=false;S.lay.off={};inval();setTool('draw');MAP.render();rd();refresh()};
   rd()},
 
@@ -528,6 +588,8 @@ layout(){const C=cat(),P=S.pv,flush=S.roof.type==='pitched';
   fld('lay.tilt','มุมเอียงแผง',{type:'number',unit:'°',min:0})+fld('lay.az','ทิศที่แผงหัน (0=เหนือ 90=ออก 180=ใต้)',{type:'number',unit:'°',min:0})+`<div class="row" style="margin:-4px 0 10px">${[['ใต้',180],['ตะวันออก',90],['ตะวันตก',270]].map(([n,a])=>`<button class="btn sm" data-az="${a}">${n}</button>`).join('')}<button class="btn sm" id="azedge">ขนานขอบหลังคา</button></div>`}
   ${fld('lay.setback','ระยะเว้นจากขอบหลังคา',{type:'number',step:'0.1',unit:'ม.',min:0})}${fld('lay.gap','ช่องว่างระหว่างแผง',{type:'number',step:'0.01',unit:'ม.',min:0})}
   <div id="laynote"></div>
+  ${S.obj.length?`<h3>เงาจากอาคาร ต้นไม้ และสิ่งกีดขวาง</h3><label class="f"><span>เดือน</span><div class="ib"><select id="shm">${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'].map((n,i)=>`<option value="${i}"${i===SHV.m?' selected':''}>${n} (วันที่ ${MDOY[i]} ของปี)</option>`).join('')}</select></div></label>
+  <label class="f"><span>เวลาสุริยะ <b id="shh"></b></span><div class="ib"><input type="range" id="shs" min="6" max="18" step="0.5" value="${SHV.h}"></div></label><div class="small" id="shres"></div><div id="shtab"></div>`:''}
   <h3>การวางแผง</h3><div class="row"><button class="btn sm${man?'':' on'}" id="lmax">ใส่แผงสูงสุด (อัตโนมัติ)</button><button class="btn sm${man?' on':''}" id="lman">วางแผงเอง</button></div>
   ${man?`<div class="row" style="margin-top:6px"><button class="btn sm${layTool==='add'?' on':''}" id="tadd">เพิ่มแผง</button><button class="btn sm${layTool==='sel'?' on':''}" id="tsel">เลือก/ย้าย</button><button class="btn sm" id="tdel">ลบแผงที่เลือก</button><button class="btn sm" id="tfill">เติมให้เต็มที่ว่าง</button><button class="btn sm" id="tclr2">ล้างแผงทั้งหมด</button></div><div class="small mut" id="manmsg" style="margin-top:4px">โหมดวางแผงเอง: คลิกที่ว่างบนหลังคาเพื่อเพิ่ม ลากแผงเพื่อย้าย (ดูดเข้าแนวแผงข้างเคียง) แผงสีแดงวางไม่ได้และไม่นับ</div>`:`<div class="row" style="margin-top:6px"><button class="btn sm" id="lreset">คืนแผงที่ลบทั้งหมด</button></div>`}</div>
   <div><div class="row noprint" style="margin-bottom:6px"><button class="btn sm${view3==='2d'?' on':''}" id="v2">2D แผนที่</button><button class="btn sm${view3==='3d'?' on':''}" id="v3">3D</button></div>
@@ -546,7 +608,7 @@ layout(){const C=cat(),P=S.pv,flush=S.roof.type==='pitched';
     $('#tfill').onclick=()=>{const n=manualFill();redraw();mmsg(n?'เติมแผงเพิ่ม '+n+' แผง':'ไม่มีที่ว่างพอสำหรับแผงเพิ่ม')};
     $('#tclr2').onclick=()=>{S.lay.manual=[];selIdx=-1;inval();LAYK='';redraw()}}
   $('#v2').onclick=()=>{view3='2d';VIEWS.layout();refresh()};$('#v3').onclick=()=>{view3='3d';VIEWS.layout();refresh()};
-  if(view3==='3d'){MAP=null;V3D=new V3($('#m4'),520)}else{const g=geo();let rev=null;MAP=mkMap('m4',{lat:g?g.la0:S.lat,lon:g?g.lo0:S.lon,z:19,h:520,draw(c,m){drawRoof(c,m,false);drawMods(c,m,true)},
+  if(view3==='3d'){MAP=null;V3D=new V3($('#m4'),520)}else{const g=geo();let rev=null;MAP=mkMap('m4',{lat:g?g.la0:S.lat,lon:g?g.lo0:S.lon,z:19,h:520,draw(c,m){drawRoof(c,m,false);drawShadow(c,m);drawMods(c,m,true);drawObjs(c,m,false)},
     hit(x,y,m){const L=getLayout();if(!L.g)return null;for(let k=L.mods.length-1;k>=0;k--){const md=L.mods[k],q=modPoly(L,md).map(p=>m.toS(p[0],p[1])),xs=q.map(p=>p[0]),ys=q.map(p=>p[1]);
       if(x>=Math.min(...xs)&&x<=Math.max(...xs)&&y>=Math.min(...ys)&&y<=Math.max(...ys)&&inPoly(q,x,y)){
         if(!L.manual)return{click:()=>{S.lay.off[md.key]?delete S.lay.off[md.key]:S.lay.off[md.key]=1;inval();LAYK='';m.render();refresh()}};
@@ -556,6 +618,7 @@ layout(){const C=cat(),P=S.pv,flush=S.roof.type==='pitched';
     click(la,lo,m){if(!Array.isArray(S.lay.manual)){return}if(layTool==='sel'){selIdx=-1;m.render();return}
       const ok=manualAdd(la,lo);const e=$('#manmsg');if(e)e.textContent=ok?'เพิ่มแผงแล้ว':'วางตรงนี้ไม่ได้ (ล้ำขอบ/ไม่เว้นตามระยะที่ตั้ง/ซ้อนแผงอื่น)';m.render();applyAuto();refresh()},
     end(m){if(rev){LAYK='';const md=getLayout().mods[rev.idx];if(md&&md.bad){S.lay.manual[rev.idx]=rev.pos;LAYK='';const e=$('#manmsg');if(e)e.textContent='ย้ายไปตรงนั้นไม่ได้ จึงคืนที่เดิม'}rev=null;applyAuto();m.render();refresh()}}})}
+  const shs=$('#shs');if(shs){const upd=()=>{SHV.m=+$('#shm').value;SHV.h=+shs.value;UPD.layout();if(MAP)MAP.render()};$('#shm').onchange=upd;shs.oninput=upd}
   UPD.layout()},
 };
 function usePanel(p){if(!p)return;const d=panelDims(p);Object.assign(S.pv,{id:p.id,pmax:p.pmax,voc:p.voc,vmp:p.vmp,isc:p.isc,imp:p.imp,kVoc:p.kVoc!=null?p.kVoc:-0.25,kPmax:p.kPmax!=null?p.kPmax:-0.3,noct:p.noct||44,L:d[0],W:d[1]});S.lay.off={};inval();applyAuto()}
@@ -563,8 +626,34 @@ function modPoly(L,m){const c=L.c,s=L.s;return[[m.a,m.b],[m.a+m.w,m.b],[m.a+m.w,
 function drawRoof(c,m,edit){const p=S.roof.pts;if(!p.length)return;const q=p.map(v=>m.toS(v[0],v[1]));c.lineWidth=2;c.strokeStyle='#fff';c.fillStyle='rgba(255,255,255,.28)';c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));if(S.roof.closed||!edit)c.closePath();c.fill();c.stroke();
   if(edit){const g=geo();q.forEach((v,i)=>{c.fillStyle=i===0&&!S.roof.closed?'#ffb300':'#fff';c.strokeStyle='#1668e3';c.beginPath();c.arc(v[0],v[1],6,0,7);c.fill();c.stroke()});
     if(g&&(S.roof.closed||q.length>1)){const ei=edgeInfo(g.xy),cnt=S.roof.closed?q.length:q.length-1;c.font='12px Prompt,sans-serif';for(let i=0;i<cnt;i++){const a=q[i],b=q[(i+1)%q.length],t=fx(ei[i].len,2)+' ม.',w=c.measureText(t).width+8,mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;c.fillStyle='rgba(255,255,255,.92)';c.fillRect(mx-w/2,my-9,w,18);c.fillStyle='#1f2933';c.textAlign='center';c.fillText(t,mx,my+4)}c.textAlign='left'}}}
-function drawMods(c,m,edit){const L=getLayout();if(!L.g)return;L.mods.forEach(md=>{if(md.bad&&!edit)return;const q=modPoly(L,md).map(p=>m.toS(p[0],p[1])),off=S.lay.off[md.key],sel=edit&&L.manual&&md.idx===selIdx;c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));c.closePath();
-  c.fillStyle=md.bad?'rgba(220,40,40,.6)':off?'rgba(150,150,150,.35)':'rgba(15,30,70,.88)';c.fill();c.strokeStyle=sel?'#ffb300':md.bad?'#fff':off?'rgba(255,255,255,.4)':'#8fb2f0';c.lineWidth=sel?3:1;c.stroke()})}
+const OBJ_COL={building:['rgba(230,126,34,.55)','#b85c00'],obstacle:['rgba(211,47,47,.6)','#8e1b1b']};
+function mPerLon(){const g=geo();return g?g.k:Math.cos(rad(S.lat))*MLAT}
+function ctrOf(pts){return[pts.reduce((a,q)=>a+q[0],0)/pts.length,pts.reduce((a,q)=>a+q[1],0)/pts.length]}
+function tag(c,x,y,t){c.font='12px Prompt,sans-serif';const w=c.measureText(t).width+8;c.fillStyle='rgba(255,255,255,.92)';c.fillRect(x-w/2,y-9,w,18);c.fillStyle='#1f2933';c.textAlign='center';c.fillText(t,x,y+4);c.textAlign='left'}
+function drawObjs(c,m,edit){
+  (S.obj||[]).forEach(o=>{
+    if(o.t==='tree'){const[x,y]=m.toS(o.c[0],o.c[1]),r=Math.max(4,Math.abs(m.toS(o.c[0],o.c[1]+(o.r||2)/mPerLon())[0]-x));
+      c.beginPath();c.arc(x,y,r,0,7);c.fillStyle='rgba(46,125,50,.55)';c.fill();c.strokeStyle='#1b5e20';c.lineWidth=2;c.stroke();
+      if(edit){c.beginPath();c.arc(x,y,5,0,7);c.fillStyle='#fff';c.fill();c.stroke()}tag(c,x,y-r-10,'ต้นไม้ สูง '+o.h+' ม.')}
+    else{const q=o.pts.map(v=>m.toS(v[0],v[1])),col=OBJ_COL[o.t];c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));c.closePath();c.fillStyle=col[0];c.fill();c.strokeStyle=col[1];c.lineWidth=2;c.stroke();
+      if(edit)q.forEach(v=>{c.beginPath();c.arc(v[0],v[1],5,0,7);c.fillStyle='#fff';c.fill();c.stroke()});
+      const ce=m.toS(...ctrOf(o.pts));tag(c,ce[0],ce[1],(o.t==='building'?'อาคาร ':'สูง ')+o.h+' ม.')}});
+  if(NEWOBJ&&NEWOBJ.pts.length){const q=NEWOBJ.pts.map(v=>m.toS(v[0],v[1])),col=OBJ_COL[NEWOBJ.t];c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));c.setLineDash([6,4]);c.strokeStyle=col[1];c.lineWidth=2;c.stroke();c.setLineDash([]);
+    q.forEach((v,i)=>{c.beginPath();c.arc(v[0],v[1],6,0,7);c.fillStyle=i===0?'#ffb300':'#fff';c.fill();c.strokeStyle=col[1];c.stroke()})}}
+// เงาของวัตถุตกบนระนาบหลังคา ณ เดือน/เวลาที่เลือก (ตัดให้เหลือเฉพาะในหลังคา)
+function drawShadow(c,m){const g=geo();if(!g||g.xy.length<3||!(S.obj&&S.obj.length))return;const v=sunVec(MDOY[SHV.m],SHV.h);if(!v)return;
+  const z0=roofZ(g,0,0),sh=z=>[-(z-z0)*v.dx/v.dz,-(z-z0)*v.dy/v.dz],S2=([x,y])=>{const q=toLL(g,x,y);return m.toS(q[0],q[1])},polys=[],circ=[];
+  objXY(g).forEach(e=>{const[zb0,zt]=objZ(g,e);if(zt<=z0+0.01)return;const zb=Math.max(zb0,z0);
+    if(e.o.t==='tree'){const[cx,cy]=e.xy[0],r=+e.o.r||0;for(let k=0;k<=4;k++){const z=zb+(zt-zb)*k/4,o=sh(z),[sx,sy]=S2([cx+o[0],cy+o[1]]);circ.push([sx,sy,Math.abs(S2([cx+o[0]+r,cy+o[1]])[0]-sx)])}return}
+    const P=e.xy,n=P.length,at=(p,z)=>{const o=sh(z);return[p[0]+o[0],p[1]+o[1]]};
+    for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];polys.push([at(a,zb),at(b,zb),at(b,zt),at(a,zt)].map(S2))}polys.push(P.map(p=>S2(at(p,zt))))});
+  const ar=q=>q.reduce((a,p,i)=>{const n=q[(i+1)%q.length];return a+p[0]*n[1]-n[0]*p[1]},0);
+  c.save();c.beginPath();S.roof.pts.forEach((p,i)=>{const q=m.toS(p[0],p[1]);i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])});c.closePath();c.clip();
+  c.beginPath();polys.forEach(q=>{const w=ar(q)<0?q.slice().reverse():q;w.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.closePath()});c.fillStyle='rgba(10,10,40,.5)';c.fill();
+  c.beginPath();circ.forEach(([x,y,r])=>{c.moveTo(x+r,y);c.arc(x,y,r,0,7)});c.fillStyle='rgba(10,30,10,.2)';c.fill();c.restore()}
+function drawMods(c,m,edit,ns){const L=getLayout();if(!L.g)return;L.mods.forEach(md=>{if(md.bad&&!edit)return;const q=modPoly(L,md).map(p=>m.toS(p[0],p[1])),off=S.lay.off[md.key],sel=edit&&L.manual&&md.idx===selIdx;c.beginPath();q.forEach((v,i)=>i?c.lineTo(v[0],v[1]):c.moveTo(v[0],v[1]));c.closePath();
+  c.fillStyle=md.bad?'rgba(220,40,40,.6)':off?'rgba(150,150,150,.35)':'rgba(15,30,70,.88)';c.fill();
+  if(!ns&&!md.bad&&!off&&S.obj.length){const v=sunVec(MDOY[SHV.m],SHV.h);if(v){const g=L.g,P=modPt(g,L,md),sf=blockedAt(g,objXY(g),P[0],P[1],P[2],v);if(sf>0.02){c.fillStyle='rgba(255,152,0,'+(0.35+0.55*sf).toFixed(2)+')';c.fill()}}}c.strokeStyle=sel?'#ffb300':md.bad?'#fff':off?'rgba(255,255,255,.4)':'#8fb2f0';c.lineWidth=sel?3:1;c.stroke()})}
 
 /* ---------- ขั้น 5: ออกแบบไฟฟ้า ---------- */
 VIEWS.elec=function(){
@@ -589,14 +678,23 @@ VIEWS.elec=function(){
   UPD.elec()};
 const UPD={};
 UPD.layout=()=>{const L=getLayout(),E=$('#laynote');if(!E)return;const N=activeMods().length;let h='';
-  if(!S.roof.pts.length||S.roof.pts.length<3)h='<div class="errbox">ยังไม่มีรูปหลังคา ไปขั้น “วาดหลังคา” ก่อน</div>';
+  if(!S.roof.pts.length||S.roof.pts.length<3)h='<div class="errbox">ยังไม่มีรูปหลังคา ไปขั้น “หลังคาและสิ่งกีดขวาง” ก่อน</div>';
   else if(!L.n&&!L.manual)h='<div class="errbox">วางแผงไม่ได้ หลังคาเล็กเกินไปหรือระยะเว้นขอบมากเกินไป</div>';
   else{h=`<div class="kpi"><div><small>แผงที่วางได้</small><b>${L.n}</b></div><div><small>ติดตั้งจริง</small><b>${N}</b></div><div><small>กำลังไฟ DC</small><b>${fx(kwp(),2)} kWp</b></div></div>`;
     if(L.manual){const bad=L.mods.filter(m=>m.bad).length;h+=`<div class="small">วางแล้ว <b>${L.n}</b> / สูงสุดโดยประมาณ <b>${L.max}</b> แผง (วางอัตโนมัติเต็มหลังคา)${bad?` · <span class="sev">แผงที่วางไม่ได้ ${bad} แผง (สีแดง ไม่นับ)</span>`:''}</div>`}
     const pm=S.pv.pmax,rec=Math.max(1,Math.round(S.cons.annual/1450/(pm/1000)));
     h+=`<div class="small mut" style="margin:6px 0">การใช้ไฟ ${fx(S.cons.annual)} kWh/ปี ใช้โซลาร์ราว ${rec} แผง (${fx(rec*pm/1000,2)} kWp) ก็ผลิตเท่ากับที่ใช้ทั้งปี${N>rec*1.3?' · ที่วางไว้มากกว่ามาก ไฟส่วนใหญ่จะขายคืน':''}</div>${N!==rec&&L.n>=rec?`<button class="btn sm" id="lrec">ใช้ ${rec} แผงตามการใช้ไฟ</button>`:''}`;
     if(L.rp&&S.roof.type!=='pitched')h+=`<div class="small mut">ระยะแถวต่อแถว ${fx(L.rp.pitch,2)} ม. (กันเงาแถวหน้าที่ 9:00 น. วันที่ 21 ธ.ค.)</div>`}
-  E.innerHTML=h;const rb=$('#lrec');if(rb)rb.onclick=()=>{const pm=S.pv.pmax,rec=Math.max(1,Math.round(S.cons.annual/1450/(pm/1000)));S.lay.off={};L.mods.forEach((m,i)=>{if(i>=rec)S.lay.off[m.key]=1});inval();LAYK='';applyAuto();if(MAP)MAP.render();if(V3D)V3D.render();refresh()}};
+  if(S.obj.length&&N){const R=simulate();h+=`<div class="small" style="margin-top:6px">เงาจากวัตถุที่วาด ทำให้แสงที่แผงได้รับลดลงราว <b>${fx(R.tot.shade,1)}%</b> ต่อปี (หักในผลผลิตแล้ว)</div>`}
+  E.innerHTML=h;shadeInfo();const rb=$('#lrec');if(rb)rb.onclick=()=>{const pm=S.pv.pmax,rec=Math.max(1,Math.round(S.cons.annual/1450/(pm/1000)));S.lay.off={};L.mods.forEach((m,i)=>{if(i>=rec)S.lay.off[m.key]=1});inval();LAYK='';applyAuto();if(MAP)MAP.render();if(V3D)V3D.render();refresh()}};
+function hhmm(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+' น.'}
+function shadeInfo(){const r=$('#shres');if(!r)return;const hh=$('#shh');if(hh)hh.textContent=hhmm(SHV.h);const v=sunVec(MDOY[SHV.m],SHV.h),g=geo(),L=getLayout();
+  if(!v){r.textContent='เวลานี้ดวงอาทิตย์อยู่ต่ำกว่าขอบฟ้า ยังไม่มีเงา';}
+  else if(!g||!L.mods||!activeMods().length){r.textContent='ดวงอาทิตย์สูง '+fx(v.alt,0)+'° ทิศ '+fx(v.az,0)+'°'}
+  else{const E=objXY(g),P=panelPts(g),n=P.length;let sh=0,part=0;P.forEach(([x,y,z])=>{const f=blockedAt(g,E,x,y,z,v);if(f>0.5)sh++;else if(f>0.02)part++});
+    r.innerHTML=`ดวงอาทิตย์สูง ${fx(v.alt,0)}° ทิศ ${fx(v.az,0)}° · แผงถูกบัง ${sh} / ${n} แผง${part?` (บังบางส่วน/ใต้พุ่มไม้ ${part})`:''} <span class="mut">(สีส้ม = ถูกบัง)</span>`}
+  const T=$('#shtab');if(T&&activeMods().length){const R=simulate(),nm=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    T.innerHTML='<div class="small mut" style="margin-top:6px">สัดส่วนพลังงานที่เสียจากเงา รายเดือน</div><div class="small" style="display:flex;flex-wrap:wrap;gap:4px 10px">'+R.months.map((r,i)=>`<span>${nm[i]} <b>${fx(r.poaU>0?Math.max(0,(1-r.poa/r.poaU)*100):0,1)}%</b></span>`).join('')+'</div>'}}
 UPD.elec=()=>{const dc=designCheck(),T=$('#strtbl'),A=$('#actbl'),N=activeMods().length;if(!T)return;
   const ra=$('#ratioact');if(ra)ra.textContent=dc?'ค่าจริง: '+fx(dc.ratio,1)+'%':'';
   if(!dc){T.innerHTML='<div class="errbox">หาอินเวอร์เตอร์ที่ต่อแผง '+N+' แผงได้ลงตัวไม่ได้ในแคตตาล็อก ลองเพิ่มรุ่นในเมนู 02 อุปกรณ์ หรือเปลี่ยนจำนวนแผง</div>';A.innerHTML='';return}
@@ -644,7 +742,7 @@ let RCHART=null;
 VIEWS.report=function(){
   const N=activeMods().length;if(!N){$('#view').innerHTML='<div class="card"><div class="errbox">ยังไม่มีแผงในแบบ ไปวาดหลังคาและวางแผงก่อน</div></div>';return}
   const R=simulate(),E=economics(),dc=designCheck(),pl=plane(),ap=dc?acPart(dc.inv,S.inv.n):null,cp=cat().panels.find(p=>p.id===S.pv.id)||{brand:'',model:''},C=CLIM||FALL;
-  const warn=[];if(CLIMSRC!=='nasa')warn.push('ใช้ตารางรังสีประมาณการ ไม่ใช่ข้อมูลตามพิกัดจริง');if(!dc||!dc.ok)warn.push('การต่อสตริง/อินเวอร์เตอร์ยังไม่ผ่านเงื่อนไข');if(R.tot.gen&&R.tot.exp/R.tot.gen>0.5)warn.push('ไฟส่วนใหญ่ ('+fx(R.tot.exp/R.tot.gen*100,0)+'%) ถูกขายคืนการไฟฟ้า ผลคืนทุนขึ้นกับราคารับซื้อและเงื่อนไขการรับซื้อ ตรวจกับการไฟฟ้าก่อนตัดสินใจ');if(R.tot.clip>R.tot.gen*0.05)warn.push('กำลังแผงเกินอินเวอร์เตอร์มาก มีไฟส่วนที่ถูกตัดทิ้ง '+fx(R.tot.clip)+' kWh/ปี');
+  const warn=[];if(CLIMSRC!=='nasa')warn.push('ใช้ตารางรังสีประมาณการ ไม่ใช่ข้อมูลตามพิกัดจริง');if(S.obj.length)warn.push('คิดเงาจากอาคารข้างเคียง ต้นไม้ และสิ่งกีดขวาง '+S.obj.length+' รายการ ทำให้เสียพลังงานแสงอาทิตย์ราว '+fx(R.tot.shade,1)+'% ต่อปี (ประมาณจากแสงตรง ไม่คิดผลต่อสตริงที่ถูกบังบางส่วน)');if(!dc||!dc.ok)warn.push('การต่อสตริง/อินเวอร์เตอร์ยังไม่ผ่านเงื่อนไข');if(R.tot.gen&&R.tot.exp/R.tot.gen>0.5)warn.push('ไฟส่วนใหญ่ ('+fx(R.tot.exp/R.tot.gen*100,0)+'%) ถูกขายคืนการไฟฟ้า ผลคืนทุนขึ้นกับราคารับซื้อและเงื่อนไขการรับซื้อ ตรวจกับการไฟฟ้าก่อนตัดสินใจ');if(R.tot.clip>R.tot.gen*0.05)warn.push('กำลังแผงเกินอินเวอร์เตอร์มาก มีไฟส่วนที่ถูกตัดทิ้ง '+fx(R.tot.clip)+' kWh/ปี');
   $('#view').innerHTML=`<div class="row noprint" style="margin-bottom:8px;justify-content:flex-end"><button class="btn" id="rprint">พิมพ์ / บันทึกเป็น PDF</button><button class="btn" id="rsave">บันทึกโครงการ (.json)</button><button class="btn" id="ropen">เปิดโครงการ</button><button class="btn" id="rcsv">ส่งออกตาราง (.csv)</button><button class="btn pri" id="rsend">ส่งผลไปที่เมนูส่งงาน</button><input type="file" id="rfile" accept=".json" hidden></div>
   <div class="card"><h2>รายงานการออกแบบระบบโซลาร์: ${esc(S.name)}</h2><div class="small mut">ข้อมูลจำลองนี้ใช้เพื่อการเรียนรู้และอ้างอิงเบื้องต้นเท่านั้น ไม่ใช่ผลรับรอง · วันที่ ${new Date().toLocaleDateString('th-TH')}</div>
   <table style="margin-top:8px"><tr><td>ลูกค้า</td><td>${esc(S.customer||'–')}</td></tr><tr><td>ที่อยู่</td><td>${esc(S.addr||'–')}</td></tr><tr><td>พิกัด</td><td>${fx(S.lat,5)}, ${fx(S.lon,5)}</td></tr><tr><td>ระบบไฟ</td><td>${S.grid} เฟส${S.feedLimit?' · จำกัดขายคืน '+S.feedLimit+' kW':''}</td></tr></table></div>
@@ -666,7 +764,7 @@ VIEWS.report=function(){
   <div class="card"><h2>ความคุ้มค่า</h2><div class="kpi"><div><small>ต้นทุนติดตั้ง</small><b>${fx(E.cap)} บาท</b></div><div><small>ค่าไฟก่อนติดโซลาร์</small><b>${fx(E.bill0)} บาท/ปี</b></div><div><small>ประหยัดปีแรก</small><b>${fx(E.y1save)} บาท</b></div><div><small>คืนทุน</small><b>${E.pay!=null?fx(E.pay,1)+' ปี':'ไม่คืนทุน'}</b></div><div><small>NPV (${S.cost.years} ปี)</small><b>${fx(E.npv)} บาท</b></div><div><small>IRR</small><b>${E.irr!=null?fx(E.irr*100,1)+'%':'–'}</b></div><div><small>ต้นทุนไฟต่อหน่วย (LCOE)</small><b>${E.lcoe!=null?fx(E.lcoe,2):'–'} บาท/kWh</b></div></div><canvas class="ch" id="rc2"></canvas>
   <div class="small mut">สมมติ: ค่าไฟซื้อ ${S.cons.buy} บาท/หน่วย ขึ้นปีละ ${S.cons.growth}% · รับซื้อ ${S.cons.fit} บาท/หน่วย · คิดลด ${S.cons.disc}% · แผงเสื่อม ${S.cost.deg}%/ปี · ไม่รวมภาษี เงินกู้ และการเปลี่ยนอินเวอร์เตอร์</div></div>
   <div class="card small mut">แหล่งข้อมูลรังสี: ${esc(CLIMMSG)} · แบบจำลอง: แยกรังสีตรง/กระจาย (Erbs) บนระนาบเอียง (Hay-Davies) รายชั่วโมงของวันตัวแทนแต่ละเดือน ปรับกำลังตามอุณหภูมิเซลล์ (NOCT) และตัดกำลังที่เกินอินเวอร์เตอร์ · ผลจริงขึ้นกับเงา สภาพหลังคา และอุปกรณ์</div>`;
-  const g=geo();const m1=new TMap($('#rm'),{lat:g.la0,lon:g.lo0,z:19,h:300,draw(c,m){drawRoof(c,m,false);drawMods(c,m)}});
+  const g=geo();const m1=new TMap($('#rm'),{lat:g.la0,lon:g.lo0,z:19,h:300,draw(c,m){drawRoof(c,m,false);drawMods(c,m,false,true);drawObjs(c,m,false)}});
   if(g){const xs=g.xy.map(q=>q[0]),ys=g.xy.map(q=>q[1]),ext=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys),5);while(m1.z>3&&ext/m1.mpp()>Math.min(m1.W,m1.H)*0.8)m1.z--;m1.render()}
   new V3($('#r3'),300);
   $('#rprint').onclick=()=>window.print();
@@ -683,7 +781,7 @@ function drawReportCharts(){const c1=$('#rc1'),c2=$('#rc2');if(!c1||!c2)return;c
   line(c2,E.cum.map((_,i)=>i),E.cum,'บาท (สะสม)')}
 
 /* ---------- เริ่มต้น ---------- */
-window.DS={manualEnter,manualAuto,manualAdd,manualFill,manualDelSel,autoGrid,S:()=>S,getLayout,activeMods,kwp,simulate,economics,designCheck,autoDesign,applyAuto,autoStrings,volts,parseLoc,usePanel,setClim:c=>{CLIM=c;CLIMSRC='nasa';inval()},set:o=>{S=Object.assign(DEF(),o);inval()},go,plane,acPart,sunAt};
+window.DS={manualEnter,manualAuto,manualAdd,manualFill,manualDelSel,autoGrid,S:()=>S,getLayout,activeMods,kwp,simulate,economics,designCheck,autoDesign,applyAuto,autoStrings,volts,parseLoc,usePanel,setClim:c=>{CLIM=c;CLIMSRC='nasa';inval()},set:o=>{S=Object.assign(DEF(),o);inval()},go,plane,acPart,sunAt,shadeTab,objXY,blockedAt,sunVec,roofZ,obsHit,SHV};
 if(!S.pv.id){const p=cat().panels[0];if(p)usePanel(p)}
 go(0);
 </script>
