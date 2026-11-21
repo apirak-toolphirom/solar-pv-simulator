@@ -26,9 +26,10 @@
 | `js/accouple.js` | `docs/manual-19-accouple.md` |
 | `js/smartload.js` | `docs/manual-20-smartload.md` |
 | `js/dbox.js` | `docs/manual-21-dbox.md` |
+| `design.html` `js/design.js` | `docs/manual-22-design.md` |
 | `lfp.html` `js/lfp.js` | `docs/manual-16-lfp.md` |
 | `js/fusion*.js` `js/hwlog.js` `js/hwplot.js` | `docs/manual-17-fusion.md` |
-| `js/submit.js` `js/worksheets.js` | `docs/manual-22-submit.md` และ `docs/manual-teacher.md` (ตารางใบงาน) |
+| `js/submit.js` `js/worksheets.js` | `docs/manual-23-submit.md` และ `docs/manual-teacher.md` (ตารางใบงาน) |
 | `js/access.js` `js/app.js` `js/ctx.js` `app.html` (เมนู บทบาท การบันทึก) | `docs/manual-start.md` |
 | `apps-script/*` `dashboard.html` `js/config.js` | `docs/manual-teacher.md` |
 | ส่วนของเมนูใดใน `app.html` | คู่มือของเมนูนั้น |

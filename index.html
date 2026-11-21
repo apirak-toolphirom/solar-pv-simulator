@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="build" content="38223bfda5">
+<meta name="build" content="32782faa96">
 <script>/* phones keep the old page for a while (GitHub Pages cache): fetch the live copy once and reload if it is newer */
 addEventListener('load',()=>{try{fetch(location.pathname+'?nc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(t=>{const m=/<meta name="build" content="([0-9a-f]+)"/.exec(t);
-if(m&&m[1]!=='38223bfda5'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
+if(m&&m[1]!=='32782faa96'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sessionStorage.setItem('pvsim:reloaded',m[1]);location.reload()}}).catch(()=>{})}catch(e){}});</script>
 <title>solar sim@1</title>
 <link rel="icon" type="image/svg+xml" href="img/favicon.svg?v=a2498efd">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('pvsim:theme')||'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
@@ -52,7 +52,10 @@ if(m&&m[1]!=='38223bfda5'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <details class="ngrp" data-grp="panel"><summary>ตู้ไฟและโหลด</summary>
       <button class="navb" data-tab="dbox"><span class="ic">21</span>ตู้โหลด (Load Center)</button>
     </details>
-      <button class="navb navsubmit" data-tab="submit"><span class="ic">22</span>ส่งงาน</button>
+    <details class="ngrp" data-grp="design"><summary>ออกแบบระบบ</summary>
+      <button class="navb" data-tab="design"><span class="ic">22</span>ออกแบบระบบโซลาร์</button>
+    </details>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">23</span>ส่งงาน</button>
       <a class="manlink" id="manlink" href="https://github.com/apirak-toolphirom/solar-pv-simulator/blob/main/docs/README.md" target="_blank" rel="noopener">📘 คู่มือเมนูนี้</a>
     </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
@@ -642,6 +645,12 @@ if(m&&m[1]!=='38223bfda5'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
     <p class="hint">ตารางกระแสคำนวณจากตารางฐาน IEC 60364-5-52 ปรับเป็นอุณหภูมิอ้างอิงของ วสท. ดีมานด์แฟกเตอร์และตารางมิเตอร์เป็นแนวทางทั่วไป ผลเป็นการออกแบบเบื้องต้นเพื่อการเรียนรู้ ตรวจกับหนังสือมาตรฐาน วสท. 2564 ดาต้าชีต และข้อกำหนดของการไฟฟ้าทุกครั้ง แบบใช้งานจริงต้องลงนามโดยวิศวกร</p>
   </section>
 
+  <section class="tab" id="tab-design" hidden>
+    <header><h1>ออกแบบระบบโซลาร์ตามพิกัดจริง</h1><p class="sub">ทำเป็น 7 ขั้น: ข้อมูลโครงการและพิกัด GPS → การใช้ไฟและค่าไฟ → วาดหลังคาบนภาพดาวเทียม → วางแผง → ต่อสตริงกับอินเวอร์เตอร์ → ต้นทุน → รายงาน ค่ารังสีอาทิตย์ดึงจากฐานข้อมูล NASA POWER ตามพิกัด แล้วจำลองการผลิตไฟรายชั่วโมงเทียบกับการใช้ไฟของบ้าน</p></header>
+    <iframe id="designframe" class="lfpframe" title="ออกแบบระบบโซลาร์" loading="lazy" allow="geolocation"></iframe>
+    <p class="hint">ผลเป็นค่าประมาณเพื่อการเรียนรู้ ภาพดาวเทียมและขนาดหลังคาที่วัดจากภาพคลาดเคลื่อนได้ ต้องวัดหน้างานจริง และตรวจกับดาต้าชีต มาตรฐาน วสท. และข้อกำหนดการไฟฟ้า ต้องออนไลน์จึงจะเห็นแผนที่และดึงค่ารังสีจริงได้</p>
+  </section>
+
   <section class="tab" id="tab-library" hidden>
     <header><h1>คลังความรู้</h1><p class="sub">บทความอธิบายอุปกรณ์และหลักการที่ใช้ในเมนูอื่น อ่านประกอบการจำลอง แต่ละบทความมีตัวอย่างให้ลองและคำถามทบทวน</p></header>
     <div id="kbhost"></div>
@@ -798,7 +807,7 @@ if(m&&m[1]!=='38223bfda5'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
   </div></main>
 </div>
 
-<script>var LFP_V='82b8481b',CALC_V='efb70277',EIT_V='b68c956c'</script>
+<script>var LFP_V='82b8481b',CALC_V='efb70277',EIT_V='b68c956c',DESIGN_V='ed16e952'</script>
 <script src="js/config.js?v=6baae06b"></script>
 <script src="js/catalog.js?v=030d12f1"></script>
 <script src="js/pdfimport.js?v=e4c2f177"></script>
@@ -824,7 +833,7 @@ if(m&&m[1]!=='38223bfda5'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/basics.js?v=a988f584"></script>
 <script src="js/earth.js?v=ffe96f9d"></script>
 <script src="js/submit.js?v=86b607e8"></script>
-<script src="js/worksheets.js?v=a5b79a76"></script>
+<script src="js/worksheets.js?v=7007b7e9"></script>
 <script src="js/hwlog.js?v=3f551fe8"></script>
 <script src="js/hwplot.js?v=31708a63"></script>
 <script src="js/fusion.js?v=04e4187c"></script>
@@ -850,8 +859,9 @@ if(m&&m[1]!=='38223bfda5'&&sessionStorage.getItem('pvsim:reloaded')!==m[1]){sess
 <script src="js/lfp.js?v=3e093b67"></script>
 <script src="js/calc.js?v=e12f24cc"></script>
 <script src="js/eit.js?v=2ad0f7a2"></script>
-<script src="js/access.js?v=c75f6a33"></script>
+<script src="js/design.js?v=7eae50fb"></script>
+<script src="js/access.js?v=e03c30fc"></script>
 <script src="js/ctx.js?v=f19791ef"></script>
-<script src="js/app.js?v=38ed8581"></script>
+<script src="js/app.js?v=b9e9f5f4"></script>
 </body>
 </html>

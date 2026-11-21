@@ -1,7 +1,7 @@
 /* ---- app shell: tabs, persistence, boot ---- */
-const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc','eit','deye','accouple','smartload','dbox'];
+const TABS=['basics','equip','wiring','ac','pv','site','load','backup','systems','events','bench','submit','fusion','cable','library','solis','lfp','calc','eit','deye','accouple','smartload','dbox','design'];
 /* manual of each menu: docs/manual-<file>.md (keep in step with docs/README.md) */
-const MANUAL={basics:'00-basics',library:'01-library',equip:'02-equip',wiring:'03-wiring',ac:'04-ac',bench:'05-bench',cable:'06-cable',pv:'07-pv',site:'08-site',load:'09-load',backup:'10-backup',systems:'11-systems',events:'12-events',solis:'15-solis',lfp:'16-lfp',fusion:'17-fusion',deye:'18-deye',accouple:'19-accouple',smartload:'20-smartload',dbox:'21-dbox',submit:'22-submit',calc:'13-calc',eit:'14-eit'};
+const MANUAL={basics:'00-basics',library:'01-library',equip:'02-equip',wiring:'03-wiring',ac:'04-ac',bench:'05-bench',cable:'06-cable',pv:'07-pv',site:'08-site',load:'09-load',backup:'10-backup',systems:'11-systems',events:'12-events',solis:'15-solis',lfp:'16-lfp',fusion:'17-fusion',deye:'18-deye',accouple:'19-accouple',smartload:'20-smartload',dbox:'21-dbox',design:'22-design',submit:'23-submit',calc:'13-calc',eit:'14-eit'};
 let curTab='basics',loadedState=false,saveTimer=0,dirtyCat=false;
 
 function setNavH(){
@@ -53,6 +53,7 @@ function showTab(t,fromHash){
     else if(t==='lfp')lfpOpen();
     else if(t==='calc')calcOpen();
     else if(t==='eit')eitOpen();
+    else if(t==='design')designOpen();
     window.scrollTo(0,0);
   });
   touch();
