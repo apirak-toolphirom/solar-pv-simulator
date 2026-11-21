@@ -20,6 +20,7 @@ const WS_DEFAULT=[
   {id:'W15',name:'Commissioning Deye (Hybrid และ Microinverter)',tabs:'deye',crit:'deye_done>=1;deye_diag>=1',q:'ทำไมต้องวัดแรงดันและขั้ว PV ก่อนเปิด DC switch|ถ้า CT ติดกลับทิศ ค่าบนจอและการชาร์จแบตของ Deye จะผิดอย่างไร|ทำไมต้องเปิดเบรกเกอร์สายย่อยก่อนเบรกเกอร์เมนของไมโครอินเวอร์เตอร์ และทำไมห้ามเสียบ DC ขณะถอดขั้ว AC',img:'none',open:false,status:'ปิด'},
   {id:'W16',name:'AC Coupling: ต่ออินเวอร์เตอร์ออนกริดเข้า Hybrid',tabs:'accouple',crit:'acc_done>=1;acc_diag>=1',q:'ทำไมอินเวอร์เตอร์ AC ที่ต่อพอร์ต GEN ต้องถูกลดกำลังด้วยความถี่เมื่อไฟดับและแบตเต็ม|ถ้าเปิดกันย้อนแต่ไม่ติด CT หรือ CT อยู่ผิดตำแหน่ง จะเกิดอะไรขึ้นกับอินเวอร์เตอร์ AC|พื้นที่ห้ามขายไฟกับพื้นที่ขายไฟได้ ต้องตั้งค่า Hybrid และอินเวอร์เตอร์ AC ต่างกันอย่างไร',img:'none',open:false,status:'ปิด'},
   {id:'W17',name:'Smart Load: ชาร์จรถ EV ที่พอร์ต GEN',tabs:'smartload',crit:'sg_done>=2',q:'ทำไมต้องตั้ง SOC ON สูงกว่า SOC OFF และถ้าตั้งเท่ากันจะเกิดอะไรขึ้น|ถ้าชาร์จรถด้วยกระแสสูงเกินไป เครื่อง Hybrid จะตัด Smart Load เพราะอะไร|ตอนไฟดับ ควรตั้งเกณฑ์ SOC OFF ของ Smart Load อย่างไร เพื่อไม่ให้โหลดบ้านดับ',img:'none',open:false,status:'ปิด'},
+  {id:'W18',name:'ออกแบบระบบโซลาร์ตามพิกัดจริง',tabs:'design',crit:'design_roof;design_ok;design_clim',q:'ระบบที่คุณออกแบบมีกี่แผง กี่ kWp ผลิตไฟได้ปีละกี่ kWh และคืนทุนกี่ปี|ทำไมต้องใช้ Voc ที่อุณหภูมิต่ำสุดและ Vmp ที่อุณหภูมิร้อนสุดในการแบ่งสตริง|ถ้าหันแผงไปทางตะวันออก ตะวันตก หรือเหนือ ผลิตต่อ kWp เปลี่ยนไปเท่าไรและเพราะอะไร',img:'none'},
   {id:'W0',name:'ส่งรวม (ทุกเมนู)',tabs:'',crit:'',q:'',img:'dc'}
 ].map(w=>Object.assign({open:true,status:'auto',start:'',end:''},w));
 const WS_IMG={dc:'svg',ac:'acsvg',site:'siplan',bench:'bnsvg',none:''};
@@ -67,6 +68,9 @@ function wsCrit(key){
       const g={fc_pre:['pre','ตรวจและวัดก่อนเปิดเครื่อง'],fc_con:['con','เชื่อมต่อแอปและล็อกอิน'],fc_qs:['qs','Quick settings'],fc_on:['pw','เปิดเครื่องถึง On-grid'],fc_ver:['ve','ตรวจหลังเดินเครื่อง']}[k];
       const L=typeof fcChecks==='function'?fcChecks()[g[0]]:[],c=L.filter(x=>x[0]).length;
       return[`Commissioning Huawei: ${g[1]} ผ่านครบ (ตอนนี้ ${c}/${L.length||'?'})`,!!L.length&&c===L.length]}
+    case'design_roof':{const c=window.lastDESIGN;return[`วาดหลังคาและวางแผงได้อย่างน้อย 1 แผง${c?` (ตอนนี้ ${c.modules} แผง ${c.kwp||0} kWp)`:' (เปิดเมนู 22 ก่อนส่ง)'}`,!!(c&&c.modules>0)]}
+    case'design_ok':{const c=window.lastDESIGN;return['ออกแบบไฟฟ้าผ่านทุกข้อ (ต่อแผงครบ แรงดัน กระแส กำลัง)'+(c&&c.seen?'':' (เปิดขั้นออกแบบไฟฟ้าก่อน)'),!!(c&&c.seen&&c.stringsOk)]}
+    case'design_clim':{const c=window.lastDESIGN;return['ใช้ข้อมูลรังสีจริงตามพิกัด (NASA POWER) ไม่ใช่ตารางประมาณการ',!!(c&&c.climSrc==='nasa')]}
     case'hw_file':{const c=typeof HW!=='undefined'?HW.files.length:0;return[`นำเข้าไฟล์ log Huawei อย่างน้อย ${n} ไฟล์ (ตอนนี้ ${c})`,c>=n]}
   }
   return[`${key} (ผู้สอนตรวจเอง)`,null];

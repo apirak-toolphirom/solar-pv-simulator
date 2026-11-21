@@ -17,6 +17,7 @@ node tests/hwplot.test.js || fail=1
 node tests/menu19.test.js || fail=1
 node tests/menu21.test.js || fail=1
 node tests/design.test.js || fail=1
+node tests/design_ws.test.js || fail=1
 node tests/teacher.test.js || fail=1
 if python3 -c "import playwright" 2>/dev/null && [ -x "${CHROME:-/usr/bin/google-chrome}" ]; then
   python3 tests/mobile.py "${CHROME:-/usr/bin/google-chrome}" || fail=1

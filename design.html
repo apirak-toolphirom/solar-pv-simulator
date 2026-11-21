@@ -388,7 +388,12 @@ function refresh(){
   else if(id==='elec'){const dc=designCheck(),conn=dc?dc.conn:0;h=`<b class="${conn<N?'sev':'sok'}">แผงที่ยังไม่ได้ต่อ: ${N-conn}/${N}</b><b>DC: ${fx(kwp(),2)} kWp</b><b>AC: ${dc?fx(dc.ac,1):'–'} kW</b>`}
   else if(id==='report'||id==='cost'){const E=economics();h=`<b>${fx(kwp(),2)} kWp</b><b>ลงทุน ${fx(E.cap)} บาท</b><b>คืนทุน ${E.pay!=null?fx(E.pay,1)+' ปี':'–'}</b>`}
   else h=`<b>${esc(S.name)}</b><b>${fx(S.lat,5)}, ${fx(S.lon,5)}</b>`;
-  $('#stat').innerHTML=h;UPD[id]&&UPD[id]();save()}
+  $('#stat').innerHTML=h;UPD[id]&&UPD[id]();save();publish()}
+let pubT=0;
+function publish(now){const f=()=>{try{const N=activeMods().length,o={name:S.name,modules:N,climSrc:CLIMSRC,seen:!!S.inv.seen,stringsOk:false};
+    if(N){const R=simulate(),E=economics(),dc=designCheck(),pl=plane();Object.assign(o,{lat:+S.lat.toFixed(5),lon:+S.lon.toFixed(5),kwp:+kwp().toFixed(2),invKw:dc?+dc.ac.toFixed(1):0,tilt:pl.tilt,az:pl.az,genKwh:Math.round(R.tot.gen),yieldKwp:Math.round(E.yieldKwp),capex:Math.round(E.cap),payback:E.pay!=null?+E.pay.toFixed(1):null,npv:Math.round(E.npv),stringsOk:!!(dc&&dc.ok)})}
+    window.lastDESIGN=o;parent.postMessage({designRes:o},'*')}catch(e){}};
+  if(now){clearTimeout(pubT);f()}else{clearTimeout(pubT);pubT=setTimeout(f,700)}}
 function tellH(){try{parent.postMessage({designH:document.documentElement.scrollHeight+10},'*')}catch(e){}}
 new ResizeObserver(()=>tellH()).observe(document.body);
 
@@ -512,7 +517,7 @@ function drawMods(c,m){const L=getLayout();if(!L.g)return;L.mods.forEach(md=>{co
 VIEWS.elec=function(){
   const N=activeMods().length;
   if(!N){$('#view').innerHTML='<div class="card"><div class="errbox">ยังไม่มีแผงให้ต่อสาย กลับไปวาดหลังคาและวางแผงก่อน</div></div>';return}
-  const list=invList();if(!S.inv.id||!invById(S.inv.id))applyAuto();
+  S.inv.seen=true;const list=invList();if(!S.inv.id||!invById(S.inv.id))applyAuto();
   $('#view').innerHTML=`<div class="grid g2"><div class="card"><h2>ตั้งค่าไฟฟ้า</h2>
   ${fld('inv.ratio','สัดส่วนกำลังแผงต่ออินเวอร์เตอร์ (เป้าหมาย)',{type:'number',unit:'%',min:80})}<div class="small mut" id="ratioact" style="margin:-4px 0 8px"></div>
   <div class="chk"><input type="checkbox" id="cmeter" ${S.inv.meter?'checked':''}><label for="cmeter">มิเตอร์/CT ควบคุมการจ่ายไฟกลับ</label></div>
@@ -616,8 +621,8 @@ VIEWS.report=function(){
   $('#rfile').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(o.v!==1)throw 0;S=Object.assign(DEF(),o);inval();LAYK='';go(0)}catch(x){alert('ไฟล์โครงการไม่ถูกต้อง')}})};
   $('#rcsv').onclick=()=>{const rows=[['เดือน','รังสีบนระนาบแผง kWh/m2','ผลิต kWh','ใช้ไฟ kWh','ใช้เอง kWh','ขายคืน kWh','ซื้อ kWh']].concat(R.months.map((m,i)=>[MON[i],(m.poa*m.days).toFixed(1),m.gen.toFixed(1),m.load.toFixed(1),m.self.toFixed(1),m.exp.toFixed(1),m.imp.toFixed(1)]));
     const b=new Blob(['﻿'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(S.name||'design')+'.csv';a.click()};
-  $('#rsend').onclick=()=>{try{parent.postMessage({designRes:window.lastDESIGN},'*');$('#rsend').textContent='ส่งแล้ว ✓'}catch(e){}};
-  window.lastDESIGN={name:S.name,lat:+S.lat.toFixed(5),lon:+S.lon.toFixed(5),modules:N,kwp:+kwp().toFixed(2),invKw:dc?+dc.ac.toFixed(1):0,tilt:pl.tilt,az:pl.az,genKwh:Math.round(R.tot.gen),yieldKwp:Math.round(E.yieldKwp),capex:Math.round(E.cap),payback:E.pay!=null?+E.pay.toFixed(1):null,npv:Math.round(E.npv),stringsOk:!!(dc&&dc.ok),climSrc:CLIMSRC};
+  $('#rsend').onclick=()=>{publish(true);$('#rsend').textContent='ส่งแล้ว ✓'};
+  publish(true);
   drawReportCharts()};
 function drawReportCharts(){const c1=$('#rc1'),c2=$('#rc2');if(!c1||!c2)return;const R=simulate(),E=economics();
   bars(c1,MON,[{n:'ผลิต',v:R.months.map(m=>m.gen),c:'#1668e3'},{n:'ใช้ไฟ',v:R.months.map(m=>m.load),c:'#9aa5b1'},{n:'ใช้เอง',v:R.months.map(m=>m.self),c:'#16803c'}],'kWh');
