@@ -33,7 +33,10 @@
       <button class="navb" data-tab="accouple"><span class="ic">19</span>AC Coupling</button>
       <button class="navb" data-tab="smartload"><span class="ic">20</span>Smart Load</button>
     </details>
-      <button class="navb navsubmit" data-tab="submit"><span class="ic">21</span>ส่งงาน</button>
+    <details class="ngrp" data-grp="panel"><summary>ตู้ไฟและโหลด</summary>
+      <button class="navb" data-tab="dbox"><span class="ic">21</span>ตู้โหลด (Load Center)</button>
+    </details>
+      <button class="navb navsubmit" data-tab="submit"><span class="ic">22</span>ส่งงาน</button>
       <a class="manlink" id="manlink" href="https://github.com/apirak-toolphirom/solar-pv-simulator/blob/main/docs/README.md" target="_blank" rel="noopener">📘 คู่มือเมนูนี้</a>
     </div>
     <button class="themeb" id="themebtn" type="button" aria-label="สลับโทนสี"></button>
@@ -597,6 +600,12 @@
     <header><h1>Smart Load: พอร์ต GEN ชาร์จรถไฟฟ้า</h1><p class="sub">ต่อ wall charger รถ EV เข้าพอร์ต GEN ของ Deye หรือ Solis Hybrid ตั้งเกณฑ์ ON/OFF ของ Smart Load (SOC แบต กำลัง PV On Grid always on) แล้วดูผลในวันที่มีกลางคืน เมฆ ไฟดับ ระบบ On-grid / Off-grid ปรับโหลดบ้านและกระแสชาร์จได้</p></header>
     <div id="sghost"></div>
     <p class="hint">ชื่อรายการตั้งค่า (Gen Port Use, Smart Port, Smart Load ON/OFF) อ้างอิงคู่มือผู้ผลิตเท่าที่ทราบ ส่วนกำลังพอร์ต GEN เกณฑ์ และพฤติกรรมควบคุมเป็นแบบจำลองเพื่อการเรียนรู้ ไม่ใช่เฟิร์มแวร์จริง ตรวจกับเครื่องและคู่มือฉบับล่าสุดทุกครั้ง และให้ช่างไฟฟ้าผู้ได้รับอนุญาตติดตั้งจริง</p>
+  </section>
+
+  <section class="tab" id="tab-dbox" hidden>
+    <header><h1>ตู้โหลด (Load Center) 1 เฟส / 3 เฟส</h1><p class="sub">เลือกตู้ 1 เฟส หรือ 3 เฟส ขนาด 6 · 9 · 12 ช่อง ใส่เบรกเกอร์และอุปกรณ์ในแต่ละช่อง เพิ่ม/ลดอุปกรณ์ได้ เลือกขนาดสาย ดูสีสายตามมาตรฐานแต่ละเฟส และดูกราฟกำลังไฟ (W) ของแต่ละเฟส</p></header>
+    <div id="dbhost"></div>
+    <p class="hint">สีสายตาม วสท. 2564 ข้อ 5.1.11 (L / L1 น้ำตาล · L2 ดำ · L3 เทา · N ฟ้า · PE เขียวแถบเหลือง) สายเกิน 16 mm² ใช้สายสีดำพร้อมทำเครื่องหมายสีได้ ค่าอุปกรณ์เป็นค่าสมมติ กระแสสายใช้ตาราง PVC 70 °C ของเมนู 06 ผลเป็นค่าประมาณเพื่อการเรียนรู้ ตรวจกับมาตรฐานและข้อกำหนดการไฟฟ้าก่อนใช้งานจริง</p>
   </section>
 
   <section class="tab" id="tab-lfp" hidden>

@@ -1194,3 +1194,34 @@ body.fsmode .navtoggle{display:none}
 .hwpsim input,.hwpsim select{max-width:150px}.hwpsim .metrics{margin:8px 0}
 .hwloc{min-width:240px;flex:1}.hwloc input{width:100%}.hwpck{flex-direction:row!important;align-items:center;gap:6px!important}.hwpsim h4{margin:12px 0 4px}
 #hwlocmsg.err{color:var(--err)}
+
+/* เมนู 21 ตู้โหลด */
+.dbctl .dbrow,.dbslot .dbrow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin:6px 0}
+.dbrow label,.dbadd{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);min-width:0}
+.dbrow select,.dbadd select{min-height:38px;font-size:14px;max-width:100%}
+.dbboard{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 12px;margin:10px 0;display:flex;flex-direction:column;gap:8px}
+.dbmain{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;font-size:14px}
+.dbbus{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+.dbbar{display:inline-flex;align-items:center;gap:5px}
+.dbsw{display:inline-block;width:18px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.35);vertical-align:middle}
+.dbsw.none{background:transparent;border-style:dashed}
+.dbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}
+.dbcol{display:flex;flex-direction:column;gap:10px;min-width:0}
+.dbslot{border:1px solid var(--line);border-left:6px solid var(--ph,var(--line));background:var(--surface);border-radius:8px;padding:10px 12px;min-width:0}
+.dbslot.err{border-color:var(--err);border-left-color:var(--ph)}.dbslot.warn{border-color:var(--warn);border-left-color:var(--ph)}
+.dbslot.empty{opacity:.8}
+.dbh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dbwires{display:flex;flex-wrap:wrap;gap:6px 10px;margin:8px 0;font-size:13px}
+.dbwire{display:inline-flex;align-items:center;gap:5px}.dbwire.bad{color:var(--err)}.dbwire.good{color:var(--ink)}
+.dbdevs{list-style:none;margin:6px 0;padding:0}
+.dbdevs li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px;flex-wrap:wrap}
+.dbqty{display:inline-flex;align-items:center;gap:6px}.dbqty .btn{min-width:38px;padding:0}
+.dbw{width:80px;min-height:34px}
+.dbcalc{display:flex;flex-wrap:wrap;gap:4px 12px;font:12.5px var(--mono);color:var(--muted);margin:6px 0}
+.dbhint{font-size:13px;color:var(--muted);margin:6px 0 0}
+.dbsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:8px}
+.dbchart{display:flex;gap:18px;align-items:flex-end;justify-content:center;padding:10px 0 4px;min-height:230px}
+.dbcb{display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 1 110px;min-width:0}
+.dbct{height:150px;width:100%;display:flex;align-items:flex-end;border-bottom:2px solid var(--ink);background:repeating-linear-gradient(to top,transparent 0 37px,var(--line) 37px 38px)}
+.dbcf{width:100%;border-radius:4px 4px 0 0;transition:height .25s}
+.dbcv{font:600 14px var(--mono)}.dbcl{display:flex;align-items:center;gap:5px;font-size:14px}.dbcp{font-size:12px;color:var(--muted);text-align:center}
