@@ -1169,6 +1169,14 @@ html.lfpcompact #tab-lfp>header,html.lfpcompact #tab-lfp>.hint{display:none}
 #fupg-com .fctl{margin:8px 0;padding-left:22px;display:grid;gap:4px;font-size:14px}
 #fupg-com .fcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0}
 #fupg-com .fcgrid>div{display:grid;gap:2px}
+.fcmon{max-width:420px;margin:6px auto}.fcflow{width:100%;height:auto;color:var(--ink)}
+.fcflow .fcft{font-size:11.5px;fill:currentColor}.fcflow .fcft.h{font-weight:600}.fcflow .fcft.sm{font-size:9.5px}.fcflow .fcft.pvt{font-weight:600}
+.fcfl{fill:none;stroke-width:4;stroke-linecap:round;stroke-dasharray:.1 9}.fcfl.off{stroke:var(--line)}.fcfl.on{stroke:#1fb140;animation:fcdash 1s linear infinite}
+@keyframes fcdash{to{stroke-dashoffset:-18.2}}
+.fcic{fill:none;stroke:var(--muted);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}.fcic.inv{fill:var(--surface)}.fcic .bolt{stroke:var(--accent)}.fcic.dash{stroke-dasharray:4 4;opacity:.6}
+.fcled{fill:var(--line)}.fcled.on{fill:#1fb140}.fcring{fill:none;stroke:var(--line);stroke-width:4}.fcring.on{stroke:#1fb140}
+#fupg-com .fcsample summary{cursor:pointer;min-height:40px}
+@media (prefers-reduced-motion:reduce){.fcfl.on{animation:none;stroke-dasharray:2 7}}
 #fupg-com .chip[aria-pressed="true"]{background:var(--accentbg);border-color:var(--accent);font-weight:600}
 .dmleds{display:grid;gap:6px;margin:8px 0;font-size:13px}.dmleds .slled{align-items:flex-start;font:500 12.5px var(--body);color:var(--ink)}.dmleds .slled i{margin-top:4px;flex:none}
 
@@ -12154,6 +12162,67 @@ function fcPgPwr(){
   <p>สถานะเครื่อง: <span class="pill ${R.ok?'ok':R.st==='fault'?'err':'idle'}">${R.ok?'On-grid':R.st==='fault'?'Fault':R.st==='off'?'ปิดอยู่':'รอ'}</span> ${esc(R.msg)}</p>
   ${tl?`<ol class="fctl">${tl}</ol>`:''}${a?`<div class="fual-i act"><b>${esc(a.n)}</b><p class="hint tight">${esc(a.cause)}</p><p class="hint tight"><b>วิธีแก้:</b> ${esc(a.fix)}</p></div>`:''}${warn}</div>`;
 }
+/* หน้า monitor แบบแอป FusionSolar: แผนภาพทิศทางไหลของกำลัง PV → อินเวอร์เตอร์ → แบตเตอรี่ / กริด / โหลดบ้าน
+   d={name,mode,pv,ac,vac:[..],iac:[..],str:[[V,A],..],bat:{kw,v,soc,dir}|null,grid:kW|null(+ส่งออก −ซื้อ),home:kW|null,n} กำลังเป็น W */
+function fcFlowSeg(fwd,rev,w,dir,on){
+  if(!on||!w)return `<path d="${fwd}" class="fcfl off"/>`;
+  return `<path d="${dir<0?rev:fwd}" class="fcfl on"/>`;
+}
+function fcKw(w){return w==null?'—':fcN(w/1000,3)+' kW'}
+function fcFlowSVG(d){
+  const act=w=>w!=null&&Math.abs(w)>=5,pvOn=d.pv>=5,acOn=d.ac>=5,B=d.bat;
+  const bOn=B&&B.dir!==0&&(B.kw==null||Math.abs(B.kw)>=0.005);
+  const gOn=d.grid==null?acOn:act(d.grid),hOn=d.home==null?acOn:act(d.home);
+  const t=(x,y,s,c)=>`<text x="${x}" y="${y}" class="fcft${c?' '+c:''}">${esc(s)}</text>`;
+  let s=`<svg viewBox="0 0 360 352" class="fcflow" role="img" aria-label="แผนภาพทิศทางไหลของกำลังไฟฟ้า ${esc(d.name)}">`;
+  s+=fcFlowSeg('M276,300H28V170','M28,170V300H276',d.pv,1,pvOn);
+  s+=fcFlowSeg('M42,118V30H190','M190,30H42V118',d.ac,1,acOn);
+  s+=fcFlowSeg('M190,30H296','M296,30H190',d.grid==null?1:d.grid,d.grid!=null&&d.grid<0?-1:1,gOn);
+  s+=fcFlowSeg('M190,30V120H296','M296,120H190V30',d.home==null?1:d.home,1,hOn);
+  if(B)s+=fcFlowSeg('M56,170V215H212','M212,215H56V170',B.dir===0?0:1,B.dir<0?-1:1,bOn);
+  // ไอคอน: เสากริด บ้าน แบตเตอรี่ แผง อินเวอร์เตอร์
+  s+=`<g class="fcic" transform="translate(300 8)"><path d="M6 0V44M30 8V44M0 8H40M0 16H40M2 16 6 8M38 16 34 8"/></g>`;
+  s+=`<g class="fcic" transform="translate(298 98)"><path d="M2 20 22 2 42 20M8 16V40H36V16M18 40V28H26V40"/></g>`;
+  s+=`<g class="fcic" transform="translate(280 276)"><path d="M6 8H46L40 26H0Z M12 8 8 26M26 8V26M40 8 37 26M3 17H43"/><path d="M20 26V38M12 38H30"/><text x="52" y="14" class="fcft">×${d.n||''}</text></g>`;
+  s+=`<g class="fcic inv"><rect x="14" y="118" width="56" height="52" rx="8"/><path d="M42 134 36 146H46L40 158" class="bolt"/></g><circle cx="66" cy="124" r="4" class="${acOn?'fcled on':'fcled'}"/>`;
+  if(B){
+    s+=`<g class="fcic"><rect x="214" y="190" width="38" height="52" rx="4"/><path d="M222 200H244M222 208H244"/></g>`;
+    const soc=Math.max(0,Math.min(100,B.soc)),C=2*Math.PI*18;
+    s+=`<g transform="translate(296 216)"><circle r="18" class="fcring"/><circle r="18" class="fcring on" stroke-dasharray="${(C*soc/100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90)"/><text class="fcft sm" text-anchor="middle" y="4">${fcN(soc,1)}%</text></g>`;
+    s+=t(214,260,'แบตเตอรี่','h')+t(214,274,fcKw(B.kw==null?null:B.kw*1000)+(B.v!=null?' · '+fcN(B.v,1)+' V':''));
+  }else s+=`<g class="fcic dash"><rect x="214" y="190" width="38" height="52" rx="4"/></g>`+t(214,260,'ไม่ได้ติดตั้งแบตเตอรี่','h');
+  s+=t(80,112,fcN(d.ac/1000,3)+' kW','h');
+  (d.vac||[]).forEach((v,i)=>{s+=t(80,128+i*14,'ABC'[i]+': '+fcN(v,1)+' V  '+fcN(d.iac[i],2)+' A')});
+  s+=t(36,196,fcKw(d.pv),'pvt');
+  if(d.grid!=null)s+=t(196,22,(d.grid<0?'ซื้อจากกริด ':d.grid>0?'ส่งออกกริด ':'กริด ')+fcKw(Math.abs(d.grid)));
+  if(d.home!=null)s+=t(196,114,'โหลดบ้าน '+fcKw(d.home));
+  (d.str||[]).forEach((x,i)=>{s+=t(28,322+i*14,'PV'+(i+1)+'   '+fcN(x[0],1)+' V   '+fcN(x[1],2)+' A')});
+  return s+'</svg>';
+}
+function fcMonitor(L){
+  const I=fcInv(),zero=FC.qs.apc==='zero',HOME=3500;
+  let ac=L.pac;if(zero&&ac>HOME)ac=HOME;
+  const grid=ac-HOME,n=I.tri?3:1,v=I.tri?[231.6,232.1,231.2]:[229.8];
+  const d={name:I.name,pv:ac/(I.eff/100),ac,vac:v.slice(0,n),iac:v.slice(0,n).map(x=>ac/n/x),str:[[L.pv[0],L.i[0]],[L.pv[1],L.i[1]]],bat:null,grid:zero?(grid<0?grid:0):grid,home:Math.min(ac,HOME)+(grid<0?-grid:0),n:fcStr().ns*2};
+  return `<div class="card"><h3>หน้า Monitor ของแอป FusionSolar (Power flow)</h3>
+  <p class="hint">แผนภาพนี้เป็นหน้าจอแรกที่ลูกค้าเห็นหลังติดตั้ง จุดเขียวที่เคลื่อนไหวคือทิศทางที่พลังงานไหล เส้นเทาไม่มีการไหล · สมมติโหลดบ้าน ${fcN(HOME/1000,1)} kW · Active power control: <b>${esc((FC_APC.find(o=>o[0]===FC.qs.apc)||[0,'—'])[1])}</b></p>
+  <div class="fcmon">${fcFlowSVG(d)}</div>
+  <p class="hint tight">${zero?'ตั้ง Zero export: เครื่องจำกัดกำลังไม่เกินโหลดบ้าน ไม่มีไฟไหลออกกริด':'ไม่ได้ตั้ง Zero export: ถ้ากำลังผลิตเกินโหลดบ้าน ส่วนเกินไหลออกกริด (ต้องได้รับอนุญาตจากการไฟฟ้าก่อน)'} · ลองกลับไปขั้น 3 เปลี่ยน Active power control แล้วดูทิศทางเส้นที่กริด</p></div>
+  ${fcMonitorSample()}`;
+}
+function fcMonitorSample(){
+  const d={name:'SUN2000-10K-MAP0',pv:1389,ac:1388,vac:[230.9,232.7,224.4],iac:[3.6,1.72,0.7],str:[[0,0],[190,7.75]],bat:{kw:.001,v:761.5,soc:26,dir:1},grid:null,home:null,n:8};
+  const sum=d.vac.reduce((a,v,i)=>a+v*d.iac[i],0);
+  return `<details class="card fcsample"><summary><h3 style="display:inline">ฝึกอ่านจากจอจริง: SUN2000-10K-MAP0 (ออนกริด + แบตเตอรี่)</h3></summary>
+  <p class="hint">ภาพนี้สร้างซ้ำจากหน้าจอแอป FusionSolar ของระบบจริง 1 เครื่อง (เลียนแบบเพื่อการสอน) ลองตอบก่อนกดดูเฉลย</p>
+  <div class="fcmon">${fcFlowSVG(d)}</div>
+  <ol class="fctl"><li>พลังงานไหลจากไหนไปไหน และแบตเตอรี่กำลังชาร์จหรือจ่าย?</li><li>PV กับ AC ต่างกันเท่าไร ใครเป็นผู้ใช้ไฟที่ผลิตได้?</li><li>PV1 แสดง 0 V 0 A ผิดปกติหรือไม่?</li><li>ตรวจว่า V × A ของสามเฟสรวมกันตรงกับ kW ที่แสดงหรือไม่</li></ol>
+  <details><summary>เฉลย</summary>
+  <p class="hint tight">1) แผงโซลาร์ (8 แผง) → อินเวอร์เตอร์ → ออกทาง AC ไปบ้านและกริด ส่วนแบตเตอรี่อยู่ที่ 26% กำลังเกือบ 0 (0.001 kW) แปลว่าแทบไม่ชาร์จไม่จ่าย อยู่ในสถานะพัก</p>
+  <p class="hint tight">2) PV 1.389 kW เข้า AC ออก 1.388 kW ต่างกันเพียง 0.001 kW ใกล้เคียงกำลังของแบตเตอรี่ที่แสดง จึงเห็นว่ากำลังเข้า ≈ กำลังออก (ความสูญเสียในเครื่องมีอยู่จริงแต่ค่าบนจอละเอียดไม่พอ) และ 1.4 kW ถือว่าน้อยเมื่อเทียบกับขนาด 10 kW ของเครื่อง ผู้ใช้ไฟที่ผลิตได้คือโหลดในบ้าน ส่วนที่เหลือไหลออกกริด (จอไม่แสดงสัดส่วน)</p>
+  <p class="hint tight">3) ไม่ผิดปกติถ้าสตริงทั้ง 8 แผงต่ออยู่ที่ PV2 อย่างเดียว PV1 จึงไม่มีแรงดัน ถ้าตั้งใจต่อ 2 สตริงแต่ PV1 เป็น 0 ให้ตรวจสายและสวิตช์ DC · PV2 190 V × 7.75 A ≈ ${fcN(190*7.75/1000,2)} kW ใกล้เคียงกับ 1.389 kW แต่ไม่เท่ากันพอดี เพราะค่าบนจออ่านคนละจังหวะเวลา</p>
+  <p class="hint tight">4) 230.9×3.60 + 232.7×1.72 + 224.4×0.70 ≈ ${fcN(sum,0)} W = ${fcN(sum/1000,3)} kW ตรงกับ 1.388 kW (สามเฟสไม่สมดุลได้ เพราะโหลดแต่ละเฟสไม่เท่ากัน) · แรงดันเฟส C ต่ำกว่าเฟสอื่นประมาณ 8 V ควรเก็บไว้เทียบกับ log ถ้าพบ Grid undervoltage</p></details></details>`;
+}
 function fcPgVer(){
   const L=fcLive(),C=fcCloud();
   if(!L.R.ok)return '<p class="hint">เครื่องยังไม่อยู่ในสถานะ On-grid ไปทำขั้น 4 ให้สำเร็จก่อน</p>';
@@ -12161,7 +12230,7 @@ function fcPgVer(){
   return `<div class="card"><h3>ตรวจหลังเดินเครื่อง (ค่าประมาณตอนแดดจัด)</h3>
   <div class="fcgrid"><div><span class="lab">PV1</span><b>${fcN(L.pv[0],0)} V · ${fcN(L.i[0],1)} A</b></div><div><span class="lab">PV2</span><b>${fcN(L.pv[1],0)} V · ${fcN(L.i[1],1)} A</b></div><div><span class="lab">กำลัง AC</span><b>${fcN(L.pac/1000,2)} kW</b></div><div><span class="lab">Grid code ที่ตั้ง</span><b>${esc(FC.qs.gc||'—')}</b></div></div>
   <p class="hint">แรงดันสองสตริงต่างกัน ${fcN(bal,1)}% ${fcPill(bal<5)}</p>
-  <p><b>LED Smart Dongle:</b> ${esc(C.led)} ${fcPill(C.ok)}</p>${C.ok?'':`<p class="hint">สาเหตุ: ${esc(C.why)} · ย้อนไปแก้ที่ขั้น 3 แล้วกลับมาดูใหม่ (ดูตาราง 4-1 ในหน้า "คู่มือ (แปลไทย)")</p>`}</div>`;
+  <p><b>LED Smart Dongle:</b> ${esc(C.led)} ${fcPill(C.ok)}</p>${C.ok?'':`<p class="hint">สาเหตุ: ${esc(C.why)} · ย้อนไปแก้ที่ขั้น 3 แล้วกลับมาดูใหม่ (ดูตาราง 4-1 ในหน้า "คู่มือ (แปลไทย)")</p>`}</div>${fcMonitor(L)}`;
 }
 function fcPgSum(){
   const s=fcScore(),c=s.c,grp=(t,a)=>`<div class="card"><h3>${t}</h3>${a.map(x=>`<div class="fcrow">${x[0]?'✅':'⬜'} ${esc(x[1])}</div>`).join('')}</div>`;
