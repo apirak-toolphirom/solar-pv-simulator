@@ -54,7 +54,7 @@ load().then(({ ev, errs }) => {
   eq('string voltages balanced', ev(`fcChecks().ve[0][0]`), 'true');
   eq('whole run passes', ev(`fcScore().ok`), 'true');
   /* worksheet W14 criteria follow the run */
-  eq('W14 exists and is closed by default', ev(`const w=WS_DEFAULT.find(x=>x.id==='W14');w.tabs+' '+w.status+' '+w.crit.split(';').length+' '+w.q.split('|').length`), 'fusion ปิด 5 3');
+  eq('W14 exists and is closed by default', ev(`const w=WS_DEFAULT.find(x=>x.id==='W14');w.tabs+' '+w.status+' '+w.crit.split(';').length+' '+w.q.split('|').length`), 'fusion ปิด 5 4');
   eq('W14 criteria all pass after a full run', ev(`WS_DEFAULT.find(x=>x.id==='W14').crit.split(';').every(k=>wsCrit(k)[1])`), 'true');
   eq('W14 quick-settings criterion fails when grid code is wrong', ev(`FC.qs.gc='TAI-MEA';wsCrit('fc_qs')[1]`), 'false');
   eq('W14 on-grid criterion fails with DC off', ev(`FC.qs.gc='TAI-PEA';fcAct('alloff');const r=wsCrit('fc_on')[1];fcAct('sw','ac');fcAct('sw','dc');r`), 'false');
